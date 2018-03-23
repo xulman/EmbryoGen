@@ -6,7 +6,6 @@
 #include "agents.h"
 
 #include "simulation.h" //for initializeAgents()
-#include "graphics.h"	//for initializeGL()
 
 //create single object (an instance of the global parameters class)
 ParamsClass params;
@@ -18,9 +17,9 @@ std::list<Cell*> agents;
 int main(int argc,char **argv)
 {
 	//set up the environment
-    params.sceneOffset=Vector3d<float>(0.f);
-    params.sceneSize=Vector3d<float>(200.f,200.f,1.f); //az se vyladi sily mezi nima
-    //params.sceneSize=Vector3d<float>(60.f,60.f,1.f); //testing with mode=1
+	params.sceneOffset=Vector3d<float>(0.f);
+	params.sceneSize=Vector3d<float>(200.f,200.f,1.f); //az se vyladi sily mezi nima
+	//params.sceneSize=Vector3d<float>(60.f,60.f,1.f); //testing with mode=1
 	params.sceneOuterBorder=Vector3d<float>(10.f);
 	params.sceneBorderColour.r=0.5f;
 	params.sceneBorderColour.g=0.5f;

@@ -1,7 +1,6 @@
 #ifndef PARAMS_H
 #define PARAMS_H
 
-#include <GL/glew.h>
 #include <cmath>
 #include <iostream>
 #include <string.h>
