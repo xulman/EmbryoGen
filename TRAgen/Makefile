@@ -36,7 +36,7 @@ $(OBJECTS) : $(HEADERS)
 
 # now, here's how to build it together
 particles: $(OBJECTS)
-	g++ $(CXXFLAGS) -o particles $(OBJECTS) -lglut -lGL -lgsl -lgslcblas
+	g++ $(CXXFLAGS) -o particles $(OBJECTS) -li3dalgo -li3dcore -lgsl -lgslcblas -framework glut /usr/X11R6/lib/libGL.dylib -lGLEW
 
 clean:
 	rm -vf particles $(OBJECTS)
