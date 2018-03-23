@@ -45,7 +45,7 @@ int showCells=1; //&1 = show current, &2 = show former,
 ///whether the simulation is paused (=1) or not (=0)
 int pauseSimulation=1;
 ///how big chunks of steps should be taken between drawing
-int stepGranularity=10;
+int stepGranularity=1;
 
 ///OpenGL window size -> to recalculate from windows coords to scene coords
 int windowSizeX=0, windowSizeY=0;
@@ -299,7 +299,7 @@ void keyboard(unsigned char key, int mx, int my)
 				if (params.currTime < params.stopTime) pauseSimulation^=1;
 				if (!pauseSimulation)
 				{
-					stepGranularity=10; //= 1 min
+                    stepGranularity=1; //= 1 min
 					timer(0);
 				}
             break;

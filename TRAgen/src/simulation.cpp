@@ -21,12 +21,10 @@ extern std::list<Cell*> agents;
 void initializeAgents(const int mode)
 {
 	//bank of sampled cells
-	const int filesNo=3;
+    const int filesNo=2;
 	char fileNames[filesNo][30]={
-			"cells/cell_1.txt",
-			"cells/cell_2.txt",
-			"cells/cell_3.txt"
-			//"cells/cell_4.txt"
+            "cells/cell_3.txt",
+            "cells/cell_1.txt"
 		};
 
 	if (mode == 3) //wound healing

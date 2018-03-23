@@ -22,15 +22,16 @@ std::list<Cell*> agents;
 int main(void)
 {
 	//set up the environment
-    params.sceneOffset=Vector3d<float>(0.f);
-    params.sceneSize=Vector3d<float>(1152.f,921.f,1.f); //az se vyladi sily mezi nima
+    //set up the environment
+    params.sceneOffset=Vector3d<float>(-100.f);
+    params.sceneSize=Vector3d<float>(200.f,200.f,1.f); //az se vyladi sily mezi nima
     //params.sceneSize=Vector3d<float>(60.f,60.f,1.f); //testing with mode=1
-	params.sceneOuterBorder=Vector3d<float>(25.f);
+    params.sceneOuterBorder=Vector3d<float>(25.f);
 	params.sceneBorderColour.r=0.5f;
 	params.sceneBorderColour.g=0.5f;
 	params.sceneBorderColour.b=0.5f;
 
-    params.numberOfAgents=150;
+    params.numberOfAgents=20;
 
 	params.friendshipDuration=10.f;
 	params.maxCellSpeed=0.20f;
@@ -51,8 +52,8 @@ int main(void)
 	params.stopTime=1000.f; //100 steps x 10mins
 
 	//init agents accordingly
-    initializeAgents(10);
-    //initializeAgents(1);
+    initializeAgents(0); //grid
+    //initializeAgents(1); //two cells for testing
 
 	//fire up the simulation
 	initializeGL();

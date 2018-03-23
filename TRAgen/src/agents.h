@@ -74,7 +74,7 @@ class Cell {
 	  * updates the position rigidly, updates
 	  * Cell::pos, Cell::orientation, Cell::bp
 	  */
-    void calculateNewPosition(const Vector3d<float>& translation,float rotation);
+    void calculateNewPosition(const Vector3d<float>& translation);
 
 // -------- constant params of the cell -------- 
 	///weight of the cell [mg]
@@ -259,20 +259,15 @@ class Cell {
 	  */
 	 float CalcRadiusDistance(const Cell& buddy);
 
-	/**
-	 * Calculate nearest distance of this cell to the \e buddy.
-	 *
-	 * \return
-	 * If the cells do not intersect, it returns positive number.
-	 * Otherwise, it returns negative number whose absolute value
-	 * tells the distance of the mutual penetration.
-	 */
-    float CalcDistance(const Cell& buddy);
-
-	 ///similar to CalcDistance(); in casee of intersection,
-	 ///returns \e number of intersecting points
-    float CalcDistance2(const Cell& buddy,int& number,
-	                     const float ext=0.f);
+     /**
+      * Calculate nearest distance of this cell to the \e buddy.
+      *
+      * \return
+      * If the cells do not intersect, it returns positive number.
+      * in casee of intersection, returns \e number of intersecting points
+      */
+     float CalcDistance2(const Cell& buddy,int& number,
+                          const float ext=0.f);
 
     ///lambda to calculate social force
     float lambda;
@@ -339,7 +334,48 @@ class Cell {
     void calculateForces(const float timeDelta);
 
 	 ///simulate mainly motion due to forces after the \e timeDelta time
-	 void applyForces(const float timeDelta);
+     void applyForces(const float timeDelta);
+
+     /**
+      * @brief roundCell rounds the cell into a circle, preserving volume
+      */
+     void roundCell(void);
+     /**
+      * variables that control rounding of the cell
+      */
+     float round_cell_progress, round_cell_duration;
+
+     /**
+      * volume of the cell
+      */
+     float volume;
+
+     int DirChCount, DirChInter, stretchCount;
+     /**
+      * @brief CellStretch stretches the cell according to desired speed and its orientation
+      */
+     void CellStretch(float DesDir2);
+     /**
+      * @brief stretch attribute that says, if the cell is stretching or not
+      */
+     bool stretch;
+
+     /**
+      * help attributes all used for calculating new cell shape whan changing direction and speed
+      */
+     std::list<PolarPair> dreamShape, dreamTransform;
+     float initialOrientation;
+
+     /**
+      * @brief calculateVolume calculates volume of the cell
+      * @return
+      */
+     float calculateVolume(void);
+
+     /**
+      * attributed used to store desired direction during calculation of the new position
+      */
+     float desDir;
 };
 
 

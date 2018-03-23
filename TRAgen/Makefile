@@ -1,12 +1,23 @@
-# sources that make up the program
-SOURCES=src/graphics.cpp \
-		  src/simulation.cpp \
-		  src/agents.cpp \
-		  src/rnd_generators.cpp \
-		  src/main.cpp
+# headers and ...
+HEADERS=src/params.h \
+        src/graphics.h \
+        src/simulation.h \
+        src/agents.h \
+        src/rnd_generators.h
 
-# their objects
+# ... sources that make up the program ...
+SOURCES=src/graphics.cpp \
+        src/simulation.cpp \
+        src/agents.cpp \
+        src/rnd_generators.cpp \
+        src/main.cpp
+
+# ... and their objects
 OBJECTS=$(SOURCES:.cpp=.o)
+
+# default building target ...
+all: particles
+
 
 # some more hints for the compiler
 #DEBUG
@@ -15,12 +26,13 @@ OBJECTS=$(SOURCES:.cpp=.o)
 #RELEASE
 CXXFLAGS=-Wall -Wextra -O2 -pedantic -fopenmp
 
+
 # rule to get object files from their sources
 .cpp.o:
 	g++ $(CXXFLAGS) -c $< -o $@
 
-# default building target ...
-all: particles
+# force recompilation of all objects if any header is changed
+$(OBJECTS) : $(HEADERS)
 
 # now, here's how to build it together
 particles: $(OBJECTS)
@@ -28,3 +40,4 @@ particles: $(OBJECTS)
 
 clean:
 	rm -vf particles $(OBJECTS)
+

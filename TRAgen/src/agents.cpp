@@ -12,7 +12,7 @@
 #define DEG_TO_RAD(x) ((x)*M_PI/180.0f)
 
 ///whether to enable a time-lapse cell positions reporting
-#define REPORT_STATS
+//#define REPORT_STATS
 
 //link to the global params
 extern ParamsClass params;
@@ -75,6 +75,9 @@ int GetNewCellID(void)
 
 void Cell::InitialSettings(bool G1start)
 {
+    this->stretch = false;
+    this->desDir=0.f;
+
 	 //we're in constructor, no dying yet
 	 this->shouldDie=false;
 
@@ -91,6 +94,7 @@ void Cell::InitialSettings(bool G1start)
 
 	 //social force:
 	 //social force from all in the vicinity
+    this->stretchCount=0;
     this->lambda=1.0f;
 	 //starting to build up within a distance of 1um
 	 //zero distance = force of 0.2N
@@ -239,7 +243,7 @@ Cell::Cell(const char* filename,
 			}
 		}
 
-
+/*
 		//now, re-adjust to cell diameter of 32um, hence radius=16um
 		float stretch=17.f / outerRadius;
 		p=bp.begin();
@@ -250,7 +254,7 @@ Cell::Cell(const char* filename,
 		}
 		outerRadius*=stretch;
 		orientation.dist*=stretch;
-
+*/
 
 		//REPORT("bp list size is now " << bp.size());
 		//this->ListBPs();
@@ -304,33 +308,120 @@ Cell::Cell(const Cell& buddy,
 }
 
 
-void Cell::calculateNewPosition(const Vector3d<float>& translation,float rotation)
+void Cell::calculateNewPosition(const Vector3d<float>& translation)
 {
 	//update: move
-	pos+=translation;
+    //the stretching is done only if the cell is not reproducing itself
+    if(curPhase!=G1Phase && curPhase!=Cytokinesis && curPhase!=Telophase)
+    {
+        //this part prepared the dreamShape
+        if(!stretch)
+        {
 
-	//update: rotate
-	std::list<PolarPair>::iterator p=bp.begin();
-	while (p != bp.end())
-	{
-		p->ang = std::fmod(double(p->ang + rotation), 2.*PI);
+           // desiredDirection=GetRandomUniform(0.f,2*PI);
+            float x1=cos(desiredDirection);
+            float y1=sin(desiredDirection);
 
-		/* for detecting of crippled shapes
-		if (p->dist < 1) std::cout << "dist=" << p->dist
-		                        << ", curPhase=" << this->curPhase
-		                        << ", phaseProgress=" << this->phaseProgress << "\n";
-		*/
-		p++;
-	}
-	orientation.ang = std::fmod(double(orientation.ang + rotation), 2.*PI);
+            float x2=x1+translation.x;
+            float y2=y1+translation.y;
 
-	//update: rotate initial -- so that it shadows the current orientation
-	p=initial_bp.begin();
-	while (p != initial_bp.end())
-	{
-		p->ang = std::fmod(double(p->ang + rotation), 2.*PI);
-		p++;
-	}
+            desDir = atan2(y2,x2);
+            //desiredSpeed=GetRandomUniform(0.0f, 0.8f);
+            //new values for direction and speed are calculated
+            //desDir = atan2(translation.y,translation.x);
+
+
+            //dream shape is the shape of the original cell rotated by desired direction
+            std::list<PolarPair>::iterator q=initial_bp.begin();
+            dreamShape=initial_bp;
+            std::list<PolarPair>::iterator p=dreamShape.begin();
+            while (q != initial_bp.end())
+            {
+                float change = -initialOrientation+desDir;
+                orientation.ang = desDir;
+
+
+                p->ang = std::fmod(double(q->ang + change), 2.*PI);
+                q++;
+                p++;
+
+            }
+
+            //the cell is stretched
+            CellStretch(desDir);
+            dreamTransform=bp;
+            stretch = true;
+
+        }
+        //if stretching is on progress, the bp of the cells and their interpolation during movement are calculted using the dreamShape and dreamTransform lists
+        if(stretch)
+        {
+            stretchCount++;
+
+
+            float smallestdist = 1000.f;
+            int iter=0, finaliter=0;
+            std::list<PolarPair>::iterator q = dreamShape.begin();
+            std::list<PolarPair>::iterator r = dreamTransform.begin();
+            while (r != dreamTransform.end())
+            {
+                float x1 = r->dist*cos(r->ang);
+                float y1 = r->dist*sin(r->ang);
+                float x2 = q->dist*cos(q->ang);
+                float y2 = q->dist*sin(q->ang);
+
+                float dist = sqrt((x2-x1)*(x2-x1)+(y2-y1)*(y2-y1));
+
+                if(dist<smallestdist)
+                {
+                    smallestdist=dist;
+                    finaliter=iter;
+                }
+                iter++;
+                r++;
+            }
+
+            std::list<PolarPair>::iterator p = bp.begin();
+            q = dreamShape.begin();
+            r = dreamTransform.begin();
+
+            for(int i = 0; i<finaliter; i++)
+            {
+                r++;
+            }
+
+            while (p != bp.end())
+            {
+                if(r == dreamTransform.end())
+                    r=dreamTransform.begin();
+
+                float x1 = r->dist*cos(r->ang);
+                float y1 = r->dist*sin(r->ang);
+                float x2 = q->dist*cos(q->ang);
+                float y2 = q->dist*sin(q->ang);
+
+                float x3=x1+(stretchCount/5.f)*(x2-x1);
+                float y3=y1+(stretchCount/5.f)*(y2-y1);
+
+                p->ang=atan2(y3,x3);
+                p->dist=x3/cos(p->ang);
+
+
+
+                p++;
+                q++;
+                r++;
+            }
+
+            if(stretchCount==3)
+            {
+                stretchCount=0;
+                stretch=false;
+
+            }
+        }
+    }
+    pos+=translation;
 }
 
 
@@ -547,291 +638,7 @@ float Cell::CalcRadiusDistance(const Cell& buddy)
 }
 
 
-float Cell::CalcDistance(const Cell& buddy)
-{
 
-    float main_azimut = atan2(buddy.pos.y-this->pos.y, buddy.pos.x-this->pos.x)*180/PI;
-    if (main_azimut < 0.f)
-    {
-        main_azimut+=360;
-    }
-    //std::cout << " " << main_azimut << std::endl;
-
-    //calculation of owners points
-    std::list<PolarPair>::const_iterator p=bp.begin();
-    PolarPair this_lower_azimut;
-    PolarPair this_higher_azimut;
-
-
-     while (p != bp.end())
-    {
-        //std::cout << (*p).ang*180/PI << std::endl;
-        if(p==bp.begin() )
-        {
-            std::list<PolarPair>::const_iterator r=bp.end();
-            r--;
-            if(((*p).ang*180/PI >= main_azimut || (*r).ang*180/PI <= main_azimut))
-            {
-                this_lower_azimut.ang = (*p).ang;
-                this_higher_azimut.ang = (*r).ang;
-                this_lower_azimut.dist = (*p).dist;
-                this_higher_azimut.dist = (*r).dist;
-            }
-            else
-            {
-                std::list<PolarPair>::const_iterator r=p;
-                r++;
-                if(((*p).ang*180/PI <= main_azimut && (*r).ang*180/PI >= main_azimut))
-                {
-
-                    this_lower_azimut.ang = (*p).ang;
-                    this_higher_azimut.ang = (*r).ang;
-                    this_lower_azimut.dist = (*p).dist;
-                    this_higher_azimut.dist = (*r).dist;
-
-                }
-            }
-
-        }
-        else
-        {
-            std::list<PolarPair>::const_iterator r=p;
-            r++;
-            if(((*p).ang*180/PI <= main_azimut && (*r).ang*180/PI >= main_azimut))
-            {
-
-                this_lower_azimut.ang = (*p).ang;
-                this_higher_azimut.ang = (*r).ang;
-                this_lower_azimut.dist = (*p).dist;
-                this_higher_azimut.dist = (*r).dist;
-            }
-        }
-
-        p++;
-
-    }
-
-    //std::cout << "this_lower_azimut:" << this_lower_azimut.ang*180/PI << std::endl;
-    //std::cout << "this_higher_azimut:" << this_higher_azimut.ang*180/PI << std::endl;
-
-
-    //calculation of buddys points
-    p=buddy.bp.begin();
-    PolarPair buddy_lower_azimut;
-    PolarPair buddy_higher_azimut;
-
-    main_azimut-=180.f;
-    if (main_azimut < 0.f)
-    {
-        main_azimut+=360.f;
-    }
-    //std::cout << "reverse azimut " << main_azimut << std::endl;
-     while (p != buddy.bp.end())
-    {
-        //std::cout << (*p).ang*180/PI << std::endl;
-        if(p==buddy.bp.begin() )
-        {
-            std::list<PolarPair>::const_iterator r=buddy.bp.end();
-            r--;
-            if(((*p).ang*180/PI >= main_azimut || (*r).ang*180/PI <= main_azimut))
-            {
-                buddy_lower_azimut.ang = (*p).ang;
-                buddy_higher_azimut.ang = (*r).ang;
-                buddy_lower_azimut.dist = (*p).dist;
-                buddy_higher_azimut.dist = (*r).dist;
-            }
-            else
-            {
-                std::list<PolarPair>::const_iterator r=p;
-                r++;
-                if(((*p).ang*180/PI <= main_azimut && (*r).ang*180/PI >= main_azimut))
-                {
-
-                    buddy_lower_azimut.ang = (*p).ang;
-                    buddy_higher_azimut.ang = (*r).ang;
-                    buddy_lower_azimut.dist = (*p).dist;
-                    buddy_higher_azimut.dist = (*r).dist;
-
-                }
-            }
-
-        }
-        else
-        {
-            std::list<PolarPair>::const_iterator r=p;
-            r++;
-            if(((*p).ang*180/PI <= main_azimut && (*r).ang*180/PI >= main_azimut))
-            {
-
-                buddy_lower_azimut.ang = (*p).ang;
-                buddy_higher_azimut.ang = (*r).ang;
-                buddy_lower_azimut.dist = (*p).dist;
-                buddy_higher_azimut.dist = (*r).dist;
-            }
-        }
-
-        p++;
-
-    }
-
-    //std::cout << "buddy_lower_azimut:" << buddy_lower_azimut.ang*180/PI << std::endl;
-    //std::cout << "buddy_higher_azimut:" << buddy_higher_azimut.ang*180/PI << std::endl;
-
-    //4 points
-    Vector3d<float> this_point1_coord(pos.x+cos(this_lower_azimut.ang)*this_lower_azimut.dist,pos.y+sin(this_lower_azimut.ang)*this_lower_azimut.dist,0.f);
-    Vector3d<float> this_point2_coord(pos.x+cos(this_higher_azimut.ang)*this_higher_azimut.dist,pos.y+sin(this_higher_azimut.ang)*this_higher_azimut.dist,0.f);
-    Vector3d<float> buddy_point1_coord(buddy.pos.x+cos(buddy_lower_azimut.ang)*buddy_lower_azimut.dist,buddy.pos.y+sin(buddy_lower_azimut.ang)*buddy_lower_azimut.dist,0.f);
-    Vector3d<float> buddy_point2_coord(buddy.pos.x+cos(buddy_higher_azimut.ang)*buddy_higher_azimut.dist,buddy.pos.y+sin(buddy_higher_azimut.ang)*buddy_higher_azimut.dist,0.f);
-
-
-    //std::cout << "owners 1. point coordinates: " << this_point1_coord.x << " " << this_point1_coord.y << "\n";
-    //std::cout << "owners 2. point coordinates: " << this_point2_coord.x << " " << this_point2_coord.y << "\n";
-    //std::cout << "buddys 1. point coordinates: " << buddy_point1_coord.x << " " << buddy_point1_coord.y << "\n";
-    //std::cout << "buddys 2. point coordinates: " << buddy_point2_coord.x << " " << buddy_point2_coord.y << "\n";
-
-    //4 vectors
-    std::vector< Vector3d<float> > vectors;
-    Vector3d<float> first(buddy_point1_coord.x-this_point1_coord.x, buddy_point1_coord.y-this_point1_coord.y, 0.f);
-    Vector3d<float> second(buddy_point2_coord.x-this_point1_coord.x, buddy_point2_coord.y-this_point1_coord.y, 0.f);
-    Vector3d<float> third(buddy_point1_coord.x-this_point2_coord.x, buddy_point1_coord.y-this_point2_coord.y, 0.f);
-    Vector3d<float> forth(buddy_point2_coord.x-this_point2_coord.x, buddy_point2_coord.y-this_point2_coord.y, 0.f);
-    vectors.push_back(first);
-    vectors.push_back(second);
-    vectors.push_back(third);
-    vectors.push_back(forth);
-
-    //vector od stredu jednej bunky k druhej
-    Vector3d<float> main_vector( buddy.pos.x-this->pos.x,buddy.pos.y-this->pos.y,0.f);
-
-
-    float help = -100000.f;
-    int index=0;
-    for(int i=0; i<4; i++)
-    {
-        float temp = (vectors[i].x*main_vector.x+vectors[i].y*main_vector.y)/(sqrt(vectors[i].x*vectors[i].x+vectors[i].y+vectors[i].y)*sqrt(main_vector.x*main_vector.x+main_vector.y+main_vector.y));
-        if( temp > help)
-        {
-            help = temp;
-            index = i;
-        }
-    }
-
-    //nastavnie polarneho paru podla najvyhovujucejsej situacii
-    PolarPair owner_final;
-    PolarPair buddy_final;
-    switch(index)
-    {
-    case 0:
-    {
-        owner_final.ang=this_lower_azimut.ang;
-        owner_final.dist=this_lower_azimut.dist;
-        buddy_final.ang=buddy_lower_azimut.ang;
-        buddy_final.dist=buddy_lower_azimut.dist;
-        break;
-    }
-    case 1:
-    {
-        owner_final.ang=this_lower_azimut.ang;
-        owner_final.dist=this_lower_azimut.dist;
-        buddy_final.ang=buddy_higher_azimut.ang;
-        buddy_final.dist=buddy_higher_azimut.dist;
-        break;
-    }
-    case 2:
-    {
-        owner_final.ang=this_higher_azimut.ang;
-        owner_final.dist=this_higher_azimut.dist;
-        buddy_final.ang=buddy_lower_azimut.ang;
-        buddy_final.dist=buddy_lower_azimut.dist;
-        break;
-    }
-    case 3:
-    {
-        owner_final.ang=this_higher_azimut.ang;
-        owner_final.dist=this_higher_azimut.dist;
-        buddy_final.ang=buddy_higher_azimut.ang;
-        buddy_final.dist=buddy_higher_azimut.dist;
-        break;
-    }
-    }
-
-    //std::cout << "owner_final: " << owner_final.ang*180/PI << " " << owner_final.dist << "\n";
-    //std::cout << "buddy_final: " << buddy_final.ang*180/PI << " " << buddy_final.dist << "\n";
-
-
-    //zistit ktory polarny par je vlastne vybraty
-    p=bp.begin();
-    while (p != bp.end())
-    {
-        if((*p).ang+0.0001>owner_final.ang && (*p).ang-0.0001<owner_final.ang)
-            break;
-        p++;
-
-    }
-    std::list<PolarPair>::const_iterator q=buddy.bp.begin();
-    while (q != buddy.bp.end())
-    {
-        if((*q).ang+0.0001>buddy_final.ang && (*q).ang-0.0001<buddy_final.ang)
-            break;
-        q++;
-
-    }
-    //std::cout << "owner_final: " << (*p).ang*180/PI << " " << (*p).dist << "\n";
-    //std::cout << "buddy_final: " << (*q).ang*180/PI << " " << (*q).dist << "\n";
-
-    //pripravit iteratory
-    for(int i = 0 ; i<10; i++)
-    {
-        if(p==bp.begin())
-            p=bp.end();
-
-        if(q==buddy.bp.begin())
-            q=buddy.bp.end();
-        p--;
-        q--;
-
-    }
-
-    float min=10000.f;
-    float max=-10000.f;
-    bool collision=false;
-    for(int i = 0 ; i<20; i++)
-    {
-        if(p==bp.end())
-            p=bp.begin();
-
-        if(q==buddy.bp.end())
-            q=buddy.bp.begin();
-        p++;
-        q++;
-
-        Vector3d<float> owner_point(pos.x+cos((*p).ang)*(*p).dist,pos.y+sin((*p).ang)*(*p).dist,0.f);
-        Vector3d<float> buddy_point(buddy.pos.x+cos((*q).ang)*(*q).dist,buddy.pos.y+sin((*q).ang)*(*q).dist,0.f);
-        Vector3d<float> owner_buddy(buddy_point.x-owner_point.x, buddy_point.y-owner_point.y, 0.f);
-
-        float size = sqrt(owner_buddy.x*owner_buddy.x+owner_buddy.y*owner_buddy.y);
-        if(owner_buddy.x*main_vector.x+owner_buddy.y*main_vector.y >= 0.f && size < min)
-        {
-            min=size;
-        }
-        if(owner_buddy.x*main_vector.x+owner_buddy.y*main_vector.y < 0.f && size > max)
-        {
-            max=size;
-            collision=true;
-        }
-
-
-
-    }
-
-    //std::cout << "min = " << min << " max = " << max << std::endl;
-
-
-    if(collision)
-        return ( -max );
-    else
-        return ( min );
-}
 
 
 ///converts cell boundary point \e pol w.r.t. centre \e pos to Cartesian coordinate \e cart
@@ -1051,149 +858,6 @@ float Cell::CalcDistance2(const Cell& buddy,int& number,
 
 bool Cell::IsPointInCell(const Vector3d<float>& coord)
 {
-/* commented out due some bug, TODO
-
-    float azimut = atan2(coord.y-this->pos.y, coord.x-this->pos.x)*180/PI;
-    if (azimut < 0.f)
-    {
-        azimut+=360;
-    }
-
-
-    //std::cout << "azimut is " << azimut << std::endl;
-
-
-    //CALULATE HIGHER AND LOWER AZIMUT
-    std::list<PolarPair>::const_iterator p=bp.begin();
-    PolarPair lower_azimut;
-    PolarPair higher_azimut;
-
-    //calculate higher and lower azimut
-    while (p != bp.end())
-    {
-        //std::cout << (*p).ang*180/PI << std::endl;
-        if(p==bp.begin() )
-        {
-            std::list<PolarPair>::const_iterator r=bp.end();
-            r--;
-            if(((*p).ang*180/PI >= azimut || (*r).ang*180/PI <= azimut))
-            {
-                lower_azimut.ang = (*p).ang;
-                higher_azimut.ang = (*r).ang;
-                lower_azimut.dist = (*p).dist;
-                higher_azimut.dist = (*r).dist;
-            }
-            else
-            {
-                std::list<PolarPair>::const_iterator r=p;
-                r++;
-                if(((*p).ang*180/PI <= azimut && (*r).ang*180/PI >= azimut))
-                {
-
-                    lower_azimut.ang = (*p).ang;
-                    higher_azimut.ang = (*r).ang;
-                    lower_azimut.dist = (*p).dist;
-                    higher_azimut.dist = (*r).dist;
-
-                }
-            }
-
-        }
-        else
-        {
-            std::list<PolarPair>::const_iterator r=p;
-            r++;
-            if(((*p).ang*180/PI <= azimut && (*r).ang*180/PI >= azimut))
-            {
-
-                lower_azimut.ang = (*p).ang;
-                higher_azimut.ang = (*r).ang;
-                lower_azimut.dist = (*p).dist;
-                higher_azimut.dist = (*r).dist;
-            }
-        }
-
-        p++;
-
-    }
-
-    //std::cout << "lower_azimut:" << lower_azimut.ang*180/PI << std::endl;
-    //std::cout << "higher_azimut:" << higher_azimut.ang*180/PI << std::endl;
-
-    //get point coordinates, this is really tricky, during the case,
-    //when higher_azimut is just under 360 and lower just above 0, so it is basically around the entire cell.
-    Vector3d<float> point1_coord(0.f);
-    Vector3d<float> point2_coord(0.f);
-
-    if(higher_azimut.ang*180.f/PI-lower_azimut.ang*180.f/PI > 180.f)
-    {
-
-        point2_coord.x=pos.x+cos(lower_azimut.ang)*lower_azimut.dist;
-        point2_coord.y=pos.y+sin(lower_azimut.ang)*lower_azimut.dist;
-        point1_coord.x=pos.x+cos(higher_azimut.ang)*higher_azimut.dist;
-        point1_coord.y=pos.y+sin(higher_azimut.ang)*higher_azimut.dist;
-    }
-    else
-    {
-        point1_coord.x=pos.x+cos(lower_azimut.ang)*lower_azimut.dist;
-        point1_coord.y=pos.y+sin(lower_azimut.ang)*lower_azimut.dist;
-        point2_coord.x=pos.x+cos(higher_azimut.ang)*higher_azimut.dist;
-        point2_coord.y=pos.y+sin(higher_azimut.ang)*higher_azimut.dist;
-    }
-    //std::cout << "owners 1. point coordinates: " << point1_coord.x << " " << point1_coord.y << "\n";
-    //std::cout << "owners 2. point coordinates: " << point2_coord.x << " " << point2_coord.y << "\n";
-
-    //linear interpolation of distance
-    float factor1;
-    if(higher_azimut.ang*180.f/PI-lower_azimut.ang*180.f/PI > 180)
-        factor1 = lower_azimut.ang*180.f/PI+360.f-higher_azimut.ang*180.f/PI;
-
-    else
-        factor1 = higher_azimut.ang*180.f/PI-lower_azimut.ang*180.f/PI;
-
-    float factor2;
-    if(azimut < lower_azimut.ang*180.f/PI && azimut < higher_azimut.ang*180.f/PI)
-        factor2 = azimut +360.f-higher_azimut.ang*180.f/PI;
-    else if(azimut > lower_azimut.ang*180.f/PI && azimut > higher_azimut.ang*180.f/PI)
-        factor2 = azimut-higher_azimut.ang*180.f/PI;
-    else
-        factor2 = azimut-lower_azimut.ang*180.f/PI;
-
-
-
-    //std::cout << "factor1= " << factor1 << " factor2= " << factor2 << std::endl;
-
-    float linear_factor = factor2/factor1;
-    //std::cout << "linear_factor= " << linear_factor << std::endl;
-
-
-    float point_x = point1_coord.x+(point2_coord.x-point1_coord.x)*linear_factor;
-    float point_y = point1_coord.y+(point2_coord.y-point1_coord.y)*linear_factor;
-
-    //std::cout << "point_x= " << point_x << " point_y= " << point_y << std::endl;
-
-    //priemerny azimut
-
-    float dist_x=point_x-pos.x;
-    float dist_y=point_y-pos.y;
-    float distance = sqrt(dist_x*dist_x+dist_y*dist_y);
-
-    //std::cout << "distance = " << distance << std::endl;
-
-    //ZISTENIE CI DNU, ALEBO VON
-    Vector3d<float> line( coord.x-this->pos.x, coord.y-this->pos.y, 0.f);
-    float line_length = sqrt(line.x*line.x+line.y*line.y);
-    //std::cout << "line length = " << line_length << std::endl;
-
-	 REPORT("cell at [" << pos.x << "," << pos.y << "]: "
-	 	<< ((distance >= line_length)? "inside" : "outside"));
-
-    if(distance >= line_length)
-        return true;
-    else
-        return false;
-*/
-
 	const float dist= sqrt( (this->pos.x-coord.x)*(this->pos.x-coord.x)
 						+(this->pos.y-coord.y)*(this->pos.y-coord.y) );
 	if (dist < this->outerRadius) return true;
@@ -1368,7 +1032,8 @@ void Cell::calculateDesiredForce(void)
 
 void Cell::ChangeDirection(const float timeDelta)
 {
-	directionChangeCounter+=timeDelta;
+
+        directionChangeCounter+=timeDelta;
 	if (directionChangeCounter >= directionChangeInterval)
 	{
 	    //desiredDirection=GetRandomUniform(0,3.14159*2);
@@ -1412,11 +1077,14 @@ void Cell::ChangeDirection(const float timeDelta)
 		//eventually, dump the rotation disproportionally to the velocity
 		directionChangeLastAngle*=std::min(1.25f*sqrtf(newSpeed/params.maxCellSpeed),1.f);
 		
-		desiredDirection+=directionChangeLastAngle;
+        float RotationChange=GetRandomUniform(-1.f,1.f);
+        //desiredDirection+=directionChangeLastAngle;
+        desiredDirection=std::fmod(desiredDirection+RotationChange,2.f*PI);
 		desiredSpeed=newSpeed;
 
 	    directionChangeCounter=0.f;
 	}
+
 }
 
 
@@ -1518,7 +1186,7 @@ void Cell::adjustShape(const float timeDelta)
 	//(it can go even over several phases if time goes too fast,
 	//in that case the finalize* and initialize* functions will
 	//be alternated until the proper nextPhaseChange is reached)
-	while (params.currTime+timeDelta > nextPhaseChange) rotatePhase();
+    while (params.currTime+timeDelta > nextPhaseChange) rotatePhase();
 	phaseProgress=(params.currTime+timeDelta -lastPhaseChange)
 	                            / (nextPhaseChange-lastPhaseChange);
 	switch (curPhase)
@@ -1549,17 +1217,6 @@ void Cell::adjustShape(const float timeDelta)
 		break;
 	}
 
-	//find direction and magnitude of rotation that needs to be done
-	rotateBy=SignedAngularDifference(desiredDirection,orientation.ang); //orig
-	//const float velocityAzimuth=std::atan2(velocity.y,velocity.x);
-	//rotateBy=SignedAngularDifference(velocityAzimuth,orientation.ang);
-	if ((rotateBy > -0.01f) && (rotateBy < 0.01f)) rotateBy=0;
-	else rotateBy /= settleTime;
-
-	//apply the rotation
-	calculateNewPosition(Vector3d<float>(0.f),rotateBy);
-
-	//theoretically, this function may already set some forces...
 }
 
 
@@ -1712,14 +1369,16 @@ void Cell::applyForces(const float timeDelta)
 	//|trajectory|=vt
 	Vector3d<float> translation;
 	translation.x = velocity.x*timeDelta;
-	translation.y = velocity.y*timeDelta;
+    translation.y = velocity.y*timeDelta;
+
+    //std::cout << translation.x << " " << translation.y << std::endl;
 
 	//backup before applying...
 	former_bp=bp;
 	former_pos=pos;
 
 	//apply the translation
-	calculateNewPosition(translation,0);
+    calculateNewPosition(translation);
 }
 
 
@@ -2505,3 +2164,145 @@ float Cell::GetCellDiameter(PolarPair &a, PolarPair &b)
 	 return maxPositive + fabs(maxNegative);
 }
 
+
+void Cell::roundCell(void)
+{
+    std::list<PolarPair>::iterator p=bp.begin();
+
+    /*
+     * The loop slowly rounds the cell over the course of several frames. it tries to keep the volume of the cell at the same value
+     */
+    float value = sqrt(volume/PI);
+    while(p!=bp.end())
+    {
+
+        float tmp_dist = value - (*p).dist;
+        float help = tmp_dist/((float)round_cell_duration-(float)round_cell_progress);
+        (*p).dist = (*p).dist + help;
+
+            //update the search for maximum radius
+            if (p->dist > outerRadius) outerRadius=p->dist;
+
+        p++;
+
+    }
+}
+
+void Cell::CellStretch(float DesDir2)
+{
+
+    //stretch by mail axis
+
+    /*
+     * this loop has a stretched dream shape established and the main idea is to go through all of the points and to move them towards their dreamShape position.
+     * this is the basis of the movement, as the cell stretches out and then shrinks back later
+     */
+
+
+
+    std::list<PolarPair>::iterator p=dreamShape.begin();
+    while(p!=dreamShape.end())
+    {
+
+        float help = p->ang-DesDir2;
+
+        if(help<0)
+            help*=-1;
+
+
+
+        if(help < PI/2)
+        {
+            float a =sqrt(pow(p->dist,2)+pow(2*desiredSpeed,2)-2*p->dist*2*desiredSpeed*cos(PI-help));
+            float gamma = asin((2*desiredSpeed/a)*sin(PI-help));
+            p->dist=a;
+            if(p->ang-DesDir2> 0)
+                p->ang-=gamma;
+            else
+                p->ang+=gamma;
+        }
+        else
+        {
+            help -= PI*(-1);
+            float a =sqrt(pow(p->dist,2)+pow(2*desiredSpeed,2)-2*p->dist*2*desiredSpeed*cos(PI-help));
+            float gamma = asin((2*desiredSpeed/a)*sin(PI-help));
+            p->dist=a;
+            if(p->ang-DesDir2 > 0)
+                p->ang-=gamma;
+            else
+                p->ang+=gamma;
+        }
+        p++;
+
+    }
+
+    //shrink by minor axis
+    /*
+     * As The cell stretches out in its major axis it needs to shrink in its minor axis. this calculation is not precise, and the actual volume of the cell flactuates because of it
+     * It takes the fact that the cell doesnt stretch too much in the main axis into account
+     */
+    p=dreamShape.begin();
+    while(p!=dreamShape.end())
+    {
+        float desDir = std::fmod(DesDir2+PI/2.f,2.f*PI);
+        float help = p->ang-desDir;
+
+        if(help<0)
+            help*=-1;
+
+
+
+        if(help < PI/2)
+        {
+            float a =sqrt(pow(p->dist,2)+pow(2*desiredSpeed,2)-2*p->dist*2*desiredSpeed*cos(help));
+            float gamma = asin((2*desiredSpeed/a)*sin(help));
+            p->dist=a;
+            if(p->ang-desDir> 0)
+                p->ang+=gamma;
+            else
+                p->ang-=gamma;
+        }
+        else
+        {
+            help -= PI*(-1);
+            float a =sqrt(pow(p->dist,2)+pow(2*desiredSpeed,2)-2*p->dist*2*desiredSpeed*cos(help));
+            float gamma = asin((2*desiredSpeed/a)*sin(help));
+            p->dist=a;
+            if(p->ang-desDir > 0)
+                p->ang+=gamma;
+            else
+                p->ang-=gamma;
+        }
+        p++;
+
+    }
+
+}
+
+
+float Cell::calculateVolume()
+{
+    std::list<PolarPair>::iterator p=bp.begin();
+    std::list<PolarPair>::iterator q=bp.begin();
+    q++;
+    float vol = 0.f;
+    /*
+     * the loop goes through all points and calculates the size of small triangles specified by two neighbouring points and the center.
+     * In the end it adds sizes of all triangles together.
+     */
+    while (p != bp.end())
+    {
+        if(q==bp.end())
+            q=bp.begin();
+
+        float angle = (*q).ang-(*p).ang;
+        if(angle<0.f)
+            angle+=2.f*PI;
+
+        vol+=(1.f/2.f) * (*p).dist * (*q).dist * sin(angle);
+        p++;
+        q++;
+    }
+    this->volume = vol;
+    return vol;
+}
