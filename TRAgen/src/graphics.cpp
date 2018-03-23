@@ -18,7 +18,7 @@ To compile add also -lglew switch.
 */
 
 #include <GL/glew.h>
-#include "GL/glut.h"
+#include <GLUT/glut.h>
 #include <list>
 #include <vector>
 #include <iostream>
