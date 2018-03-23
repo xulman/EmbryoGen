@@ -1,9 +1,9 @@
-# Compiled object files
+# Compiled object files (C++)
 *.o
+BUILD
 
-# Compiled class file
+# Compiled class file (Java)
 *.class
-CTC-*/*.class
 
 # Log file
 *.log
