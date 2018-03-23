@@ -24,7 +24,7 @@ all: particles
 #CXXFLAGS=-Wall -Wextra -O0 -pedantic -fopenmp -g
 
 #RELEASE
-CXXFLAGS=-Wall -Wextra -O2 -pedantic -fopenmp
+CXXFLAGS=-Wall -Wextra -O2 -pedantic
 
 
 # rule to get object files from their sources
