@@ -30,4 +30,14 @@ void moveAgents(const float timeDelta);
 void closeAgents(void);
 
 
+#ifdef RENDER_TO_IMAGES
+/**
+ * Updates the tracks structure with a cell divison event:
+ * Mo - mother cell, DoA and DoB are daughters.
+ */
+void ReportNewBornDaughters(const int MoID,
+	const int DoAID, const int DoBID);
+#endif
+
+
 #endif

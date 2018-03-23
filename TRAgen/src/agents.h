@@ -21,10 +21,10 @@ class Cell {
 		colour.b=0.f;
 
 		//default shape
-		bp.push_back(PolarPair(0.785,3.));
-		bp.push_back(PolarPair(2.356,3.));
-		bp.push_back(PolarPair(3.927,3.));
-		bp.push_back(PolarPair(5.498,3.));
+		bp.push_back(PolarPair(0.785f,3.f));
+		bp.push_back(PolarPair(2.356f,3.f));
+		bp.push_back(PolarPair(3.927f,3.f));
+		bp.push_back(PolarPair(5.498f,3.f));
 		outerRadius=3.;
 
 		//back up the initial settings

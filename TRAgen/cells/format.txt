@@ -1,5 +1,6 @@
 ini_pos_x ini_pos_y ini_rot_ang
 ini_group_id
+texture_file
 orient_ang orient_dist
 vert_1_ang vert_1_dist
 vert_2_ang vert_2_dist
@@ -49,6 +50,16 @@ lines represent polar coordinate pairs with angles given in radians.
 The ini_group_id is either -1 when the cell is not associated with any
 group of cell, or it tells ID of a particular group of cells which
 this cell is part of.
+
+The texture_file is the name of a file whose texture should be used
+when drawing the cell (which happens only when the simulator is
+compiled with RENDER_TO_IMAGES option turned on). This file, however,
+need not exist, in which case some simulator-internal default texture
+will be used. But the line with texture_file must be present always.
+The file name may include path whatsoever, the whole line is read
+and is fed to the operating system open file command as is (so beware
+of relative paths as they will be treated relative to the current folder
+from which the simulator will be executed).
 
 We distinguish the main orientation of each cell. The orient_ang (in
 radians) and orient_dist gives polar coordinate of the head of a

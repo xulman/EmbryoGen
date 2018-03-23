@@ -1,15 +1,22 @@
 #include <GL/glew.h>
+
+#define _USE_MATH_DEFINES
 #include <cmath>
 #include <list>
 #include <vector>
 #include <fstream>
 #include <float.h>
+#include <algorithm>
 
 #include "params.h"
 #include "agents.h"
 #include "rnd_generators.h"
 
-#define DEG_TO_RAD(x) ((x)*M_PI/180.0f)
+#ifdef RENDER_TO_IMAGES
+ #include "simulation.h"
+#endif
+
+#define DEG_TO_RAD(x) ((x)*PI/180.0f)
 
 ///whether to enable a time-lapse cell positions reporting
 //#define REPORT_STATS
@@ -26,10 +33,10 @@ using namespace std;
 ///returns a-b in radians, function takes care of 2PI periodicity
 float SignedAngularDifference(const float& a, const float& b)
 {
-	if (sin(a-b) > 0.)
+	if (sin(a-b) > 0.f)
 		return acos(cos(a-b));
 	else
-		return -1. * acos(cos(a-b));
+		return -acos(cos(a-b));
 
 	//sin() was not always 1 or -1 but often something in between
 	//return sin(a-b) * acos(cos(a-b));
@@ -164,7 +171,7 @@ void Cell::InitialSettings(bool G1start)
 		//start with the start of the simulation
 		curPhase=G2Phase;
 		//duration=GetRandomUniform(0.f,params.cellCycleLength);
-		int flipCoin=floor(GetRandomUniform(0.f,4.99f));
+		int flipCoin=(int) floorf(GetRandomUniform(0.f,4.99f));
 		switch (flipCoin)
 		{
 		case 0:
@@ -185,12 +192,12 @@ void Cell::InitialSettings(bool G1start)
 											params.cellCycleLength/10.f); //sigma
 			break;
 		}
-		if (duration < 0) duration=1;
+		if (duration < 0) duration=1.0f;
 	}
 
 	if (duration < 0.01f)
 	{
-		std::cout << "NEGATIVE DURATION (" << duration << ") for cell ID=" << this->ID << "!\n";
+		REPORT("NEGATIVE DURATION (" << duration << ") for cell ID=" << this->ID << "!");
 		duration=1.f;
 	}
 	lastPhaseChange=params.currTime;
@@ -222,16 +229,21 @@ Cell::Cell(const char* filename,
 	{
 		//no particular cell shape is prescribed,
 		//going for default...
-		bp.push_back(PolarPair(0.785,3.));
-		bp.push_back(PolarPair(2.356,3.));
-		bp.push_back(PolarPair(3.927,3.));
-		bp.push_back(PolarPair(5.498,3.));
-		outerRadius=3.;
+		bp.push_back(PolarPair(0.785f,3.f));
+		bp.push_back(PolarPair(2.356f,3.f));
+		bp.push_back(PolarPair(3.927f,3.f));
+		bp.push_back(PolarPair(5.498f,3.f));
+		outerRadius=3.f;
 	}
 	else
 	{
 		std::ifstream file(filename);
-		//TODO: add file read tests...
+		if (!file.is_open())
+		{
+			REPORT("I was not able to read file: " << filename);
+			exit(EXIT_FAILURE);
+		}
+
 		float ignore;
 		file >> pos.x >> pos.y >> ignore;
 		file >> ignore;
@@ -252,7 +264,7 @@ Cell::Cell(const char* filename,
 		#define MIN_BOUNDARY_POINTS		40
 
 		//every keepFactor-th should be kept
-		int keepFactor=bp.size()/MIN_BOUNDARY_POINTS -1;
+		int keepFactor=(int) bp.size()/MIN_BOUNDARY_POINTS -1;
 
 		std::list<PolarPair>::iterator p=bp.begin();
 		int erasedCnt=0;
@@ -359,7 +371,7 @@ void Cell::calculateNewPosition(const Vector3d<float>& translation,float rotatio
 	std::list<PolarPair>::iterator p=bp.begin();
 	while (p != bp.end())
 	{
-		p->ang = std::fmod(double(p->ang + rotation), 2.*PI);
+		p->ang = std::fmod(p->ang + rotation, 2.0f*PI);
 
 		/* for detecting of crippled shapes
 		if (p->dist < 1) std::cout << "dist=" << p->dist
@@ -368,13 +380,13 @@ void Cell::calculateNewPosition(const Vector3d<float>& translation,float rotatio
 		*/
 		p++;
 	}
-	orientation.ang = std::fmod(double(orientation.ang + rotation), 2.*PI);
+	orientation.ang = std::fmod(orientation.ang + rotation, 2.0f*PI);
 
 	//update: rotate initial -- so that it shadows the current orientation
 	p=initial_bp.begin();
 	while (p != initial_bp.end())
 	{
-		p->ang = std::fmod(double(p->ang + rotation), 2.*PI);
+		p->ang = std::fmod(p->ang + rotation, 2.0f*PI);
 		p++;
 	}
 }
@@ -453,7 +465,7 @@ void Cell::DrawCell(const int showCell) const
 		//draw outline of the cell if desired
 		if (isSelected)
 		{
-			glColor4f(0.5f,0.5f,0.5f, 0.8f);
+			glColor4f(0.9f,0.9f,0.9f, 0.8f);
 			glBegin(GL_LINE_LOOP);
 			p=bp.begin();
 			while (p != bp.end())
@@ -510,13 +522,13 @@ void Cell::VAO_RefreshAll(void)
 	if (VAO_veLength != bp.size()+1)
 	{
 		if (VAO_vertices) delete[] VAO_vertices;
-		VAO_veLength = bp.size()+1;
+		VAO_veLength = (GLuint)(bp.size())+1;
 		VAO_vertices = new GLfloat[5*VAO_veLength];
 	}
 	if (VAO_elLength != 2*bp.size()+1)
 	{
 		if (VAO_elements) delete[] VAO_elements;
-		VAO_elLength = 2*bp.size()+1;
+		VAO_elLength = (GLuint)(2*bp.size())+1;
 		VAO_elements = new GLuint[VAO_elLength];
 	}
 
@@ -596,13 +608,16 @@ void Cell::VAO_RefreshAll(void)
 
 	 // Specify the layout of the vertex data
 	 glEnableVertexAttribArray(posAttrib);
-	 glVertexAttribPointer(posAttrib, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), 0);
+	 glVertexAttribPointer(posAttrib, 2, GL_FLOAT, GL_FALSE, 
+								  GLsizei(5 * sizeof(GLfloat)), 0);
 
 	 glEnableVertexAttribArray(texAttrib);
-	 glVertexAttribPointer(texAttrib, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void*)(2 * sizeof(GLfloat)));
+	 glVertexAttribPointer(texAttrib, 2, GL_FLOAT, GL_FALSE, 
+								  GLsizei(5 * sizeof(GLfloat)), (void*)(2 * sizeof(GLfloat)));
 
 	 glEnableVertexAttribArray(colAttrib);
-	 glVertexAttribPointer(colAttrib, 1, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void*)(4 * sizeof(GLfloat)));
+	 glVertexAttribPointer(colAttrib, 1, GL_FLOAT, GL_FALSE, 
+								  GLsizei(5 * sizeof(GLfloat)), (void*)(4 * sizeof(GLfloat)));
 
 	 //set back the default context
     glBindVertexArray(0);
@@ -615,7 +630,7 @@ void Cell::VAO_UpdateOnlyBP(void)
 {
 	if (VAO_veLength != bp.size()+1)
 	{
-		std::cout << "VAO_UpdateOnlyBP(): list lengths mismatch!\n";
+		REPORT("List lengths mismatch!");
 		this->VAO_RefreshAll();
 		return;
 	}
@@ -674,19 +689,20 @@ void Cell::ListBPs(void) const
 {
 	if (!isSelected) return;
 
+	REPORT("cell ID=" << this->ID << ":");
 	std::cout << "\n   centre at [" << pos.x << "," << pos.y << "], ";
 	std::cout << "orientation at " << orientation.ang << " (dist=" << orientation.dist << "), ";
-	std::cout << "BPs polar coords (ang,dist):\n";
+	REPORT("BPs polar coords (ang,dist):");
 
 	std::list<PolarPair>::const_iterator p=bp.begin();
 	int cnt=0;
 	while (p != bp.end())
 	{
 		std::cout << "(" << p->ang << "," << p->dist << "), ";
-		if (cnt % 5 == 4) std::cout << "\n";
+		if (cnt % 5 == 4) { std::cout << "\n"; }
 		++p; ++cnt;
 	}
-	if (cnt % 5 != 0) std::cout << "\n";
+	if (cnt % 5 != 0) { std::cout << "\n"; }
 }
 
 
@@ -702,7 +718,7 @@ void Cell::ReportState(void) const
 
 	if (!isSelected) return;
 
-	std::cout << "---------- cell ID=" << this->ID << " ----------\n";
+	REPORT("---------- cell ID=" << this->ID << " ----------");
 	std::cout << "current phase=" << curPhase << ", phaseProgress=" << phaseProgress
 			<< ", lastChange=" << lastPhaseChange << " -> nextChange=" << nextPhaseChange << "\n";
 	std::cout << "centre at [" << pos.x << "," << pos.y << "], ";
@@ -710,10 +726,10 @@ void Cell::ReportState(void) const
 	std::cout << "desiredSpeed=" << desiredSpeed << " um/min,   desiredDirection=" << desiredDirection
 			<< " rad, rotateBy=" << rotateBy << " rad\n";
 	std::cout << "cur velocity=" << sqrt(velocity.x*velocity.x + velocity.y*velocity.y)
-			<< " um/min, velocity vect=(" << velocity.x << "," << velocity.y
+ 			<< " um/min, velocity vect=(" << velocity.x << "," << velocity.y
 			<< ") um/min, vel. direction=" << atan2(velocity.y, velocity.x) << " rad\n";
 	std::cout << "cur force   =" << sqrt(force.x*force.x + force.y*force.y) << " N,  force vect=("
-			<< force.x << "," << force.y << ") um/min^2,  force direction="
+ 			<< force.x << "," << force.y << ") um/min^2,  force direction="
 			<< atan2(force.y, force.x) << " rad\n\n";
 
 	std::vector<ForceVector3d<float> >::const_iterator f
@@ -1445,7 +1461,7 @@ void Cell::calculateSocialForce(const float ang, const float dist)
 		 //distance between numbers/angles myAng and ang
 		 //float Phi=std::min( double(std::abs(myAng - ang)) , 2.*PI - std::abs(myAng - ang) );
 		 const float Phi=AngularDifference(myAng, ang);
-		 const float lweight = this->lambda + (1.-this->lambda)*( (1.+cos(Phi)) / 2.);
+		 const float lweight = this->lambda + (1.f-this->lambda)*( (1.f+cos(Phi)) / 2.f);
 
 		 //weight as seen in the second part of the equation
 		 temp1x*=lweight;
@@ -1512,7 +1528,7 @@ void Cell::calculateSlidingFrictionForce(const float ang, const float dist,
 		const Vector3d<float>& buddyVelocity)
 {
 	 //a vector perpendicular to the cell centres connection:
-    Vector3d<float> t(cos(ang - PI/2.),sin(ang - PI/2.),0.f);
+    Vector3d<float> t(cos(ang - PI/2.0f),sin(ang - PI/2.0f),0.f);
 
 	 //a difference between velocities
     Vector3d<float> deltaV(buddyVelocity.x - this->velocity.x,
@@ -1555,9 +1571,12 @@ void Cell::calculateBoundaryForce(void)
 	temp1y+=dist;
 
 	//too far outside? hardly to recover smoothly, pretend it just got lost...
-	if ((fabsf(temp1x) > 4.f) || (fabsf(temp1y) > 4.f)) this->shouldDie=true;
-	/* force is "relaxed"
-	*/
+	if ((fabsf(temp1x) > 4.f) || (fabsf(temp1y) > 4.f))
+	{ 
+		this->shouldDie=true;
+		DEBUG_REPORT("DEATH DUE TO OUT OF SANDBOX at time " << params.currTime);
+		/* force is "relaxed" = not added onto the list of active forces */
+	}
 	else
 	{
 		//force element not further than 3 N from zero 
@@ -1822,7 +1841,7 @@ void Cell::calculateForces(const float timeDelta)
 			if (dist > 1000)
 			{
 				//TODO odstran az bude jistota, ze to funguje.. vypada, ze ale funguje
-				std::cout << "PRUSER\n";
+				DEBUG_REPORT("problem k reseni");
 				//dist=CalcDistance2(*buddy,intersectPointsNo);
 				dist=1.0f; //reset with some conservative value...
 			}
@@ -1913,8 +1932,7 @@ void Cell::calculateForces(const float timeDelta)
 	else if ((params.currTime - lastEasyForcesTime) > (0.05f*params.cellCycleLength))
 	{
 		shouldDie=true;
-		std::cout << "DEATH DUE TO EXTENSIVE STRESS\n";
-		colour.g=0.f;
+		DEBUG_REPORT("DEATH DUE TO EXTENSIVE STRESS at time " << params.currTime);
 	}
 
 	if (greatestForce > 0.5f) greatestForce=0.5f;
@@ -1955,10 +1973,10 @@ void Cell::applyForces(const float timeDelta)
 
 void Cell::Grow_Fill_Voids(void)
 {
-    int amount_small = bp.size();
-    int amount_large = initial_bp.size();
+    int amount_small = int(bp.size());
+    int amount_large = int(initial_bp.size());
     int missing = amount_large-amount_small;
-    int distribution= trunc(missing/amount_small);
+    int distribution= missing/amount_small;
     int modulo = (amount_large%amount_small);
 
     std::list<PolarPair> help_bp;
@@ -1998,7 +2016,7 @@ void Cell::Grow_Fill_Voids(void)
             PolarPair pair(0.f,0.f);
             if(r!=help_bp.begin())
             {
-                pair.ang = (*p).ang+(((*r).ang-(*p).ang)/(loops+1))*i;
+                pair.ang = (*p).ang+(((*r).ang-(*p).ang)/(float)(loops+1))*(float)i;
 
                 //the magic. just go step by step and draw it, you will understand
                 float alpha = pair.ang-(*p).ang;
@@ -2007,16 +2025,17 @@ void Cell::Grow_Fill_Voids(void)
                 if(gamma<0.f)
                 {
                     gamma*=-1.f;
-                    delta = PI/2.0-gamma;
+                    delta = PI/2.0f-gamma;
 
                 }
                 else
                 {
-                    delta = PI/2.0-gamma;
+                    delta = PI/2.0f-gamma;
                     delta = PI-delta;
                 }
 
-                float beta= (((*r).ang-(*p).ang)/(loops+1))*i-(((*r).ang-(*p).ang)/(loops+1))*(i-1);
+                float beta= (((*r).ang-(*p).ang)/(float)(loops+1))*(float)i -
+								(((*r).ang-(*p).ang)/(float)(loops+1))*(float)(i-1);
                 float fi = PI-delta-beta;
                 pair.dist = prev_dist*sin(fi)/sin(delta);
                 prev_dist=pair.dist;
@@ -2025,7 +2044,7 @@ void Cell::Grow_Fill_Voids(void)
             }
             else
             {
-                pair.ang = (*p).ang+(((*r).ang+2*PI-(*p).ang)/(loops+1))*i;
+                pair.ang = (*p).ang+(((*r).ang+2*PI-(*p).ang)/(float)(loops+1))*(float)i;
                 float alpha = pair.ang-(*p).ang;
                 if(alpha<0.f)
                 {
@@ -2036,16 +2055,16 @@ void Cell::Grow_Fill_Voids(void)
                 if(gamma<0.f)
                 {
                     gamma*=-1.f;
-                    delta = PI/2.0-gamma;
+                    delta = PI/2.0f-gamma;
 
                 }
                 else
                 {
-                    delta = PI/2.0-gamma;
+                    delta = PI/2.0f-gamma;
                     delta = PI-delta;
                 }
 
-                float beta= (((*r).ang+2*PI-(*p).ang)/(loops+1))*i-(((*r).ang+2*PI-(*p).ang)/(loops+1))*(i-1);
+                float beta= (((*r).ang+2*PI-(*p).ang)/(float)(loops+1))*(float)i-(((*r).ang+2*PI-(*p).ang)/(float)(loops+1))*(float)(i-1);
                 float fi = PI-delta-beta;
 
                 pair.dist = prev_dist*sin(fi)/sin(delta);
@@ -2108,7 +2127,7 @@ void Cell::initializeG1Phase(const float duration)
 
 	bp.sort(SortPolarPair());
 
-	grow_iterations=duration/params.incrTime;
+	grow_iterations=(int)floorf(duration/params.incrTime);
 	cur_grow_it=0;
 	p_iter=0;
 	Grow_Fill_Voids();
@@ -2321,7 +2340,7 @@ void Cell::finalizeMetaphase(void)
 	if (isSelected) REPORT("phaseProgress=" << phaseProgress);
 
 	 //TODO
-	 /* WTF !?
+	 /* k cemu to je !?
     std::list<PolarPair>::iterator p=bp.begin();
     int count = 0;
     while(p!=bp.end())
@@ -2392,7 +2411,13 @@ void Cell::finalizeCytokinesis(void)
 	 //cell lacks initializeG1Phase() and init of bp list, and is already in G1Phase
 	 //
 	 //get the former-mother now-new-daughter cell a new ID
+#ifdef RENDER_TO_IMAGES
+	 int MoID=this->ID;
 	 this->ID=GetNewCellID();
+	 ReportNewBornDaughters(MoID,this->ID,cc->ID);
+#else
+	 this->ID=GetNewCellID();
+#endif
 	 //
 	 //also: reset settings for the fake-rotation stuff programmed by Zolo
     this->prog=0;
@@ -2553,7 +2578,7 @@ void Cell::doCytokinesis(const float progress)
 	 while (q != rightUpperP)
 	 {
 		  // std::cout << "pred: " << q->dist << std::endl;
-		  q->dist *= (1.0f - progress/level);
+		  q->dist *= (1.0f - progress/(float)level);
 		  //std::cout << "po: " << q->dist << std::endl;
 		  level *= 2;
 
@@ -2574,7 +2599,7 @@ void Cell::doCytokinesis(const float progress)
 	 level = 1; // further from the central point -> lower deformation
 	 while (q != leftUpperP)
 	 {
-		  q->dist *= (1.0f - progress/level);
+		  q->dist *= (1.0f - progress/(float)level);
 		  level *= 2;
 
 		  if (q == bp.begin())
@@ -2589,7 +2614,7 @@ void Cell::doCytokinesis(const float progress)
 	 while (q != rightLowerP)
 	 {
 		  // std::cout << "pred: " << q->dist << std::endl;
-		  q->dist *= (1.0f - progress/level);
+		  q->dist *= (1.0f - progress/(float)level);
 		  // std::cout << "po: " << q->dist << std::endl;
 		  level *= 2;
 
@@ -2610,7 +2635,7 @@ void Cell::doCytokinesis(const float progress)
 	 level = 1; // further from the central point -> lower deformation
 	 while (q != leftLowerP)
 	 {
-		  q->dist *= (1.0f - progress/level);
+		  q->dist *= (1.0f - progress/(float)level);
 		  level *= 2;
 
 		  if (q == bp.begin())
@@ -2637,7 +2662,7 @@ void Cell::FindMinorAxis(std::list<PolarPair>::iterator &upperPoint,
 
 		  // is the elevation of current point near to PI/2?
 		  // if so - store it as a candidate to upperPoint
-		  angleDist = fabs(currentRelativeAngle - M_PI_2); 
+		  angleDist = fabs(currentRelativeAngle - PI/2.0f); 
 		  if (angleDist < upperDist) 
 		  {
 				upperDist = angleDist;
@@ -2646,7 +2671,7 @@ void Cell::FindMinorAxis(std::list<PolarPair>::iterator &upperPoint,
 
 		  // is the elevation of current point near to 3*PI/2?
 		  // if so - store it as a candidate to lowerPoint
-		  angleDist = fabs(currentRelativeAngle - 3*M_PI_2);
+		  angleDist = fabs(currentRelativeAngle - 3.0f*PI/2.0f);
 		  if (angleDist < lowerDist)
 		  {
 				lowerDist = angleDist;
@@ -2749,7 +2774,7 @@ float Cell::Normalize(float angle)
 	 angle -= this->orientation.ang; // make the angle relative to the origin
 
 	 if (angle < 0.0f) // convert the angle to the range <0; 2*PI>
-		  return (angle + 2*M_PI); 
+		  return (angle + 2.0f*PI); 
 	 
 	 return angle;
 }
@@ -2810,7 +2835,7 @@ void Cell::roundCell(void)
     {
 
         float tmp_dist = value - (*p).dist;
-        float help = tmp_dist/((float)round_cell_duration-(float)round_cell_progress);
+        float help = tmp_dist/(round_cell_duration-round_cell_progress);
         (*p).dist = (*p).dist + help;
 
             //update the search for maximum radius
@@ -2828,7 +2853,7 @@ void Cell::InitialRotation(float rotation)
     std::list<PolarPair>::iterator q=rotate_bp.begin();
     while (p != bp.end())
     {
-        q->ang = std::fmod(double(p->ang + rotation), 2.*PI);
+        q->ang = std::fmod(p->ang + rotation, 2.0f*PI);
 
         /* for detecting of crippled shapes
         if (p->dist < 1) std::cout << "dist=" << p->dist
@@ -2839,7 +2864,7 @@ void Cell::InitialRotation(float rotation)
         p++;
         q++;
     }
-    orientation.ang = std::fmod(double(orientation.ang + rotation), 2.*PI);
+    orientation.ang = std::fmod(orientation.ang + rotation, 2.0f*PI);
 
 
     this->round_cell_duration = 100;
@@ -2898,7 +2923,7 @@ void Cell::ProgressRotationFinalizeShrink()
 
     for(int i = 0; i<count; i++)
     {
-        (*p).ang = 2*PI*i/float(count);
+        (*p).ang = 2.0f*PI*float(i)/float(count);
     }
     outerRadius = sqrt(volume/PI);
 
@@ -2939,7 +2964,7 @@ void Cell::FinalizeRotation(float rotation)
     std::list<PolarPair>::iterator p=initial_bp.begin();
     while (p != initial_bp.end())
     {
-        p->ang = std::fmod(double(p->ang + rotation), 2.*PI);
+        p->ang = std::fmod(p->ang + rotation, 2.0f*PI);
         p++;
     }
 }

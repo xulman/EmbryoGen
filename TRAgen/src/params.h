@@ -284,6 +284,20 @@ typedef enum
 } ListOfPhases;
 
 
+/// a datatype for keeping records of tracks
+struct TrackRecord
+{
+	 int fromTimeStamp;
+	 int toTimeStamp;
+	 int parentID;
+
+	 TrackRecord(int from, int to, int id): 
+				fromTimeStamp(from), toTimeStamp(to), parentID(id) {};
+
+	 TrackRecord(): fromTimeStamp(0), toTimeStamp(0), parentID(0) {};
+};
+
+
 //finally, a class that contains all global parameters of the simulation
 class ParamsClass {
  public:
@@ -334,17 +348,35 @@ class ParamsClass {
 
 	size_t imgSizeX, imgSizeY; //[pixels]
 	float imgResX,imgResY;     //[pixels per micrometer]
-	//both strings should include "%05d" substring to
+	//all strings should include "%05d" substring to
 	//indicate where file index number should be printed
-	std::string imgTestingFilename,imgMaskFilename,imgOutlineFilename;
+	std::string imgOutlineFilename;
+	std::string imgPhantomFilename,imgMaskFilename;
+	std::string imgFluoFilename,imgPhCFilename;
+
+	//a filename for the "tracks.txt" file
+	std::string tracksFilename;
+
+	//all strings should include "%d" substring (or some similar)
+	//to allow for filenames indexing
+	std::string inputCellsFilename;
 };
 
 
 /// helper macro to unify reports:
-#define REPORT(x) std::cout \
-   	<< std::string(__FUNCTION__) << "(): " << x << std::endl;
+#define REPORT(x) std::cout << __FUNCTION__ << "(): " << x << std::endl;
+#define REPORT_NOENDL(x) std::cout << __FUNCTION__ << "(): " << x;
 
-#define PI 3.14159265
+#ifdef TRAGEN_DEBUG
+	#define DEBUG_REPORT(x) std::cout << x << std::endl;
+	#define DEBUG_REPORT_NOENDL(x) std::cout << x;
+#else
+	#define DEBUG_REPORT(x) 
+	#define DEBUG_REPORT_NOENDL(x)
+#endif
+	
+
+#define PI 3.14159265f
 
 //#define DEBUG_CALCDISTANCE2
 

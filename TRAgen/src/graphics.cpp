@@ -18,7 +18,7 @@ To compile add also -lglew switch.
 */
 
 #include <GL/glew.h>
-#include <GLUT/glut.h>
+#include <GL/glut.h>
 #include <list>
 #include <vector>
 #include <iostream>
@@ -33,7 +33,9 @@ To compile add also -lglew switch.
 
 #ifdef RENDER_TO_IMAGES
   #include <i3d/image3d.h>
-  #include <i3d/filters.h>
+  #include <i3d/filters.h> //for Gaussians()
+  #include <i3d/morphology.h> //for Erosion in PhC
+  #include <i3d/toolbox.h> //for SwapVert()
 #endif
 #ifdef READ_TEXTURES
   #include <i3d/image3d.h>
@@ -65,16 +67,21 @@ int stepGranularity=10;
 int showTime=1;
 int showCellCount=1;
 
-///font horizontal stepping such that letters are placed somewhat nice side by side
-const int fontXstep=4;
-
 ///OpenGL window size -> to recalculate from windows coords to scene coords
 int windowSizeX=600, windowSizeY=600;
+
+///menu handlers:
+int startMenu, controlsMenu, displayMenu, aboutMenu, mainMenu;
 
 #ifdef DEBUG_CALCDISTANCE2
  //link to debug vectors from agents.cpp
  extern std::vector<Vector3d<float> > pointsToShow;
  extern std::vector<Vector3d<float> > pairsToShow;
+#endif
+
+#ifdef RENDER_TO_IMAGES
+ //counter to get continous file name indices
+ int frameCnt=0;
 #endif
 
 
@@ -114,13 +121,13 @@ void step(int count)
 	
 	if (params.currTime >= params.stopTime)
 	{
-		std::cout << "END OF THE SIMULATION HAS BEEN REACHED\n";
+		REPORT("END OF THE SIMULATION HAS BEEN REACHED");
 		pauseSimulation=1;
 	}
 
-	std::cout << "\nnow at time: " << params.currTime
+	REPORT("now at time: " << params.currTime
 		<< " min; there are currently " << agents.size()
-		<< " cells in the system\n";
+		<< " cells in the system");
 
 	std::list<Cell*>::const_iterator c=agents.begin();
 	for (; c != agents.end(); c++)
@@ -184,20 +191,23 @@ void displayEdges(void)
 void displayTime(void)
 {
 	//"disassemble" the time...
-	int hours=(int)floorf(params.currTime/60.f);
-	float minutes=params.currTime - 60.f*hours;
+	int cT=(int)round(params.currTime*10.f);
+	int hours  =cT/600;
+	int minutes=(cT - 600*hours)/10;
+	int seconds=cT%10;
 
 	//... and convert it to string ...
-	char msg[20];
-	const int textLength=15;
-	sprintf(msg,"%3d h %2.1f m in  ",hours,minutes);
+	char msg[30];
+	const int textLength=16;
+	sprintf(msg,"%3d h %2d.%d min    ",hours,minutes,seconds);
 
 	//... and place it and render it
+		glRasterPos2f(params.sceneOffset.x + 
+						  params.sceneSize.x - 
+						  textLength*3, 
+						  params.sceneOffset.y - 8.0f);
 	for (int i=0; i < textLength; ++i)
-	{
-		glRasterPos2f(fontXstep*i + params.sceneOffset.x+params.sceneSize.x-textLength*fontXstep, params.sceneOffset.y-10);
 		glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24,msg[i]);
-	}
 }
 
 ///draws the current number of cells in the scene into a corner
@@ -206,16 +216,28 @@ void displayCellCount(void)
 	//convert the number to string ...
 	char msg[20];
 	const int textLength=13;
-	sprintf(msg,"cells: %lu   ",agents.size());
+	sprintf(msg,"cells: %lu       ",agents.size());
+
+		glRasterPos2f(params.sceneOffset.x, 
+						  params.sceneOffset.y - 8.0f);
 
 	//... and place it and render it
 	for (int i=0; i < textLength; ++i)
-	{
-		glRasterPos2f(fontXstep*i + params.sceneOffset.x, params.sceneOffset.y-10);
 		glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24,msg[i]);
-	}
 }
 
+///draws text telling user to click for menu
+void displayHintText(void)
+{
+	char msg[]="Right-click for help";
+	const int textLength=20;
+
+		glRasterPos2f(params.sceneOffset.x +50.f, 
+						  params.sceneOffset.y - 8.0f);
+
+	for (int i=0; i < textLength; ++i)
+		glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24,msg[i]);
+}
 
 #ifdef RENDER_TO_IMAGES
 //returns true if OpenGL is rendering some new simulated stuff
@@ -230,13 +252,12 @@ bool shouldWriteScreenToImageFile(void)
 }
 
 //the image to hold the copy of the OpenGL content and to be saved to a file
-i3d::Image3d<i3d::GRAY16> imgFrame; //main output
-//i3d::Image3d<i3d::RGB> imgRGBFrame; //aux output (OpenGL renders here)
+i3d::Image3d<i3d::GRAY16> imgFrame; //main output (OpenGL renders directly here)
 
 i3d::Image3d<i3d::GRAY16> imgMask; //main output
 i3d::Image3d<float> imgFloatMask;  //aux output (OpenGL renders here)
 
-i3d::Image3d<i3d::RGB> imgOutline; //main output
+i3d::Image3d<i3d::RGB> imgOutline; //main output (OpenGL renders directly here)
 
 //allocates memory to the current size of the OpenGL window
 void initiateImageFile(void)
@@ -244,10 +265,6 @@ void initiateImageFile(void)
 	imgFrame.MakeRoom(params.imgSizeX,params.imgSizeY,1);
 	imgFrame.SetResolution(i3d::Resolution(params.imgResX,params.imgResY,1.f));
 	imgFrame.SetOffset(i3d::Offset(0.f,0.f,0.f));
-
-	//imgRGBFrame.MakeRoom(params.imgSizeX,params.imgSizeY,1);
-	//imgRGBFrame.SetResolution(i3d::Resolution(params.imgResX,params.imgResY,1.f));
-	//imgRGBFrame.SetOffset(i3d::Offset(0.f,0.f,0.f));
 
 	imgMask.MakeRoom(params.imgSizeX,params.imgSizeY,1);
 	imgMask.SetResolution(i3d::Resolution(params.imgResX,params.imgResY,1.f));
@@ -265,88 +282,184 @@ void initiateImageFile(void)
 //write content of the image to a (next) file
 void writeScreenToImageFile(void)
 {
-	//counter to get continous file name indices
-	static int cnt=0;
 
 
 	char fn[1024]; //hope 1 kB buffer for output file names is enough
 
 	//set filename for the outline image
-	sprintf(fn,params.imgOutlineFilename.c_str(),cnt);
+	sprintf(fn,params.imgOutlineFilename.c_str(),frameCnt);
+	//swap upside-down (as the top-left corner differs
+	//in the OpenGL rendering and the way we write to images)
+	i3d::SwapVert(imgOutline.GetSizeX(),imgOutline.GetSizeY(),
+	                           imgOutline.GetFirstVoxelAddr());
 	imgOutline.SaveImage(fn);
 
 
 	//set filename for the mask image
-	sprintf(fn,params.imgMaskFilename.c_str(),cnt);
+	sprintf(fn,params.imgMaskFilename.c_str(),frameCnt);
 	//convert from float to GRAY16 "as is"
 	i3d::FloatToGrayNoWeight(imgFloatMask,imgMask);
+	//and swap
+	i3d::SwapVert(imgMask.GetSizeX(),imgMask.GetSizeY(),
+	                        imgMask.GetFirstVoxelAddr());
 	//and save
 	imgMask.SaveImage(fn);
 
 
-	//set filename for the texture image
-	sprintf(fn,params.imgTestingFilename.c_str(),cnt);
+	//set filename for the texture image (=phantom)
+	sprintf(fn,params.imgPhantomFilename.c_str(),frameCnt);
+	//and swap
+	i3d::SwapVert(imgFrame.GetSizeX(),imgFrame.GetSizeY(),
+	                         imgFrame.GetFirstVoxelAddr());
+	//and save
+	imgFrame.SaveImage(fn);
 
-	/*
-	//pickup the red channel ...
-	i3d::RGB* pIn=imgRGBFrame.GetFirstVoxelAddr();
-	i3d::RGB* const pIn_stop=pIn + imgRGBFrame.GetImageSize();
-	i3d::GRAY16* pOut=imgFrame.GetFirstVoxelAddr();
-	while (pIn != pIn_stop)
-	{
-		*pOut=pIn->red;
-		++pIn; ++pOut;
-	}
 
-	//... and save it
-	 */
-
-	//some phase II and phase III postprocessing:
-	#define SIGNAL_SHIFT	700.0f
-	#define RON_VARIANCE	90.0f
-	#define PSF_MULT	1.f
+#ifdef RENDER_FLUORESCENCE
+	//some phase II  postprocessing (simulation of the optics):
 	i3d::Image3d<float> tmp;
 	tmp.CopyMetaData(imgFrame);
+
+	//running pointers...
 	float* pF=tmp.GetFirstVoxelAddr();
 	i3d::GRAY16* pV=imgFrame.GetFirstVoxelAddr();
 	i3d::GRAY16* const LastpV=imgFrame.GetFirstVoxelAddr() + imgFrame.GetImageSize();
 	const i3d::GRAY16* pM=imgMask.GetFirstVoxelAddr();
 
 	for (; pV != LastpV; ++pF, ++pV, ++pM) {
-		*pF=float(*pV)/256.f; //the copy
+		*pF=float(*pV)/256.f; //copy from integer to float image
 		if (*pM) 
 		{
-		//	 *pF+=1.f; //the hack
-			// *pF += 4.8f;//maxValue * 0.8f;
-			*pF += 0.2f;//maxValue * 0.8f;
-			*pF *= 80.0f; // TODO: scaling - ted je to hloupa magic konstanta
+			//some enhancing of the "signal" of the digital phantom
+			*pF += 0.2f;
+			*pF *= 8.0f;
 		}
 	}
+
 	//tmp.SaveImage("test.tif");
-	i3d::GaussIIR(tmp,
-		1.6f,
-		1.6f,
-		0.f);	//2D
-		//PSF_MULT*0.26f*tmp.GetResolution().GetZ());	//3D
+	i3d::GaussIIR(tmp, 1.0f, 1.0f, 0.f);	//2D filtering - aka PSF blur
+
+
+	//some phase III postprocessing (simulation of the image formation in the CCD camera):
+	int signal, darkCurrNoise, readOutNoise;
+
+	//running pointers...
 	pF=tmp.GetFirstVoxelAddr();
 	pV=imgFrame.GetFirstVoxelAddr();
 	i3d::GRAY16* const LastpVf=imgFrame.GetFirstVoxelAddr() + imgFrame.GetImageSize();
 
 	for (; pV != LastpVf; ++pF, ++pV)
 	{
-		float noiseMean = sqrt(*pF), // from statistics: shot noise = sqrt(signal) 
+		float noiseMean = sqrtf(*pF), // from statistics: shot noise = sqrt(signal) 
 				noiseVar = noiseMean; // for Poisson distribution E(X) = D(X)
-		*pV=static_cast<i3d::GRAY16>(ceilf(*pF + GetRandomPoisson(noiseMean) - noiseVar));
-		*pV+=static_cast<i3d::GRAY16>( GetRandomPoisson(0.06f) );
-		*pV+=static_cast<i3d::GRAY16>( GetRandomGauss(SIGNAL_SHIFT,RON_VARIANCE) );
+		signal = int(ceilf(*pF + float(GetRandomPoisson(noiseMean)) - noiseVar));
+		darkCurrNoise = int( GetRandomPoisson(0.06f) ); //tunning is specific of some old CCD hardware
+		readOutNoise = int( GetRandomGauss(700.f,90.f) );
+
+		*pV = (i3d::GRAY16)(signal + darkCurrNoise + readOutNoise);
 	}
 
-
+	//set filename for the fluorescence image 
+	sprintf(fn,params.imgFluoFilename.c_str(),frameCnt);
+	//and save
 	imgFrame.SaveImage(fn);
+#endif //after RENDER_FLUORESCENCE
 
+#ifdef RENDER_PHASECONTRAST
+	/*
+	 * 16bit version
+	 *
+
+	i3d::GRAY16* inP=imgMask.GetFirstVoxelAddr();
+	i3d::GRAY16* const inP_stop=inP + imgMask.GetImageSize();
+
+	//turn the mask into a "rough" PhC image
+	while (inP != inP_stop)
+	{
+		//in mask?
+		if (*inP > 0) *inP=255;
+		//in background
+		else *inP=132;
+
+		++inP;
+	}
+
+	//do erosion on mask by 2px
+	i3d::Image3d<i3d::GRAY16> erodedImg;
+	i3d::ErosionO(imgMask,erodedImg,2);
+
+					  inP=imgMask.GetFirstVoxelAddr();
+	i3d::GRAY16* eroP=erodedImg.GetFirstVoxelAddr();
+
+	//darken the eroded stripe
+	while (inP != inP_stop)
+	{
+		//in eroded/"vanished" pixels?
+		if ((*inP == 255) && (*eroP < 255)) *inP=109;
+
+		++inP; ++eroP;
+	}
+
+	//Gauss, and we're done
+	i3d::GrayGaussIIR(imgMask,1.f);
+
+	//set filename for the phase-contrast image 
+	sprintf(fn,params.imgPhCFilename.c_str(),frameCnt);
+	//and save
+	imgMask.SaveImage(fn);
+
+	 *
+	 * 16bit version
+	 */
+
+	/*
+	 * 8bit version
+	 */
+	i3d::Image3d<i3d::GRAY8> imgMask8b;
+	imgMask8b.CopyMetaData(imgMask); //also allocates memory
+
+	i3d::GRAY16* inP16b=imgMask.GetFirstVoxelAddr();
+	i3d::GRAY8* inP=imgMask8b.GetFirstVoxelAddr();
+	i3d::GRAY8* const inP_stop=inP + imgMask8b.GetImageSize();
+
+	//turn the mask into a "rough" PhC image
+	while (inP != inP_stop)
+	{
+		//in mask?
+		if (*inP16b > 0) *inP=255;
+		//in background
+		else *inP=132;
+
+		++inP; ++inP16b;
+	}
+
+	//do erosion on mask by 2px
+	i3d::Image3d<i3d::GRAY8> erodedImg;
+	i3d::ErosionO(imgMask8b,erodedImg,2);
+
+					 inP=imgMask8b.GetFirstVoxelAddr();
+	i3d::GRAY8* eroP=erodedImg.GetFirstVoxelAddr();
+
+	//darken the eroded stripe
+	while (inP != inP_stop)
+	{
+		//in eroded/"vanished" pixels?
+		if ((*inP == 255) && (*eroP < 255)) *inP=109;
+
+		++inP; ++eroP;
+	}
+
+	//Gauss, and we're done
+	i3d::GrayGaussIIR(imgMask8b,1.f);
+
+	//set filename for the phase-contrast image 
+	sprintf(fn,params.imgPhCFilename.c_str(),frameCnt);
+	//and save
+	imgMask8b.SaveImage(fn);
+#endif //after RENDER_PHASECONTRAST
 
 	//updates counter
-	++cnt;
+	++frameCnt;
 }
 #endif
 
@@ -392,10 +505,16 @@ void display(void)
 		//copies OpenGL mem(s) to the image mem
 		glReadBuffer(GL_COLOR_ATTACHMENT0); //texture
 		//glReadPixels(0,0,params.imgSizeX,params.imgSizeY,GL_RGB,GL_BYTE,imgRGBFrame.GetFirstVoxelAddr());
-		glReadPixels(0,0,params.imgSizeX,params.imgSizeY,GL_RED,GL_UNSIGNED_SHORT,imgFrame.GetFirstVoxelAddr());
+		glReadPixels(0,0,
+						 GLsizei(params.imgSizeX),
+						 GLsizei(params.imgSizeY),
+						 GL_RED,GL_UNSIGNED_SHORT,imgFrame.GetFirstVoxelAddr());
 
 		glReadBuffer(GL_COLOR_ATTACHMENT1); //mask ID
-		glReadPixels(0,0,params.imgSizeX,params.imgSizeY,GL_RED,GL_FLOAT,imgFloatMask.GetFirstVoxelAddr());
+		glReadPixels(0,0,
+						 GLsizei(params.imgSizeX),
+						 GLsizei(params.imgSizeY),
+						 GL_RED,GL_FLOAT,imgFloatMask.GetFirstVoxelAddr());
 	}
 #endif
 
@@ -435,6 +554,7 @@ else
     displayEdges();
 	 if (showTime) displayTime();
 	 if (showCellCount) displayCellCount();
+	 if (params.currTime < 0.01f) displayHintText();
 
 	//iterate over all cells and display them
 	iter=agents.begin();
@@ -452,7 +572,10 @@ else
 #ifdef RENDER_TO_IMAGES
 	//if we should write, then copy out the second part into the images
 	if (writeFlag)
-		glReadPixels(0,0,params.imgSizeX,params.imgSizeY,GL_RGB,GL_UNSIGNED_BYTE,imgOutline.GetFirstVoxelAddr());
+		glReadPixels(0,0,
+						 GLsizei(params.imgSizeX),
+						 GLsizei(params.imgSizeY),
+						 GL_RGB,GL_UNSIGNED_BYTE,imgOutline.GetFirstVoxelAddr());
 #endif
 }
 
@@ -511,7 +634,7 @@ void GetSceneViewSize(const int w,const int h,
 	 xVisT = xBound + xVisF;
 	 yVisT = yBound + yVisF;
 
-    if ( w * yBound < h * xBound )		//equals to  w/h < x/y
+    if ( (float)w * yBound < (float)h * xBound )		//equals to  w/h < x/y
 	 {
 	 	//window is closer to the rectangle than the scene shape
 		  yVisF *= ((float)h / float(w)) * (xBound/yBound);
@@ -531,13 +654,13 @@ void printKeysHelp(void)
 	std::cout << "\nKeys:\n";
 	std::cout << "ESC or 'q': quit\n";
 	std::cout << "SPACEBAR and 'z' run/pause simulation ('z'=bigger chunks); 'n' pause and step simulation\n";
-	std::cout << "'r' reset screen size; 'h' prints this help; 'd' prints what features are displayed; 't' toggle time stamp\n";
-	std::cout << "'s' select/deselect cell under mouse cursor; 'S' deselect all selected cells; 'T' toggle outline/texture mode\n";
+	std::cout << "'r' reset screen size; 'h' prints this help; 'd' prints what features are displayed; 'T' toggle time stamp\n";
+	std::cout << "'s' select/deselect cell under mouse cursor; 'S' deselect all selected cells; 't' toggle outline/texture mode\n";
 	std::cout << "'l' lists current boundary points of selected cells; 'i'/'I' inspects state/tells ID of cell under mouse cursor\n";
 	std::cout << "'f' show/hide previous cell positions; 'F' show/hide current cell positions; 'C' toggle number of cells\n";
 	std::cout << "'c' show/hide approximating circles; 'p' show/hide current boundary points\n";
 	std::cout << "'1'--'9' show/hide particular force; '-','+' decrease,increase drawn force vectors\n";
-	std::cout << "'[',']' decrease,increase drawn velocity vectors; '0' toggle between forces of selected or all cells\n";
+	std::cout << "'[',']' decrease,increase drawn velocity vectors; '0' toggle display between forces of selected or all cells\n";
 	std::cout << "LEFT,RIGHT KEY turn cell under cursor 30deg left,right; 'k' kills a cell\n\n";
 }
 
@@ -604,7 +727,7 @@ void keyboard(unsigned char key, int mx, int my)
 				if (params.currTime < params.stopTime) pauseSimulation^=1;
 				if (!pauseSimulation)
 				{
-                    stepGranularity=10; //= 1 min
+					stepGranularity=10; //= 1 min
 					timer(0);
 				}
             break;
@@ -623,7 +746,7 @@ void keyboard(unsigned char key, int mx, int my)
 
 		  //etc stuff...
         case 'r':  //set scale 1:1
-				glutReshapeWindow(params.imgSizeX,params.imgSizeY);
+				glutReshapeWindow(int(params.imgSizeX),int(params.imgSizeY));
 				glutPostRedisplay();
             break;
 			case 'h': //print help
@@ -695,16 +818,16 @@ void keyboard(unsigned char key, int mx, int my)
 					(*c)->isSelected=false;
 				glutPostRedisplay();
 				break;
-			case 't': //toggle time stamp
+			case 'C': //toggle number of cells
+				showCellCount^=1;
+				glutPostRedisplay();
+				break;
+			case 'T': //toggle time stamp
 				showTime^=1;
 				glutPostRedisplay();
 				break;
-			case 'T': //toggle outline/texture mode
+			case 't': //toggle outline/texture mode
 				displayTextureOutputInsteadOfOutlines^=true;
-				glutPostRedisplay();
-				break;
-			case 'C': //toggle number of cells
-				showCellCount^=1;
 				glutPostRedisplay();
 				break;
 
@@ -826,6 +949,18 @@ void Skeyboard(int key, int mx, int my)
 }
 
 
+/// called when "real" menu item is activated
+void menu(int key)
+{
+	switch (key)
+	{
+	case -1: break;
+	default:
+		keyboard((unsigned char)key,0,0);
+	}
+}
+
+
 // called when the window is reshaped, arguments are the new window size
 void reshape(int w, int h)
 {
@@ -858,7 +993,7 @@ bool CheckShader(GLuint n_shader_object, const char *p_s_shader_name)
 	if(n_log_length > 1) {
 		char *p_s_info_log = new char[n_log_length + 1];
 		glGetShaderInfoLog(n_shader_object, n_log_length, &n_log_length, p_s_info_log);
-		std::cout << "GLSL compiler (" << p_s_shader_name << "): " << p_s_info_log << "\n";
+		REPORT("GLSL compiler (" << p_s_shader_name << "): " << p_s_info_log);
 		delete[] p_s_info_log;
 	}
 	return n_compiled == GL_TRUE;
@@ -873,7 +1008,7 @@ bool CheckProgram(GLuint n_program_object, const char *p_s_program_name)
 	if(n_length > 1) {
 		char *p_s_info_log = new char[n_length + 1];
 		glGetProgramInfoLog(n_program_object, n_length, &n_length, p_s_info_log);
-		std::cout << "GLSL linker (" << p_s_program_name << "): " << p_s_info_log << "\n";
+		REPORT("GLSL linker (" << p_s_program_name << "): " << p_s_info_log);
 		delete[] p_s_info_log;
 	}
 	return n_linked == GL_TRUE;
@@ -890,11 +1025,12 @@ bool initializeGL(void)
     glutInit(&Argc, Argv);
 
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
-    glutInitWindowSize(params.imgSizeX, params.imgSizeY); 
+    glutInitWindowSize(int(params.imgSizeX), int(params.imgSizeY)); 
     glutInitWindowPosition(100, 100);
     glutCreateWindow(Argv[0]);
 
-    glClearColor(0.0, 0.0, 0.0, 0.0);
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);       //black background for Fluo
+    //glClearColor(0.62f, 0.62f, 0.62f, 0.0f);  //gray background for PhC
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_POINT_SMOOTH);
@@ -909,14 +1045,15 @@ glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
 //
 glGenRenderbuffers(2,rb);
 glBindRenderbuffer(GL_RENDERBUFFER, rb[0]);
-glRenderbufferStorage(GL_RENDERBUFFER,GL_RGB,params.imgSizeX,params.imgSizeY);
+glRenderbufferStorage(GL_RENDERBUFFER,GL_RGB,GLsizei(params.imgSizeX),GLsizei(params.imgSizeY));
 glFramebufferRenderbuffer(GL_FRAMEBUFFER,GL_COLOR_ATTACHMENT0,GL_RENDERBUFFER,rb[0]);
 glBindRenderbuffer(GL_RENDERBUFFER, rb[1]);
-glRenderbufferStorage(GL_RENDERBUFFER,GL_R32F,params.imgSizeX,params.imgSizeY);
+glRenderbufferStorage(GL_RENDERBUFFER,GL_R32F,GLsizei(params.imgSizeX),GLsizei(params.imgSizeY));
 glFramebufferRenderbuffer(GL_FRAMEBUFFER,GL_COLOR_ATTACHMENT1,GL_RENDERBUFFER,rb[1]);
 //
 //std::cout << "FB status is " << (unsigned int)glCheckFramebufferStatus(GL_FRAMEBUFFER) << "\n";
-if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) std::cout << "FB is NOT ready\n";
+if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+	REPORT("FB is NOT ready. BAD.");
 
 const GLenum enabledAttachments[2]={GL_COLOR_ATTACHMENT0,GL_COLOR_ATTACHMENT1};
 glDrawBuffers(2,enabledAttachments);
@@ -929,7 +1066,7 @@ defaultProgram=tmp;
 
 // setup my own special rendering program
 // Shader sources
-const GLchar* vertexSource =
+const GLchar* vertexSource150 =
     "#version 150 core\n"
     "in vec2 position;\n"
     "in vec2 texcoord;\n"
@@ -941,7 +1078,7 @@ const GLchar* vertexSource =
     "   Color = color;\n"
     "   gl_Position = vec4(position, 0.0, 1.0);\n"
     "}";
-const GLchar* fragmentSource =
+const GLchar* fragmentSource150 =
     "#version 150 core\n"
     "in vec2 Texcoord;\n"
     "in float Color;\n"
@@ -952,20 +1089,71 @@ const GLchar* fragmentSource =
     "   outTexture = texture(tex,Texcoord);\n"
 	 "   outMaskID = vec4(Color,0.0,0.0,1.0);\n"
     "}";
+const GLchar* vertexSource300 =
+    "#version 300 es\n"
+    "in vec2 position;\n"
+    "in vec2 texcoord;\n"
+    "in float color;\n"
+    "out vec2 Texcoord;\n"
+    "out float Color;\n"
+    "void main() {\n"
+    "   Texcoord = texcoord;\n"
+    "   Color = color;\n"
+    "   gl_Position = vec4(position, 0.0, 1.0);\n"
+    "}";
+const GLchar* fragmentSource300 =
+    "#version 300 es\n"
+    "precision highp float;\n"
+    "in vec2 Texcoord;\n"
+    "in float Color;\n"
+    "out vec4 outTexture;\n"
+    "out vec4 outMaskID;\n"
+    "uniform sampler2D tex;\n"
+    "void main() {\n"
+    "   outTexture = texture(tex,Texcoord);\n"
+	 "   outMaskID = vec4(Color,0.0,0.0,1.0);\n"
+    "}";
 
+//will tell the status of compilation...
+bool compileStatusSuccess=true;
 
-// setup my own special rendering program
+// setup my own special rendering program;
+// actually we gonna try to compile two versions of the programs
+//
 // Create and compile the vertex shader
 GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-glShaderSource(vertexShader, 1, &vertexSource, NULL);
+glShaderSource(vertexShader, 1, &vertexSource150, NULL);
 glCompileShader(vertexShader);
-if(!CheckShader(vertexShader, "vertex shader")) return(false);
+compileStatusSuccess= CheckShader(vertexShader, "vertex shader");
 
 // Create and compile the fragment shader
 GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-glShaderSource(fragmentShader, 1, &fragmentSource, NULL);
-glCompileShader(fragmentShader);
-if(!CheckShader(fragmentShader, "fragment shader")) return(false);
+if (compileStatusSuccess)
+{
+	//first part succeeded, move on to the second part
+	glShaderSource(fragmentShader, 1, &fragmentSource150, NULL);
+	glCompileShader(fragmentShader);
+	compileStatusSuccess=CheckShader(fragmentShader, "fragment shader");
+}
+
+if (!compileStatusSuccess)
+{
+	REPORT("GLSL 1.50 was not accepted, trying 3.00 ES....");
+
+	//hmm, let's try the 3.00 ES version of the GLSL code
+	glShaderSource(vertexShader, 1, &vertexSource300, NULL);
+	glCompileShader(vertexShader);
+	compileStatusSuccess= CheckShader(vertexShader, "vertex shader");
+
+	if (!compileStatusSuccess) return (false);
+
+	//first part succeeded, move on to the second part
+	glShaderSource(fragmentShader, 1, &fragmentSource300, NULL);
+	glCompileShader(fragmentShader);
+	compileStatusSuccess=CheckShader(fragmentShader, "fragment shader");
+
+	if (!compileStatusSuccess) return (false);
+}
 
 // Link the vertex and fragment shader into a shader program
 shaderProgram = glCreateProgram();
@@ -1019,7 +1207,7 @@ glActiveTexture(GL_TEXTURE0);
 	tm_iterW=tm.begin();
 	while (tm_iterW != tm.end())
 	{
-		std::cout << "should read texture file: " << tm_iterW->first.c_str();
+		REPORT_NOENDL("should read texture file: " << tm_iterW->first.c_str());
 
 		std::ifstream tfn(tm_iterW->first.c_str());
 		if (!tfn.is_open())
@@ -1041,7 +1229,7 @@ glActiveTexture(GL_TEXTURE0);
 	}
 
 	//add what has remained...
-	texTotal+=tm.size();
+	texTotal+=int(tm.size());
 #endif
 
 	glGenTextures(texTotal, tex);
@@ -1062,7 +1250,7 @@ glActiveTexture(GL_TEXTURE0);
 	{
 		//reads image from a given file
 		i3d::Image3d<i3d::GRAY16> TOimg(tm_iterW->first.c_str()); //Texture Orig
-		float* texData=new float[TOimg.GetImageSize()*3]; //TODO memory leaks
+		float* texData=new float[TOimg.GetImageSize()*3];
 		int texDataoff=0;
 		for (size_t TOy=0; TOy < TOimg.GetSizeY(); ++TOy)
 		for (size_t TOx=0; TOx < TOimg.GetSizeX(); ++TOx)
@@ -1073,7 +1261,9 @@ glActiveTexture(GL_TEXTURE0);
 		}
 
 		glBindTexture(GL_TEXTURE_2D, tex[texCurrent]);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, TOimg.GetSizeX(), TOimg.GetSizeY(), 0, GL_RGB, GL_FLOAT, texData);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 
+						 GLsizei(TOimg.GetSizeX()), GLsizei(TOimg.GetSizeY()), 
+						 0, GL_RGB, GL_FLOAT, texData);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -1089,6 +1279,8 @@ glActiveTexture(GL_TEXTURE0);
 
 		texCurrent++;
 		tm_iterW++;
+
+		delete texData;
 	}
 #endif
 //----  stop: here, load the textures ----
@@ -1101,6 +1293,111 @@ glActiveTexture(GL_TEXTURE0);
 		(*iter)->VAO_initStuff();
 		iter++;
 	}
+
+	//create all the helping menus...
+	startMenu=glutCreateMenu(menu);
+	glutAddMenuEntry("The application is intended to be run from console/terminal",-1);
+	glutAddMenuEntry("(command line in Windows OS) because it communicates all",-1);
+	glutAddMenuEntry("auxiliary messages there (not in the GUI).",-1);
+	glutAddMenuEntry("  ",-1);
+	glutAddMenuEntry("The application accepts one optional parameter, which is",-1);
+	glutAddMenuEntry("the number of cells at the beginning of the simulation.",-1);
+	glutAddMenuEntry("  ",-1);
+	glutAddMenuEntry("If one wants to use her own cells, the cell configuration",-1);
+	glutAddMenuEntry("files has to be changed. See the cells/format.txt file for",-1);
+	glutAddMenuEntry("description of the format. It is also possible to use the",-1);
+	glutAddMenuEntry("cellExtractor programme to prepare cell configuration files",-1);
+	glutAddMenuEntry("by extracting images of real cells. For tutorial, refer to",-1);
+	glutAddMenuEntry("http://cbia.fi.muni.cz/projects/tragen.html",-1);
+	glutAddMenuEntry("  ",-1);
+	glutAddMenuEntry("To change other simulation parameters, one has to edit the",-1);
+	glutAddMenuEntry("source code (mainly the src/main.cpp file) and recompile.",-1);
+
+	controlsMenu=glutCreateMenu(menu);
+	glutAddMenuEntry("The application is controlled with single keys and mouse.",-1);
+	glutAddMenuEntry("This menu summarizes all keys the application responds to.",-1);
+	glutAddMenuEntry("Most menu items actually do their job by clicking them.",-1);
+	glutAddMenuEntry("  ",-1);
+	glutAddMenuEntry("The application is intended to be run from console (command line)",-1);
+	glutAddMenuEntry("because the stats are reported only there (not in the GUI).",-1);
+	glutAddMenuEntry("  ",-1);
+	glutAddMenuEntry("'h' prints this help (on a console!)",(int)('h'));
+	glutAddMenuEntry("'d' prints what features are displayed (on a console!)",(int)('d'));
+	glutAddMenuEntry("  ",-1);
+	glutAddMenuEntry("SPACEBAR (step 1 min) and 'z' (step 10 min) run/pause simulation",-1);
+	glutAddMenuEntry("'n' pause and step simulation",(int)('n'));
+	glutAddMenuEntry("  ",-1);
+	glutAddMenuEntry("'r' reset screen size",(int)('r'));
+	glutAddMenuEntry("'T' toggle display of the time stamp",(int)('T'));
+	glutAddMenuEntry("'C' toggle display of the number of cells",(int)('C'));
+	glutAddMenuEntry("'t' toggle display between outline or texture mode",(int)('t'));
+	glutAddMenuEntry("  ",-1);
+	glutAddMenuEntry("'c' show/hide approximating circles",(int)('c'));
+	glutAddMenuEntry("'p' show/hide current boundary points",(int)('p'));
+	glutAddMenuEntry("'l' lists current boundary points of selected cells",(int)('l'));
+	glutAddMenuEntry("  ",-1);
+	glutAddMenuEntry("'1'--'9' show/hide particular force",-1);
+	glutAddMenuEntry("'-','+' decrease,increase drawn force vectors",-1);
+	glutAddMenuEntry("'[',']' decrease,increase drawn velocity vectors",-1);
+	glutAddMenuEntry("'0' toggle display of forces between selected or all cells",(int)('0'));
+	glutAddMenuEntry("  ",-1);
+	glutAddMenuEntry("'i'/'I' inspects state/tells ID of cell under mouse cursor",-1);
+	glutAddMenuEntry("'s' select/deselect cell under mouse cursor",(int)('s'));
+	glutAddMenuEntry("'S' deselect all selected cells",(int)('S'));
+	glutAddMenuEntry("  ",-1);
+	glutAddMenuEntry("'k' kills a cell under mouse cursor",(int)('k'));
+	glutAddMenuEntry("  ",-1);
+	glutAddMenuEntry("LEFT,RIGHT KEY turn cell under cursor 30deg left,right",-1);
+
+	displayMenu=glutCreateMenu(menu);
+	glutAddMenuEntry("Currently displayed features are listed on the console ('d').",-1);
+	glutAddMenuEntry("The application can, however, display:",-1);
+	glutAddMenuEntry("  ",-1);
+	glutAddMenuEntry("- Approximating circles around current cell positions ('c')",int('c'));
+	glutAddMenuEntry("- Boundary points at the current cell positions ('p')",int('p'));
+	glutAddMenuEntry("- Selected force vectors and their stretch factor",-1);
+	glutAddMenuEntry("- Velocity vector and its stretch factor",-1);
+	glutAddMenuEntry("- Vectors of all or only selected cells ('0')",int('0'));
+	glutAddMenuEntry("  ",-1);
+	glutAddMenuEntry("Colour legend of the vectors and keys that show/hide them:",-1);
+	glutAddMenuEntry("'1': repulsive force = gray",int('1'));
+	glutAddMenuEntry("'2': attraction force = red",int('2'));
+	glutAddMenuEntry("'3': body Ph1 force = white",int('3'));
+	glutAddMenuEntry("'4': sliding Ph2 force = green",int('4'));
+	glutAddMenuEntry("'5': friction force = blue",int('5'));
+	glutAddMenuEntry("'6': boundary force = dark green",int('6'));
+	glutAddMenuEntry("'7': desired force = magenta",int('7'));
+	glutAddMenuEntry("'8': resulting force = cyan",int('8'));
+	glutAddMenuEntry("'9': current velocity = dark magenta",int('9'));
+	glutAddMenuEntry("  ",-1);
+	glutAddMenuEntry("Colour legend of the cell boundary:",-1);
+	glutAddMenuEntry("Yellow to red boundary = cell during interphase ",-1);
+	glutAddMenuEntry("Light blue to dark blue boundary = cell during mitosis",-1);
+	glutAddMenuEntry("Boundary darkens proportionally to the greatest",-1);
+	glutAddMenuEntry("individual force acting on the particular cell.",-1);
+
+	aboutMenu=glutCreateMenu(menu);
+	glutAddMenuEntry("TRAgen: GNU GPL tracks generator for biomedical tracking",-1);
+	glutAddMenuEntry("Authors: Vladimir Ulman, Zoltan Oremus, David Svoboda",-1);
+	glutAddMenuEntry("  ",-1);
+	glutAddMenuEntry("Copyright  2015  Centre for Biomedical Image Analysis",-1);
+	glutAddMenuEntry("http://cbia.fi.muni.cz",-1);
+	glutAddMenuEntry("  ",-1);
+	glutAddMenuEntry("contact email: ulman@fi.muni.cz",-1);
+
+	mainMenu=glutCreateMenu(menu); //should be global and removed in CloseGL()
+	glutAddSubMenu("Invoking TRAgen",startMenu);
+	glutAddSubMenu("Controls summary",controlsMenu);
+	glutAddSubMenu("Displayed features",displayMenu);
+	glutAddSubMenu("About",aboutMenu);
+	glutAddMenuEntry("----------------------",-1);
+	glutAddMenuEntry("Start/stop simulation,    step 10 min",int('z'));
+	glutAddMenuEntry("Start/stop simulation,    step   1 min",int(' '));
+	glutAddMenuEntry("One step of simulation, step 0.1 min",int('n'));
+	glutAddMenuEntry("----------------------",-1);
+	glutAddMenuEntry("Quit (ESC or 'q')",int('q'));
+
+	glutAttachMenu(GLUT_RIGHT_BUTTON);
 
     //glutMouseFunc(click);
     //glutMotionFunc(motion);
@@ -1121,6 +1418,12 @@ void loopGL(void)
 
 void closeGL(void)
 {
+	glutDestroyMenu(startMenu);
+	glutDestroyMenu(controlsMenu);
+	glutDestroyMenu(displayMenu);
+	glutDestroyMenu(aboutMenu);
+	glutDestroyMenu(mainMenu);
+
     glDeleteProgram(shaderProgram); //local shader-visualization programme
 
 	 glDeleteTextures(texTotal, tex); //textures

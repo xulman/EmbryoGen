@@ -3,6 +3,7 @@
 #include <time.h>
 #include <iostream>
 
+#include "params.h"
 #include "rnd_generators.h"
 
 /*
@@ -32,11 +33,11 @@ float GetRandomGauss(const float mean, const float sigma) {
 		//create instance of the generator and seed it
 		randState = gsl_rng_alloc(gsl_rng_default);
 		unsigned long s=-1 * (int) time(NULL);
-		std::cout << "GetRandomGauss(): randomness started with seed " << s << "\n";
+		DEBUG_REPORT("GetRandomGauss(): randomness started with seed " << s);
 		gsl_rng_set(randState,s);
 	}
 
-	return ( gsl_ran_gaussian(randState, sigma) + mean );
+	return ( (float)gsl_ran_gaussian(randState, sigma) + mean );
 }
 
 
@@ -49,11 +50,11 @@ float GetRandomUniform(const float A, const float B) {
 		//create instance of the generator and seed it
 		randState = gsl_rng_alloc(gsl_rng_default);
 		unsigned long s=-1 * (int) time(NULL);
-		std::cout << "GetRandomUniform(): randomness started with seed " << s << "\n";
+		DEBUG_REPORT("GetRandomUniform(): randomness started with seed " << s);
 		gsl_rng_set(randState,s);
 	}
 
-	return ( gsl_ran_flat(randState, A,B) );
+	return ( (float)gsl_ran_flat(randState, A,B) );
 }
 
 
@@ -66,7 +67,7 @@ unsigned int GetRandomPoisson(const float mean) {
 		//create instance of the generator and seed it
 		randState = gsl_rng_alloc(gsl_rng_default);
 		unsigned long s=-1 * (int) time(NULL);
-		std::cout << "GetRandomPoisson(): randomness started with seed " << s << "\n";
+		DEBUG_REPORT("GetRandomPoisson(): randomness started with seed " << s);
 		gsl_rng_set(randState,s);
 	}
 
