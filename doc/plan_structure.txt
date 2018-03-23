@@ -1,0 +1,144 @@
+All units are in the SI units or derived.
+Pixel distances or similar quantities are forbidden.
+
+
+------------------------------------------------------------------------------
+AbstractAgent:
+- collection of virtual functions that cover minimal functionality
+  required for the simulation, see below
+
+DoInternals(currentTime) - simulate/update whatever the agent needs
+                           and that can be useful in the next functions
+
+GetAABB() - returns the current axis-aligned bounding box that embodies
+            the current geometry of the agent; Dirigent will want to know
+				to provide appropriatelly sized and positioned Image3d to be filled
+
+........ todo ......... - simulation-wise functions (provide forces, collect forces, apply forces, etc.)
+
+DrawMask(AbstractDisplayUnit) - renders the current geometry of the agent into the AbstractDisplayUnit,
+                                the unit offers a limited collection of graphics primitives
+DrawMask(Image3d)             - rasterizes the current geometry of the agent into the image,
+                                the image recognizes voxel resolution and offset (coordinate interval)
+DrawTexture(AbstractDisplayUnit) - the same but for the texture
+DrawTexture(Image3d)
+
+DrawDebugMask(AbstractDisplayUnit)  shall we?
+DrawDebugMask(Image3d)              shall we?
+
+
+------------------------------------------------------------------------------
+Agent:
+- one element of the simulation, can be advanced in time
+- has neccessary attributes and functions to implement its simulation
+- must store information about its geometry (shape & position) and texture
+
+- allowed geometry representation for the purpose of collision detection
+	- union of spheres
+	- surface mesh
+	- binary image
+There will be 9 functions available to return distances for all 3x3 cases.          S M I
+NB: Due to symmetry of the cases, only 3+3 functions required                     S H A B
+NB: 3 for homogeneous situations: spheres vs. spheres etc. (H)                    M A H C
+NB: 3 for rest: spheres vs. mesh (A), spheres vs. image (B), mesh vs. image (C)   I B C H
+
+Hinting/driving (invisible) agents implement empty Draw*() functions.
+
+
+------------------------------------------------------------------------------
+AbstractDisplayUnit:
+- collection of virtual functions to offer vector graphics drawing primitives
+  that an agent can use to render itself
+
+[the last param 'color' will have a default value 'black']
+- DrawPoint(Vector3d pos, float radius, color)
+- DrawLine(Vector3d a,Vector3d b, color)
+- DrawVector(Vector3d pos,Vector3d v, color) - essentially a line with arrow
+- DrawTriangle(Vector3d a,b,c, color)        - CCW order of vertices when looking at the front face
+
+
+------------------------------------------------------------------------------
+DisplayUnitS:
+- this is essentially a broadcast repeater for primitives drawing commands
+- extends AbstractDisplayUnit (to be able to be used instead of AbstractDisplayUnit)
+
+- Draw*() - iterates over a list of registered drawers/displays and calls their Draw*() counterparts
+
+- Register(AbstractDisplayUnit)
+- UnRegister(AbstractDisplayUnit)
+
+
+------------------------------------------------------------------------------
+DisplayUnit:
+- this is one particular implementation of the AbstractDisplayUnit
+- Draw*() - implements the drawing in the specific display context,
+            e.g. OpenGL, ZeroMQ feeder to some Java renderer/display
+
+
+possible DisplayUnit implementation:
+- Fiji/Java vector graphics rendering (Scenery, SciView) 
+- rasterized into Fiji/Java volumetric rendering (VolView)
+- rasterized into Fiji/Java plane-rendering (BDV)
+- rasterized into a 3D image on disk (only emergency fall-back plan)
+- console centre coordinates and/or AABB reporter - for plots
+- console complete geometry (spheres only) reporter - for plots, for analyses
+
+
+
+
+
+
+
+------------------------------------------------------------------------------
+Work-load layout:
+
+Dirigent - the main maintainer & scheduler of the simulation, work coordinator, results collector
+
+			Controlling the simulation (maintainance, work support):
+			- tiles the global scene into "versioned work units" (without rollbacks)
+				- one FO responsible for this tile (FO can supervise multiple tiles)
+				- FO connection details
+				- tile has a revision number (simulated time-step)
+				- revision number only increases after a report from FO
+         - frontend officers are commanded by the dirigent
+			- listens to and receives reports/updates from all FOs
+         - is always online -- can always hear from the FOs
+
+			[- advances (and synchronizes in this way) the simulation cycle -- necessary ??]
+
+			Reporting about the simulation (results/renderings collection):
+			- maintains a list of cells/backend workers:
+			    - their last reported status
+				 - their last reported AABBs (position)
+				 - their affiliation to frontend officer
+			- listens to (additional dedicated port) and receives reports/updates from all backend workers
+         - is always online -- can always hear from the workers
+			- this is for constructing the simulated outputs, see DisplayUnit
+
+			Controlling the dirigent:
+			- regularly reads a command pipe (named pipe) to hear commands from an user
+			  (e.g. connect_and_display/disconnect a display, report status/stats, pause/stop simulation)
+			- can live on a laptop, and is commanded via GUI app (that feeds the command pipe)
+			- can live on a server, and is commanded via the command pipe from (SSH) command line
+
+Dirigent = global-scene director
+Front Officers = local-scene directors, Front Officer = FO
+
+Front Officer - is responsible for one or more tiles and makes sure its tiles advance into another revision
+				  - has (minimalistic) copies of all neighboring tiles (incl. geometries of their cells)
+				  - stores tile at rev. r, retrieves copies of neighboring tiles at rev. r, advances current tile, reports to dirigent
+				  - supports for hand-over of cells between tiles (and FOs)
+
+              - is a communication point between the dirigent and _local_ backend workers,
+              - maintains a private list of threads, each thread being one backend worker
+
+				  - has a local knowledge about spatial positions of simulated cells -- cells within the available tiles
+				  - cells/workers query officer for geometries of other cells
+				  - assumption: neighbors can come only from the current tile or some neighboring one
+
+              - 1 front officer per 1 computer (1 IP address)
+				  - is always online -- can always hear from the dirigent, receives updates
+
+
+Backend Worker - realizes simulation of one cell, always the same cell
+               - implements requests from the frontend officer -- commands to advance simulation
