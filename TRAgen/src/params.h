@@ -1,8 +1,10 @@
 #ifndef PARAMS_H
 #define PARAMS_H
 
-#include <GL/gl.h>
+#include <GL/glew.h>
 #include <cmath>
+#include <iostream>
+#include <string.h>
 
 
 ///helper class for the PolarListAgent agents
@@ -329,12 +331,14 @@ class ParamsClass {
 
 	//final time of the simulation [min]
 	float stopTime;
+
+	size_t imgSizeX, imgSizeY; //[pixels]
+	float imgResX,imgResY;     //[pixels per micrometer]
+	//both strings should include "%05d" substring to
+	//indicate where file index number should be printed
+	std::string imgTestingFilename,imgMaskFilename,imgOutlineFilename;
 };
 
-
-//some helper macros:
-#include <iostream>
-#include <string.h>
 
 /// helper macro to unify reports:
 #define REPORT(x) std::cout \

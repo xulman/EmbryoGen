@@ -1,4 +1,4 @@
-#include <GL/gl.h>
+#include <GL/glew.h>
 #include <cmath>
 #include <list>
 #include <vector>
@@ -12,7 +12,7 @@
 #define DEG_TO_RAD(x) ((x)*M_PI/180.0f)
 
 ///whether to enable a time-lapse cell positions reporting
-#define REPORT_STATS
+//#define REPORT_STATS
 
 //link to the global params
 extern ParamsClass params;
@@ -20,6 +20,7 @@ extern ParamsClass params;
 //link to the list of all agents
 extern std::list<Cell*> agents;
 
+using namespace std;
 
 //implementation of a function declared in params.h
 ///returns a-b in radians, function takes care of 2PI periodicity
@@ -81,6 +82,28 @@ void Cell::InitialSettings(bool G1start)
 	 //my new ID
 	 this->ID=GetNewCellID();
 
+	 //some visualization low-level stuff:
+	 //claim we have not initiated really
+	 this->VAO_isUpdate=false;
+	 //
+	 //and indeed...
+	 this->VAO_vertices=NULL;
+	 this->VAO_elLength=0;
+	 this->VAO_elements=NULL;
+	 this->VAO_veLength=0;
+	 //
+	 //also no user texture is associated yet, use the default one
+	 this->VAO_texID=0;
+
+	 //each cell is initiated at two places: this and in the VAO_initStuff();
+	 //the latter must be initiated after the OpenGL was initiated;
+	 //however, if we are a daughter cell, the OpenGL was initiated for sure,
+	 //so we are safe to call this function from here (otherwise it is called
+	 //only from the initializeGL() once at the progam start up...)
+	 if (G1start) this->VAO_initStuff();
+
+	 //OTHER STUFF
+
 	 //current cell velocity and others:
 	 this->force=0.f;
 	 this->force.type=forceNames::final;
@@ -103,11 +126,11 @@ void Cell::InitialSettings(bool G1start)
 	 //but times the number of "colliding" points
 	 //(these can be up to 20 rendering total force of 1N)
 	 this->C=0.02f;
-	 this->delta_f=0.5f;
+	 this->delta_f=0.15f;
 
 	 //body and sliding friction forces:
 	 this->k=0.2f;
-	 this->delta_o=0.5f;
+	 this->delta_o=0.05f;
 	 this->kappa=0.3f;
 
     this->settleTime=GetRandomUniform(4.,10.);
@@ -165,9 +188,20 @@ void Cell::InitialSettings(bool G1start)
 		if (duration < 0) duration=1;
 	}
 
+	if (duration < 0.01f)
+	{
+		std::cout << "NEGATIVE DURATION (" << duration << ") for cell ID=" << this->ID << "!\n";
+		duration=1.f;
+	}
 	lastPhaseChange=params.currTime;
 	nextPhaseChange=params.currTime+duration;
 	phaseProgress=0.f;
+
+	 //reset settings for the fake-rotation stuff programmed by Zolo
+    this->prog=0;
+    this->DirChCount=0;
+    this->rotate=false;
+
 
 	if (!G1start) initializeG2Phase(duration);
 	//else G1 will be initialized explicitly from mother
@@ -178,7 +212,7 @@ Cell::Cell(const char* filename,
 		const float R, const float G, const float B) :
 			pos(0.f), orientation(0.f,1.f), bp(), former_bp(), 
 			weight(1.f), initial_bp(), listOfForces(),
-			isSelected(false), listOfFriends()
+            isSelected(false), listOfFriends()
 {
 	colour.r=R;
 	colour.g=G;
@@ -201,6 +235,8 @@ Cell::Cell(const char* filename,
 		float ignore;
 		file >> pos.x >> pos.y >> ignore;
 		file >> ignore;
+		file.getline(this->VAO_texFN,1024); //to bypass the end-of-line after the ini_group_id parameter
+		file.getline(this->VAO_texFN,1024); //to read (finally) the texture file name parameter texture_file
 		file >> orientation.ang >> orientation.dist;
 
 		float ang,dist;
@@ -239,9 +275,10 @@ Cell::Cell(const char* filename,
 			}
 		}
 
-
+/*
 		//now, re-adjust to cell diameter of 32um, hence radius=16um
 		float stretch=17.f / outerRadius;
+		float stretch=3.f;
 		p=bp.begin();
 		while (p != bp.end())
 		{
@@ -251,14 +288,16 @@ Cell::Cell(const char* filename,
 		outerRadius*=stretch;
 		orientation.dist*=stretch;
 
-
 		//REPORT("bp list size is now " << bp.size());
 		//this->ListBPs();
+*/
 	}
 
 	//back up the initial settings
     initial_bp=bp;
-	initial_weight=weight;
+	 initial_orientation.ang =orientation.ang;
+	 initial_orientation.dist=orientation.dist;
+    initial_weight=weight;
 
 	InitialSettings();
 }
@@ -278,12 +317,15 @@ Cell::Cell(const Cell& buddy,
 	//now copy the buddy's shape
 	pos=buddy.pos;
 	former_pos=buddy.pos; //but leave the former_bp list empty
-	orientation=buddy.orientation;
+	orientation.ang=buddy.orientation.ang;
+	orientation.dist=buddy.orientation.dist;
 	//bp=buddy.bp;	//will fill mother of this cell
 	outerRadius=buddy.outerRadius;
 
 	weight=buddy.weight;
 	initial_bp=buddy.initial_bp;
+	initial_orientation.ang =buddy.initial_orientation.ang;
+	initial_orientation.dist=buddy.initial_orientation.dist;
 	initial_weight=buddy.initial_weight;
 	//persistenceTime and settleTime is set in the InitialSettings()
 
@@ -298,6 +340,10 @@ Cell::Cell(const Cell& buddy,
 
 	//to yield some differences from mother
 	InitialSettings(true);
+
+	//InitialSettings() resets texture to the default one,
+	//we gonna use the same one as my buddy is using
+	VAO_texID=buddy.VAO_texID;
 
 	//keep the original counter
 	lastEasyForcesTime=buddy.lastEasyForcesTime;
@@ -317,8 +363,8 @@ void Cell::calculateNewPosition(const Vector3d<float>& translation,float rotatio
 
 		/* for detecting of crippled shapes
 		if (p->dist < 1) std::cout << "dist=" << p->dist
-		                        << ", curPhase=" << this->curPhase
-		                        << ", phaseProgress=" << this->phaseProgress << "\n";
+										<< ", curPhase=" << this->curPhase
+										<< ", phaseProgress=" << this->phaseProgress << "\n";
 		*/
 		p++;
 	}
@@ -448,6 +494,182 @@ void Cell::DrawForces(const int whichForces,const float stretchF,
 }
 
 
+//some required "extern stuff"
+extern GLint posAttrib;
+extern GLint texAttrib;
+extern GLint colAttrib;
+extern int windowSizeX;
+extern int windowSizeY;
+void GetSceneViewSize(const int w,const int h,
+							float& xVisF, float& xVisT,
+							float& yVisF, float& yVisT);
+
+void Cell::VAO_RefreshAll(void)
+{
+	//are the current lengths appropriate?
+	if (VAO_veLength != bp.size()+1)
+	{
+		if (VAO_vertices) delete[] VAO_vertices;
+		VAO_veLength = bp.size()+1;
+		VAO_vertices = new GLfloat[5*VAO_veLength];
+	}
+	if (VAO_elLength != 2*bp.size()+1)
+	{
+		if (VAO_elements) delete[] VAO_elements;
+		VAO_elLength = 2*bp.size()+1;
+		VAO_elements = new GLuint[VAO_elLength];
+	}
+
+	//reset content of the VAO_vbo buffer (vertices)
+	//(to some extent, this block of code does exactly the same
+	// as does the Cell::VAO_UpdateOnlyBP() function, see commentary in there)
+	float xVisF, yVisF;
+	float xVisT, yVisT;
+	GetSceneViewSize(windowSizeX,windowSizeY, xVisF,xVisT,yVisF,yVisT);
+	const float xVisConst= 2.f / (xVisT-xVisF);
+	const float yVisConst= 2.f / (yVisT-yVisF);
+	const float xVisConstB = pos.x - xVisF;
+	const float yVisConstB = pos.y - yVisF;
+
+	VAO_vertices[0]=xVisConst * (pos.x - xVisF) -1.0f; //scene coordinate
+	VAO_vertices[1]=yVisConst * (pos.y - yVisF) -1.0f;
+	VAO_vertices[2]=0.5f; //texture coordinate
+	VAO_vertices[3]=0.5f; //texture coordinate
+	VAO_vertices[4]=GLfloat(this->ID);
+	std::list<PolarPair>::const_iterator p=bp.begin();
+	int offset=5;
+	while (p != bp.end())
+	{
+		//scene coordinate
+		VAO_vertices[offset +0]=xVisConst * ((p->dist*cos(p->ang)) + xVisConstB) -1.0f;
+		VAO_vertices[offset +1]=yVisConst * ((p->dist*sin(p->ang)) + yVisConstB) -1.0f;
+
+		//texture coordinate
+		const float deltaAng=orientation.ang - initial_orientation.ang;
+		const float ptan=tan(p->ang -deltaAng);
+		if ((ptan >= -1.f) && (ptan <= 1.f))
+		{ //hits first left or right wall of the rectangle
+			const float sgn=(cos(p->ang -deltaAng) < 0)? -1.f : +1.f;
+			VAO_vertices[offset +2]=sgn* 1.f;
+			VAO_vertices[offset +3]=sgn* ptan;
+		}
+		else
+		{
+			const float sgn=(sin(p->ang -deltaAng) < 0)? -1.f : +1.f;
+			VAO_vertices[offset +2]=sgn/ ptan;
+			VAO_vertices[offset +3]=sgn* 1.f;
+		}
+		//normalize from [-1,1] to [0,1]
+		VAO_vertices[offset +2]=0.5f*(VAO_vertices[offset +2]+1.f);
+		VAO_vertices[offset +3]=0.5f*(VAO_vertices[offset +3]+1.f);
+
+		//ID
+		VAO_vertices[offset +4]=GLfloat(this->ID);
+
+		offset+=5;
+		++p;
+	}
+
+
+	//reset content of the VAO_ebo buffer (elements)
+	VAO_elements[0]=0;
+	offset=1;
+	for (unsigned int i=0; i < bp.size(); ++i)
+	{
+		VAO_elements[offset++]=i+1;
+		VAO_elements[offset++]=i+2;
+	}
+	VAO_elements[offset-1]=1;
+
+
+	 //set my context
+    glBindVertexArray(VAO_vao);
+
+	 //upload the vertex data
+	 glBindBuffer(GL_ARRAY_BUFFER, VAO_vbo);
+	 glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)*5*VAO_veLength, VAO_vertices, GL_DYNAMIC_DRAW);
+
+	 //upload the element data
+	 glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, VAO_ebo);
+	 glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLfloat)*VAO_elLength, VAO_elements, GL_STATIC_DRAW);
+
+
+	 // Specify the layout of the vertex data
+	 glEnableVertexAttribArray(posAttrib);
+	 glVertexAttribPointer(posAttrib, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), 0);
+
+	 glEnableVertexAttribArray(texAttrib);
+	 glVertexAttribPointer(texAttrib, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void*)(2 * sizeof(GLfloat)));
+
+	 glEnableVertexAttribArray(colAttrib);
+	 glVertexAttribPointer(colAttrib, 1, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void*)(4 * sizeof(GLfloat)));
+
+	 //set back the default context
+    glBindVertexArray(0);
+
+	this->VAO_isUpdate=true;
+}
+
+
+void Cell::VAO_UpdateOnlyBP(void)
+{
+	if (VAO_veLength != bp.size()+1)
+	{
+		std::cout << "VAO_UpdateOnlyBP(): list lengths mismatch!\n";
+		this->VAO_RefreshAll();
+		return;
+	}
+
+	//lists lengths are okay, let's beleive the rest is okay as well
+	//
+	//reset coordinates respecting the size of the visible window
+	float xVisF, yVisF;
+	float xVisT, yVisT;
+	GetSceneViewSize(windowSizeX,windowSizeY, xVisF,xVisT,yVisF,yVisT);
+	//xyVisFT now tells me the model coordinate range that match exactly the displayed window
+	//
+	//so, any [x,y] model coordinate must be relativized within this coordinate range
+	//and the rel. coordinate re-streched to interval [-1,1]... in other words,
+	//the xyVisFT-driven frame corresponds to the [-1,1]x[-1,1] frame into which we must
+	//no translate the [x,y] model coordinate:
+	//
+	// ( 2.f* (x-xVisF) / (xVisT-xVisF) ) -1.f;
+
+	const float xVisConst= 2.f / (xVisT-xVisF);
+	const float yVisConst= 2.f / (yVisT-yVisF);
+
+	//first the centre point
+	VAO_vertices[0]=xVisConst * (pos.x - xVisF) -1.0f;
+	VAO_vertices[1]=yVisConst * (pos.y - yVisF) -1.0f;
+
+	//now the rest of the points as they appear on the bp list
+	std::list<PolarPair>::const_iterator p=bp.begin();
+	int offset=5;
+
+	const float xVisConstB = pos.x - xVisF;
+	const float yVisConstB = pos.y - yVisF;
+
+	while (p != bp.end())
+	{
+		VAO_vertices[offset +0]=xVisConst * ((p->dist*cos(p->ang)) + xVisConstB) -1.0f;
+		VAO_vertices[offset +1]=yVisConst * ((p->dist*sin(p->ang)) + yVisConstB) -1.0f;
+
+		offset+=5;
+		++p;
+	}
+
+	 //set my context
+    glBindVertexArray(VAO_vao);
+
+	 //upload the vertex data
+	 glBindBuffer(GL_ARRAY_BUFFER, VAO_vbo);
+	 glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)*5*VAO_veLength, VAO_vertices, GL_DYNAMIC_DRAW);
+
+	 //set back the default context
+    glBindVertexArray(0);
+}
+
+
 void Cell::ListBPs(void) const
 {
 	if (!isSelected) return;
@@ -480,7 +702,10 @@ void Cell::ReportState(void) const
 
 	if (!isSelected) return;
 
-	std::cout << "   centre at [" << pos.x << "," << pos.y << "], ";
+	std::cout << "---------- cell ID=" << this->ID << " ----------\n";
+	std::cout << "current phase=" << curPhase << ", phaseProgress=" << phaseProgress
+			<< ", lastChange=" << lastPhaseChange << " -> nextChange=" << nextPhaseChange << "\n";
+	std::cout << "centre at [" << pos.x << "," << pos.y << "], ";
 	std::cout << "orientation at " << orientation.ang << " (dist=" << orientation.dist << ")\n";
 	std::cout << "desiredSpeed=" << desiredSpeed << " um/min,   desiredDirection=" << desiredDirection
 			<< " rad, rotateBy=" << rotateBy << " rad\n";
@@ -907,10 +1132,12 @@ float Cell::CalcDistance2(const Cell& buddy,int& number,
 		++p;
 	}
 
+	/* TODO: bylo asi pro debuging... opravit anyway
 	if ((isSelected) && (ext < 0.01f))
 		REPORT("signed ang.diff mnl-r=" << SignedAngularDifference(mnl->ang,mnr->ang)
 		       << " rad, bnl-r=" << SignedAngularDifference(bnl->ang,bnr->ang)
 				 << " rad");
+	 */
 
 	//now, the four iterators point at the boundary points nearest
 	//(from both sides) to a connection between centres of the two cells
@@ -1042,9 +1269,9 @@ float Cell::CalcDistance2(const Cell& buddy,int& number,
 	}
 
 	if ((isSelected) && (ext < 0.01f))
-		REPORT("dist=" << bdistl << " um (with ext=" << ext
+		REPORT("ID " << this->ID << ": dist=" << bdistl << " um (with ext=" << ext
 					<< " um) to buddy at " << angToBuddy
-		         << " rad, no. of colliding points is " << number);
+		         << " rad (ID=" << buddy.ID << "), no. of colliding points is " << number);
 	return(bdistl);
 }
 
@@ -1511,43 +1738,44 @@ void Cell::adjustShape(const float timeDelta)
 
 	//what will the new cell shape look like?
 	//at the moment, only rotates to match movement with shape
-	ChangeDirection(timeDelta);
+    ChangeDirection(timeDelta);
 	//the above tells what will be desired velocity orientation after timeDelta
 
-	//cycle cell phases
-	//(it can go even over several phases if time goes too fast,
-	//in that case the finalize* and initialize* functions will
-	//be alternated until the proper nextPhaseChange is reached)
-	while (params.currTime+timeDelta > nextPhaseChange) rotatePhase();
-	phaseProgress=(params.currTime+timeDelta -lastPhaseChange)
-	                            / (nextPhaseChange-lastPhaseChange);
-	switch (curPhase)
-	{
-	case G1Phase:
-		progressG1Phase();
-		break;
-	case SPhase:
-		progressSPhase();
-		break;
-	case G2Phase:
-		progressG2Phase();
-		break;
-	case Prophase:
-		progressProphase();
-		break;
-	case Metaphase:
-		progressMetaphase();
-		break;
-	case Anaphase:
-		progressAnaphase();
-		break;
-	case Telophase:
-		progressTelophase();
-		break;
-	case Cytokinesis:
-		progressCytokinesis();
-		break;
-	}
+        //cycle cell phases
+        //(it can go even over several phases if time goes too fast,
+        //in that case the finalize* and initialize* functions will
+        //be alternated until the proper nextPhaseChange is reached)
+
+        while (params.currTime+timeDelta > nextPhaseChange) rotatePhase();
+        phaseProgress=(params.currTime+timeDelta -lastPhaseChange)
+                                    / (nextPhaseChange-lastPhaseChange);
+        switch (curPhase)
+        {
+        case G1Phase:
+            progressG1Phase();
+            break;
+        case SPhase:
+            progressSPhase();
+            break;
+        case G2Phase:
+            progressG2Phase();
+            break;
+        case Prophase:
+            progressProphase();
+            break;
+        case Metaphase:
+            progressMetaphase();
+            break;
+        case Anaphase:
+            progressAnaphase();
+            break;
+        case Telophase:
+            progressTelophase();
+            break;
+        case Cytokinesis:
+            progressCytokinesis();
+            break;
+        }
 
 	//find direction and magnitude of rotation that needs to be done
 	rotateBy=SignedAngularDifference(desiredDirection,orientation.ang); //orig
@@ -1555,6 +1783,7 @@ void Cell::adjustShape(const float timeDelta)
 	//rotateBy=SignedAngularDifference(velocityAzimuth,orientation.ang);
 	if ((rotateBy > -0.01f) && (rotateBy < 0.01f)) rotateBy=0;
 	else rotateBy /= settleTime;
+	//TODO nedat sem max limit na rotaci? by to mohlo odstranit/potlacit to blazneni bunek pri nahlem pootoceni
 
 	//apply the rotation
 	calculateNewPosition(Vector3d<float>(0.f),rotateBy);
@@ -1565,7 +1794,7 @@ void Cell::adjustShape(const float timeDelta)
 
 void Cell::calculateForces(const float timeDelta)
 {
-	//the forces for this run have already been initiated in the Cell::adjustShape()
+    //the forces for this run have already been initiated in the Cell::adjustShape()
 
 	//just to get rid of silly warning about unused parameter
 	float unused=timeDelta; unused=unused;
@@ -1595,6 +1824,7 @@ void Cell::calculateForces(const float timeDelta)
 				//TODO odstran az bude jistota, ze to funguje.. vypada, ze ale funguje
 				std::cout << "PRUSER\n";
 				//dist=CalcDistance2(*buddy,intersectPointsNo);
+				dist=1.0f; //reset with some conservative value...
 			}
 
 			//azimuth towards the buddy
@@ -1684,7 +1914,7 @@ void Cell::calculateForces(const float timeDelta)
 	{
 		shouldDie=true;
 		std::cout << "DEATH DUE TO EXTENSIVE STRESS\n";
-		//colour.g=0.f;
+		colour.g=0.f;
 	}
 
 	if (greatestForce > 0.5f) greatestForce=0.5f;
@@ -1833,6 +2063,8 @@ void Cell::Grow_Fill_Voids(void)
         p++;
     }
 
+	//since we have changed the BPs...
+	this->VAO_isUpdate=false;
 }
 
 
@@ -1880,6 +2112,8 @@ void Cell::initializeG1Phase(const float duration)
 	cur_grow_it=0;
 	p_iter=0;
 	Grow_Fill_Voids();
+
+	this->VAO_isUpdate=false;
 }
 
 void Cell::initializeSPhase(const float duration)
@@ -1912,6 +2146,31 @@ void Cell::initializeProphase(const float duration)
 void Cell::initializeMetaphase(const float duration)
 {
 	if (isSelected) REPORT("duration=" << duration << " minutes");
+
+    this->round_cell_duration = duration/params.incrTime;
+    this->round_cell_progress = 0;
+
+
+    //calculates volume of the cell
+    std::list<PolarPair>::iterator p=bp.begin();
+    std::list<PolarPair>::iterator q=bp.begin();
+    q++;
+    float vol = 0.f;
+    while (p != bp.end())
+    {
+        if(q==bp.end())
+            q=bp.begin();
+
+        float angle = (*q).ang-(*p).ang;
+        if(angle<0.f)
+            angle+=2.f*PI;
+
+        vol+=(1.f/2.f) * (*p).dist * (*q).dist * sin(angle);
+        p++;
+        q++;
+    }
+    this->volume = vol;
+
 }
 
 void Cell::initializeAnaphase(const float duration)
@@ -1974,6 +2233,9 @@ void Cell::progressProphase(void)
 void Cell::progressMetaphase(void)
 {
 	if (isSelected) REPORT("phaseProgress=" << phaseProgress);
+    roundCell();
+    round_cell_progress++;
+
 }
 
 void Cell::progressAnaphase(void)
@@ -2036,6 +2298,7 @@ void Cell::finalizeG1Phase(void)
 {
 	if (isSelected) REPORT("phaseProgress=" << phaseProgress);
 	bp=initial_bp;
+	VAO_isUpdate=false;
 }
 
 void Cell::finalizeSPhase(void)
@@ -2056,6 +2319,23 @@ void Cell::finalizeProphase(void)
 void Cell::finalizeMetaphase(void)
 {
 	if (isSelected) REPORT("phaseProgress=" << phaseProgress);
+
+	 //TODO
+	 /* WTF !?
+    std::list<PolarPair>::iterator p=bp.begin();
+    int count = 0;
+    while(p!=bp.end())
+    {
+        count++;
+        p++;
+    }
+
+    for(int i = 0; i<count; i++)
+    {
+        (*p).ang = 2*PI*i/float(count);
+    }
+    outerRadius = sqrt(volume/PI);
+	 */
 }
 
 void Cell::finalizeAnaphase(void)
@@ -2108,8 +2388,16 @@ void Cell::finalizeCytokinesis(void)
 	 //but before we need new cell...
 	 Cell* cc=new Cell(*this, colour.r,colour.g,colour.b);
 	 agents.push_back(cc);
-	 //copy const. call InitialSettings(true) and so the new
+	 //copy const. calls InitialSettings(true) and so the new
 	 //cell lacks initializeG1Phase() and init of bp list, and is already in G1Phase
+	 //
+	 //get the former-mother now-new-daughter cell a new ID
+	 this->ID=GetNewCellID();
+	 //
+	 //also: reset settings for the fake-rotation stuff programmed by Zolo
+    this->prog=0;
+    this->DirChCount=0;
+    this->rotate=false;
 
 	 //now, the split:
 
@@ -2217,6 +2505,10 @@ void Cell::finalizeCytokinesis(void)
 
 	cc->initializeG1Phase(cc->nextPhaseChange - cc->lastPhaseChange);
 	//this->initializeG1Phase(duration) will call my caller
+
+	//to make sure, OpenGL will read everything again from the scratch
+	this->VAO_isUpdate=false;
+	cc->VAO_isUpdate=false;
 
 	params.numberOfAgents++;
 }
@@ -2503,5 +2795,152 @@ float Cell::GetCellDiameter(PolarPair &a, PolarPair &b)
 	 // Add the largest distance toward the upper point with thye largest
 	 // distance to the lower point.
 	 return maxPositive + fabs(maxNegative);
+}
+
+void Cell::roundCell(void)
+{
+    std::list<PolarPair>::iterator p=bp.begin();
+
+
+	//reset the outerRadius to find now correct value
+	outerRadius=0.f;
+
+    float value = sqrt(volume/PI);
+    while(p!=bp.end())
+    {
+
+        float tmp_dist = value - (*p).dist;
+        float help = tmp_dist/((float)round_cell_duration-(float)round_cell_progress);
+        (*p).dist = (*p).dist + help;
+
+            //update the search for maximum radius
+            if (p->dist > outerRadius) outerRadius=p->dist;
+
+        p++;
+
+    }
+}
+
+void Cell::InitialRotation(float rotation)
+{
+    //update: rotate
+    std::list<PolarPair>::iterator p=bp.begin();
+    std::list<PolarPair>::iterator q=rotate_bp.begin();
+    while (p != bp.end())
+    {
+        q->ang = std::fmod(double(p->ang + rotation), 2.*PI);
+
+        /* for detecting of crippled shapes
+        if (p->dist < 1) std::cout << "dist=" << p->dist
+                                << ", curPhase=" << this->curPhase
+                                << ", phaseProgress=" << this->phaseProgress << "\n";
+        */
+        cout << p->dist << " " << q->dist << endl;
+        p++;
+        q++;
+    }
+    orientation.ang = std::fmod(double(orientation.ang + rotation), 2.*PI);
+
+
+    this->round_cell_duration = 100;
+    this->round_cell_progress = 0;
+    this->shape_cell_duration = 100;
+    this->shape_cell_progress = 0;
+
+    //calculates volume of the cell
+    p=bp.begin();
+    q=bp.begin();
+    q++;
+    float vol = 0.f;
+    while (p != bp.end())
+    {
+        if(q==bp.end())
+            q=bp.begin();
+
+        float angle = (*q).ang-(*p).ang;
+        if(angle<0.f)
+            angle+=2.f*PI;
+
+        vol+=(1.f/2.f) * (*p).dist * (*q).dist * sin(angle);
+        p++;
+        q++;
+    }
+    this->volume = vol;
+
+
+
+
+}
+void Cell::ProgressRotationShrink()
+{
+    roundCell();
+    round_cell_progress++;
+}
+
+void Cell::ProgressRotationFinalizeShrink()
+{
+    std::list<PolarPair>::iterator p=bp.begin();
+    std::list<PolarPair>::iterator q=rotate_bp.begin();
+    while (p != bp.end())
+    {
+        p->ang=q->ang;
+        p++;
+        q++;
+    }
+
+    p=bp.begin();
+    int count = 0;
+    while(p!=bp.end())
+    {
+        count++;
+        p++;
+    }
+
+    for(int i = 0; i<count; i++)
+    {
+        (*p).ang = 2*PI*i/float(count);
+    }
+    outerRadius = sqrt(volume/PI);
+
+}
+
+void Cell::ProgressRotationStretch()
+{
+
+    std::list<PolarPair>::iterator p=bp.begin();
+    std::list<PolarPair>::const_iterator q=rotate_bp.begin();
+
+    while(q!=rotate_bp.end())
+    {
+
+        if(p==bp.begin())
+            cout << p->dist << " " << q->dist << endl;
+        float tmp_dist = (*q).dist - (*p).dist;
+        float help = tmp_dist/((float)shape_cell_duration-(float)shape_cell_progress);
+        (*p).dist = (*p).dist + help;
+        (*p).ang = (*q).ang;
+
+        if(p==bp.begin())
+            cout << p->dist << " " << q->dist << endl;
+
+        //update the search for maximum radius
+            if (p->dist > outerRadius) outerRadius=p->dist;
+
+        p++;
+        q++;
+    }
+    shape_cell_progress++;
+}
+
+void Cell::FinalizeRotation(float rotation)
+{
+
+    //update: rotate initial -- so that it shadows the current orientation
+    std::list<PolarPair>::iterator p=initial_bp.begin();
+    while (p != initial_bp.end())
+    {
+        p->ang = std::fmod(double(p->ang + rotation), 2.*PI);
+        p++;
+    }
 }
 

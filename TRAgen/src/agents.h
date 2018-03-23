@@ -1,6 +1,7 @@
 #ifndef AGENTS_H
 #define AGENTS_H
 
+#include <GL/glew.h>
 #include <list>
 #include <vector>
 #include "params.h"
@@ -52,6 +53,13 @@ class Cell {
 		initial_bp.clear();
 		listOfForces.clear();
 		listOfFriends.clear();
+
+		glDeleteVertexArrays(1, &VAO_vao); //cells buffer
+		glDeleteBuffers(1, &VAO_ebo); //elements buffer
+		glDeleteBuffers(1, &VAO_vbo); //vertex buffer
+
+		if (VAO_vertices) delete[] VAO_vertices;
+		if (VAO_elements) delete[] VAO_elements;
 	}
 
 // -------- current params of the cell -------- 
@@ -63,6 +71,7 @@ class Cell {
 
 	///list of bp (boundary points) -- shape of the cell
 	std::list<PolarPair> bp;
+
 	///radius of circumscribed circle [um]
 	float outerRadius;
 
@@ -87,6 +96,9 @@ class Cell {
 
 	///back up of the initial setting: bp list
 	std::list<PolarPair> initial_bp;
+
+	///back up of the initial vector showing from the centre towards "head" of the cell
+	PolarPair initial_orientation;
 
 	///back up of the initial setting: weight
 	float initial_weight;
@@ -242,6 +254,44 @@ class Cell {
 	void DrawForces(const int whichForces,const float stretchF=1.f,
 	                const float stretchV=1.f) const;
 
+
+	//some visualization low-level stuff:
+
+	///"pointers" to OpenGL local/internal buffers
+	GLuint VAO_vbo, VAO_ebo, VAO_vao;
+	///the CPU-side data
+	GLfloat* VAO_vertices;
+	GLuint VAO_veLength;
+	GLuint* VAO_elements;
+	GLuint VAO_elLength;
+
+	/**
+	 * "pointer" to the texture:
+	 *
+	 * 0                 = a deault and always present texture (chessboard like one)
+	 * 1... (texTotal-1) = user loaded continous block of available textures
+	 */
+	int VAO_texID;
+	///filename of the texture...
+	char VAO_texFN[1024];
+
+	///status of the above
+	bool VAO_isUpdate;
+
+	/// updates the whole VAO stuff
+	void VAO_RefreshAll(void);
+
+	///updates the vbo list with new vertex positions
+	void VAO_UpdateOnlyBP(void);
+
+	void VAO_initStuff(void)
+	{
+		//alocate OpenGL internal mem for the buffers
+		glGenBuffers(1, &VAO_vbo);
+		glGenBuffers(1, &VAO_ebo);
+		glGenVertexArrays(1, &VAO_vao);
+	}
+
 	///lists content of the bp list
 	void ListBPs(void) const;
 
@@ -340,6 +390,28 @@ class Cell {
 
 	 ///simulate mainly motion due to forces after the \e timeDelta time
 	 void applyForces(const float timeDelta);
+
+     /**
+      * @brief roundCell rounds the cell into a circle, preserving volume
+      */
+     void roundCell(void);
+     /**
+      * variables that control rounding of the cell
+      */
+     float round_cell_progress, round_cell_duration, shape_cell_progress, shape_cell_duration;
+     float volume;
+
+     int prog;
+     float new_rotation;
+     std::list<PolarPair> rotate_bp;
+     bool rotate;
+     int DirChCount;
+     int DirChInter;
+     void InitialRotation(float rotation);
+     void ProgressRotationShrink();
+     void ProgressRotationFinalizeShrink();
+     void ProgressRotationStretch();
+     void FinalizeRotation(float rotation);
 };
 
 

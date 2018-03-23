@@ -1,10 +1,5 @@
 #include <list>
-
-#ifdef __APPLE__
-#  include <GLUT/glut.h>
-#else
-#  include "GL/glut.h"
-#endif
+#include <string.h>
 
 #include "params.h"		//for data structures
 #include "agents.h"
@@ -23,14 +18,14 @@ int main(void)
 {
 	//set up the environment
     params.sceneOffset=Vector3d<float>(0.f);
-    params.sceneSize=Vector3d<float>(1152.f,921.f,1.f); //az se vyladi sily mezi nima
+    params.sceneSize=Vector3d<float>(200.f,200.f,1.f); //az se vyladi sily mezi nima
     //params.sceneSize=Vector3d<float>(60.f,60.f,1.f); //testing with mode=1
-	params.sceneOuterBorder=Vector3d<float>(25.f);
+	params.sceneOuterBorder=Vector3d<float>(10.f);
 	params.sceneBorderColour.r=0.5f;
 	params.sceneBorderColour.g=0.5f;
 	params.sceneBorderColour.b=0.5f;
 
-    params.numberOfAgents=150;
+    params.numberOfAgents=169;
 
 	params.friendshipDuration=10.f;
 	params.maxCellSpeed=0.20f;
@@ -46,17 +41,30 @@ int main(void)
 	params.cellPhaseDuration[Telophase]=0.00325 * params.cellCycleLength;
 	params.cellPhaseDuration[Cytokinesis]=0.00325 * params.cellCycleLength;
 
-	params.currTime=0.f;
+	params.currTime=0.f; //all three are in units of minutes
 	params.incrTime=0.1f;
-	params.stopTime=1000.f; //100 steps x 10mins
+	params.stopTime=5000.f;
+
+	params.imgSizeX=792; //pixels
+	params.imgSizeY=792;
+	params.imgResX=3.6f; //pixels per micrometer
+	params.imgResY=3.6f;
+	params.imgTestingFilename="img%05d.tif";
+	params.imgMaskFilename="mask%05d.tif";
+	params.imgOutlineFilename="outline%05d.tif";
+
+#ifdef RENDER_TO_IMAGES
+	initiateImageFile();
+#endif
 
 	//init agents accordingly
-    initializeAgents(10);
+    initializeAgents(0);
     //initializeAgents(1);
 
 	//fire up the simulation
-	initializeGL();
-	glutMainLoop();
+	if (!initializeGL()) return(-1);
+	loopGL();
+	closeGL();
 
 	//close
 	closeAgents();

@@ -5,6 +5,24 @@
 /**
  * Just inits the OpenGL stuff...
  */
-void initializeGL(void);
+bool initializeGL(void);
+
+/**
+ * Just handles the idle loops... the OpenGL stuff...
+ */
+void loopGL(void);
+
+/**
+ * Just closes the OpenGL stuff...
+ */
+void closeGL(void);
+
+
+#ifdef RENDER_TO_IMAGES
+/**
+ * Just inits the files to render into...
+ */
+void initiateImageFile(void);
+#endif
 
 #endif
