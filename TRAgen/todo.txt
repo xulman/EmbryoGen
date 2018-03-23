@@ -1,0 +1,11 @@
+najit chybu "PRUSER"
+
+zkusit pripadne zapnout umirani bunek na "pretlak"
+
+zkontrolovat operatory +- atd u vektoru a dodat je tam, kde se nepouzivaji
+smazane bunky presunout do jineho seznamu, ze ktereho se pozdeji smazou
+  (musi totiz chvili existovat, protoze mohou figurovat na listOfFriends jine bunky)
+  (nebo naopak v ramci mazani "broadcastovat" pres vsechny bunky, aby ji explicitne smazaly)
+
+zkulatit bunku v profazi (pred delenim) z jakehokoliv tvaru
+a zkusit s bunkami ala PSC

@@ -1,0 +1,164 @@
+Index: src/agents.cpp
+===================================================================
+--- src/agents.cpp	(revision 47)
++++ src/agents.cpp	(working copy)
+@@ -305,7 +305,8 @@
+ 	if (showCell & 2)
+ 	{
+ 		//set the drawing colour
+-		glColor4f(0.5f*colour.r,0.5f*colour.g,0.5f*colour.b, 0.8f);
++		//glColor4f(0.5f*colour.r,0.5f*colour.g,0.5f*colour.b, 0.8f);
++		glColor4f(1.0f,1.0f,1.0f, 0.8f);
+ 
+ 		//draw the agent/cell itself at the former position (if it exists)
+ 		glBegin(GL_LINE_LOOP); //GL_POLYGON must be convex, cells are not
+@@ -323,6 +324,7 @@
+ 	{
+ 		//set the drawing colour
+ 		glColor4f(colour.r,colour.g,colour.b, 0.8f);
++		//glColor4f(1.0f,1.0f,1.0f, 0.8f);
+ 
+ 		//draw the agent/cell itself at the current position
+ 		glBegin(GL_LINE_LOOP); //GL_POLYGON must be convex, cells are not
+@@ -358,7 +360,7 @@
+ 		//should also draw the boundary points?
+ 		if (showCell & 8)
+ 		{
+-			glPointSize(3.f);
++			glPointSize(5.f);
+ 			glBegin(GL_POINTS);
+ 			p=bp.begin();
+ 			while (p != bp.end())
+@@ -376,11 +378,13 @@
+ 			glColor4f(0.5f,0.5f,0.5f, 0.8f);
+ 			glBegin(GL_LINE_LOOP);
+ 			p=bp.begin();
+-			while (p != bp.end())
++			int i=0;
++			while ((i < 5) && (p != bp.end()))
+ 			{
+ 				glVertex2f(pos.x+0.85f*(*p).dist*cos((*p).ang),
+ 							  pos.y+0.85f*(*p).dist*sin((*p).ang));
+ 				p++;
++				++i;
+ 			}
+ 			glEnd();
+ 		}
+@@ -909,7 +913,7 @@
+ 
+ #ifdef DEBUG_CALCDISTANCE2
+ 		//debug visualization
+-		if (isSelected)
++		if ((isSelected) && (ext > 0.01f))
+ 		{
+ 			pointsToShow.push_back(mBP);
+ 			pointsToShow.push_back(bBP);
+@@ -924,7 +928,7 @@
+ 
+ #ifdef DEBUG_CALCDISTANCE2
+ 			//debug visualization
+-			if (isSelected)
++			if ((isSelected) && (ext > 0.01f))
+ 			{
+ 				pairsToShow.push_back(mBP);
+ 				pairsToShow.push_back(bBP);
+@@ -961,7 +965,7 @@
+ 
+ #ifdef DEBUG_CALCDISTANCE2
+ 		//debug visualization
+-		if (isSelected)
++		if ((isSelected) && (ext > 0.01f))
+ 		{
+ 			pointsToShow.push_back(mBP);
+ 			pointsToShow.push_back(bBP);
+@@ -976,7 +980,7 @@
+ 
+ #ifdef DEBUG_CALCDISTANCE2
+ 			//debug visualization
+-			if (isSelected)
++			if ((isSelected) && (ext > 0.01f))
+ 			{
+ 				pairsToShow.push_back(mBP);
+ 				pairsToShow.push_back(bBP);
+@@ -1568,15 +1572,17 @@
+ 				//yes, collision
+ 				//
+ 				//add emergent physical-contact forces
+-				calculateBodyForce(ang,dist);
++				//calculateBodyForce(ang,dist);
+ 				calculateSlidingFrictionForce(ang,dist,buddy->velocity);
+ 			}
+ 			else
+ 			{
++			/*
+ 				//no collision
+ 				if (dist < 1.0f)
+ 					//more precise distance claims they are really close to each other
+ 					calculateSocialForce(ang,dist);
++			 */
+ 			}
+ 		}
+ 
+@@ -1629,9 +1635,11 @@
+ 		colour.g=0.f;
+ 	}
+ 	*/
++	/*
+ 	if (greatestForce > 3.f) greatestForce=3.f;
+ 	//makes the cell more reddish the greater force pushes
+ 	colour.g=1.f - greatestForce/3.f;
++	*/
+ }
+ 
+ 
+Index: src/main.cpp
+===================================================================
+--- src/main.cpp	(revision 47)
++++ src/main.cpp	(working copy)
+@@ -23,8 +23,8 @@
+ {
+ 	//set up the environment
+     params.sceneOffset=Vector3d<float>(0.f);
+-    params.sceneSize=Vector3d<float>(500.f,500.f,1.f); //az se vyladi sily mezi nima
+-    //params.sceneSize=Vector3d<float>(60.f,60.f,1.f); //testing with mode=1
++    //params.sceneSize=Vector3d<float>(500.f,500.f,1.f); //az se vyladi sily mezi nima
++    params.sceneSize=Vector3d<float>(60.f,60.f,1.f); //testing with mode=1
+ 	params.sceneOuterBorder=Vector3d<float>(25.f);
+ 	params.sceneBorderColour.r=0.5f;
+ 	params.sceneBorderColour.g=0.5f;
+@@ -51,7 +51,7 @@
+ 	params.stopTime=2000.f;
+ 
+ 	//init agents accordingly
+-    initializeAgents();
++    initializeAgents(1);
+ 
+ 	//fire up the simulation
+ 	initializeGL();
+Index: src/params.h
+===================================================================
+--- src/params.h	(revision 47)
++++ src/params.h	(working copy)
+@@ -342,6 +342,6 @@
+ 
+ #define PI 3.14159265
+ 
+-//#define DEBUG_CALCDISTANCE2
++#define DEBUG_CALCDISTANCE2
+ 
+ #endif
+Index: src/simulation.cpp
+===================================================================
+--- src/simulation.cpp	(revision 47)
++++ src/simulation.cpp	(working copy)
+@@ -46,8 +46,8 @@
+ 		//just two agents close to each other
+ 		std::cout << "going to introduce 2 nearby agents\n";
+ 
+-		agents.push_back( new Cell(fileNames[1],0.,0.,1.) );
+-		agents.push_back( new Cell(fileNames[2],1.,0.,0.) );
++		agents.push_back( new Cell(fileNames[1] )); //,0.,0.,1.) );
++		agents.push_back( new Cell(fileNames[2] )); //,1.,0.,0.) );
+ 		agents.front()->pos.x=15.;
+ 		agents.front()->pos.y=30.;
+ 		agents.back()->pos.x=45.;
