@@ -7,14 +7,73 @@ AbstractAgent:
 - collection of virtual functions that cover minimal functionality
   required for the simulation, see below
 
-DoInternals(currentTime) - simulate/update whatever the agent needs
-                           and that can be useful in the next functions
+timeDelta - a period of time that one round is simulating
+          - does not necessary has to be the same as time span
+			   between (global) time points -- allows some agents
+				to be executed/simulated more rapidly than the whole
+				simulation is evolving; or even more slowly (e.g.
+				the guiding geometry hinter might have only a few updates
+				in the course of the simulation; but then it must have
+				empty AdjustGeometryByExtForces() (because scene is not
+				static within its long timeDelta))
+
+timeLocal - how old is this agent
+
+One simulation round is to call the following a,b,c,d functions.
+They represent timeDelta amount of time that this agent "grows older",
+that is, timeLocal increases by timeDelta _after_ this round.
+The rounds are executed as long as timeLocal < timeGlobal, the latter
+is the global (wall) time that associated FO knows.
+
+a: AdvanceAndBuildIntForces()
+b: AdjustGeometryByIntForces()
+
+c: CollectExtForces()
+d: AdjustGeometryByExtForces()
+
+[
+Matching against TRAgen:
+a,b - Cell::adjustShape()
+c   - Cell::calculateForces()
+d   - Cell::applyForces()
+
+Matching against ICIP2018 (multicell filo, submitted)
+a,b - unconstrained dynamics
+c   - collision detection
+d   - collision response
+
+Matching against MitoGen:
+a,b - internal development of the cell: texture & shape
+c   - Cell::ScmUniversalMovement()
+d   - Cell::...applyFF()...
+
+'a','b' are designed separable so that one can use the same mechanism
+to adjust shape if one wants so -- in which case one would create
+AdjustGeometryByForces() and would call it from both 'b' and 'd'.
+|
+For "simple" simulations, one would often do shape change already in 'a' and
+would leave 'b' just empty.
+]
+
+
+attributes to store simplified geometry for GetSimplifiedGeometry()
+attributes to store necessary-detailed geometry for the simulation
+(the previous attributes are "subset" of these)
 
 GetAABB() - returns the current axis-aligned bounding box that embodies
             the current geometry of the agent; Dirigent will want to know
-				to provide appropriatelly sized and positioned Image3d to be filled
+				to provide appropriately sized and positioned Image3d to be filled
 
-........ todo ......... - simulation-wise functions (provide forces, collect forces, apply forces, etc.)
+GetSimplifiedGeometry() - returns the geometry, the simplified version, that everybody
+                          else can use to test for collisions (also the one that is copied
+							     into neighboring FOs/tiles for shadowing); this is typically
+							     the geometry that was valid at timeGlobal of my FO; after FO
+							     advances into another revision, calls my AdvanceSimplifiedGeometry()
+AdvanceSimplifiedGeometry() - updates what GetSimplifiedGeometry() reports with my latest
+                              geometry; this is typically what I have by now, which at
+									   my timeLocal > FO's timeGlobal; NB: if my timeLocal == FO's timeGlobal
+									   then it means that I haven't yet simulated anything
+
 
 DrawMask(AbstractDisplayUnit) - renders the current geometry of the agent into the AbstractDisplayUnit,
                                 the unit offers a limited collection of graphics primitives
@@ -25,6 +84,9 @@ DrawTexture(Image3d)
 
 DrawDebugMask(AbstractDisplayUnit)  shall we?
 DrawDebugMask(Image3d)              shall we?
+
+[these are for the Dirigent to build the simulated images,
+ there can be other drawers to feed dedicated GlobalAgent agents]
 
 
 ------------------------------------------------------------------------------
@@ -90,8 +152,28 @@ possible DisplayUnit implementation:
 
 
 ------------------------------------------------------------------------------
-Work-load layout:
+Work-load layout, overview:
+It is based on the idea:
+The whole scene is tiled (which is motivated by computational reasons).
+Agent/cell belongs into exactly one tile. There is usually multiple agents in one tile.
+The agents do not move often between tiles.
+An agent can live at the tile border, and even physically extend out from the tile.
+An agent is evaluated only against agents from the same and neighboring tiles!
+What if agent is large (=larger than tile)?
+Patch: design a global agent
+ - that is associated with one FO -- this where simulation/evolution is computed,
+ - whose (geometry only) copy available in every FO,
+ - that comes in two flavours: with empty AdjustGeometryByExtForces()
+   (consequently also empty CollectExtForces(); e.g. whole scene shape hinter)
+	and without empty AdjustGeometryByExtForces() (is influenced by the current
+	situation in the scene; e.g. whole scene chemotaxer); the former is is called
+	(from agent's perspective) as GlobalROAgent, latter just GlobalAgent;
+	filling GlobalAgent is essentially the same problem as filling the whole/global
+	simulated scene -- so agents would need to provide their response to
+	the GlobalAgent's associated FO in order to update it
 
+
+Work-load layout, main actors:
 Dirigent - the main maintainer & scheduler of the simulation, work coordinator, results collector
 
 			Controlling the simulation (maintainance, work support):
@@ -104,7 +186,9 @@ Dirigent - the main maintainer & scheduler of the simulation, work coordinator, 
 			- listens to and receives reports/updates from all FOs
          - is always online -- can always hear from the FOs
 
-			[- advances (and synchronizes in this way) the simulation cycle -- necessary ??]
+			[advances (and synchronizes in this way) the simulation cycle -- necessary ??]
+			- provides initial timeGlobal, timeDelta to FOs
+			- revision number is actually timeGlobal and increases with timeDelta
 
 			Reporting about the simulation (results/renderings collection):
 			- maintains a list of cells/backend workers:
@@ -125,7 +209,9 @@ Dirigent = global-scene director
 Front Officers = local-scene directors, Front Officer = FO
 
 Front Officer - is responsible for one or more tiles and makes sure its tiles advance into another revision
-				  - has (minimalistic) copies of all neighboring tiles (incl. geometries of their cells)
+                (that is, all agents' timeLocal >= this FO's timeGlobal+timeDelta
+					  and this FO's timeGlobal increases = advance into another revision)
+				  - has (minimalistic) copies of all neighboring tiles (incl. geometries of their cells) at rev r.
 				  - stores tile at rev. r, retrieves copies of neighboring tiles at rev. r, advances current tile, reports to dirigent
 				  - supports for hand-over of cells between tiles (and FOs)
 
