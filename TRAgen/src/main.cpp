@@ -37,7 +37,8 @@ int main(int argc,char **argv)
 	params.maxCellSpeed=0.20f;
 
 	//adapted for cell cycle length of 24 hours
-	params.cellCycleLength=14.5*60; //[min]
+	//params.cellCycleLength=14.5*60; //[min]
+	params.cellCycleLength=30; //[min]
 	params.cellPhaseDuration[G1Phase]=0.5f * params.cellCycleLength;
 	params.cellPhaseDuration[SPhase]=0.3f * params.cellCycleLength;
 	params.cellPhaseDuration[G2Phase]=0.15f * params.cellCycleLength;
@@ -78,7 +79,7 @@ int main(int argc,char **argv)
 	char fn[1024];
 
 	//run the simulation
-	for (frameCnt=0; frameCnt < 1; ++frameCnt)
+	for (frameCnt=0; frameCnt < 20; ++frameCnt)
 	{
 		//render cells into the image
 		img.GetVoxelData() = 0;

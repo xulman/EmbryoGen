@@ -53,6 +53,8 @@ void initializeAgents(const int mode)
 		                           << agents.back()->pos.z << "]\n";
 	}
 
+	agents.front()->isSelected = true;
+
 	//go over all cells and create their tracks
 	 std::list<Cell*>::const_iterator c=agents.begin();
 	 for (; c != agents.end(); c++)

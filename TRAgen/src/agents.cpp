@@ -1246,7 +1246,6 @@ void Cell::initializeCytokinesis(const float duration)
 void Cell::progressG1Phase(void)
 {
 	if (isSelected) REPORT("phaseProgress=" << phaseProgress);
-	Grow();
 }
 
 void Cell::progressSPhase(void)
@@ -1257,6 +1256,9 @@ void Cell::progressSPhase(void)
 void Cell::progressG2Phase(void)
 {
 	if (isSelected) REPORT("phaseProgress=" << phaseProgress);
+
+	if (ID == 1) pos.y -= 0.5f;
+		
 }
 
 void Cell::progressProphase(void)
