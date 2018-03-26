@@ -1,9 +1,9 @@
 #ifndef AGENTS_H
 #define AGENTS_H
 
-#include <GL/glew.h>
 #include <list>
 #include <vector>
+#include <i3d/image3d.h>
 #include "params.h"
 #include "rnd_generators.h"
 
@@ -25,7 +25,7 @@ class Cell {
 		bp.push_back(PolarPair(2.356f,3.f));
 		bp.push_back(PolarPair(3.927f,3.f));
 		bp.push_back(PolarPair(5.498f,3.f));
-		outerRadius=3.;
+		outerRadius=4.f;
 
 		//back up the initial settings
 		initial_bp=bp;
@@ -33,10 +33,6 @@ class Cell {
 
 		InitialSettings();
 	}
-
- 	///init constructor
-	Cell(const char* filename,
-		const float R=1.f, const float G=1.f, const float B=0.f);
 
 	///copy constructor
 	Cell(const Cell& buddy,
@@ -53,13 +49,6 @@ class Cell {
 		initial_bp.clear();
 		listOfForces.clear();
 		listOfFriends.clear();
-
-		glDeleteVertexArrays(1, &VAO_vao); //cells buffer
-		glDeleteBuffers(1, &VAO_ebo); //elements buffer
-		glDeleteBuffers(1, &VAO_vbo); //vertex buffer
-
-		if (VAO_vertices) delete[] VAO_vertices;
-		if (VAO_elements) delete[] VAO_elements;
 	}
 
 // -------- current params of the cell -------- 
@@ -202,7 +191,6 @@ class Cell {
     int grow_iterations;
     int cur_grow_it;
     int p_iter;
-    void Grow_Fill_Voids(void);
     void Grow(void);
 
 // -------- current movement of the cell -------- 
@@ -250,47 +238,15 @@ class Cell {
 	bool IsPointInCell(const Vector3d<float>& coord);
 
 	///draws the cell and forces with OpenGL commands
+	/*
 	void DrawCell(const int showCell) const;
 	void DrawForces(const int whichForces,const float stretchF=1.f,
 	                const float stretchV=1.f) const;
+	*/
 
+	//renders the sphere into this image
+	void RasterInto(i3d::Image3d<i3d::GRAY8>& img) const;
 
-	//some visualization low-level stuff:
-
-	///"pointers" to OpenGL local/internal buffers
-	GLuint VAO_vbo, VAO_ebo, VAO_vao;
-	///the CPU-side data
-	GLfloat* VAO_vertices;
-	GLuint VAO_veLength;
-	GLuint* VAO_elements;
-	GLuint VAO_elLength;
-
-	/**
-	 * "pointer" to the texture:
-	 *
-	 * 0                 = a deault and always present texture (chessboard like one)
-	 * 1... (texTotal-1) = user loaded continous block of available textures
-	 */
-	int VAO_texID;
-	///filename of the texture...
-	char VAO_texFN[1024];
-
-	///status of the above
-	bool VAO_isUpdate;
-
-	/// updates the whole VAO stuff
-	void VAO_RefreshAll(void);
-
-	///updates the vbo list with new vertex positions
-	void VAO_UpdateOnlyBP(void);
-
-	void VAO_initStuff(void)
-	{
-		//alocate OpenGL internal mem for the buffers
-		glGenBuffers(1, &VAO_vbo);
-		glGenBuffers(1, &VAO_ebo);
-		glGenVertexArrays(1, &VAO_vao);
-	}
 
 	///lists content of the bp list
 	void ListBPs(void) const;
@@ -308,21 +264,6 @@ class Cell {
 	  * basically: d_ij - (r_i + r_j)
 	  */
 	 float CalcRadiusDistance(const Cell& buddy);
-
-	/**
-	 * Calculate nearest distance of this cell to the \e buddy.
-	 *
-	 * \return
-	 * If the cells do not intersect, it returns positive number.
-	 * Otherwise, it returns negative number whose absolute value
-	 * tells the distance of the mutual penetration.
-	 */
-    float CalcDistance(const Cell& buddy);
-
-	 ///similar to CalcDistance(); in casee of intersection,
-	 ///returns \e number of intersecting points
-    float CalcDistance2(const Cell& buddy,int& number,
-	                     const float ext=0.f);
 
     ///lambda to calculate social force
     float lambda;

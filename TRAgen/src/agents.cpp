@@ -1,5 +1,3 @@
-#include <GL/glew.h>
-
 #define _USE_MATH_DEFINES
 #include <cmath>
 #include <list>
@@ -7,14 +5,13 @@
 #include <fstream>
 #include <float.h>
 #include <algorithm>
+#include <i3d/image3d.h>
 
 #include "params.h"
 #include "agents.h"
 #include "rnd_generators.h"
 
-#ifdef RENDER_TO_IMAGES
  #include "simulation.h"
-#endif
 
 #define DEG_TO_RAD(x) ((x)*PI/180.0f)
 
@@ -88,26 +85,6 @@ void Cell::InitialSettings(bool G1start)
 
 	 //my new ID
 	 this->ID=GetNewCellID();
-
-	 //some visualization low-level stuff:
-	 //claim we have not initiated really
-	 this->VAO_isUpdate=false;
-	 //
-	 //and indeed...
-	 this->VAO_vertices=NULL;
-	 this->VAO_elLength=0;
-	 this->VAO_elements=NULL;
-	 this->VAO_veLength=0;
-	 //
-	 //also no user texture is associated yet, use the default one
-	 this->VAO_texID=0;
-
-	 //each cell is initiated at two places: this and in the VAO_initStuff();
-	 //the latter must be initiated after the OpenGL was initiated;
-	 //however, if we are a daughter cell, the OpenGL was initiated for sure,
-	 //so we are safe to call this function from here (otherwise it is called
-	 //only from the initializeGL() once at the progam start up...)
-	 if (G1start) this->VAO_initStuff();
 
 	 //OTHER STUFF
 
@@ -215,106 +192,6 @@ void Cell::InitialSettings(bool G1start)
 }
 
 
-Cell::Cell(const char* filename,
-		const float R, const float G, const float B) :
-			pos(0.f), orientation(0.f,1.f), bp(), former_bp(), 
-			weight(1.f), initial_bp(), listOfForces(),
-            isSelected(false), listOfFriends()
-{
-	colour.r=R;
-	colour.g=G;
-	colour.b=B;
-
-	if (filename == NULL)
-	{
-		//no particular cell shape is prescribed,
-		//going for default...
-		bp.push_back(PolarPair(0.785f,3.f));
-		bp.push_back(PolarPair(2.356f,3.f));
-		bp.push_back(PolarPair(3.927f,3.f));
-		bp.push_back(PolarPair(5.498f,3.f));
-		outerRadius=3.f;
-	}
-	else
-	{
-		std::ifstream file(filename);
-		if (!file.is_open())
-		{
-			REPORT("I was not able to read file: " << filename);
-			exit(EXIT_FAILURE);
-		}
-
-		float ignore;
-		file >> pos.x >> pos.y >> ignore;
-		file >> ignore;
-		file.getline(this->VAO_texFN,1024); //to bypass the end-of-line after the ini_group_id parameter
-		file.getline(this->VAO_texFN,1024); //to read (finally) the texture file name parameter texture_file
-		file >> orientation.ang >> orientation.dist;
-
-		float ang,dist;
-		while (file >> ang >> dist)
-			  bp.push_back(PolarPair(ang,dist));
-
-		file.close();
-
-		//search for the maximum radius
-		outerRadius=0.f;
-
-		//subsample the list to keep min number of points
-		#define MIN_BOUNDARY_POINTS		40
-
-		//every keepFactor-th should be kept
-		int keepFactor=(int) bp.size()/MIN_BOUNDARY_POINTS -1;
-
-		std::list<PolarPair>::iterator p=bp.begin();
-		int erasedCnt=0;
-		while (p != bp.end())
-		{
-			if (erasedCnt < keepFactor)
-			{
-				//erases current point and returns pointer to the next one
-				p=bp.erase(p);
-				erasedCnt++;
-			}
-			else
-			{
-				//keep this one
-				erasedCnt=0;
-				//update the search for maximum radius
-				if (p->dist > outerRadius) outerRadius=p->dist;
-
-				p++;
-			}
-		}
-
-/*
-		//now, re-adjust to cell diameter of 32um, hence radius=16um
-		float stretch=17.f / outerRadius;
-		float stretch=3.f;
-		p=bp.begin();
-		while (p != bp.end())
-		{
-			p->dist *= stretch;
-			++p;
-		}
-		outerRadius*=stretch;
-		orientation.dist*=stretch;
-
-		//REPORT("bp list size is now " << bp.size());
-		//this->ListBPs();
-*/
-	}
-
-	//back up the initial settings
-    initial_bp=bp;
-	 initial_orientation.ang =orientation.ang;
-	 initial_orientation.dist=orientation.dist;
-    initial_weight=weight;
-
-	InitialSettings();
-}
-
-
 Cell::Cell(const Cell& buddy,
 		const float R, const float G, const float B) :
 			pos(0.f), orientation(0.f,1.f), bp(), former_bp(),
@@ -353,10 +230,6 @@ Cell::Cell(const Cell& buddy,
 	//to yield some differences from mother
 	InitialSettings(true);
 
-	//InitialSettings() resets texture to the default one,
-	//we gonna use the same one as my buddy is using
-	VAO_texID=buddy.VAO_texID;
-
 	//keep the original counter
 	lastEasyForcesTime=buddy.lastEasyForcesTime;
 }
@@ -366,32 +239,10 @@ void Cell::calculateNewPosition(const Vector3d<float>& translation,float rotatio
 {
 	//update: move
 	pos+=translation;
-
-	//update: rotate
-	std::list<PolarPair>::iterator p=bp.begin();
-	while (p != bp.end())
-	{
-		p->ang = std::fmod(p->ang + rotation, 2.0f*PI);
-
-		/* for detecting of crippled shapes
-		if (p->dist < 1) std::cout << "dist=" << p->dist
-										<< ", curPhase=" << this->curPhase
-										<< ", phaseProgress=" << this->phaseProgress << "\n";
-		*/
-		p++;
-	}
-	orientation.ang = std::fmod(orientation.ang + rotation, 2.0f*PI);
-
-	//update: rotate initial -- so that it shadows the current orientation
-	p=initial_bp.begin();
-	while (p != initial_bp.end())
-	{
-		p->ang = std::fmod(p->ang + rotation, 2.0f*PI);
-		p++;
-	}
 }
 
 
+/*
 void Cell::DrawCell(const int showCell) const
 {
 	if (showCell & 2)
@@ -504,185 +355,45 @@ void Cell::DrawForces(const int whichForces,const float stretchF,
 		vel.Draw(former_pos,stretchV);
 	}
 }
+*/
 
 
-//some required "extern stuff"
-extern GLint posAttrib;
-extern GLint texAttrib;
-extern GLint colAttrib;
-extern int windowSizeX;
-extern int windowSizeY;
-void GetSceneViewSize(const int w,const int h,
-							float& xVisF, float& xVisT,
-							float& yVisF, float& yVisT);
 
-void Cell::VAO_RefreshAll(void)
+void Cell::RasterInto(i3d::Image3d<i3d::GRAY8>& img) const
 {
-	//are the current lengths appropriate?
-	if (VAO_veLength != bp.size()+1)
-	{
-		if (VAO_vertices) delete[] VAO_vertices;
-		VAO_veLength = (GLuint)(bp.size())+1;
-		VAO_vertices = new GLfloat[5*VAO_veLength];
-	}
-	if (VAO_elLength != 2*bp.size()+1)
-	{
-		if (VAO_elements) delete[] VAO_elements;
-		VAO_elLength = (GLuint)(2*bp.size())+1;
-		VAO_elements = new GLuint[VAO_elLength];
-	}
+	const size_t xC = size_t(pos.x * params.imgResX);
+	const size_t yC = size_t(pos.y * params.imgResY);
+	const size_t zC = size_t(pos.z * params.imgResZ);
+	const size_t xR = size_t(outerRadius * params.imgResX  +0.5f);
+	const size_t yR = size_t(outerRadius * params.imgResY  +0.5f);
+	const size_t zR = size_t(outerRadius * params.imgResZ  +0.5f);
 
-	//reset content of the VAO_vbo buffer (vertices)
-	//(to some extent, this block of code does exactly the same
-	// as does the Cell::VAO_UpdateOnlyBP() function, see commentary in there)
-	float xVisF, yVisF;
-	float xVisT, yVisT;
-	GetSceneViewSize(windowSizeX,windowSizeY, xVisF,xVisT,yVisF,yVisT);
-	const float xVisConst= 2.f / (xVisT-xVisF);
-	const float yVisConst= 2.f / (yVisT-yVisF);
-	const float xVisConstB = pos.x - xVisF;
-	const float yVisConstB = pos.y - yVisF;
+	//determine bounds for the ball
+	const size_t x_min = (xC > xR)? xC-xR : 0;
+	const size_t x_max = (xC+xR < img.GetSizeX())? xC+xR : img.GetSizeX();
+	const size_t y_min = (yC > yR)? yC-yR : 0;
+	const size_t y_max = (yC+yR < img.GetSizeY())? yC+yR : img.GetSizeY();
+	const size_t z_min = (zC > zR)? zC-zR : 0;
+	const size_t z_max = (zC+zR < img.GetSizeZ())? zC+zR : img.GetSizeZ();
 
-	VAO_vertices[0]=xVisConst * (pos.x - xVisF) -1.0f; //scene coordinate
-	VAO_vertices[1]=yVisConst * (pos.y - yVisF) -1.0f;
-	VAO_vertices[2]=0.5f; //texture coordinate
-	VAO_vertices[3]=0.5f; //texture coordinate
-	VAO_vertices[4]=GLfloat(this->ID);
-	std::list<PolarPair>::const_iterator p=bp.begin();
-	int offset=5;
-	while (p != bp.end())
+	//sweep the bounds and draw the ball
+	const float R2 = outerRadius*outerRadius;
+	for (size_t z = z_min; z <= z_max; ++z)
 	{
-		//scene coordinate
-		VAO_vertices[offset +0]=xVisConst * ((p->dist*cos(p->ang)) + xVisConstB) -1.0f;
-		VAO_vertices[offset +1]=yVisConst * ((p->dist*sin(p->ang)) + yVisConstB) -1.0f;
-
-		//texture coordinate
-		const float deltaAng=orientation.ang - initial_orientation.ang;
-		const float ptan=tan(p->ang -deltaAng);
-		if ((ptan >= -1.f) && (ptan <= 1.f))
-		{ //hits first left or right wall of the rectangle
-			const float sgn=(cos(p->ang -deltaAng) < 0)? -1.f : +1.f;
-			VAO_vertices[offset +2]=sgn* 1.f;
-			VAO_vertices[offset +3]=sgn* ptan;
-		}
-		else
+		const float dz = (z-zC) * (z-zC) / (params.imgResZ * params.imgResZ);
+		for (size_t y = y_min; y <= y_max; ++y)
 		{
-			const float sgn=(sin(p->ang -deltaAng) < 0)? -1.f : +1.f;
-			VAO_vertices[offset +2]=sgn/ ptan;
-			VAO_vertices[offset +3]=sgn* 1.f;
+			const float dy = (y-yC) * (y-yC) / (params.imgResY * params.imgResY);
+			for (size_t x = x_min; x <= x_max; ++x)
+			{
+				const float dx = (x-xC) * (x-xC) / (params.imgResX * params.imgResX);
+				if (dx+dy+dz <= R2)
+					img.SetVoxel(x,y,z,(i3d::GRAY8)ID);
+			}
 		}
-		//normalize from [-1,1] to [0,1]
-		VAO_vertices[offset +2]=0.5f*(VAO_vertices[offset +2]+1.f);
-		VAO_vertices[offset +3]=0.5f*(VAO_vertices[offset +3]+1.f);
-
-		//ID
-		VAO_vertices[offset +4]=GLfloat(this->ID);
-
-		offset+=5;
-		++p;
 	}
-
-
-	//reset content of the VAO_ebo buffer (elements)
-	VAO_elements[0]=0;
-	offset=1;
-	for (unsigned int i=0; i < bp.size(); ++i)
-	{
-		VAO_elements[offset++]=i+1;
-		VAO_elements[offset++]=i+2;
-	}
-	VAO_elements[offset-1]=1;
-
-
-	 //set my context
-    glBindVertexArray(VAO_vao);
-
-	 //upload the vertex data
-	 glBindBuffer(GL_ARRAY_BUFFER, VAO_vbo);
-	 glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)*5*VAO_veLength, VAO_vertices, GL_DYNAMIC_DRAW);
-
-	 //upload the element data
-	 glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, VAO_ebo);
-	 glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLfloat)*VAO_elLength, VAO_elements, GL_STATIC_DRAW);
-
-
-	 // Specify the layout of the vertex data
-	 glEnableVertexAttribArray(posAttrib);
-	 glVertexAttribPointer(posAttrib, 2, GL_FLOAT, GL_FALSE, 
-								  GLsizei(5 * sizeof(GLfloat)), 0);
-
-	 glEnableVertexAttribArray(texAttrib);
-	 glVertexAttribPointer(texAttrib, 2, GL_FLOAT, GL_FALSE, 
-								  GLsizei(5 * sizeof(GLfloat)), (void*)(2 * sizeof(GLfloat)));
-
-	 glEnableVertexAttribArray(colAttrib);
-	 glVertexAttribPointer(colAttrib, 1, GL_FLOAT, GL_FALSE, 
-								  GLsizei(5 * sizeof(GLfloat)), (void*)(4 * sizeof(GLfloat)));
-
-	 //set back the default context
-    glBindVertexArray(0);
-
-	this->VAO_isUpdate=true;
 }
 
-
-void Cell::VAO_UpdateOnlyBP(void)
-{
-	if (VAO_veLength != bp.size()+1)
-	{
-		REPORT("List lengths mismatch!");
-		this->VAO_RefreshAll();
-		return;
-	}
-
-	//lists lengths are okay, let's beleive the rest is okay as well
-	//
-	//reset coordinates respecting the size of the visible window
-	float xVisF, yVisF;
-	float xVisT, yVisT;
-	GetSceneViewSize(windowSizeX,windowSizeY, xVisF,xVisT,yVisF,yVisT);
-	//xyVisFT now tells me the model coordinate range that match exactly the displayed window
-	//
-	//so, any [x,y] model coordinate must be relativized within this coordinate range
-	//and the rel. coordinate re-streched to interval [-1,1]... in other words,
-	//the xyVisFT-driven frame corresponds to the [-1,1]x[-1,1] frame into which we must
-	//no translate the [x,y] model coordinate:
-	//
-	// ( 2.f* (x-xVisF) / (xVisT-xVisF) ) -1.f;
-
-	const float xVisConst= 2.f / (xVisT-xVisF);
-	const float yVisConst= 2.f / (yVisT-yVisF);
-
-	//first the centre point
-	VAO_vertices[0]=xVisConst * (pos.x - xVisF) -1.0f;
-	VAO_vertices[1]=yVisConst * (pos.y - yVisF) -1.0f;
-
-	//now the rest of the points as they appear on the bp list
-	std::list<PolarPair>::const_iterator p=bp.begin();
-	int offset=5;
-
-	const float xVisConstB = pos.x - xVisF;
-	const float yVisConstB = pos.y - yVisF;
-
-	while (p != bp.end())
-	{
-		VAO_vertices[offset +0]=xVisConst * ((p->dist*cos(p->ang)) + xVisConstB) -1.0f;
-		VAO_vertices[offset +1]=yVisConst * ((p->dist*sin(p->ang)) + yVisConstB) -1.0f;
-
-		offset+=5;
-		++p;
-	}
-
-	 //set my context
-    glBindVertexArray(VAO_vao);
-
-	 //upload the vertex data
-	 glBindBuffer(GL_ARRAY_BUFFER, VAO_vbo);
-	 glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)*5*VAO_veLength, VAO_vertices, GL_DYNAMIC_DRAW);
-
-	 //set back the default context
-    glBindVertexArray(0);
-}
 
 
 void Cell::ListBPs(void) const
@@ -780,298 +491,12 @@ float Cell::CalcRadiusDistance(const Cell& buddy)
 {
 	//distance between centres of cells
 	float dist= sqrt( (this->pos.x-buddy.pos.x)*(this->pos.x-buddy.pos.x)
-						+(this->pos.y-buddy.pos.y)*(this->pos.y-buddy.pos.y) );
+						  +(this->pos.y-buddy.pos.y)*(this->pos.y-buddy.pos.y)
+						  +(this->pos.z-buddy.pos.z)*(this->pos.z-buddy.pos.z) );
 	dist -= this->outerRadius;
 	dist -= buddy.outerRadius;
 
 	return (dist);
-}
-
-
-float Cell::CalcDistance(const Cell& buddy)
-{
-
-    float main_azimut = atan2(buddy.pos.y-this->pos.y, buddy.pos.x-this->pos.x)*180/PI;
-    if (main_azimut < 0.f)
-    {
-        main_azimut+=360;
-    }
-    //std::cout << " " << main_azimut << std::endl;
-
-    //calculation of owners points
-    std::list<PolarPair>::const_iterator p=bp.begin();
-    PolarPair this_lower_azimut;
-    PolarPair this_higher_azimut;
-
-
-     while (p != bp.end())
-    {
-        //std::cout << (*p).ang*180/PI << std::endl;
-        if(p==bp.begin() )
-        {
-            std::list<PolarPair>::const_iterator r=bp.end();
-            r--;
-            if(((*p).ang*180/PI >= main_azimut || (*r).ang*180/PI <= main_azimut))
-            {
-                this_lower_azimut.ang = (*p).ang;
-                this_higher_azimut.ang = (*r).ang;
-                this_lower_azimut.dist = (*p).dist;
-                this_higher_azimut.dist = (*r).dist;
-            }
-            else
-            {
-                std::list<PolarPair>::const_iterator r=p;
-                r++;
-                if(((*p).ang*180/PI <= main_azimut && (*r).ang*180/PI >= main_azimut))
-                {
-
-                    this_lower_azimut.ang = (*p).ang;
-                    this_higher_azimut.ang = (*r).ang;
-                    this_lower_azimut.dist = (*p).dist;
-                    this_higher_azimut.dist = (*r).dist;
-
-                }
-            }
-
-        }
-        else
-        {
-            std::list<PolarPair>::const_iterator r=p;
-            r++;
-            if(((*p).ang*180/PI <= main_azimut && (*r).ang*180/PI >= main_azimut))
-            {
-
-                this_lower_azimut.ang = (*p).ang;
-                this_higher_azimut.ang = (*r).ang;
-                this_lower_azimut.dist = (*p).dist;
-                this_higher_azimut.dist = (*r).dist;
-            }
-        }
-
-        p++;
-
-    }
-
-    //std::cout << "this_lower_azimut:" << this_lower_azimut.ang*180/PI << std::endl;
-    //std::cout << "this_higher_azimut:" << this_higher_azimut.ang*180/PI << std::endl;
-
-
-    //calculation of buddys points
-    p=buddy.bp.begin();
-    PolarPair buddy_lower_azimut;
-    PolarPair buddy_higher_azimut;
-
-    main_azimut-=180.f;
-    if (main_azimut < 0.f)
-    {
-        main_azimut+=360.f;
-    }
-    //std::cout << "reverse azimut " << main_azimut << std::endl;
-     while (p != buddy.bp.end())
-    {
-        //std::cout << (*p).ang*180/PI << std::endl;
-        if(p==buddy.bp.begin() )
-        {
-            std::list<PolarPair>::const_iterator r=buddy.bp.end();
-            r--;
-            if(((*p).ang*180/PI >= main_azimut || (*r).ang*180/PI <= main_azimut))
-            {
-                buddy_lower_azimut.ang = (*p).ang;
-                buddy_higher_azimut.ang = (*r).ang;
-                buddy_lower_azimut.dist = (*p).dist;
-                buddy_higher_azimut.dist = (*r).dist;
-            }
-            else
-            {
-                std::list<PolarPair>::const_iterator r=p;
-                r++;
-                if(((*p).ang*180/PI <= main_azimut && (*r).ang*180/PI >= main_azimut))
-                {
-
-                    buddy_lower_azimut.ang = (*p).ang;
-                    buddy_higher_azimut.ang = (*r).ang;
-                    buddy_lower_azimut.dist = (*p).dist;
-                    buddy_higher_azimut.dist = (*r).dist;
-
-                }
-            }
-
-        }
-        else
-        {
-            std::list<PolarPair>::const_iterator r=p;
-            r++;
-            if(((*p).ang*180/PI <= main_azimut && (*r).ang*180/PI >= main_azimut))
-            {
-
-                buddy_lower_azimut.ang = (*p).ang;
-                buddy_higher_azimut.ang = (*r).ang;
-                buddy_lower_azimut.dist = (*p).dist;
-                buddy_higher_azimut.dist = (*r).dist;
-            }
-        }
-
-        p++;
-
-    }
-
-    //std::cout << "buddy_lower_azimut:" << buddy_lower_azimut.ang*180/PI << std::endl;
-    //std::cout << "buddy_higher_azimut:" << buddy_higher_azimut.ang*180/PI << std::endl;
-
-    //4 points
-    Vector3d<float> this_point1_coord(pos.x+cos(this_lower_azimut.ang)*this_lower_azimut.dist,pos.y+sin(this_lower_azimut.ang)*this_lower_azimut.dist,0.f);
-    Vector3d<float> this_point2_coord(pos.x+cos(this_higher_azimut.ang)*this_higher_azimut.dist,pos.y+sin(this_higher_azimut.ang)*this_higher_azimut.dist,0.f);
-    Vector3d<float> buddy_point1_coord(buddy.pos.x+cos(buddy_lower_azimut.ang)*buddy_lower_azimut.dist,buddy.pos.y+sin(buddy_lower_azimut.ang)*buddy_lower_azimut.dist,0.f);
-    Vector3d<float> buddy_point2_coord(buddy.pos.x+cos(buddy_higher_azimut.ang)*buddy_higher_azimut.dist,buddy.pos.y+sin(buddy_higher_azimut.ang)*buddy_higher_azimut.dist,0.f);
-
-
-    //std::cout << "owners 1. point coordinates: " << this_point1_coord.x << " " << this_point1_coord.y << "\n";
-    //std::cout << "owners 2. point coordinates: " << this_point2_coord.x << " " << this_point2_coord.y << "\n";
-    //std::cout << "buddys 1. point coordinates: " << buddy_point1_coord.x << " " << buddy_point1_coord.y << "\n";
-    //std::cout << "buddys 2. point coordinates: " << buddy_point2_coord.x << " " << buddy_point2_coord.y << "\n";
-
-    //4 vectors
-    std::vector< Vector3d<float> > vectors;
-    Vector3d<float> first(buddy_point1_coord.x-this_point1_coord.x, buddy_point1_coord.y-this_point1_coord.y, 0.f);
-    Vector3d<float> second(buddy_point2_coord.x-this_point1_coord.x, buddy_point2_coord.y-this_point1_coord.y, 0.f);
-    Vector3d<float> third(buddy_point1_coord.x-this_point2_coord.x, buddy_point1_coord.y-this_point2_coord.y, 0.f);
-    Vector3d<float> forth(buddy_point2_coord.x-this_point2_coord.x, buddy_point2_coord.y-this_point2_coord.y, 0.f);
-    vectors.push_back(first);
-    vectors.push_back(second);
-    vectors.push_back(third);
-    vectors.push_back(forth);
-
-    //vector od stredu jednej bunky k druhej
-    Vector3d<float> main_vector( buddy.pos.x-this->pos.x,buddy.pos.y-this->pos.y,0.f);
-
-
-    float help = -100000.f;
-    int index=0;
-    for(int i=0; i<4; i++)
-    {
-        float temp = (vectors[i].x*main_vector.x+vectors[i].y*main_vector.y)/(sqrt(vectors[i].x*vectors[i].x+vectors[i].y+vectors[i].y)*sqrt(main_vector.x*main_vector.x+main_vector.y+main_vector.y));
-        if( temp > help)
-        {
-            help = temp;
-            index = i;
-        }
-    }
-
-    //nastavnie polarneho paru podla najvyhovujucejsej situacii
-    PolarPair owner_final;
-    PolarPair buddy_final;
-    switch(index)
-    {
-    case 0:
-    {
-        owner_final.ang=this_lower_azimut.ang;
-        owner_final.dist=this_lower_azimut.dist;
-        buddy_final.ang=buddy_lower_azimut.ang;
-        buddy_final.dist=buddy_lower_azimut.dist;
-        break;
-    }
-    case 1:
-    {
-        owner_final.ang=this_lower_azimut.ang;
-        owner_final.dist=this_lower_azimut.dist;
-        buddy_final.ang=buddy_higher_azimut.ang;
-        buddy_final.dist=buddy_higher_azimut.dist;
-        break;
-    }
-    case 2:
-    {
-        owner_final.ang=this_higher_azimut.ang;
-        owner_final.dist=this_higher_azimut.dist;
-        buddy_final.ang=buddy_lower_azimut.ang;
-        buddy_final.dist=buddy_lower_azimut.dist;
-        break;
-    }
-    case 3:
-    {
-        owner_final.ang=this_higher_azimut.ang;
-        owner_final.dist=this_higher_azimut.dist;
-        buddy_final.ang=buddy_higher_azimut.ang;
-        buddy_final.dist=buddy_higher_azimut.dist;
-        break;
-    }
-    }
-
-    //std::cout << "owner_final: " << owner_final.ang*180/PI << " " << owner_final.dist << "\n";
-    //std::cout << "buddy_final: " << buddy_final.ang*180/PI << " " << buddy_final.dist << "\n";
-
-
-    //zistit ktory polarny par je vlastne vybraty
-    p=bp.begin();
-    while (p != bp.end())
-    {
-        if((*p).ang+0.0001>owner_final.ang && (*p).ang-0.0001<owner_final.ang)
-            break;
-        p++;
-
-    }
-    std::list<PolarPair>::const_iterator q=buddy.bp.begin();
-    while (q != buddy.bp.end())
-    {
-        if((*q).ang+0.0001>buddy_final.ang && (*q).ang-0.0001<buddy_final.ang)
-            break;
-        q++;
-
-    }
-    //std::cout << "owner_final: " << (*p).ang*180/PI << " " << (*p).dist << "\n";
-    //std::cout << "buddy_final: " << (*q).ang*180/PI << " " << (*q).dist << "\n";
-
-    //pripravit iteratory
-    for(int i = 0 ; i<10; i++)
-    {
-        if(p==bp.begin())
-            p=bp.end();
-
-        if(q==buddy.bp.begin())
-            q=buddy.bp.end();
-        p--;
-        q--;
-
-    }
-
-    float min=10000.f;
-    float max=-10000.f;
-    bool collision=false;
-    for(int i = 0 ; i<20; i++)
-    {
-        if(p==bp.end())
-            p=bp.begin();
-
-        if(q==buddy.bp.end())
-            q=buddy.bp.begin();
-        p++;
-        q++;
-
-        Vector3d<float> owner_point(pos.x+cos((*p).ang)*(*p).dist,pos.y+sin((*p).ang)*(*p).dist,0.f);
-        Vector3d<float> buddy_point(buddy.pos.x+cos((*q).ang)*(*q).dist,buddy.pos.y+sin((*q).ang)*(*q).dist,0.f);
-        Vector3d<float> owner_buddy(buddy_point.x-owner_point.x, buddy_point.y-owner_point.y, 0.f);
-
-        float size = sqrt(owner_buddy.x*owner_buddy.x+owner_buddy.y*owner_buddy.y);
-        if(owner_buddy.x*main_vector.x+owner_buddy.y*main_vector.y >= 0.f && size < min)
-        {
-            min=size;
-        }
-        if(owner_buddy.x*main_vector.x+owner_buddy.y*main_vector.y < 0.f && size > max)
-        {
-            max=size;
-            collision=true;
-        }
-
-
-
-    }
-
-    //std::cout << "min = " << min << " max = " << max << std::endl;
-
-
-    if(collision)
-        return ( -max );
-    else
-        return ( min );
 }
 
 
@@ -1091,205 +516,15 @@ void CellPolarToGlobalCartesian(const PolarPair& pol,const Vector3d<float>& pos,
  std::vector<Vector3d<float> > pairsToShow;
 #endif
 
-float Cell::CalcDistance2(const Cell& buddy,int& number,
-	                       const float ext)
+/*
+float Cell::CalcDistance(const Cell& buddy)
 {
-	//determine azimuth between me and my buddy
-	const float angToBuddy=std::atan2(buddy.pos.y - pos.y, buddy.pos.x - pos.x);
-	const float angFromBuddy=std::atan2(pos.y - buddy.pos.y, pos.x - buddy.pos.x);
-
-	//_my and _buddy boundary points _nearest to the given angles,
-	//nearest from both sides ("left" and "right")
-	std::list<PolarPair>::const_iterator mnl,mnr,bnl,bnr;
-
-	//FindNearest(angToBuddy,mn);
-	//buddy.FindNearest(angFromBuddy,bn);
-
-	//sweeping iterator
-	std::list<PolarPair>::const_iterator p;
-
-	float bdistl=-1000.f, bdistr=1000.f;
-	p=bp.begin();
-	while (p != bp.end())
-	{
-		float d=SignedAngularDifference(angToBuddy,p->ang);
-		if ((d > 0) && (d < bdistr))
-		{
-			bdistr=d;
-			mnr=p;
-		}
-		else
-		if ((d < 0) && (d > bdistl))
-		{
-			bdistl=d;
-			mnl=p;
-		}
-
-		++p;
-	}
-
-	bdistl=-1000.f; bdistr=1000.f;
-	p=buddy.bp.begin();
-	while (p != buddy.bp.end())
-	{
-		float d=SignedAngularDifference(angFromBuddy,p->ang);
-		if ((d > 0) && (d < bdistr))
-		{
-			bdistr=d;
-			bnr=p;
-		}
-		else
-		if ((d < 0) && (d > bdistl))
-		{
-			bdistl=d;
-			bnl=p;
-		}
-
-		++p;
-	}
-
-	/* TODO: bylo asi pro debuging... opravit anyway
-	if ((isSelected) && (ext < 0.01f))
-		REPORT("signed ang.diff mnl-r=" << SignedAngularDifference(mnl->ang,mnr->ang)
-		       << " rad, bnl-r=" << SignedAngularDifference(bnl->ang,bnr->ang)
-				 << " rad");
-	 */
-
-	//now, the four iterators point at the boundary points nearest
-	//(from both sides) to a connection between centres of the two cells
-	//
-	//check, what pair is the most parallel to the connection vector
-	Vector3d<float> connection(buddy.pos.x - pos.x, buddy.pos.y - pos.y, 0.f);
-	connection/=sqrt(connection.x*connection.x + connection.y*connection.y);
-
-	//cartesian coordinates of the boundary points
-	Vector3d<float> mBP,bBP,tmp;
-
-	CellPolarToGlobalCartesian(*mnl,      pos, mBP, ext);
-	CellPolarToGlobalCartesian(*bnr,buddy.pos, bBP, ext);
-	tmp=bBP-mBP;
-	tmp/=sqrt(tmp.x*tmp.x + tmp.y*tmp.y);
-	bdistl=dotProduct(tmp,connection);
-
-	CellPolarToGlobalCartesian(*mnr,pos, mBP, ext);
-	tmp=bBP-mBP;
-	tmp/=sqrt(tmp.x*tmp.x + tmp.y*tmp.y);
-	bdistr=dotProduct(tmp,connection);
-
-	//looking for acos(val) closer to either 0 or PI is to look for acos(val)
-	//further from PI/2, which is to look for greater abs(val)
-	if (fabsf(bdistr) > fabsf(bdistl)) mnl=mnr;
-
-	//the best matching (starting) pair is the (mnl,bnr);
-	//we're gonna use (mnr,bnl) as the "sweeping pair" (until we get angularly too far)
-	mnr=mnl; bnl=bnr;
-	
-	//bdistl = will hold the minimum distance discovered so far (inc. penetration depths)
-	//number (param of this function) = will hold the number of "penetrating" pairs
-	bdistl=9999999.f; //safely way too big distance in microns
-	number=0;
-
-	//check the first direction...
-	while (AngularDifference(angToBuddy,mnr->ang) < PI/3.f)
-	{
-		CellPolarToGlobalCartesian(*mnr,      pos, mBP, ext);
-		CellPolarToGlobalCartesian(*bnl,buddy.pos, bBP, ext);
-		tmp=bBP-mBP;
-		bdistr=sqrt(tmp.x*tmp.x + tmp.y*tmp.y);
-
-#ifdef DEBUG_CALCDISTANCE2
-		//debug visualization
-		if (isSelected)
-		{
-			pointsToShow.push_back(mBP);
-			pointsToShow.push_back(bBP);
-		}
-#endif
-
-		if (dotProduct(tmp,connection) < 0)
-		{
-			//penetration in this case
-			++number;
-			bdistr *= -1.f;
-
-#ifdef DEBUG_CALCDISTANCE2
-			//debug visualization
-			if (isSelected)
-			{
-				pairsToShow.push_back(mBP);
-				pairsToShow.push_back(bBP);
-			}
-#endif
-		}
-
-		//update the minimum distance discovered so far
-		if (bdistr < bdistl) bdistl=bdistr;
-
-		//move on the next pair
-		if (mnr == bp.begin()) mnr=bp.end();
-		mnr--;
-		bnl++;
-		if (bnl == buddy.bp.end()) bnl=buddy.bp.begin();
-	}
-
-	//get ready for the second direction
-	mnr=mnl; bnl=bnr;
-
-	//skip the already processed pair
-	mnr++;
-	if (mnr == bp.end()) mnr=bp.begin();
-	if (bnl == buddy.bp.begin()) bnl=buddy.bp.end();
-	bnl--;
-
-	//check the second direction...
-	while (AngularDifference(angToBuddy,mnr->ang) < PI/3.f)
-	{
-		CellPolarToGlobalCartesian(*mnr,      pos, mBP, ext);
-		CellPolarToGlobalCartesian(*bnl,buddy.pos, bBP, ext);
-		tmp=bBP-mBP;
-		bdistr=sqrt(tmp.x*tmp.x + tmp.y*tmp.y);
-
-#ifdef DEBUG_CALCDISTANCE2
-		//debug visualization
-		if (isSelected)
-		{
-			pointsToShow.push_back(mBP);
-			pointsToShow.push_back(bBP);
-		}
-#endif
-
-		if (dotProduct(tmp,connection) < 0)
-		{
-			//penetration in this case
-			++number;
-			bdistr *= -1.f;
-
-#ifdef DEBUG_CALCDISTANCE2
-			//debug visualization
-			if (isSelected)
-			{
-				pairsToShow.push_back(mBP);
-				pairsToShow.push_back(bBP);
-			}
-#endif
-		}
-
-		//update the minimum distance discovered so far
-		if (bdistr < bdistl) bdistl=bdistr;
-
-		//move on the next pair
-		mnr++;
-		if (mnr == bp.end()) mnr=bp.begin();
-		if (bnl == buddy.bp.begin()) bnl=buddy.bp.end();
-		bnl--;
-	}
-
-	if ((isSelected) && (ext < 0.01f))
-		REPORT("ID " << this->ID << ": dist=" << bdistl << " um (with ext=" << ext
-					<< " um) to buddy at " << angToBuddy
-		         << " rad (ID=" << buddy.ID << "), no. of colliding points is " << number);
+	if (isSelected)
+		REPORT("ID " << this->ID << ": dist=" << bdistl << " um to buddy at " << angToBuddy
+		         << " rad (ID=" << buddy.ID << ")");
 	return(bdistl);
 }
+*/
 
 
 bool Cell::IsPointInCell(const Vector3d<float>& coord)
@@ -1482,7 +717,7 @@ void Cell::calculateAttractionForce(const float timeDelta)
 		if (fr->buddy->shouldDie == false)
 		{
 			int intersectPointsNo=0;
-			CalcDistance2(*(fr->buddy),intersectPointsNo,this->delta_f);
+			//CalcDistance(*(fr->buddy),intersectPointsNo,this->delta_f);
 
 			//create attractive force
 			Vector3d<float> aF(fr->buddy->pos.x - pos.x, fr->buddy->pos.y - pos.y, 0);
@@ -1754,12 +989,6 @@ void Cell::adjustShape(const float timeDelta)
 	//may already insert some...
 	listOfForces.clear();
 
-
-	//what will the new cell shape look like?
-	//at the moment, only rotates to match movement with shape
-    ChangeDirection(timeDelta);
-	//the above tells what will be desired velocity orientation after timeDelta
-
         //cycle cell phases
         //(it can go even over several phases if time goes too fast,
         //in that case the finalize* and initialize* functions will
@@ -1796,17 +1025,6 @@ void Cell::adjustShape(const float timeDelta)
             break;
         }
 
-	//find direction and magnitude of rotation that needs to be done
-	rotateBy=SignedAngularDifference(desiredDirection,orientation.ang); //orig
-	//const float velocityAzimuth=std::atan2(velocity.y,velocity.x);
-	//rotateBy=SignedAngularDifference(velocityAzimuth,orientation.ang);
-	if ((rotateBy > -0.01f) && (rotateBy < 0.01f)) rotateBy=0;
-	else rotateBy /= settleTime;
-	//TODO nedat sem max limit na rotaci? by to mohlo odstranit/potlacit to blazneni bunek pri nahlem pootoceni
-
-	//apply the rotation
-	calculateNewPosition(Vector3d<float>(0.f),rotateBy);
-
 	//theoretically, this function may already set some forces...
 }
 
@@ -1814,9 +1032,6 @@ void Cell::adjustShape(const float timeDelta)
 void Cell::calculateForces(const float timeDelta)
 {
     //the forces for this run have already been initiated in the Cell::adjustShape()
-
-	//just to get rid of silly warning about unused parameter
-	float unused=timeDelta; unused=unused;
 
 	//second, process over all buddies
 	std::list<Cell*>::const_iterator bddy=agents.begin();
@@ -1835,16 +1050,7 @@ void Cell::calculateForces(const float timeDelta)
 		if (dist < 1.0f)
 		{
 			//hmm, we need to update dist with more precise value
-			int intersectPointsNo=0;
-			//dist=CalcDistance(*buddy);
-			dist=CalcDistance2(*buddy,intersectPointsNo);
-			if (dist > 1000)
-			{
-				//TODO odstran az bude jistota, ze to funguje.. vypada, ze ale funguje
-				DEBUG_REPORT("problem k reseni");
-				//dist=CalcDistance2(*buddy,intersectPointsNo);
-				dist=1.0f; //reset with some conservative value...
-			}
+			//use the same 'dist'
 
 			//azimuth towards the buddy
 			float ang=std::atan2(buddy->pos.y - this->pos.y,
@@ -1892,7 +1098,7 @@ void Cell::calculateForces(const float timeDelta)
 	calculateBoundaryForce();
 
 	//friends:
-	calculateAttractionForce(timeDelta);
+	//calculateAttractionForce(timeDelta);
 
 	//myself:
 	calculateDesiredForce();
@@ -1971,122 +1177,6 @@ void Cell::applyForces(const float timeDelta)
 }
 
 
-void Cell::Grow_Fill_Voids(void)
-{
-    int amount_small = int(bp.size());
-    int amount_large = int(initial_bp.size());
-    int missing = amount_large-amount_small;
-    int distribution= missing/amount_small;
-    int modulo = (amount_large%amount_small);
-
-    std::list<PolarPair> help_bp;
-    std::list<PolarPair>::iterator s=bp.begin();
-    while (s != bp.end())
-    {
-        help_bp.push_back((*s));
-        s++;
-    }
-
-    bp.clear();
-
-    //distribute new points
-    std::list<PolarPair>::iterator p=help_bp.begin();
-    float prev_dist = (*p).dist;
-
-    while (p != help_bp.end())
-    {
-        int loops;
-        if(modulo != 0)
-        {
-            loops=distribution+1;
-            modulo--;
-        }
-        else
-        {
-            loops=distribution;
-        }
-
-        std::list<PolarPair>::const_iterator r=p;
-        r++;
-        if(r==help_bp.end())
-            r=help_bp.begin();
-        bp.push_back(*p);
-        for(int i=1; i<=loops; i++)
-        {
-            PolarPair pair(0.f,0.f);
-            if(r!=help_bp.begin())
-            {
-                pair.ang = (*p).ang+(((*r).ang-(*p).ang)/(float)(loops+1))*(float)i;
-
-                //the magic. just go step by step and draw it, you will understand
-                float alpha = pair.ang-(*p).ang;
-                float gamma = ((*r).ang-(*p).ang)/2.f-alpha;
-                float delta;
-                if(gamma<0.f)
-                {
-                    gamma*=-1.f;
-                    delta = PI/2.0f-gamma;
-
-                }
-                else
-                {
-                    delta = PI/2.0f-gamma;
-                    delta = PI-delta;
-                }
-
-                float beta= (((*r).ang-(*p).ang)/(float)(loops+1))*(float)i -
-								(((*r).ang-(*p).ang)/(float)(loops+1))*(float)(i-1);
-                float fi = PI-delta-beta;
-                pair.dist = prev_dist*sin(fi)/sin(delta);
-                prev_dist=pair.dist;
-
-
-            }
-            else
-            {
-                pair.ang = (*p).ang+(((*r).ang+2*PI-(*p).ang)/(float)(loops+1))*(float)i;
-                float alpha = pair.ang-(*p).ang;
-                if(alpha<0.f)
-                {
-                    alpha+=2*PI;
-                }
-                float gamma = ((*r).ang+2*PI-(*p).ang)/2.f-alpha;
-                float delta;
-                if(gamma<0.f)
-                {
-                    gamma*=-1.f;
-                    delta = PI/2.0f-gamma;
-
-                }
-                else
-                {
-                    delta = PI/2.0f-gamma;
-                    delta = PI-delta;
-                }
-
-                float beta= (((*r).ang+2*PI-(*p).ang)/(float)(loops+1))*(float)i-(((*r).ang+2*PI-(*p).ang)/(float)(loops+1))*(float)(i-1);
-                float fi = PI-delta-beta;
-
-                pair.dist = prev_dist*sin(fi)/sin(delta);
-                prev_dist=pair.dist;
-
-            }
-            if(pair.ang>2*PI)
-                pair.ang-=PI*2;
-
-            bp.push_back(pair);
-
-
-        }
-        prev_dist=(*p).dist;
-        p++;
-    }
-
-	//since we have changed the BPs...
-	this->VAO_isUpdate=false;
-}
-
-
 void Cell::Grow()
 {
 
@@ -2114,25 +1204,7 @@ void Cell::Grow()
 
 void Cell::initializeG1Phase(const float duration)
 {
-	//change back to yellow cells
-	colour.r=1.f;
-	colour.b=0.f;
-
-	//re-set persistenceTime
-   settleTime=GetRandomUniform(4.,10.);
-   persistenceTime=GetRandomUniform(10.,20.);
-	//direction change will occur soon (see initializeProphase())
-
 	if (isSelected) REPORT("duration=" << duration << " minutes");
-
-	bp.sort(SortPolarPair());
-
-	grow_iterations=(int)floorf(duration/params.incrTime);
-	cur_grow_it=0;
-	p_iter=0;
-	Grow_Fill_Voids();
-
-	this->VAO_isUpdate=false;
 }
 
 void Cell::initializeSPhase(const float duration)
@@ -2147,49 +1219,12 @@ void Cell::initializeG2Phase(const float duration)
 
 void Cell::initializeProphase(const float duration)
 {
-	//changes to blue cells (to denote mitosis)
-	colour.r=0.f;
-	colour.b=1.f;
-
-	//shorten persistenceTime to stop cell movement fast
-	persistenceTime=params.cellPhaseDuration[Prophase];
-	desiredSpeed=0.f;
-
-	//schedule next direction change nearly right after mitosis ends
-	directionChangeCounter=0.f;
-	directionChangeInterval=0.06f*params.cellCycleLength;
-
 	if (isSelected) REPORT("duration=" << duration << " minutes");
 }
 
 void Cell::initializeMetaphase(const float duration)
 {
 	if (isSelected) REPORT("duration=" << duration << " minutes");
-
-    this->round_cell_duration = duration/params.incrTime;
-    this->round_cell_progress = 0;
-
-
-    //calculates volume of the cell
-    std::list<PolarPair>::iterator p=bp.begin();
-    std::list<PolarPair>::iterator q=bp.begin();
-    q++;
-    float vol = 0.f;
-    while (p != bp.end())
-    {
-        if(q==bp.end())
-            q=bp.begin();
-
-        float angle = (*q).ang-(*p).ang;
-        if(angle<0.f)
-            angle+=2.f*PI;
-
-        vol+=(1.f/2.f) * (*p).dist * (*q).dist * sin(angle);
-        p++;
-        q++;
-    }
-    this->volume = vol;
-
 }
 
 void Cell::initializeAnaphase(const float duration)
@@ -2200,31 +1235,11 @@ void Cell::initializeAnaphase(const float duration)
 void Cell::initializeTelophase(const float duration)
 {
 	if (isSelected) REPORT("duration=" << duration << " minutes");
-
-	//find boundary point at one cell pole
-	FindNearest(orientation.ang,referenceBP);
-
-	//we wish to elongate by some 35% in one direction
-	referenceBP_base=referenceBP->dist;
-	referenceBP_rate=0.35f * referenceBP_base;
-	
-	//now, _base+progress*_rate tells me where I should be
-	//when the progress is some (0...1)
 }
 
 void Cell::initializeCytokinesis(const float duration)
 {
 	if (isSelected) REPORT("duration=" << duration << " minutes");
-
-    std::list<PolarPair>::iterator lowerPoint;
-	 FindMinorAxis(referenceBP, lowerPoint);
-
-	//we wish to contract by some 85% in radius
-	referenceBP_base=referenceBP->dist;
-	referenceBP_rate=-0.85f * referenceBP_base;
-	
-	//now, _base+progress*_rate tells me where I should be
-	//when the progress is some (0...1)
 }
 
 
@@ -2252,9 +1267,6 @@ void Cell::progressProphase(void)
 void Cell::progressMetaphase(void)
 {
 	if (isSelected) REPORT("phaseProgress=" << phaseProgress);
-    roundCell();
-    round_cell_progress++;
-
 }
 
 void Cell::progressAnaphase(void)
@@ -2265,59 +1277,17 @@ void Cell::progressAnaphase(void)
 void Cell::progressTelophase(void)
 {
 	if (isSelected) REPORT("phaseProgress=" << phaseProgress);
-
-	//how much to elongate?
-	float PeakElongation=referenceBP_rate*phaseProgress
-				+ referenceBP_base - referenceBP->dist;
-	if (isSelected) REPORT("PeakElongation=" << PeakElongation);
-
-	if (PeakElongation < 0.f) return;
-
-	//how wide? half of the boundary points should span 6*sigma
-	//const float spread=float(MIN_BOUNDARY_POINTS/2) / 6.f;
-
-	//slightly more than 180deg should span 6*sigma
-	const float spread=DEG_TO_RAD(200.f) / 6.f;
-	const float sigma=spread*spread;
-
-	//okay, we need to elongate by PeakElongation at the reference pole
-	std::list<PolarPair>::iterator p=bp.begin();
-	while (p != bp.end())
-	{
-		float lAngle=AngularDifference(p->ang,orientation.ang);
-		float rAngle=AngularDifference(p->ang,orientation.ang+PI);
-
-		p->dist += PeakElongation*
-			( expf(-0.5f*lAngle*lAngle/sigma) + expf(-0.5f*rAngle*rAngle/sigma) );
-
-		//update the search for maximum radius
-		if (p->dist > outerRadius) outerRadius=p->dist;
-
-		++p;
-	}
 }
 
 void Cell::progressCytokinesis(void)
 {
 	if (isSelected) REPORT("phaseProgress=" << phaseProgress);
-
-	//how much contracted should we be by now?
-	//note: _rate is negative now
-	float ContractDist=referenceBP_base + referenceBP_rate*phaseProgress;
-	float lprogress=1.f - ContractDist/referenceBP->dist;
-	if (isSelected) REPORT("ContractDist=" << ContractDist << ", local progress=" << lprogress);
-
-	if (ContractDist < 0.f) return;
-
-	doCytokinesis(lprogress);
 }
 
 
 void Cell::finalizeG1Phase(void)
 {
 	if (isSelected) REPORT("phaseProgress=" << phaseProgress);
-	bp=initial_bp;
-	VAO_isUpdate=false;
 }
 
 void Cell::finalizeSPhase(void)
@@ -2338,23 +1308,6 @@ void Cell::finalizeProphase(void)
 void Cell::finalizeMetaphase(void)
 {
 	if (isSelected) REPORT("phaseProgress=" << phaseProgress);
-
-	 //TODO
-	 /* k cemu to je !?
-    std::list<PolarPair>::iterator p=bp.begin();
-    int count = 0;
-    while(p!=bp.end())
-    {
-        count++;
-        p++;
-    }
-
-    for(int i = 0; i<count; i++)
-    {
-        (*p).ang = 2*PI*i/float(count);
-    }
-    outerRadius = sqrt(volume/PI);
-	 */
 }
 
 void Cell::finalizeAnaphase(void)
@@ -2365,43 +1318,11 @@ void Cell::finalizeAnaphase(void)
 void Cell::finalizeTelophase(void)
 {
 	if (isSelected) REPORT("phaseProgress=" << phaseProgress);
-
-	//we have not reached far, try to finish it
-	if (phaseProgress < 0.98f)
-	{
-		phaseProgress=1.f;
-		progressTelophase();
-	}
 }
 
 void Cell::finalizeCytokinesis(void)
 {
 	if (isSelected) REPORT("phaseProgress=" << phaseProgress);
-
-	//we have not reached far, try to finish it
-	if (phaseProgress < 0.98f)
-	{
-		phaseProgress=1.f;
-		progressCytokinesis();
-	}
-
-	//now tear the cells into two...
-
-	 // Find two (upper and lower) boundary point that will control the contraction 
-	 // of the cleavage furrow.
-    std::list<PolarPair>::iterator upperPoint, lowerPoint;
-	 FindMinorAxis(upperPoint, lowerPoint);
-
-	 // At this moment, the two points occuring at angles PI/2 and 3*PI/2 relatively
-	 // to two cell major axis (orientation) are detected. These points however need
-	 // not be the points that are sufficiently close to the cell center. In the following
-	 // code, we trace some neighbours of these two points to find such candidates that
-	 // are located in the nearest possible position to the cell center.
-	 std::list<PolarPair>::iterator leftUpperP, rightUpperP, leftLowerP, rightLowerP;
-	 const float angleTolerance = DEG_TO_RAD(45.0f);
-
-	 FindNearest(upperPoint, leftUpperP, rightUpperP, angleTolerance);
-	 FindNearest(lowerPoint, leftLowerP, rightLowerP, angleTolerance);
 
 	 //I'm gonna split the list in the upperPoint and lowerPoint
 	 //but before we need new cell...
@@ -2411,129 +1332,14 @@ void Cell::finalizeCytokinesis(void)
 	 //cell lacks initializeG1Phase() and init of bp list, and is already in G1Phase
 	 //
 	 //get the former-mother now-new-daughter cell a new ID
-#ifdef RENDER_TO_IMAGES
+
+
 	 int MoID=this->ID;
 	 this->ID=GetNewCellID();
 	 ReportNewBornDaughters(MoID,this->ID,cc->ID);
-#else
-	 this->ID=GetNewCellID();
-#endif
-	 //
-	 //also: reset settings for the fake-rotation stuff programmed by Zolo
-    this->prog=0;
-    this->DirChCount=0;
-    this->rotate=false;
-
-	 //now, the split:
-
-	 //move points from this cell to the second daughter
-	 std::list<PolarPair>::iterator p=upperPoint;
-
-
-	//obtain new geom. centre
-	Vector3d<float> centre(0);
-	int cnt=0;
-
-	//sweeping BPs over the first daughter points
-	//and moving at once
-	while (p != lowerPoint)
-	{
-		//get Cartesian coordinates...
-		Vector3d<float> tmp(p->dist*cos(p->ang), p->dist*sin(p->ang), 0.f);
-
-		//...in a global coord system...
-		tmp+=pos;
-
-		//...and calc. geom. centre from these...
-		centre+=tmp;
-		cnt++;
-
-		//...and move
-		cc->bp.push_back(*p);
-		p=bp.erase(p);
-
-		//next BP
-		//p++; -- erase() moves 'p' on the next one already
-		if (p == bp.end()) p=bp.begin();
-	}
-
-	//finalize centre:
-	centre.x/=(float)cnt;
-	centre.y/=(float)cnt;
-
-	//recalc the BPs for the new centre
-	cc->outerRadius=0.f;
-	p=cc->bp.begin();
-	while (p != cc->bp.end())
-	{
-		Vector3d<float> tmp(p->dist*cos(p->ang), p->dist*sin(p->ang), 0.f);
-		tmp+=pos;
-
-		tmp.x-=centre.x;
-		tmp.y-=centre.y;
-
-		p->ang=atan2(tmp.y,tmp.x);
-		p->dist=sqrt(tmp.x*tmp.x + tmp.y*tmp.y);
-
-		if (p->dist > cc->outerRadius) cc->outerRadius=p->dist;
-
-		p++;
-	}
-	cc->pos=centre;
-
-
-	//obtain new geom. centre
-	centre=0;
-	cnt=0;
-
-	//sweeping BPs over the second daughter points
-	p=bp.begin();
-	while (p != bp.end())
-	{
-		//get Cartesian coordinates...
-		Vector3d<float> tmp(p->dist*cos(p->ang), p->dist*sin(p->ang), 0.f);
-
-		//...in a global coord system...
-		tmp+=pos;
-
-		//...and calc. geom. centre from these
-		centre+=tmp;
-		cnt++;
-
-		//next BP
-		p++;
-	}
-
-	//finalize centre:
-	centre.x/=(float)cnt;
-	centre.y/=(float)cnt;
-
-	//recalc the BPs for the new centre
-	outerRadius=0.f;
-	p=bp.begin();
-	while (p != bp.end())
-	{
-		Vector3d<float> tmp(p->dist*cos(p->ang), p->dist*sin(p->ang), 0.f);
-		tmp+=pos;
-
-		tmp.x-=centre.x;
-		tmp.y-=centre.y;
-
-		p->ang=atan2(tmp.y,tmp.x);
-		p->dist=sqrt(tmp.x*tmp.x + tmp.y*tmp.y);
-
-		if (p->dist > outerRadius) outerRadius=p->dist;
-
-		p++;
-	}
-	pos=centre;
 
 	cc->initializeG1Phase(cc->nextPhaseChange - cc->lastPhaseChange);
 	//this->initializeG1Phase(duration) will call my caller
-
-	//to make sure, OpenGL will read everything again from the scratch
-	this->VAO_isUpdate=false;
-	cc->VAO_isUpdate=false;
 
 	params.numberOfAgents++;
 }

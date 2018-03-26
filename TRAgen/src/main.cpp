@@ -2,6 +2,8 @@
 #include <string.h>
 #include <stdlib.h>		//for atoi()
 
+#include <i3d/image3d.h>
+
 #include "params.h"		//for data structures
 #include "agents.h"
 
@@ -13,12 +15,15 @@ ParamsClass params;
 //the list of all agents
 std::list<Cell*> agents;
 
+//number of allready processed frames
+int frameCnt;
+
 
 int main(int argc,char **argv)
 {
 	//set up the environment
 	params.sceneOffset=Vector3d<float>(0.f);
-	params.sceneSize=Vector3d<float>(200.f,200.f,1.f); //az se vyladi sily mezi nima
+	params.sceneSize=Vector3d<float>(200.f,200.f,200.f); //az se vyladi sily mezi nima
 	//params.sceneSize=Vector3d<float>(60.f,60.f,1.f); //testing with mode=1
 	params.sceneOuterBorder=Vector3d<float>(10.f);
 	params.sceneBorderColour.r=0.5f;
@@ -26,17 +31,7 @@ int main(int argc,char **argv)
 	params.sceneBorderColour.b=0.5f;
 
 	params.inputCellsFilename="cells/cell%d.txt";
-	params.numberOfAgents=169;
-
-	//some parameter supplied?
-	if (argc > 1)
-	{
-		int userNoOfAgents=atoi(argv[1]);
-		if ((userNoOfAgents > 0) && (userNoOfAgents < 1000))
-			params.numberOfAgents=userNoOfAgents;
-		else
-			REPORT("Unreasonable number of cells supplied, staying with default value instead.");
-	}
+	params.numberOfAgents=10;
 
 	params.friendshipDuration=10.f;
 	params.maxCellSpeed=0.20f;
@@ -56,10 +51,12 @@ int main(int argc,char **argv)
 	params.incrTime=0.1f;
 	params.stopTime=5000.f;
 
-	params.imgSizeX=792; //pixels
-	params.imgSizeY=792;
-	params.imgResX=3.6f; //pixels per micrometer
-	params.imgResY=3.6f;
+	params.imgSizeX=600; //pixels
+	params.imgSizeY=600;
+	params.imgSizeZ=600;
+	params.imgResX=6.0f; //pixels per micrometer
+	params.imgResY=6.0f;
+	params.imgResZ=6.0f;
 
 	params.imgOutlineFilename="Outline%05d.tif";
 	params.imgPhantomFilename="Phantom%05d.tif";
@@ -68,18 +65,34 @@ int main(int argc,char **argv)
 	params.imgPhCFilename="PhCImg%05d.tif";
 	params.tracksFilename="tracks.txt";
 
-#ifdef RENDER_TO_IMAGES
-	initiateImageFile();
-#endif
 
 	//init agents accordingly
-    initializeAgents(0);
-    //initializeAgents(1);
+	initializeAgents(0);
 
-	//fire up the simulation
-	if (!initializeGL()) return(-1);
-	loopGL();
-	closeGL();
+	//output image that will be iteratively re-rendered
+	i3d::Image3d<i3d::GRAY8> img;
+	img.MakeRoom(params.imgSizeX, params.imgSizeY, params.imgSizeZ);
+	img.SetResolution(*(new i3d::Resolution(params.imgResX, params.imgResY, params.imgResZ)));
+
+	//filename buffer...
+	char fn[1024];
+
+	//run the simulation
+	for (frameCnt=0; frameCnt < 1; ++frameCnt)
+	{
+		//render cells into the image
+		img.GetVoxelData() = 0;
+		std::list<Cell*>::const_iterator c=agents.begin();
+		for (; c != agents.end(); c++)
+			(*c)->RasterInto(img);
+
+		sprintf(fn,"mask%03d.tif",frameCnt);
+		img.SaveImage(fn);
+
+		//advance the simulation into the next frame
+		moveAgents(params.incrTime);
+		params.currTime += params.incrTime;
+	}
 
 	//close
 	closeAgents();

@@ -236,6 +236,7 @@ class ForceVector3d : public Vector3d<float> {
 		default:
 			LUTindex=27;
 		}
+/*
 		glColor4f(	ForceColorLUT[LUTindex+0],
 						ForceColorLUT[LUTindex+1],
 						ForceColorLUT[LUTindex+2],0.8f );
@@ -258,6 +259,7 @@ class ForceVector3d : public Vector3d<float> {
 		ny=stretch*(-sn*this->x + cs*this->y);
 		glVertex2f(xHead-CONE_LENGTH*nx,yHead-CONE_LENGTH*ny);
 		glEnd();
+*/
 	}
 };
 
@@ -345,8 +347,8 @@ class ParamsClass {
 	//final time of the simulation [min]
 	float stopTime;
 
-	size_t imgSizeX, imgSizeY; //[pixels]
-	float imgResX,imgResY;     //[pixels per micrometer]
+	size_t imgSizeX,imgSizeY,imgSizeZ;  //[pixels]
+	float imgResX,imgResY,imgResZ;      //[pixels per micrometer]
 	//all strings should include "%05d" substring to
 	//indicate where file index number should be printed
 	std::string imgOutlineFilename;

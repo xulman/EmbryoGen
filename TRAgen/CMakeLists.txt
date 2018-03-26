@@ -46,40 +46,19 @@ else (WIN32)
 		  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic -Wconversion")
 endif (WIN32)
 
-#
-# enable OpenMP architecure
-#
-if (WIN32)
-		  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /openmp")
-else (WIN32)
-#		  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
-endif (WIN32)
-
-#
-# user defined options
-#
-
-option(O20-RENDER_IMAGES "Shall I generate the bitmap data (phantoms and masks)?" ON)
-
-if (O20-RENDER_IMAGES)
-		  add_definitions(-DRENDER_TO_IMAGES)
-endif (O20-RENDER_IMAGES)
 
 #---------------
 # REQUIRED LIBS
 #---------------
 
-# conditionally
-if (O20-RENDER_IMAGES)
-	find_path(INC_I3D "i3d/image3d.h")
-	include_directories(${INC_I3D} ${INC_I3D}/i3d)
-	find_library(LIB_I3DCORE "i3dcore")
-	find_library(LIB_I3DALGO "i3dalgo")
-	set(LIBS ${LIBS} ${LIB_I3DALGO} ${LIB_I3DCORE})
-	if (UNIX AND CMAKE_COMPILER_IS_GNUCXX)
-		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Xlinker -defsym -Xlinker MAIN__=main")
-	endif (UNIX AND CMAKE_COMPILER_IS_GNUCXX)
-endif (O20-RENDER_IMAGES)
+find_path(INC_I3D "i3d/image3d.h")
+include_directories(${INC_I3D} ${INC_I3D}/i3d)
+find_library(LIB_I3DCORE "i3dcore")
+find_library(LIB_I3DALGO "i3dalgo")
+set(LIBS ${LIBS} ${LIB_I3DALGO} ${LIB_I3DCORE})
+if (UNIX AND CMAKE_COMPILER_IS_GNUCXX)
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Xlinker -defsym -Xlinker MAIN__=main")
+endif (UNIX AND CMAKE_COMPILER_IS_GNUCXX)
 
 
 # GSL library
