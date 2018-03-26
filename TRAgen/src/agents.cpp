@@ -1025,6 +1025,9 @@ void Cell::adjustShape(const float timeDelta)
             break;
         }
 
+	if (ID == 1)
+		listOfForces.push_back(*(new ForceVector3d<float>(0.f,-0.3f,0.f,forceNames::desired)));
+
 	//theoretically, this function may already set some forces...
 }
 
@@ -1256,9 +1259,6 @@ void Cell::progressSPhase(void)
 void Cell::progressG2Phase(void)
 {
 	if (isSelected) REPORT("phaseProgress=" << phaseProgress);
-
-	if (ID == 1) pos.y -= 0.5f;
-		
 }
 
 void Cell::progressProphase(void)

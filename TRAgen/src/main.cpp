@@ -79,16 +79,19 @@ int main(int argc,char **argv)
 	char fn[1024];
 
 	//run the simulation
-	for (frameCnt=0; frameCnt < 20; ++frameCnt)
+	for (frameCnt=0; frameCnt < 200; ++frameCnt)
 	{
-		//render cells into the image
-		img.GetVoxelData() = 0;
-		std::list<Cell*>::const_iterator c=agents.begin();
-		for (; c != agents.end(); c++)
-			(*c)->RasterInto(img);
+		if (frameCnt % 10 == 0)
+		{
+			//render cells into the image
+			img.GetVoxelData() = 0;
+			std::list<Cell*>::const_iterator c=agents.begin();
+			for (; c != agents.end(); c++)
+				(*c)->RasterInto(img);
 
-		sprintf(fn,"mask%03d.tif",frameCnt);
-		img.SaveImage(fn);
+			sprintf(fn,"mask%03d.tif",frameCnt);
+			img.SaveImage(fn);
+		}
 
 		//advance the simulation into the next frame
 		moveAgents(params.incrTime);
