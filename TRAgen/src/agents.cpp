@@ -1343,6 +1343,9 @@ void Cell::finalizeCytokinesis(void)
 	cc->initializeG1Phase(cc->nextPhaseChange - cc->lastPhaseChange);
 	//this->initializeG1Phase(duration) will call my caller
 
+	this->pos.x -= 0.8f * this->outerRadius;
+	  cc->pos.x += 0.8f *   cc->outerRadius;
+
 	params.numberOfAgents++;
 }
 
