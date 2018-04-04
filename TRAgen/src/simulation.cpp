@@ -92,6 +92,7 @@ void moveAgents(const float timeDelta)
 	 if (dead_agents.size() != 0)
 		 REPORT("CONFUSION: dead_agents IS NOT EMPTY!");
 
+/*
 	 //create removable (can't run in parallel)
 	 c=agents.begin();
 	 while (c != agents.end())
@@ -121,6 +122,7 @@ void moveAgents(const float timeDelta)
 		  }
 		  else c++;
 	 }
+*/
 
 #ifdef TRAGEN_DEBUG
 	 if (dead_agents.size() > 0)
