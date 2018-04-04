@@ -85,26 +85,8 @@ DrawTexture(Image3d)
 DrawDebugMask(AbstractDisplayUnit)  shall we?
 DrawDebugMask(Image3d)              shall we?
 
-[these are for the Dirigent to build the simulated images,
+[these drawing functions are for the Dirigent to build the simulated images,
  there can be other drawers to feed dedicated GlobalAgent agents]
-
-
-------------------------------------------------------------------------------
-Agent:
-- one element of the simulation, can be advanced in time
-- has neccessary attributes and functions to implement its simulation
-- must store information about its geometry (shape & position) and texture
-
-- allowed geometry representation for the purpose of collision detection
-	- union of spheres
-	- surface mesh
-	- binary image
-There will be 9 functions available to return distances for all 3x3 cases.          S M I
-NB: Due to symmetry of the cases, only 3+3 functions required                     S H A B
-NB: 3 for homogeneous situations: spheres vs. spheres etc. (H)                    M A H C
-NB: 3 for rest: spheres vs. mesh (A), spheres vs. image (B), mesh vs. image (C)   I B C H
-
-Hinting/driving (invisible) agents implement empty Draw*() functions.
 
 
 ------------------------------------------------------------------------------
@@ -147,8 +129,36 @@ possible DisplayUnit implementation:
 
 
 
+------------------------------------------------------------------------------
+Agent:
+- one element of the simulation, can be advanced in time
+- has neccessary attributes and functions to implement its simulation
+- must store information about its geometry (shape & position) and texture
 
+- allowed geometry representation for the purpose of collision detection
+	- union of spheres
+	- surface mesh
+	- binary image
+There will be 9 functions available to return distances for all 3x3 cases.          S M I
+NB: Due to symmetry of the cases, only 3+3 functions required                     S H A B
+NB: 3 for homogeneous situations: spheres vs. spheres etc. (H)                    M A H C
+NB: 3 for rest: spheres vs. mesh (A), spheres vs. image (B), mesh vs. image (C)   I B C H
 
+Hinting/driving (invisible) agents implement empty Draw*() functions.
+
+Agents influence each other only via forces for the moment,
+even hinters have to translate their hints into forces.
+Agent is independent enough to make force sensing for itself,
+other agents cannot inject their forces into this one.
+Agent has to be able to sense any hinter -- perhaps categories of hinters? (not for now!)
+|
+Agent asks its FO to get distances against nearby(*) other agents (incl. hinters),
+the above 9-functions will be utilized for this.
+(*) Agents only from the current and neighboring tiles.
+
+There must NOT be two agents representing the same cell in the simulation.
+There will be, however, multiple ShadowAgent for one Agent, these are essentially
+a caches of just the appearance of the one Agent.
 
 
 ------------------------------------------------------------------------------
@@ -159,6 +169,7 @@ Agent/cell belongs into exactly one tile. There is usually multiple agents in on
 The agents do not move often between tiles.
 An agent can live at the tile border, and even physically extend out from the tile.
 An agent is evaluated only against agents from the same and neighboring tiles!
+|
 What if agent is large (=larger than tile)?
 Patch: design a global agent
  - that is associated with one FO -- this where simulation/evolution is computed,
@@ -173,6 +184,28 @@ Patch: design a global agent
 	the GlobalAgent's associated FO in order to update it
 
 
+GUI <--> Dirigent <--> FO (each FO is a single process which is expected to live alone on single computer)
+                | <--> FO
+                \ <--> FO <--> ActiveTile (each Tile holds spatially close cells)
+                        | <--> ActiveTile
+                        | <--> ShadowTile (holds copies of simple geometries of agents that actually live in other FOs)
+                        | <--> ShadowTile
+                        \ <--> ShadowTile -> ShadowAgent (a cache/copy of _geometry only_ of some Agent)
+                        |               | -> ShadowAgent
+                        |               \ -> ShadowAgent
+                        | <--> ShadowTile
+                        | <--> ActiveTile
+                        | <--> ActiveTile
+                        \ <--> ActiveTile -> Agent (simulates one cell, talks to his FO)
+                        |               | -> Agent
+                        |               \ -> Agent
+                        |
+                        | <--> BackendWorker (pool of threads to advance all agents in this FO, not Tile specific)
+                        | <--> BackendWorker
+                        \ <--> BackendWorker
+
+
+------------------------------------------------------------------------------
 Work-load layout, main actors:
 Dirigent - the main maintainer & scheduler of the simulation, work coordinator, results collector
 
@@ -207,11 +240,14 @@ Dirigent - the main maintainer & scheduler of the simulation, work coordinator, 
 
 Dirigent = global-scene director
 Front Officers = local-scene directors, Front Officer = FO
+               [ essentially a local scheduler in MitoGen terminology ]
+
+FO is not a tile!
 
 Front Officer - is responsible for one or more tiles and makes sure its tiles advance into another revision
                 (that is, all agents' timeLocal >= this FO's timeGlobal+timeDelta
 					  and this FO's timeGlobal increases = advance into another revision)
-				  - has (minimalistic) copies of all neighboring tiles (incl. geometries of their cells) at rev r.
+				  - has (minimalistic) copies of all neighboring tiles (incl. geometries of their cells) at rev r. (ShadowTiles)
 				  - stores tile at rev. r, retrieves copies of neighboring tiles at rev. r, advances current tile, reports to dirigent
 				  - supports for hand-over of cells between tiles (and FOs)
 
