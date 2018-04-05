@@ -56,25 +56,6 @@ would leave 'b' just empty.
 ]
 
 
-attributes to store simplified geometry for GetSimplifiedGeometry()
-attributes to store necessary-detailed geometry for the simulation
-(the previous attributes are "subset" of these)
-
-GetAABB() - returns the current axis-aligned bounding box that embodies
-            the current geometry of the agent; Dirigent will want to know
-				to provide appropriately sized and positioned Image3d to be filled
-
-GetSimplifiedGeometry() - returns the geometry, the simplified version, that everybody
-                          else can use to test for collisions (also the one that is copied
-							     into neighboring FOs/tiles for shadowing); this is typically
-							     the geometry that was valid at timeGlobal of my FO; after FO
-							     advances into another revision, calls my AdvanceSimplifiedGeometry()
-AdvanceSimplifiedGeometry() - updates what GetSimplifiedGeometry() reports with my latest
-                              geometry; this is typically what I have by now, which at
-									   my timeLocal > FO's timeGlobal; NB: if my timeLocal == FO's timeGlobal
-									   then it means that I haven't yet simulated anything
-
-
 DrawMask(AbstractDisplayUnit) - renders the current geometry of the agent into the AbstractDisplayUnit,
                                 the unit offers a limited collection of graphics primitives
 DrawMask(Image3d)             - rasterizes the current geometry of the agent into the image,
@@ -87,6 +68,36 @@ DrawDebugMask(Image3d)              shall we?
 
 [these drawing functions are for the Dirigent to build the simulated images,
  there can be other drawers to feed dedicated GlobalAgent agents]
+
+- attributes to store necessary-detailed geometry for the simulation
+  (the previous attributes are "subset" of these)
+AdvanceSimplifiedGeometry() - updates what GetSimplifiedGeometry() reports with my latest
+                              geometry; this is typically what I have by now, which at
+									   my timeLocal > FO's timeGlobal; NB: if my timeLocal == FO's timeGlobal
+									   then it means that I haven't yet simulated anything
+                            - works in conjuction with ShadowAgent::GetSimplifiedGeometry()
+
+Serialize()   - to support transmitting complete agent between tiles (over network)
+Unserialize()
+
+
+------------------------------------------------------------------------------
+ShadowAgent:
+- attributes to store simplified geometry for GetSimplifiedGeometry()
+
+GetAABB() - returns the current axis-aligned bounding box that embodies
+            the current geometry of the agent; Dirigent will want to know
+				to provide appropriately sized and positioned Image3d to be filled
+
+GetSimplifiedGeometry() - returns the geometry, the simplified version, that everybody
+                          else can use to test for collisions (also the one that is copied
+							     into neighboring FOs/tiles for shadowing); this is typically
+							     the geometry that was valid at timeGlobal of my FO; after FO
+							     advances into another revision, calls my AdvanceSimplifiedGeometry()
+							   - works in conjuction with AbstractAgent::AdvanceSimplifiedGeometry()
+
+Serialize()   - to support transmitting geometry data between ShadowAgents (over network)
+Unserialize()
 
 
 ------------------------------------------------------------------------------
@@ -156,9 +167,13 @@ Agent asks its FO to get distances against nearby(*) other agents (incl. hinters
 the above 9-functions will be utilized for this.
 (*) Agents only from the current and neighboring tiles.
 
-There must NOT be two agents representing the same cell in the simulation.
-There will be, however, multiple ShadowAgent for one Agent, these are essentially
+There must NOT be two (full) agents representing the same cell in the simulation.
+There will be, however, multiple ShadowAgents for one Agent, these are essentially
 a caches of just the appearance of the one Agent.
+ShadowAgents will be gathered under ShadowTiles, not anywhere else.
+
+AbstractAgent extends ShadowAgent.
+Agent implements AbstractAgent (and ShadowAgent).
 
 
 ------------------------------------------------------------------------------
@@ -184,25 +199,34 @@ Patch: design a global agent
 	the GlobalAgent's associated FO in order to update it
 
 
+The main controlling channels:
 GUI <--> Dirigent <--> FO (each FO is a single process which is expected to live alone on single computer)
                 | <--> FO
-                \ <--> FO <--> ActiveTile (each Tile holds spatially close cells)
-                        | <--> ActiveTile
-                        | <--> ShadowTile (holds copies of simple geometries of agents that actually live in other FOs)
-                        | <--> ShadowTile
-                        \ <--> ShadowTile -> ShadowAgent (a cache/copy of _geometry only_ of some Agent)
-                        |               | -> ShadowAgent
-                        |               \ -> ShadowAgent
-                        | <--> ShadowTile
-                        | <--> ActiveTile
-                        | <--> ActiveTile
-                        \ <--> ActiveTile -> Agent (simulates one cell, talks to his FO)
-                        |               | -> Agent
-                        |               \ -> Agent
-                        |
-                        | <--> BackendWorker (pool of threads to advance all agents in this FO, not Tile specific)
-                        | <--> BackendWorker
-                        \ <--> BackendWorker
+                \ <--> FO   -> ActiveTile (each Tile holds spatially close cells)
+                      ^ |   -> ActiveTile
+                      | |   -> ShadowTile (holds copies of simple geometries of agents that actually live in other FOs)
+                      | |   -> ShadowTile
+                      | \   -> ShadowTile -> ShadowAgent (a cache/copy of _geometry only_ of some Agent)
+                      | |               | -> ShadowAgent
+                      | |               \ -> ShadowAgent
+                      | |   -> ShadowTile
+                      | |   -> ActiveTile
+                      | |   -> ActiveTile
+                      | \   -> ActiveTile -> Agent (simulates one cell, talks to his FO)
+                      | |               | -> Agent
+                      | |               \ -> Agent
+                      | |
+                      | | <--> BackendWorker (pool of threads to advance all agents in this FO, not Tile specific)
+                      | | <--> BackendWorker
+                      | \ <--> BackendWorker
+                      | |
+                      | \   -> ActiveTile -> Agent
+                      |                        |
+                      |------------------------|
+
+GUI <--> Dirigent <--> FO
+  local/net     local/net
+  connection    connection
 
 
 ------------------------------------------------------------------------------
@@ -219,7 +243,13 @@ Dirigent - the main maintainer & scheduler of the simulation, work coordinator, 
 			- listens to and receives reports/updates from all FOs
          - is always online -- can always hear from the FOs
 
-			[advances (and synchronizes in this way) the simulation cycle -- necessary ??]
+			- has a list of all tiles in the system
+			- can report a list of neighboring tiles to the given tile
+			  NB: nothing about the order of reported tiles is assumed!
+			  NB: the tiles need not be of the same size, must only factor the simulated volume
+			  NB: FOs will ask for such reports
+			- tile knows its revision number and associated FO
+
 			- provides initial timeGlobal, timeDelta to FOs
 			- revision number is actually timeGlobal and increases with timeDelta
 
@@ -228,9 +258,10 @@ Dirigent - the main maintainer & scheduler of the simulation, work coordinator, 
 			    - their last reported status
 				 - their last reported AABBs (position)
 				 - their affiliation to frontend officer
-			- listens to (additional dedicated port) and receives reports/updates from all backend workers
-         - is always online -- can always hear from the workers
+			- listens to (additional dedicated port?) FOs and receives reports/updates about one-or-all backend workers
+         - is always online -- can always hear from the FOs
 			- this is for constructing the simulated outputs, see DisplayUnit
+			  NB: FOs can buffer their outputs or just immediatelly forward (one by one)
 
 			Controlling the dirigent:
 			- regularly reads a command pipe (named pipe) to hear commands from an user
@@ -244,6 +275,7 @@ Front Officers = local-scene directors, Front Officer = FO
 
 FO is not a tile!
 
+
 Front Officer - is responsible for one or more tiles and makes sure its tiles advance into another revision
                 (that is, all agents' timeLocal >= this FO's timeGlobal+timeDelta
 					  and this FO's timeGlobal increases = advance into another revision)
@@ -251,7 +283,7 @@ Front Officer - is responsible for one or more tiles and makes sure its tiles ad
 				  - stores tile at rev. r, retrieves copies of neighboring tiles at rev. r, advances current tile, reports to dirigent
 				  - supports for hand-over of cells between tiles (and FOs)
 
-              - is a communication point between the dirigent and _local_ backend workers,
+              - is a communication point between the dirigent and _local_ backend workers (who reach it via its FO)
               - maintains a private list of threads, each thread being one backend worker
 
 				  - has a local knowledge about spatial positions of simulated cells -- cells within the available tiles
@@ -260,6 +292,21 @@ Front Officer - is responsible for one or more tiles and makes sure its tiles ad
 
               - 1 front officer per 1 computer (1 IP address)
 				  - is always online -- can always hear from the dirigent, receives updates
+
+				  - after a revision number is complete, FO basically discards all ShadowTiles,
+				    asks Dirigent for the report of new tiles and retrieves them at the appropriate version
+              - includes pair of functions to provide ShadowAgents to/from asked tile if it is at appropriate asked revision
+              - includes pair of functions to move Agent to/from asked tile if it is at appropriate asked revision
+
+				  - has functions to collect display requests from AbstractAgents and either buffers them
+				    or sends them immediatelly to the Dirigent to have it displayed
+
+
+Tile - essentially a plain list of Agents (a container) and a "header"
+     - a header is essentially an ID of this tile, BBox of this tile, and revision number
+	  - includes function to tell if ShadowAgent belongs spatially to this tile
+     - all Agents on this list should be spatially close to each other, and will live inside the same FO,
+	    and should belong to this tile
 
 
 Backend Worker - realizes simulation of one cell, always the same cell
