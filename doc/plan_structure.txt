@@ -131,7 +131,7 @@ DisplayUnit:
 
 
 possible DisplayUnit implementation:
-- Fiji/Java vector graphics rendering (Scenery, SciView) 
+- Fiji/Java vector graphics rendering (Scenery, SciView)
 - rasterized into Fiji/Java volumetric rendering (VolView)
 - rasterized into Fiji/Java plane-rendering (BDV)
 - rasterized into a 3D image on disk (only emergency fall-back plan)
@@ -227,6 +227,10 @@ GUI <--> Dirigent <--> FO (each FO is a single process which is expected to live
 GUI <--> Dirigent <--> FO
   local/net     local/net
   connection    connection
+
+ZeroMQ: FO,       ZMQ_CLIENT socket, connects to server
+ZeroMQ: Dirigent, ZMQ_SERVER socket, binds to a port
+at the beginning, FOs register to the server by connecting to it
 
 
 ------------------------------------------------------------------------------
