@@ -36,7 +36,7 @@ public class DisplayScene extends SceneryBase
 		(materials[6] = new Material()).setDiffuse( new GLVector(1.0f, 1.0f, 0.0f) );
 		for (Material m : materials)
 		{
-			m.setAmbient( new GLVector(1.0f, 0.0f, 0.0f) );
+			m.setAmbient(  new GLVector(1.0f, 1.0f, 1.0f) );
 			m.setSpecular( new GLVector(1.0f, 1.0f, 1.0f) );
 		}
 	}
@@ -81,7 +81,7 @@ public class DisplayScene extends SceneryBase
 		//common settings of the lights
 		for (PointLight l : lights)
 		{
-			l.setIntensity(1000.0f);
+			l.setIntensity(3000.0f);
 			l.setEmissionColor(new GLVector(1.0f, 1.0f, 1.0f));
 			getScene().addChild(l);
 		}
