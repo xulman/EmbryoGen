@@ -117,11 +117,6 @@ public class TexturedCubeJavaExample
             //parent object's position
 
 
-            PointLight light = new PointLight(15.0f);
-            light.setPosition(new GLVector(0.0f, 0.0f, 2.0f));
-            light.setIntensity(100.0f);
-            light.setEmissionColor(new GLVector(1.0f, 1.0f, 1.0f));
-            getScene().addChild(light);
             //this is the current orientation of the cylinder's main axis
             final GLVector mainAxis1 = new GLVector(0.0f,1.0f,0.0f); //NB: already normalized
 
@@ -135,6 +130,19 @@ public class TexturedCubeJavaExample
             ReOrientNode(cyl1,mainAxis1,vec1);
             System.out.println("main axis=("+mainAxis1.x()+","+mainAxis1.y()+","+mainAxis1.z()+")");
 
+
+            PointLight lightA = new PointLight(15.0f);
+            lightA.setPosition(new GLVector(0.0f,-2.0f, 2.0f));
+            lightA.setIntensity(100.0f);
+            lightA.setEmissionColor(new GLVector(1.0f, 1.0f, 1.0f));
+
+            PointLight lightB = new PointLight(15.0f);
+            lightB.setPosition(new GLVector(0.0f, 2.0f, 2.0f));
+            lightB.setIntensity(100.0f);
+            lightB.setEmissionColor(new GLVector(1.0f, 1.0f, 1.0f));
+
+            getScene().addChild(lightA);
+            getScene().addChild(lightB);
 
             Camera cam = new DetachedHeadCamera();
             cam.setPosition( new GLVector(0.0f, 0.0f, 5.0f) );
