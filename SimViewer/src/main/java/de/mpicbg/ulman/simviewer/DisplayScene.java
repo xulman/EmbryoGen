@@ -21,14 +21,33 @@ public class DisplayScene extends SceneryBase
 		if (sOffset.length != 3 || sSize.length != 3)
 			throw new RuntimeException("Offset and Size must be 3-items long: 3D world!");
 
+		//init the scene dimensions
 		sceneOffset = sOffset.clone();
 		sceneSize   = sSize.clone();
+
+		//init the colors -- the material lookup table
+		materials = new Material[7];
+		(materials[0] = new Material()).setDiffuse( new GLVector(1.0f, 1.0f, 1.0f) );
+		(materials[1] = new Material()).setDiffuse( new GLVector(1.0f, 0.0f, 0.0f) );
+		(materials[2] = new Material()).setDiffuse( new GLVector(0.0f, 1.0f, 0.0f) );
+		(materials[3] = new Material()).setDiffuse( new GLVector(0.0f, 0.0f, 1.0f) );
+		(materials[4] = new Material()).setDiffuse( new GLVector(0.0f, 1.0f, 1.0f) );
+		(materials[5] = new Material()).setDiffuse( new GLVector(1.0f, 0.0f, 1.0f) );
+		(materials[6] = new Material()).setDiffuse( new GLVector(1.0f, 1.0f, 0.0f) );
+		for (Material m : materials)
+		{
+			m.setAmbient( new GLVector(1.0f, 0.0f, 0.0f) );
+			m.setSpecular( new GLVector(1.0f, 1.0f, 1.0f) );
+		}
 	}
 
 	/** 3D position of the scene, to position well the lights and camera */
 	final float[] sceneOffset;
 	/** 3D size (diagonal vector) of the scene, to position well the lights and camera */
 	final float[] sceneSize;
+
+	/** fixed lookup table with colors, in the form of materials... */
+	final Material[] materials;
 
 
 	/** initializes the scene with one camera and multiple lights */
@@ -38,10 +57,10 @@ public class DisplayScene extends SceneryBase
 		getHub().add(SceneryElement.Renderer, getRenderer());
 
 		//calculate back corner of the scene
-		final float[] sceneBackCorner = new float[3];
-		sceneBackCorner[0] = sceneOffset[0] +      sceneSize[0];
-		sceneBackCorner[1] = sceneOffset[1] +      sceneSize[1];
-		sceneBackCorner[2] = sceneOffset[2] + 1.2f*sceneSize[2];
+		final float[] sceneSomeCorner = new float[3];
+		sceneSomeCorner[0] = sceneOffset[0] +      sceneSize[0];
+		sceneSomeCorner[1] = sceneOffset[1] +      sceneSize[1];
+		sceneSomeCorner[2] = sceneOffset[2] + 1.2f*sceneSize[2];
 
 		float radius = sceneSize[0]*sceneSize[0] +
 		               sceneSize[1]*sceneSize[1] +
@@ -54,10 +73,10 @@ public class DisplayScene extends SceneryBase
 			  new PointLight(radius), new PointLight(radius) };
 
 		//position specifically to the corners
-		lights[0].setPosition(new GLVector(sceneOffset[0]    ,sceneOffset[1]    ,sceneBackCorner[2]));
-		lights[1].setPosition(new GLVector(sceneBackCorner[0],sceneOffset[1]    ,sceneBackCorner[2]));
-		lights[2].setPosition(new GLVector(sceneOffset[0]    ,sceneBackCorner[1],sceneBackCorner[2]));
-		lights[3].setPosition(new GLVector(sceneBackCorner[0],sceneBackCorner[1],sceneBackCorner[2]));
+		lights[0].setPosition(new GLVector(sceneOffset[0]    ,sceneOffset[1]    ,sceneSomeCorner[2]));
+		lights[1].setPosition(new GLVector(sceneSomeCorner[0],sceneOffset[1]    ,sceneSomeCorner[2]));
+		lights[2].setPosition(new GLVector(sceneOffset[0]    ,sceneSomeCorner[1],sceneSomeCorner[2]));
+		lights[3].setPosition(new GLVector(sceneSomeCorner[0],sceneSomeCorner[1],sceneSomeCorner[2]));
 
 		//common settings of the lights
 		for (PointLight l : lights)
@@ -69,12 +88,12 @@ public class DisplayScene extends SceneryBase
 
 		//camera position, looking from the top into the scene centre
 		//NB: z-position should be such that the FOV covers the whole scene
-		sceneBackCorner[0] = sceneOffset[0] + 0.5f*sceneSize[0];
-		sceneBackCorner[1] = sceneOffset[1] + 0.5f*sceneSize[1];
-		sceneBackCorner[2] = sceneOffset[2] + 1.6f*sceneSize[2];
+		sceneSomeCorner[0] = sceneOffset[0] + 0.5f*sceneSize[0];
+		sceneSomeCorner[1] = sceneOffset[1] + 0.5f*sceneSize[1];
+		sceneSomeCorner[2] = sceneOffset[2] + 1.6f*sceneSize[2];
 
 		Camera cam = new DetachedHeadCamera();
-		cam.setPosition( new GLVector(sceneBackCorner[0],sceneBackCorner[1],sceneBackCorner[2]) );
+		cam.setPosition( new GLVector(sceneSomeCorner[0],sceneSomeCorner[1],sceneSomeCorner[2]) );
 		cam.perspectiveCamera(50.0f, getRenderer().getWindow().getWidth(), getRenderer().getWindow().getHeight(), 0.1f, 1000.0f);
 		cam.setActive( true );
 		getScene().addChild(cam);
@@ -86,16 +105,12 @@ public class DisplayScene extends SceneryBase
 
 	public void UpdateCell()
 	{
-		Material material = new Material();
-		material.setAmbient( new GLVector(1.0f, 0.0f, 0.0f) );
-		material.setDiffuse( new GLVector(0.0f, 1.0f, 0.0f) );
-		material.setSpecular( new GLVector(1.0f, 1.0f, 1.0f) );
 
 		for (int y=0; y < 5; ++y)
 		for (int x=0; x < 5; ++x)
 		{
 			final Sphere sph1 = new Sphere(1.0f, 12);
-			sph1.setMaterial( material );
+			sph1.setMaterial( materials[0] );
 			sph1.setPosition( new GLVector(3.3f*(x-2.0f),3.3f*(y-2.0f), 0.0f) );
 			getScene().addChild(sph1);
 		}
