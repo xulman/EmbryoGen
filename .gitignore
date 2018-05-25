@@ -7,6 +7,7 @@ BUILD
 
 # Log file
 *.log
+doc/Mito*
 
 # Package Files #
 *.war

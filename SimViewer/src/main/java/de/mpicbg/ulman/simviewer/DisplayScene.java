@@ -16,7 +16,7 @@ public class DisplayScene extends SceneryBase
 	public DisplayScene(final float[] sOffset, final float[] sSize)
 	{
 		//the last param determines whether REPL is wanted, or not
-		super("EmbryoGen - live view (using scenery)", 768,768, false);
+		super("EmbryoGen - live view using scenery", 768,768, false);
 
 		if (sOffset.length != 3 || sSize.length != 3)
 			throw new RuntimeException("Offset and Size must be 3-items long: 3D world!");
@@ -37,36 +37,50 @@ public class DisplayScene extends SceneryBase
 		setRenderer( Renderer.createRenderer(getHub(), getApplicationName(), getScene(), getWindowWidth(), getWindowHeight()));
 		getHub().add(SceneryElement.Renderer, getRenderer());
 
-		PointLight[] lights = new PointLight[]
-			{ new PointLight(15.0f), new PointLight(15.0f),
-			  new PointLight(15.0f), new PointLight(15.0f) };
-
+		//calculate back corner of the scene
 		final float[] sceneBackCorner = new float[3];
-		sceneBackCorner[0] = sceneOffset[0] + sceneSize[0];
-		sceneBackCorner[1] = sceneOffset[1] + sceneSize[1];
-		sceneBackCorner[2] = sceneOffset[2] + sceneSize[2];
+		sceneBackCorner[0] = sceneOffset[0] +      sceneSize[0];
+		sceneBackCorner[1] = sceneOffset[1] +      sceneSize[1];
+		sceneBackCorner[2] = sceneOffset[2] + 1.2f*sceneSize[2];
 
+		float radius = sceneSize[0]*sceneSize[0] +
+		               sceneSize[1]*sceneSize[1] +
+		               sceneSize[2]*sceneSize[2];
+		radius = 1.5f * (float)Math.sqrt(radius);
+
+		//create the lights, one for each upper corner of the scene
+		final PointLight[] lights = new PointLight[]
+			{ new PointLight(radius), new PointLight(radius),
+			  new PointLight(radius), new PointLight(radius) };
+
+		//position specifically to the corners
 		lights[0].setPosition(new GLVector(sceneOffset[0]    ,sceneOffset[1]    ,sceneBackCorner[2]));
 		lights[1].setPosition(new GLVector(sceneBackCorner[0],sceneOffset[1]    ,sceneBackCorner[2]));
 		lights[2].setPosition(new GLVector(sceneOffset[0]    ,sceneBackCorner[1],sceneBackCorner[2]));
 		lights[3].setPosition(new GLVector(sceneBackCorner[0],sceneBackCorner[1],sceneBackCorner[2]));
 
+		//common settings of the lights
 		for (PointLight l : lights)
 		{
-			l.setIntensity(100.0f);
+			l.setIntensity(1000.0f);
 			l.setEmissionColor(new GLVector(1.0f, 1.0f, 1.0f));
 			getScene().addChild(l);
 		}
 
+		//camera position, looking from the top into the scene centre
+		//NB: z-position should be such that the FOV covers the whole scene
 		sceneBackCorner[0] = sceneOffset[0] + 0.5f*sceneSize[0];
 		sceneBackCorner[1] = sceneOffset[1] + 0.5f*sceneSize[1];
-		sceneBackCorner[2] = sceneOffset[2] + 3.0f*sceneSize[2];
+		sceneBackCorner[2] = sceneOffset[2] + 1.6f*sceneSize[2];
 
 		Camera cam = new DetachedHeadCamera();
 		cam.setPosition( new GLVector(sceneBackCorner[0],sceneBackCorner[1],sceneBackCorner[2]) );
 		cam.perspectiveCamera(50.0f, getRenderer().getWindow().getWidth(), getRenderer().getWindow().getHeight(), 0.1f, 1000.0f);
 		cam.setActive( true );
 		getScene().addChild(cam);
+
+		//TODO: remove me
+		UpdateCell();
 	}
 
 
@@ -77,14 +91,24 @@ public class DisplayScene extends SceneryBase
 		material.setDiffuse( new GLVector(0.0f, 1.0f, 0.0f) );
 		material.setSpecular( new GLVector(1.0f, 1.0f, 1.0f) );
 
+		for (int y=0; y < 5; ++y)
+		for (int x=0; x < 5; ++x)
+		{
+			final Sphere sph1 = new Sphere(1.0f, 12);
+			sph1.setMaterial( material );
+			sph1.setPosition( new GLVector(3.3f*(x-2.0f),3.3f*(y-2.0f), 0.0f) );
+			getScene().addChild(sph1);
+		}
+
+/*
 		final Sphere sph1 = new Sphere(1.0f, 12);
 		sph1.setMaterial( material );
 		sph1.setPosition( new GLVector(0.0f, 0.0f, 0.0f) );
-		//System.out.println("Sphere is made of "+sph1.getVertices().capacity()+" vertices");
 		getScene().addChild(sph1);
+		//System.out.println("Sphere is made of "+sph1.getVertices().capacity()+" vertices");
 		//getScene().removeChild(sph1);
-
 		final Cylinder cyl1 = new Cylinder(0.1f,2.0f,4);
+
 		cyl1.setMaterial(material);
 		sph1.addChild(cyl1);
 
@@ -101,6 +125,7 @@ public class DisplayScene extends SceneryBase
 		GLVector vec1 = new GLVector(2.0f,0.0f,0.0f);
 		ReOrientNode(cyl1,mainAxis1,vec1);
 		System.out.println("main axis=("+mainAxis1.x()+","+mainAxis1.y()+","+mainAxis1.z()+")");
+*/
 	}
 
 
