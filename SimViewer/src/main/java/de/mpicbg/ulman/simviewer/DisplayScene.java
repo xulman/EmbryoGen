@@ -99,7 +99,95 @@ public class DisplayScene extends SceneryBase
 		getScene().addChild(cam);
 
 		//TODO: remove me
-		UpdateCell();
+		ToggleDisplayAxes();
+		ToggleDisplaySceneBorder();
+	}
+
+
+	private Cylinder[] axesData = null;
+	private boolean    axesShown = false;
+
+	public
+	void ToggleDisplayAxes()
+	{
+		//first run, init the data
+		if (axesData == null)
+		{
+			axesData = new Cylinder[] {
+				new Cylinder(0.1f,2.0f,4),
+				new Cylinder(0.1f,2.0f,4),
+				new Cylinder(0.1f,2.0f,4)};
+
+			//set material - color
+			//NB: RGB colors ~ XYZ axes
+			axesData[0].setMaterial(materials[1]);
+			axesData[1].setMaterial(materials[2]);
+			axesData[2].setMaterial(materials[3]);
+
+			//set orientation for x,z axes
+			ReOrientNode(axesData[0],new GLVector(0.0f,1.0f,0.0f),new GLVector(1.0f,0.0f,0.0f));
+			ReOrientNode(axesData[2],new GLVector(0.0f,1.0f,0.0f),new GLVector(0.0f,0.0f,1.0f));
+
+			//place all axes into the scene centre
+			final GLVector centre = new GLVector(
+				sceneOffset[0] + 0.5f*sceneSize[0],
+				sceneOffset[1] + 0.5f*sceneSize[1],
+				sceneOffset[2] + 0.5f*sceneSize[2]);
+			axesData[0].setPosition(centre);
+			axesData[1].setPosition(centre);
+			axesData[2].setPosition(centre);
+		}
+
+		//add-or-remove from the scene
+		for (Node n : axesData)
+			if (axesShown) getScene().removeChild(n);
+			else           getScene().addChild(n);
+
+		//toggle the flag
+		axesShown ^= true;
+	}
+
+
+	private Line[]  borderData = null;
+	private boolean borderShown = false;
+
+	public
+	void ToggleDisplaySceneBorder()
+	{
+		//first run, init the data
+		if (borderData == null)
+		{
+			borderData = new Line[] {
+				new Line(4), new Line(4),
+				new Line(4), new Line(4)};
+
+			final GLVector xEdge = new GLVector(sceneSize[0],0.0f,0.0f);
+			final GLVector yEdge = new GLVector(0.0f,sceneSize[1],0.0f);
+			final GLVector zEdge = new GLVector(0.0f,0.0f,sceneSize[2]);
+
+			GLVector corner = new GLVector(-1.0f,-1.0f,0.0f);
+			borderData[0].addPoint(corner);
+			borderData[0].addPoint(new GLVector(-1.0f,+1.0f,0.0f));
+			borderData[0].addPoint(new GLVector(+1.0f,+1.0f,0.0f));
+			borderData[0].addPoint(new GLVector(+1.0f,-1.0f,0.0f));
+			borderData[0].setPosition(corner);
+
+			//TODO: add correct edges of the scene box
+
+			for (Line l : borderData)
+			{
+				l.setEdgeWidth(2.0f);
+				l.setMaterial(materials[0]);
+			}
+		}
+
+		//add-or-remove from the scene
+		for (Node n : borderData)
+			if (borderShown) getScene().removeChild(n);
+			else             getScene().addChild(n);
+
+		//toggle the flag
+		borderShown ^= true;
 	}
 
 
@@ -109,10 +197,13 @@ public class DisplayScene extends SceneryBase
 		for (int y=0; y < 5; ++y)
 		for (int x=0; x < 5; ++x)
 		{
-			final Sphere sph1 = new Sphere(1.0f, 12);
-			sph1.setMaterial( materials[0] );
-			sph1.setPosition( new GLVector(3.3f*(x-2.0f),3.3f*(y-2.0f), 0.0f) );
-			getScene().addChild(sph1);
+			if (x != 2 && y != 2)
+			{
+				final Sphere sph1 = new Sphere(1.0f, 12);
+				sph1.setMaterial( materials[2] );
+				sph1.setPosition( new GLVector(3.3f*(x-2.0f),3.3f*(y-2.0f), 0.0f) );
+				getScene().addChild(sph1);
+			}
 		}
 
 /*
