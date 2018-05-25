@@ -17,6 +17,46 @@ public class TexturedCubeJavaExample
         viewer.main();
     }
 
+	/**
+	Rotates the node such that its orientation (whatever it is for the node, e.g.
+	the axis of rotational symmetry in a cylinder) given with _normalized_
+	currentNormalizedOrientVec will match the new orientation newOrientVec.
+	The normalized variant of newOrientVec will be stored into the currentNormalizedOrientVec.
+	*/
+	public
+	void ReOrientNode(final Node node, final GLVector currentNormalizedOrientVec,
+	                  final GLVector newOrientVec)
+	{
+		//plan: vector/cross product of the initial object's orientation and the new orientation,
+		//and rotate by angle that is taken from the scalar product of the two
+
+		//the rotate angle
+		final float rotAngle = (float)Math.acos(currentNormalizedOrientVec.times(newOrientVec.getNormalized()));
+
+		//for now, the second vector for the cross product
+		GLVector tmpVec = newOrientVec;
+
+		//extra case when the two orientations are co-linear
+		if (Math.abs(rotAngle) < 0.01f || Math.abs(rotAngle-3.14159f) < 0.01f)
+		{
+			//System.out.println("rotating with supporting vector");
+			tmpVec = new GLVector(1.0f,1.0f,0.0f);
+			//NB: tmpVec still might be co-linear with the currentNormalizedOrientVec...
+		}
+
+		//axis along which to perform the rotation
+		tmpVec = currentNormalizedOrientVec.cross(tmpVec).normalize();
+		node.getRotation().rotateByAngleNormalAxis(rotAngle, tmpVec.x(),tmpVec.y(),tmpVec.z());
+
+		//System.out.println("rot axis=("+tmpVec.x()+","+tmpVec.y()+","+tmpVec.z()
+		//                   +"), rot angle="+rotAngle+" rad");
+
+		//update the current orientation
+		currentNormalizedOrientVec.minusAssign(currentNormalizedOrientVec);
+		currentNormalizedOrientVec.plusAssign(newOrientVec);
+		currentNormalizedOrientVec.normalize();
+	}
+
     private class TexturedCubeJavaApplication extends SceneryBase
     {
         public TexturedCubeJavaApplication(String applicationName, int windowWidth, int windowHeight)
@@ -82,6 +122,19 @@ public class TexturedCubeJavaExample
             light.setIntensity(100.0f);
             light.setEmissionColor(new GLVector(1.0f, 1.0f, 1.0f));
             getScene().addChild(light);
+            //this is the current orientation of the cylinder's main axis
+            final GLVector mainAxis1 = new GLVector(0.0f,1.0f,0.0f); //NB: already normalized
+
+            //this is the vector that we aim to display as a narrow cylinder
+            GLVector vec1 = new GLVector(2.0f,0.0f,0.0f);
+            ReOrientNode(cyl1,mainAxis1,vec1);
+            System.out.println("main axis=("+mainAxis1.x()+","+mainAxis1.y()+","+mainAxis1.z()+")");
+
+            //rotate again just to see that re-orienting works...
+            vec1.set(1, 2.0f);
+            ReOrientNode(cyl1,mainAxis1,vec1);
+            System.out.println("main axis=("+mainAxis1.x()+","+mainAxis1.y()+","+mainAxis1.z()+")");
+
 
             Camera cam = new DetachedHeadCamera();
             cam.setPosition( new GLVector(0.0f, 0.0f, 5.0f) );
