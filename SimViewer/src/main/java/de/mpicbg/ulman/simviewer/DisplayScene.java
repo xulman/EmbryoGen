@@ -209,7 +209,21 @@ public class DisplayScene extends SceneryBase implements Runnable
 
 
 	/** these guys will be displayed/treated on the display */
-	public Map<Integer,Cell> cells;
+	public Map<Integer,Cell> cellsData;
+	private boolean          cellsShown = true;
+
+	public
+	void ToggleDisplayCells()
+	{
+		//add-or-remove from the scene
+		for (Cell c : cellsData.values())
+		for (Node n : c.sphereNodes)
+			if (cellsShown) scene.removeChild(n);
+			else            scene.addChild(n);
+
+		//toggle the flag
+		cellsShown ^= true;
+	}
 
 	/** this one injects shape object(s) into the a cell */
 	public void UpdateCellNodes(final Cell c)
