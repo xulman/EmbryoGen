@@ -16,7 +16,8 @@ import de.mpicbg.ulman.simviewer.agents.Cell;
 public class DisplayScene extends SceneryBase implements Runnable
 {
 	/** constructor to create an empty window */
-	public DisplayScene(final float[] sOffset, final float[] sSize)
+	public
+	DisplayScene(final float[] sOffset, final float[] sSize)
 	{
 		//the last param determines whether REPL is wanted, or not
 		super("EmbryoGen - live view using scenery", 768,768, false);
@@ -56,7 +57,8 @@ public class DisplayScene extends SceneryBase implements Runnable
 	Scene scene;
 
 	/** initializes the scene with one camera and multiple lights */
-	public void init()
+	public
+	void init()
 	{
 		scene = getScene();
 
@@ -107,7 +109,8 @@ public class DisplayScene extends SceneryBase implements Runnable
 	}
 
 	/** runs the scenery rendering backend in a separate thread */
-	public void run()
+	public
+	void run()
 	{
 		//this is the main loop: the code "blocks" here until the main window is closed,
 		//and that's gonna be the job of this thread
@@ -115,7 +118,8 @@ public class DisplayScene extends SceneryBase implements Runnable
 	}
 
 	/** attempts to close this rendering window */
-	public void stop()
+	public
+	void stop()
 	{
 		this.close();
 	}
@@ -226,7 +230,8 @@ public class DisplayScene extends SceneryBase implements Runnable
 	}
 
 	/** this one injects shape object(s) into the a cell */
-	public void UpdateCellNodes(final Cell c)
+	public
+	void UpdateCellNodes(final Cell c)
 	{
 		//update the sphere Nodes
 		int i=0;
