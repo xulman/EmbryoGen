@@ -4,6 +4,9 @@ import cleargl.GLVector;
 import graphics.scenery.*;
 import graphics.scenery.backends.Renderer;
 
+import java.util.Map;
+import de.mpicbg.ulman.simviewer.agents.Cell;
+
 /**
  * Adapted from TexturedCubeJavaExample.java from the scenery project,
  * originally created by kharrington on 7/6/16.
@@ -205,6 +208,8 @@ public class DisplayScene extends SceneryBase implements Runnable
 	}
 
 
+	/** these guys will be displayed/treated on the display */
+	public Map<Integer,Cell> cells;
 	public void UpdateCell()
 	{
 

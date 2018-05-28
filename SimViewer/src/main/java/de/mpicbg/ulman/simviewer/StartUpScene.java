@@ -1,5 +1,7 @@
 package de.mpicbg.ulman.simviewer;
 
+import java.util.HashMap;
+import de.mpicbg.ulman.simviewer.agents.Cell;
 import de.mpicbg.ulman.simviewer.DisplayScene;
 import de.mpicbg.ulman.simviewer.CommandScene;
 
@@ -34,6 +36,11 @@ public class StartUpScene
 			GUIcontrol.start();
 			//Network.start();
 
+			//give the GUI window some time to settle down, and populate it
+			Thread.sleep(5000);
+
+			CreateFakeCells(scene);
+
 			//how this can be stopped?
 			//network shall never stop by itself, it should keep reading and updating structures
 			//control shall never stop unless 'stop key' is hit in which case it signals GUI to stop
@@ -48,6 +55,29 @@ public class StartUpScene
 		} catch (InterruptedException e) {
 			System.out.println("We've been interrupted while waiting for our threads to close...");
 			e.printStackTrace();
+		}
+	}
+
+
+	public static void CreateFakeCells(final DisplayScene scene)
+	{
+		scene.cells = new HashMap<Integer,Cell>();
+
+		for (int y=0; y < 5; ++y)
+		for (int x=0; x < 5; ++x)
+		{
+			if (x != 2 && y != 2)
+			{
+				final Cell c = new Cell(1,0);
+				c.ID = x+10*y;
+				c.sphereRadii[0]  = 1.0f;
+				c.sphereColors[0] = 2;
+				c.sphereCentres[0] = 3.3f*(x-2.0f);
+				c.sphereCentres[1] = 3.3f*(y-2.0f);
+				c.sphereCentres[2] = 0.0f;
+
+				scene.cells.put(c.ID, c);
+			}
 		}
 	}
 }
