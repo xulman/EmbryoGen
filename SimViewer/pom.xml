@@ -91,15 +91,9 @@
     </dependency>
 
     <dependency>
-      <groupId>graphics.scenery</groupId>
-      <artifactId>scenery</artifactId>
-      <version>0.4.2-SNAPSHOT</version>
-    </dependency>
-
-    <dependency>
-     <groupId>net.clearvolume</groupId>
-     <artifactId>cleargl</artifactId>
-     <version>2.1.6</version>
+     <groupId>sc.iview</groupId>
+     <artifactId>sciview</artifactId>
+     <version>0.1.2-SNAPSHOT</version>
     </dependency>
   </dependencies>
 </project>
