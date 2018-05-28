@@ -210,20 +210,41 @@ public class DisplayScene extends SceneryBase implements Runnable
 
 	/** these guys will be displayed/treated on the display */
 	public Map<Integer,Cell> cells;
-	public void UpdateCell()
-	{
 
-		for (int y=0; y < 5; ++y)
-		for (int x=0; x < 5; ++x)
+	/** this one injects shape object(s) into the a cell */
+	public void UpdateCellNodes(final Cell c)
+	{
+		//update the sphere Nodes
+		int i=0;
+		for (; i < c.sphereRadii.length; ++i)
 		{
-			if (x != 2 && y != 2)
+			if (c.sphereNodes[i] == null)
 			{
-				final Sphere sph1 = new Sphere(1.0f, 12);
-				sph1.setMaterial( materials[2] );
-				sph1.setPosition( new GLVector(3.3f*(x-2.0f),3.3f*(y-2.0f), 0.0f) );
-				getScene().addChild(sph1);
+				//create and enable a new display element (Node)
+				c.sphereNodes[i] = new Sphere(1.0f, 12);
+				scene.addChild(c.sphereNodes[i]);
 			}
+
+			//update...
+			c.sphereNodes[i].setScale(new GLVector(c.sphereRadii[i],3));
+			c.sphereNodes[i].setPosition(new GLVector(c.sphereCentres[3*i+0],
+			                                          c.sphereCentres[3*i+1],
+			                                          c.sphereCentres[3*i+2]));
+			c.sphereNodes[i].setMaterial(materials[c.sphereColors[i]]);
 		}
+
+		//disable and remove not-used Nodes
+		for (; i < c.sphereNodes.length; ++i)
+		if (c.sphereNodes[i] != null)
+		{
+			scene.removeChild(c.sphereNodes[i]);
+			c.sphereNodes[i] = null;
+		}
+
+
+		//update the vector Nodes
+		//TODO
+	}
 
 /*
 		final Sphere sph1 = new Sphere(1.0f, 12);
@@ -251,7 +272,6 @@ public class DisplayScene extends SceneryBase implements Runnable
 		ReOrientNode(cyl1,mainAxis1,vec1);
 		System.out.println("main axis=("+mainAxis1.x()+","+mainAxis1.y()+","+mainAxis1.z()+")");
 */
-	}
 
 
 

@@ -68,7 +68,7 @@ public class CommandScene implements Runnable
 			scene.ToggleDisplaySceneBorder();
 			break;
 		case 'c':
-			scene.UpdateCell();
+			//scene.UpdateCell();
 			break;
 
 		case 'q':

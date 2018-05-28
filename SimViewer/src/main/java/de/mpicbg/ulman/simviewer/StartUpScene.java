@@ -40,6 +40,8 @@ public class StartUpScene
 			Thread.sleep(5000);
 
 			CreateFakeCells(scene);
+			for (Cell c : scene.cells.values())
+				scene.UpdateCellNodes(c);
 
 			//how this can be stopped?
 			//network shall never stop by itself, it should keep reading and updating structures
