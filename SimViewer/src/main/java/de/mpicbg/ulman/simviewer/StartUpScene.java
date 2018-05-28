@@ -43,6 +43,14 @@ public class StartUpScene
 			for (Cell c : scene.cellsData.values())
 				scene.UpdateCellNodes(c);
 
+
+			//adds another group of cells a bit later
+			Thread.sleep(20000);
+			CreateFakeCells2(scene);
+			for (Cell c : scene.cellsData.values())
+				scene.UpdateCellNodes(c);
+
+
 			//how this can be stopped?
 			//network shall never stop by itself, it should keep reading and updating structures
 			//control shall never stop unless 'stop key' is hit in which case it signals GUI to stop
@@ -80,6 +88,32 @@ public class StartUpScene
 
 				c.sphereRadii[1]  = 1.0f;
 				c.sphereColors[1] = 3;
+				c.sphereCentres[3] = 3.3f*(x-2.0f) +0.7f;
+				c.sphereCentres[4] = 3.3f*(y-2.0f);
+				c.sphereCentres[5] = 0.0f;
+
+				scene.cellsData.put(c.ID, c);
+			}
+		}
+	}
+	public static void CreateFakeCells2(final DisplayScene scene)
+	{
+
+		for (int y=0; y < 5; ++y)
+		for (int x=0; x < 5; ++x)
+		{
+			if (x == 2 || y == 2)
+			{
+				final Cell c = new Cell(4,0);
+				c.ID = x+10*y;
+				c.sphereRadii[0]  = 1.0f;
+				c.sphereColors[0] = 4;
+				c.sphereCentres[0] = 3.3f*(x-2.0f);
+				c.sphereCentres[1] = 3.3f*(y-2.0f);
+				c.sphereCentres[2] = 0.0f;
+
+				c.sphereRadii[1]  = 1.0f;
+				c.sphereColors[1] = 5;
 				c.sphereCentres[3] = 3.3f*(x-2.0f) +0.7f;
 				c.sphereCentres[4] = 3.3f*(y-2.0f);
 				c.sphereCentres[5] = 0.0f;
