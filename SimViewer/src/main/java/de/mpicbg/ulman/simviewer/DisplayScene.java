@@ -10,7 +10,7 @@ import graphics.scenery.backends.Renderer;
  *
  * Current version is created by Vladimir Ulman, 2018.
  */
-public class DisplayScene extends SceneryBase
+public class DisplayScene extends SceneryBase implements Runnable
 {
 	/** constructor to create an empty window */
 	public DisplayScene(final float[] sOffset, final float[] sSize)
@@ -97,10 +97,20 @@ public class DisplayScene extends SceneryBase
 		cam.perspectiveCamera(50.0f, getRenderer().getWindow().getWidth(), getRenderer().getWindow().getHeight(), 0.1f, 1000.0f);
 		cam.setActive( true );
 		getScene().addChild(cam);
+	}
 
-		//TODO: remove me
-		ToggleDisplayAxes();
-		ToggleDisplaySceneBorder();
+	/** runs the scenery rendering backend in a separate thread */
+	public void run()
+	{
+		//this is the main loop: the code "blocks" here until the main window is closed,
+		//and that's gonna be the job of this thread
+		this.main();
+	}
+
+	/** attempts to close this rendering window */
+	public void stop()
+	{
+		this.close();
 	}
 
 

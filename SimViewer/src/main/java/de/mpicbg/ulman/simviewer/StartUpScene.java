@@ -1,6 +1,7 @@
 package de.mpicbg.ulman.simviewer;
 
 import de.mpicbg.ulman.simviewer.DisplayScene;
+import de.mpicbg.ulman.simviewer.CommandScene;
 
 /**
  * Opens the scenery window, starts the listening server, maintains
@@ -23,27 +24,30 @@ public class StartUpScene
 	{
 		DisplayScene scene = new DisplayScene(new float[] {-10.f,-10.f,-10.f},
 		                                      new float[] { 20.f, 20.f, 20.f});
-		//this is the main loop: the program stays here until the main window is closed
-		scene.main();
+
+		final Thread GUIwindow  = new Thread(scene);
+		final Thread GUIcontrol = new Thread(new CommandScene(scene));
+
+		//start the 3 threads here
+		GUIwindow.start();
+		GUIcontrol.start();
+		//Network.start();
+
+		//how this can be stopped?
+		//network shall never stop by itself, it should keep reading and updating structures
+		//control shall never stop unless 'stop key' is hit in which case it signals GUI to stop
+		//GUI can stop anytime (either from 'stop key' or just by closing the window)
+
+		try {
+			//wait for the GUI window to finish
+			GUIwindow.join();
+
+			//signal the remaining threads to stop
+			GUIcontrol.interrupt();
+			//Network.interrupt();
+		} catch (InterruptedException e) {
+			System.out.println("We've been interrupted while waiting for our threads to close...");
+			e.printStackTrace();
+		}
 	}
-
-
-            /*
-            Thread rotator = new Thread(){
-                public void run() {
-                    while (true) {
-                        box.getRotation().rotateByAngleY(0.01f);
-                        box.setNeedsUpdate(true);
-
-                        try {
-                            Thread.sleep(20);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-            };
-            rotator.start();
-            */
 }
-
