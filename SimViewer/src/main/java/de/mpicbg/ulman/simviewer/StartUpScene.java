@@ -40,7 +40,7 @@ public class StartUpScene
 			Thread.sleep(5000);
 
 			CreateFakeCells(scene);
-			for (Cell c : scene.cells.values())
+			for (Cell c : scene.cellsData.values())
 				scene.UpdateCellNodes(c);
 
 			//how this can be stopped?
@@ -63,14 +63,14 @@ public class StartUpScene
 
 	public static void CreateFakeCells(final DisplayScene scene)
 	{
-		scene.cells = new HashMap<Integer,Cell>();
+		scene.cellsData = new HashMap<Integer,Cell>();
 
 		for (int y=0; y < 5; ++y)
 		for (int x=0; x < 5; ++x)
 		{
 			if (x != 2 && y != 2)
 			{
-				final Cell c = new Cell(1,0);
+				final Cell c = new Cell(2,0);
 				c.ID = x+10*y;
 				c.sphereRadii[0]  = 1.0f;
 				c.sphereColors[0] = 2;
@@ -78,7 +78,13 @@ public class StartUpScene
 				c.sphereCentres[1] = 3.3f*(y-2.0f);
 				c.sphereCentres[2] = 0.0f;
 
-				scene.cells.put(c.ID, c);
+				c.sphereRadii[1]  = 1.0f;
+				c.sphereColors[1] = 3;
+				c.sphereCentres[3] = 3.3f*(x-2.0f) +0.7f;
+				c.sphereCentres[4] = 3.3f*(y-2.0f);
+				c.sphereCentres[5] = 0.0f;
+
+				scene.cellsData.put(c.ID, c);
 			}
 		}
 	}

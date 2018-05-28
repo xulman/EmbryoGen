@@ -4,6 +4,7 @@ import java.io.InputStreamReader;
 import java.io.IOException;
 
 import de.mpicbg.ulman.simviewer.DisplayScene;
+import de.mpicbg.ulman.simviewer.agents.Cell;
 
 /**
  * Adapted from TexturedCubeJavaExample.java from the scenery project,
@@ -59,6 +60,8 @@ public class CommandScene implements Runnable
 			System.out.println("a - Toggles display of the axes in the scene centre");
 			System.out.println("b - Toggles display of the scene border");
 			System.out.println("c - Toggles display of the cells");
+			System.out.println("r,R - decreases/increases radius of all cells by 0.2");
+			System.out.println("x,X - moves left/right x-position of all cells by 0.2");
 			break;
 
 		case 'a':
@@ -68,7 +71,41 @@ public class CommandScene implements Runnable
 			scene.ToggleDisplaySceneBorder();
 			break;
 		case 'c':
-			//scene.UpdateCell();
+			scene.ToggleDisplayCells();
+			break;
+
+		case 'r':
+			for (Cell c : scene.cellsData.values())
+			{
+				for (int i=0; i < c.sphereRadii.length; ++i)
+					c.sphereRadii[i] -= 0.2f;
+				scene.UpdateCellNodes(c);
+			}
+			break;
+		case 'R':
+			for (Cell c : scene.cellsData.values())
+			{
+				for (int i=0; i < c.sphereRadii.length; ++i)
+					c.sphereRadii[i] += 0.2f;
+				scene.UpdateCellNodes(c);
+			}
+			break;
+
+		case 'x':
+			for (Cell c : scene.cellsData.values())
+			{
+				for (int i=0; i < c.sphereRadii.length; ++i)
+					c.sphereCentres[3*i +0] -= 0.2f;
+				scene.UpdateCellNodes(c);
+			}
+			break;
+		case 'X':
+			for (Cell c : scene.cellsData.values())
+			{
+				for (int i=0; i < c.sphereRadii.length; ++i)
+					c.sphereCentres[3*i +0] += 0.2f;
+				scene.UpdateCellNodes(c);
+			}
 			break;
 
 		case 'q':
