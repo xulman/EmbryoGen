@@ -28,22 +28,22 @@ public class StartUpScene
 		final Thread GUIwindow  = new Thread(scene);
 		final Thread GUIcontrol = new Thread(new CommandScene(scene));
 
-		//start the 3 threads here
-		GUIwindow.start();
-		GUIcontrol.start();
-		//Network.start();
-
-		//how this can be stopped?
-		//network shall never stop by itself, it should keep reading and updating structures
-		//control shall never stop unless 'stop key' is hit in which case it signals GUI to stop
-		//GUI can stop anytime (either from 'stop key' or just by closing the window)
-
 		try {
+			//start the rendering window and both window controls (console and network)
+			GUIwindow.start();
+			GUIcontrol.start();
+			//Network.start();
+
+			//how this can be stopped?
+			//network shall never stop by itself, it should keep reading and updating structures
+			//control shall never stop unless 'stop key' is hit in which case it signals GUI to stop
+			//GUI can stop anytime (either from 'stop key' or just by user closing the window)
+
 			//wait for the GUI window to finish
 			GUIwindow.join();
 
 			//signal the remaining threads to stop
-			GUIcontrol.interrupt();
+			if (GUIcontrol.isAlive()) GUIcontrol.interrupt();
 			//Network.interrupt();
 		} catch (InterruptedException e) {
 			System.out.println("We've been interrupted while waiting for our threads to close...");
