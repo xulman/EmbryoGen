@@ -49,11 +49,15 @@ public class DisplayScene extends SceneryBase implements Runnable
 	/** fixed lookup table with colors, in the form of materials... */
 	final Material[] materials;
 
+	/** short cut to Scene, instead of calling getScene() */
+	Scene scene;
 
 	/** initializes the scene with one camera and multiple lights */
 	public void init()
 	{
-		setRenderer( Renderer.createRenderer(getHub(), getApplicationName(), getScene(), getWindowWidth(), getWindowHeight()));
+		scene = getScene();
+
+		setRenderer( Renderer.createRenderer(getHub(), getApplicationName(), scene, getWindowWidth(), getWindowHeight()));
 		getHub().add(SceneryElement.Renderer, getRenderer());
 
 		//calculate back corner of the scene
@@ -83,7 +87,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 		{
 			l.setIntensity(3000.0f);
 			l.setEmissionColor(new GLVector(1.0f, 1.0f, 1.0f));
-			getScene().addChild(l);
+			scene.addChild(l);
 		}
 
 		//camera position, looking from the top into the scene centre
@@ -96,7 +100,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 		cam.setPosition( new GLVector(sceneSomeCorner[0],sceneSomeCorner[1],sceneSomeCorner[2]) );
 		cam.perspectiveCamera(50.0f, getRenderer().getWindow().getWidth(), getRenderer().getWindow().getHeight(), 0.1f, 1000.0f);
 		cam.setActive( true );
-		getScene().addChild(cam);
+		scene.addChild(cam);
 	}
 
 	/** runs the scenery rendering backend in a separate thread */
@@ -150,8 +154,8 @@ public class DisplayScene extends SceneryBase implements Runnable
 
 		//add-or-remove from the scene
 		for (Node n : axesData)
-			if (axesShown) getScene().removeChild(n);
-			else           getScene().addChild(n);
+			if (axesShown) scene.removeChild(n);
+			else           scene.addChild(n);
 
 		//toggle the flag
 		axesShown ^= true;
@@ -193,8 +197,8 @@ public class DisplayScene extends SceneryBase implements Runnable
 
 		//add-or-remove from the scene
 		for (Node n : borderData)
-			if (borderShown) getScene().removeChild(n);
-			else             getScene().addChild(n);
+			if (borderShown) scene.removeChild(n);
+			else             scene.addChild(n);
 
 		//toggle the flag
 		borderShown ^= true;
