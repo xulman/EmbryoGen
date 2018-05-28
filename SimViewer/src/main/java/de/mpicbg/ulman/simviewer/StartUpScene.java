@@ -4,6 +4,7 @@ import java.util.HashMap;
 import de.mpicbg.ulman.simviewer.agents.Cell;
 import de.mpicbg.ulman.simviewer.DisplayScene;
 import de.mpicbg.ulman.simviewer.CommandScene;
+import de.mpicbg.ulman.simviewer.NetworkScene;
 
 /**
  * Opens the scenery window, starts the listening server, maintains
@@ -29,12 +30,13 @@ public class StartUpScene
 
 		final Thread GUIwindow  = new Thread(scene);
 		final Thread GUIcontrol = new Thread(new CommandScene(scene));
+		final Thread Network    = new Thread(new NetworkScene(scene));
 
 		try {
 			//start the rendering window and both window controls (console and network)
 			GUIwindow.start();
 			GUIcontrol.start();
-			//Network.start();
+			Network.start();
 
 			//give the GUI window some time to settle down, and populate it
 			Thread.sleep(5000);
@@ -43,13 +45,13 @@ public class StartUpScene
 			for (Cell c : scene.cellsData.values())
 				scene.UpdateCellNodes(c);
 
-
+/*
 			//adds another group of cells a bit later
 			Thread.sleep(20000);
 			CreateFakeCells2(scene);
 			for (Cell c : scene.cellsData.values())
 				scene.UpdateCellNodes(c);
-
+*/
 
 			//how this can be stopped?
 			//network shall never stop by itself, it should keep reading and updating structures
@@ -61,7 +63,7 @@ public class StartUpScene
 
 			//signal the remaining threads to stop
 			if (GUIcontrol.isAlive()) GUIcontrol.interrupt();
-			//Network.interrupt();
+			if (Network.isAlive())    Network.interrupt();
 		} catch (InterruptedException e) {
 			System.out.println("We've been interrupted while waiting for our threads to close...");
 			e.printStackTrace();
