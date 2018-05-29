@@ -1,6 +1,5 @@
 package de.mpicbg.ulman.simviewer;
 
-import java.util.HashMap;
 import de.mpicbg.ulman.simviewer.agents.Cell;
 import de.mpicbg.ulman.simviewer.DisplayScene;
 import de.mpicbg.ulman.simviewer.CommandScene;
@@ -73,8 +72,6 @@ public class StartUpScene
 
 	public static void CreateFakeCells(final DisplayScene scene)
 	{
-		scene.cellsData = new HashMap<Integer,Cell>();
-
 		for (int y=0; y < 5; ++y)
 		for (int x=0; x < 5; ++x)
 		{
