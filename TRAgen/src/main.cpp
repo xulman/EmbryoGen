@@ -9,6 +9,10 @@
 
 #include "simulation.h" //for initializeAgents()
 
+#include "DisplayUnits/BroadcasterDisplayUnit.h"
+#include "DisplayUnits/ConsoleDisplayUnit.h"
+#include "DisplayUnits/SceneryDisplayUnit.h"
+
 //create single object (an instance of the global parameters class)
 ParamsClass params;
 
@@ -78,8 +82,16 @@ int main(int argc,char **argv)
 	//filename buffer...
 	char fn[1024];
 
+	ConsoleDisplayUnit cDU;
+	SceneryDisplayUnit sDU("localhost:8765");
+	BroadcasterDisplayUnit bDU;
+
+	bDU.RegisterUnit(cDU);
+	bDU.RegisterUnit(sDU);
+	//bDU.UnregisterUnit(sDU);
+
 	//run the simulation
-	for (frameCnt=0; frameCnt < 200; ++frameCnt)
+	for (frameCnt=0; frameCnt < 21; ++frameCnt)
 	{
 		if (frameCnt % 10 == 0)
 		{
@@ -87,7 +99,10 @@ int main(int argc,char **argv)
 			img.GetVoxelData() = 0;
 			std::list<Cell*>::const_iterator c=agents.begin();
 			for (; c != agents.end(); c++)
+			{
 				(*c)->RasterInto(img);
+				(*c)->DrawInto(bDU);
+			}
 
 			sprintf(fn,"mask%03d.tif",frameCnt);
 			img.SaveImage(fn);
