@@ -236,6 +236,10 @@ class ForceVector3d : public Vector3d<float> {
 		default:
 			LUTindex=27;
 		}
+
+		//to get rid of a compiler warning
+		float xHead=base.x + stretch*this->x;
+		xHead++;
 /*
 		glColor4f(	ForceColorLUT[LUTindex+0],
 						ForceColorLUT[LUTindex+1],
