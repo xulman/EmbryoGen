@@ -77,7 +77,8 @@ set(SOURCES
 		  src/simulation.cpp
 		  src/agents.cpp
 		  src/rnd_generators.cpp
-		  src/main.cpp)
+		  src/main.cpp
+		  src/DisplayUnits/SceneryDisplayUnit.cpp)
 
 #---------
 # TARGETS
