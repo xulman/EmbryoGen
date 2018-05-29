@@ -35,19 +35,23 @@ public:
 	}
 
 
-	void DrawPoint(const Vector3d<float>& pos,
+	void DrawPoint(const int ID,
+	               const Vector3d<float>& pos,
 	               const float radius = 1.0f,
 	               const int color = 0);
 
-	void DrawLine(const Vector3d<float>& posA,
+	void DrawLine(const int ID,
+	              const Vector3d<float>& posA,
 	              const Vector3d<float>& posB,
 	              const int color = 0);
 
-	void DrawVector(const Vector3d<float>& pos,
+	void DrawVector(const int ID,
+	                const Vector3d<float>& pos,
 	                const Vector3d<float>& vector,
 	                const int color = 0);
 
-	void DrawTriangle(const Vector3d<float>& posA,
+	void DrawTriangle(const int ID,
+	                  const Vector3d<float>& posA,
 	                  const Vector3d<float>& posB,
 	                  const Vector3d<float>& posC,
 	                  const int color = 0);

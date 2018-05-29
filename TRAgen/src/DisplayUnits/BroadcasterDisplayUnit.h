@@ -15,37 +15,41 @@
 class BroadcasterDisplayUnit : public DisplayUnit
 {
 public:
-	void DrawPoint(const Vector3d<float>& pos,
+	void DrawPoint(const int ID,
+	               const Vector3d<float>& pos,
 	               const float radius = 1.0f,
 	               const int color = 0)
 	{
 		for (auto it = displayUnits.begin(); it != displayUnits.end(); ++it)
-			(*it)->DrawPoint(pos,radius,color);
+			(*it)->DrawPoint(ID,pos,radius,color);
 	}
 
-	void DrawLine(const Vector3d<float>& posA,
+	void DrawLine(const int ID,
+	              const Vector3d<float>& posA,
 	              const Vector3d<float>& posB,
 	              const int color = 0)
 	{
 		for (auto it = displayUnits.begin(); it != displayUnits.end(); ++it)
-			(*it)->DrawLine(posA,posB,color);
+			(*it)->DrawLine(ID,posA,posB,color);
 	}
 
-	void DrawVector(const Vector3d<float>& pos,
+	void DrawVector(const int ID,
+	                const Vector3d<float>& pos,
 	                const Vector3d<float>& vector,
 	                const int color = 0)
 	{
 		for (auto it = displayUnits.begin(); it != displayUnits.end(); ++it)
-			(*it)->DrawVector(pos,vector,color);
+			(*it)->DrawVector(ID,pos,vector,color);
 	}
 
-	void DrawTriangle(const Vector3d<float>& posA,
+	void DrawTriangle(const int ID,
+	                  const Vector3d<float>& posA,
 	                  const Vector3d<float>& posB,
 	                  const Vector3d<float>& posC,
 	                  const int color = 0)
 	{
 		for (auto it = displayUnits.begin(); it != displayUnits.end(); ++it)
-			(*it)->DrawTriangle(posA,posB,posC,color);
+			(*it)->DrawTriangle(ID,posA,posB,posC,color);
 	}
 
 

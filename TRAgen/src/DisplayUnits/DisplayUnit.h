@@ -14,34 +14,42 @@ class DisplayUnit
 public:
 	/** Draws a point at 'pos', often as a sphere of 'radius'.
 	    'color' is an index to a color look up table that might
-		 exist at the drawing side. */
+	    exist at the drawing side. Every point may be recognized
+	    with its fixed ID, so that the displaying side can update it. */
 	virtual
-	void DrawPoint(const Vector3d<float>& pos,
+	void DrawPoint(const int ID,
+	               const Vector3d<float>& pos,
 	               const float radius = 1.0f,
 	               const int color = 0) =0;
 
 	/** Draws a line between two points 'posA' and 'posB'.
 	    'color' is an index to a color look up table that might
-		 exist at the drawing side. */
+	    exist at the drawing side. Every line may be recognized
+	    with its fixed ID, so that the displaying side can update it. */
 	virtual
-	void DrawLine(const Vector3d<float>& posA,
+	void DrawLine(const int ID,
+	              const Vector3d<float>& posA,
 	              const Vector3d<float>& posB,
 	              const int color = 0) =0;
 
 	/** Draws a 'vector' often as an arrow, positioned at 'pos'.
 	    'color' is an index to a color look up table that might
-		 exist at the drawing side. */
+	    exist at the drawing side. Every vector may be recognized
+	    with its fixed ID, so that the displaying side can update it. */
 	virtual
-	void DrawVector(const Vector3d<float>& pos,
+	void DrawVector(const int ID,
+	                const Vector3d<float>& pos,
 	                const Vector3d<float>& vector,
 	                const int color = 0) =0;
 
 	/** Draws a triangle between the three points. The order of them
 	    matters as the normal is calculated as 'posB-posA' x 'posC-posA'.
 	    'color' is an index to a color look up table that might
-		 exist at the drawing side. */
+	    exist at the drawing side. Every triangle may be recognized
+	    with its fixed ID, so that the displaying side can update it. */
 	virtual
-	void DrawTriangle(const Vector3d<float>& posA,
+	void DrawTriangle(const int ID,
+	                  const Vector3d<float>& posA,
 	                  const Vector3d<float>& posB,
 	                  const Vector3d<float>& posC,
 	                  const int color = 0) =0;
