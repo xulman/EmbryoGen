@@ -396,7 +396,7 @@ void Cell::RasterInto(i3d::Image3d<i3d::GRAY8>& img) const
 
 void Cell::DrawInto(DisplayUnit& ds) const
 {
-	ds.DrawPoint(ID,pos,outerRadius);
+	ds.DrawPoint(ID,pos,outerRadius,ID);
 	ds.DrawVector(ID,pos,acceleration);
 }
 

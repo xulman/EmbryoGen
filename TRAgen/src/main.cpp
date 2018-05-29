@@ -93,7 +93,7 @@ int main(int argc,char **argv)
 	//run the simulation
 	for (frameCnt=0; frameCnt < 21; ++frameCnt)
 	{
-		if (frameCnt % 10 == 0)
+		if (frameCnt % 5 == 0)
 		{
 			//render cells into the image
 			img.GetVoxelData() = 0;

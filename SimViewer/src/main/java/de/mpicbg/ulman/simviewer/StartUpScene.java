@@ -24,8 +24,8 @@ public class StartUpScene
 {
 	public static void main(String... args)
 	{
-		DisplayScene scene = new DisplayScene(new float[] {-10.f,-10.f,-10.f},
-		                                      new float[] { 20.f, 20.f, 20.f});
+		DisplayScene scene = new DisplayScene(new float[] {20.f,20.f,20.f},
+		                                      new float[] {60.f,60.f,60.f});
 
 		final Thread GUIwindow  = new Thread(scene);
 		final Thread GUIcontrol = new Thread(new CommandScene(scene));
@@ -40,11 +40,11 @@ public class StartUpScene
 			//give the GUI window some time to settle down, and populate it
 			Thread.sleep(5000);
 
+/*
 			CreateFakeCells(scene);
 			for (Cell c : scene.cellsData.values())
 				scene.UpdateCellNodes(c);
 
-/*
 			//adds another group of cells a bit later
 			Thread.sleep(20000);
 			CreateFakeCells2(scene);
