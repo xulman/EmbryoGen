@@ -71,6 +71,20 @@ set(LIBS ${LIBS} ${LIB_GSLCBLAS})
 find_path(INC_GSL "gsl/gsl_randist.h")
 include_directories(${INC_GSL})
 
+
+# attempts to find the complete ZeroMQ Cmake package because...
+# a) default installation provides the Cmake module files
+# b) and the module knows how to link ZeroMQ statically to my libraries/binaries
+list (APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_BINARY_DIR}/cmake/ZeroMQ")
+find_package(ZeroMQ)
+
+# libzmq autotools install: fallback to pkg-config
+if(NOT ZeroMQ_FOUND)
+    # try again with pkg-config (normal install of zeromq)
+    list (APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/libzmq-pkg-config)
+    find_package(ZeroMQ REQUIRED)
+endif()
+
 #--------------
 # SOURCE FILES
 #--------------
@@ -86,4 +100,4 @@ set(SOURCES
 # TARGETS
 #---------
 add_executable(tragen ${SOURCES})
-target_link_libraries(tragen ${LIBS})
+target_link_libraries(tragen ${LIBS} libzmq-static)
