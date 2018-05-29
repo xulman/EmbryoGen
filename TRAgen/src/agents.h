@@ -6,6 +6,7 @@
 #include <i3d/image3d.h>
 #include "params.h"
 #include "rnd_generators.h"
+#include "DisplayUnits/DisplayUnit.h"
 
 
 //generic representant of a single cell
@@ -246,6 +247,9 @@ class Cell {
 
 	//renders the sphere into this image
 	void RasterInto(i3d::Image3d<i3d::GRAY8>& img) const;
+
+	//renders the sphere into this display unit
+	void DrawInto(DisplayUnit& ds) const;
 
 
 	///lists content of the bp list
