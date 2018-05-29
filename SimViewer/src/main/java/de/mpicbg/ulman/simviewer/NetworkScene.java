@@ -98,7 +98,7 @@ public class NetworkScene implements Runnable
 	{
 		Scanner s = new Scanner(msg);
 
-		System.out.println("processing point msg: "+msg);
+		//System.out.println("processing point msg: "+msg);
 
 		//this skips the "v1 points" - the two tokens
 		s.next();
@@ -133,6 +133,10 @@ public class NetworkScene implements Runnable
 			if (ID != lastID)
 			{
 				//yes...
+				//update previously finished block (if there was some)
+				if (cell != null) scene.UpdateCellNodes(cell);
+
+				//get ready for the processing of the new block
 				lastID = ID;
 				pointCount = 0;
 				cell = scene.cellsData.get(ID);
@@ -142,10 +146,9 @@ public class NetworkScene implements Runnable
 					cell = new Cell(2,0); //TODO, how much??
 					cell.ID = ID;
 					scene.cellsData.put(cell.ID,cell);
-					System.out.println("Starting ID "+ID);
+					//System.out.println("Starting ID "+ID);
 				}
-				else
-					System.out.println("Updating ID "+ID);
+				//else System.out.println("Updating ID "+ID);
 			}
 			//no, it is just another point within the block
 			else ++pointCount;
@@ -162,6 +165,9 @@ public class NetworkScene implements Runnable
 			cell.sphereRadii[0]  = s.nextFloat();
 			cell.sphereColors[0] = s.nextInt();
 		}
+
+		//update previously finished block (if there was some)
+		if (cell != null) scene.UpdateCellNodes(cell);
 
 		s.close();
 	}

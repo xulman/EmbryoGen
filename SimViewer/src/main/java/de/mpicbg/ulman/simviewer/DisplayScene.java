@@ -250,7 +250,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 			c.sphereNodes[i].setPosition(new GLVector(c.sphereCentres[3*i+0],
 			                                          c.sphereCentres[3*i+1],
 			                                          c.sphereCentres[3*i+2]));
-			c.sphereNodes[i].setMaterial(materials[c.sphereColors[i]]);
+			c.sphereNodes[i].setMaterial(materials[c.sphereColors[i] % materials.length]);
 		}
 
 		//disable and remove not-used Nodes
