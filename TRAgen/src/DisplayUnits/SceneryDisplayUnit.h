@@ -4,6 +4,7 @@
 #include "DisplayUnit.h"
 #include "../params.h"
 #include <string>
+#include <zmq.hpp>
 
 /**
  * This class implements drawing by sending the drawing commands
@@ -17,10 +18,21 @@ class SceneryDisplayUnit : public DisplayUnit
 {
 public:
 	SceneryDisplayUnit(const std::string& _hostUrl) :
-		hostUrl(_hostUrl) {}
+		hostUrl(_hostUrl)
+	{
+		ConnectToHost();
+	}
 
 	SceneryDisplayUnit(const char* _hostUrl) :
-		hostUrl(_hostUrl) {}
+		hostUrl(_hostUrl)
+	{
+		ConnectToHost();
+	}
+
+	~SceneryDisplayUnit()
+	{
+		DisconnectFromHost();
+	}
 
 
 	void DrawPoint(const Vector3d<float>& pos,
@@ -43,5 +55,11 @@ public:
 private:
 	/** URL of the host (a Scenery renderer) to which we are connected */
 	std::string hostUrl;
+
+	zmq::context_t* context = NULL;
+	zmq::socket_t*  socket  = NULL;
+
+	void ConnectToHost(void);
+	void DisconnectFromHost(void);
 };
 #endif

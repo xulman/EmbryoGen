@@ -1,4 +1,6 @@
 #include "SceneryDisplayUnit.h"
+#include <sstream>
+#include <zmq.hpp>
 
 void SceneryDisplayUnit::DrawPoint(const Vector3d<float>& pos,
                                    const float radius,
@@ -34,4 +36,29 @@ void SceneryDisplayUnit::DrawTriangle(const Vector3d<float>& posA,
 {
 	//for now...
 	REPORT(posA << ", " << posB << ", " << posC << ", color=" << color);
+}
+
+
+void SceneryDisplayUnit::ConnectToHost(void)
+{
+	context  = new zmq::context_t(1);
+	socket   = new zmq::socket_t(*context, ZMQ_PAIR);
+	socket->connect(std::string("tcp://")+std::string(hostUrl));
+}
+
+void SceneryDisplayUnit::DisconnectFromHost(void)
+{
+	if (socket != NULL)
+	{
+		socket->disconnect(std::string("tcp://")+std::string(hostUrl));
+		socket->close();
+		delete socket;
+		socket = NULL;
+	}
+
+	if (context != NULL)
+	{
+		delete context;
+		context = NULL;
+	}
 }
