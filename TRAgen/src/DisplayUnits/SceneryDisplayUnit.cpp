@@ -6,8 +6,22 @@ void SceneryDisplayUnit::DrawPoint(const Vector3d<float>& pos,
                                    const float radius,
                                    const int color)
 {
-		//for now...
-		REPORT(pos << ", radius=" << radius << ", color=" << color);
+	std::ostringstream msg;
+
+	//message syntax := v1 points N dim D Point1 ... PointN
+	//  Point syntax := x1 ... xD radius color
+	//
+	//where N is the number of points in this message,
+	//where D is the dimension of one point,
+	//where x1,...,xD,radius are real scalars, color is integer scalar
+
+	msg << "v1 points 1 dim 3 "
+	    << pos.x << " " << pos.y << " " << pos.z << " "
+	    << radius << " " << color;
+
+	std::string msgString(msg.str());
+	socket->send(msgString.c_str(),msgString.size());
+	//socket->send(msgString.c_str(),msgString.size(),ZMQ_SNDMORE);
 }
 
 
@@ -15,8 +29,24 @@ void SceneryDisplayUnit::DrawLine(const Vector3d<float>& posA,
                                   const Vector3d<float>& posB,
                                   const int color)
 {
-		//for now...
-		REPORT(posA << " <-> " << posB << ", color=" << color);
+	std::ostringstream msg;
+
+	//  message syntax := v1 lines N dim D PointPair1 ... PointPairN
+	//PointPair syntax := o1 ... oD p1 ... pD color
+	//
+	//where N is the number of lines in this message,
+	//where D is the dimension of one line end point,
+	//where o1,...,oD,p1,...,pD are real scalars, color is integer scalar
+	//
+	// o,p are two end points of a line
+
+	msg << "v1 lines 1 dim 3 "
+	    << posA.x << " " << posA.y << " " << posA.z << " "
+	    << posB.x << " " << posB.y << " " << posB.z << " "
+	    << color;
+
+	std::string msgString(msg.str());
+	socket->send(msgString.c_str(),msgString.size());
 }
 
 
@@ -24,8 +54,21 @@ void SceneryDisplayUnit::DrawVector(const Vector3d<float>& pos,
                                     const Vector3d<float>& vector,
                                     const int color)
 {
+
+	//  message syntax := v1 vectors N dim D PointPair1 ... PointPairN
+	//PointPair syntax := o1 ... oD p1 ... pD color
+	//
+	//where N is the number of vectors in this message,
+	//where D is the dimension of the base coordinate and vector itself
+	//where o1,...,oD,p1,...,pD are real scalars, color is integer scalar
+	//
+	// o is the base coordinate of the vector, p is the vector itself
+
 	//for now...
-	REPORT(vector << " @ " << pos << ", color=" << color);
+	Vector3d<float> endPoint(pos);
+	endPoint+=vector;
+
+	DrawLine(pos,endPoint,color);
 }
 
 
@@ -34,8 +77,26 @@ void SceneryDisplayUnit::DrawTriangle(const Vector3d<float>& posA,
                                       const Vector3d<float>& posC,
                                       const int color)
 {
-	//for now...
-	REPORT(posA << ", " << posB << ", " << posC << ", color=" << color);
+	std::ostringstream msg;
+
+	//     message syntax := v1 triangles N dim D PointTripple1 ... PointTrippleN
+	//PointTripple syntax := o1 ... oD p1 ... pD q1 ... qD color
+	//
+	//where N is the number of triangles in this message,
+	//where D is the dimension of one triangle vertex,
+	//where o1,...,oD,p1,...,pD,q1,...,qD are real scalars,
+	//where color is integer scalar
+	//
+	// o,p,q are three vertices of a triangle
+
+	msg << "v1 triangles 1 dim 3 "
+	    << posA.x << " " << posA.y << " " << posA.z << " "
+	    << posB.x << " " << posB.y << " " << posB.z << " "
+	    << posC.x << " " << posC.y << " " << posC.z << " "
+	    << color;
+
+	std::string msgString(msg.str());
+	socket->send(msgString.c_str(),msgString.size());
 }
 
 
