@@ -101,6 +101,13 @@ class Vector3d {
 	}
 };
 
+template <typename T>
+std::ostream& operator<<(std::ostream& s,const Vector3d<T>& v)
+{
+	s << "[" << v.x << "," << v.y << "," << v.z << "]";
+	return s;
+}
+
 
 namespace forceNames {
  enum ForceType {
