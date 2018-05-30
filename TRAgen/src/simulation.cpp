@@ -47,6 +47,7 @@ void initializeAgents(DisplayUnit* const ds)
 		ag->pos.y += (params.imgSizeY/2) / params.imgResY;
 		ag->pos.z += (params.imgSizeZ/2) / params.imgResZ;
 		ag->displayUnit = ds;
+		ag->DrawIntoDisplayUnit();
 		agents.push_back(ag);
 
 		std::cout << "adding at [" << agents.back()->pos.x << ","
@@ -138,6 +139,7 @@ void closeAgents(void)
 	std::list<Cell*>::iterator iter=agents.begin();
 	while (iter != agents.end())
 	{
+		(*iter)->displayUnit = NULL;
 		delete *iter; *iter = NULL;
 		iter++;
 	}

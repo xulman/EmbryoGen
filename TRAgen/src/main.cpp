@@ -91,6 +91,9 @@ int main(int argc,char **argv)
 	//filename buffer...
 	char fn[1024];
 
+	//wait for key...
+	std::cin >> fn[0];
+
 	//run the simulation
 	for (frameCnt=0; frameCnt < 200; ++frameCnt)
 	{
