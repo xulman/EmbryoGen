@@ -30,7 +30,7 @@ extern std::list<Cell*> agents;
  std::map<int, TrackRecord> tracks;
 
 
-void initializeAgents(const int mode)
+void initializeAgents(DisplayUnit* const ds)
 {
 	//number of cells defines required perimeter -> radius can be infered
 	const float radius = (float)params.numberOfAgents * 10.f /6.28f;
@@ -46,6 +46,7 @@ void initializeAgents(const int mode)
 		ag->pos.x += (params.imgSizeX/2) / params.imgResX;
 		ag->pos.y += (params.imgSizeY/2) / params.imgResY;
 		ag->pos.z += (params.imgSizeZ/2) / params.imgResZ;
+		ag->displayUnit = ds;
 		agents.push_back(ag);
 
 		std::cout << "adding at [" << agents.back()->pos.x << ","
@@ -53,7 +54,7 @@ void initializeAgents(const int mode)
 		                           << agents.back()->pos.z << "]\n";
 	}
 
-	agents.front()->isSelected = true;
+	//agents.front()->isSelected = true;
 
 	//go over all cells and create their tracks
 	 std::list<Cell*>::const_iterator c=agents.begin();

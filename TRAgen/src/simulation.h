@@ -1,18 +1,14 @@
 #ifndef SIMULATION_H
 #define SIMULATION_H
 
+#include "DisplayUnits/DisplayUnit.h"
 
 /**
  * Just initializes all agents: positions, weights, etc.
  *
- * The \e mode tells what initial positions they should be.
- *
- * mode = 0 (default) aligned on a grid
- * other modes are not yet defined
- *
- * The function may possible open some files for reporting the progress.
+ * The function may possibly open some files for reporting the progress.
  */
-void initializeAgents(const int mode=0);
+void initializeAgents(DisplayUnit* const ds);
 
 /**
  * Do one step of the simulation:

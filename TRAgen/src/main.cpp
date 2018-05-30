@@ -71,8 +71,17 @@ int main(int argc,char **argv)
 	params.tracksFilename="tracks.txt";
 
 
+	//init display units
+	ConsoleDisplayUnit cDU;
+	SceneryDisplayUnit sDU("localhost:8765");
+
+	BroadcasterDisplayUnit bDU;
+	bDU.RegisterUnit(cDU);
+	bDU.RegisterUnit(sDU);
+	//bDU.UnregisterUnit(sDU);
+
 	//init agents accordingly
-	initializeAgents(0);
+	initializeAgents(&bDU);
 
 	//output image that will be iteratively re-rendered
 	i3d::Image3d<i3d::GRAY8> img;
@@ -82,17 +91,10 @@ int main(int argc,char **argv)
 	//filename buffer...
 	char fn[1024];
 
-	ConsoleDisplayUnit cDU;
-	SceneryDisplayUnit sDU("localhost:8765");
-	BroadcasterDisplayUnit bDU;
-
-	bDU.RegisterUnit(cDU);
-	bDU.RegisterUnit(sDU);
-	//bDU.UnregisterUnit(sDU);
-
 	//run the simulation
-	for (frameCnt=0; frameCnt < 21; ++frameCnt)
+	for (frameCnt=0; frameCnt < 200; ++frameCnt)
 	{
+		std::cout << "---------------" << frameCnt << "---------------\n";
 		if (frameCnt % 5 == 0)
 		{
 			//render cells into the image
@@ -104,8 +106,8 @@ int main(int argc,char **argv)
 				(*c)->DrawInto(bDU);
 			}
 
-			sprintf(fn,"mask%03d.tif",frameCnt);
-			img.SaveImage(fn);
+			//sprintf(fn,"mask%03d.tif",frameCnt);
+			//img.SaveImage(fn);
 		}
 
 		//advance the simulation into the next frame
