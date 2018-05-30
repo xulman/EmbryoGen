@@ -10,6 +10,7 @@ import graphics.scenery.Node;
  */
 public class Cell
 {
+	//should match the key in DisplayScene.cellsData map
 	public int ID;
 
 	public float[] sphereRadii;
@@ -17,6 +18,9 @@ public class Cell
 	public int[]   sphereColors;
 	//
 	public final Node[] sphereNodes;
+	//regardless of the actual value of the radius:
+	//once Cell exists, all elements of its ...Nodes[] must not be null)
+	//NB: if sphereRadii[i] == 0, then sphereNodes[i] is scaled to a point and not displayed
 
 
 	public int[]   forceColors;

@@ -56,6 +56,8 @@ public class DisplayScene extends SceneryBase implements Runnable
 
 	/** short cut to Scene, instead of calling getScene() */
 	Scene scene;
+	//----------------------------------------------------------------------------
+
 
 	/** initializes the scene with one camera and multiple lights */
 	public
@@ -124,6 +126,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 	{
 		this.close();
 	}
+	//----------------------------------------------------------------------------
 
 
 	private Cylinder[] axesData = null;
@@ -168,6 +171,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 		//toggle the flag
 		axesShown ^= true;
 	}
+	//----------------------------------------------------------------------------
 
 
 	private Line[]  borderData = null;
@@ -211,10 +215,12 @@ public class DisplayScene extends SceneryBase implements Runnable
 		//toggle the flag
 		borderShown ^= true;
 	}
+	//----------------------------------------------------------------------------
 
 
-	/** these guys will be displayed/treated on the display */
+	/** these guys will be displayed on the display */
 	public Map<Integer,Cell> cellsData  = new HashMap<Integer,Cell>();
+	//signal we want to have them displayed (even if cellsData is initially empty)
 	private boolean          cellsShown = true;
 
 	public
@@ -230,19 +236,19 @@ public class DisplayScene extends SceneryBase implements Runnable
 		cellsShown ^= true;
 	}
 
-	/** this one injects shape object(s) into the a cell */
+	/** this one injects shape object(s) into the cell */
 	public
 	void UpdateCellNodes(final Cell c)
 	{
-		//update the sphere Nodes
-		int i=0;
-		for (; i < c.sphereRadii.length; ++i)
+		//update the sphere Nodes (regardless of the actual value of the radius:
+		//once Cell exists, all elements of its ...Nodes[] must not be null)
+		for (int i=0; i < c.sphereRadii.length; ++i)
 		{
 			if (c.sphereNodes[i] == null)
 			{
 				//create and enable a new display element (Node)
 				c.sphereNodes[i] = new Sphere(1.0f, 12);
-				scene.addChild(c.sphereNodes[i]);
+				if (cellsShown) scene.addChild(c.sphereNodes[i]);
 			}
 
 			//update...
@@ -252,15 +258,6 @@ public class DisplayScene extends SceneryBase implements Runnable
 			                                          c.sphereCentres[3*i+2]));
 			c.sphereNodes[i].setMaterial(materials[c.sphereColors[i] % materials.length]);
 		}
-
-		//disable and remove not-used Nodes
-		for (; i < c.sphereNodes.length; ++i)
-		if (c.sphereNodes[i] != null)
-		{
-			scene.removeChild(c.sphereNodes[i]);
-			c.sphereNodes[i] = null;
-		}
-
 
 		//update the vector Nodes
 		//TODO
@@ -292,10 +289,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 		ReOrientNode(cyl1,mainAxis1,vec1);
 		System.out.println("main axis=("+mainAxis1.x()+","+mainAxis1.y()+","+mainAxis1.z()+")");
 */
-
-
-
-
+	//----------------------------------------------------------------------------
 
 
 	/**
