@@ -394,10 +394,13 @@ void Cell::RasterInto(i3d::Image3d<i3d::GRAY8>& img) const
 	}
 }
 
-void Cell::DrawInto(DisplayUnit& ds) const
+void Cell::DrawIntoDisplayUnit(void) const
 {
-	ds.DrawPoint(ID,pos,outerRadius,ID);
-	ds.DrawVector(ID,pos,acceleration);
+	if (displayUnit)
+	{
+		displayUnit->DrawPoint(ID,pos,outerRadius,ID);
+		//displayUnit->DrawVector(ID,pos,acceleration);
+	}
 }
 
 
@@ -1335,6 +1338,7 @@ void Cell::finalizeCytokinesis(void)
 	 //I'm gonna split the list in the upperPoint and lowerPoint
 	 //but before we need new cell...
 	 Cell* cc=new Cell(*this, colour.r,colour.g,colour.b);
+	 cc->displayUnit = this->displayUnit;
 	 agents.push_back(cc);
 	 //copy const. calls InitialSettings(true) and so the new
 	 //cell lacks initializeG1Phase() and init of bp list, and is already in G1Phase
@@ -1345,6 +1349,7 @@ void Cell::finalizeCytokinesis(void)
 	 int MoID=this->ID;
 	 this->ID=GetNewCellID();
 	 ReportNewBornDaughters(MoID,this->ID,cc->ID);
+	 if (this->displayUnit) this->displayUnit->DrawPoint(MoID,pos,-1.0f);
 
 	cc->initializeG1Phase(cc->nextPhaseChange - cc->lastPhaseChange);
 	//this->initializeG1Phase(duration) will call my caller

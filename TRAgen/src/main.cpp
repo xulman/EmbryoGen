@@ -103,7 +103,7 @@ int main(int argc,char **argv)
 			for (; c != agents.end(); c++)
 			{
 				(*c)->RasterInto(img);
-				(*c)->DrawInto(bDU);
+				(*c)->DrawIntoDisplayUnit();
 			}
 
 			//sprintf(fn,"mask%03d.tif",frameCnt);

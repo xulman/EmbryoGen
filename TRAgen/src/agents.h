@@ -255,7 +255,7 @@ class Cell {
 	void RasterInto(i3d::Image3d<i3d::GRAY8>& img) const;
 
 	//renders the sphere into this display unit
-	void DrawInto(DisplayUnit& ds) const;
+	void DrawIntoDisplayUnit(void) const;
 
 
 	///lists content of the bp list
