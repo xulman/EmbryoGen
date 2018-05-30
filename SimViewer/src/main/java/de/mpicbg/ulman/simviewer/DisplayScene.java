@@ -297,6 +297,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 			//negative radius is an agreed signal to remove the cell
 			if (c.sphereRadii[i] < 0.0f)
 			{
+				//System.out.println("Removing ID "+c.ID);
 				RemoveCell(c);
 				return;
 			}
