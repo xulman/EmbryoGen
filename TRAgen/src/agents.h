@@ -50,7 +50,13 @@ class Cell {
 		initial_bp.clear();
 		listOfForces.clear();
 		listOfFriends.clear();
+
+		//signal UNdrawing of this cell...:
+		//negative radius is an agreed signal to remove the cell
+		if (displayUnit) displayUnit->DrawPoint(ID,pos,-1.0f);
 	}
+
+	DisplayUnit* displayUnit = NULL;
 
 // -------- current params of the cell -------- 
 	///position of the centre of the cell, angles in radians, distances in microns (um)

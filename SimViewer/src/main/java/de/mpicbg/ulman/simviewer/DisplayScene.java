@@ -273,6 +273,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 		if (cellsShown)
 		{
 			for (Node n : c.sphereNodes)
+			if (n != null)
 				scene.removeChild(n);
 		}
 /*
@@ -293,6 +294,13 @@ public class DisplayScene extends SceneryBase implements Runnable
 		//once Cell exists, all elements of its ...Nodes[] must not be null)
 		for (int i=0; i < c.sphereRadii.length; ++i)
 		{
+			//negative radius is an agreed signal to remove the cell
+			if (c.sphereRadii[i] < 0.0f)
+			{
+				RemoveCell(c);
+				return;
+			}
+
 			if (c.sphereNodes[i] == null)
 			{
 				//create and enable a new display element (Node)
