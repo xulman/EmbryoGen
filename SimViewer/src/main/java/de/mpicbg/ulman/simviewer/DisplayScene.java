@@ -236,6 +236,55 @@ public class DisplayScene extends SceneryBase implements Runnable
 		cellsShown ^= true;
 	}
 
+	/** only removes the cells from the scene, but keeps
+	    displaying them (despite none exists afterwards) */
+	public
+	void RemoveCells()
+	{
+		//if cells are displayed, remove it first from the scene
+		if (cellsShown)
+		{
+			for (Cell c : cellsData.values())
+			for (Node n : c.sphereNodes)
+				scene.removeChild(n);
+		}
+/*
+		//also remove the vector Nodes from the scene, possibly
+		if (vectorsShown)
+		{
+			//TODO
+		}
+*/
+		cellsData.clear();
+	}
+
+	public
+	void RemoveCell(final int ID)
+	{
+		RemoveCell(cellsData.get(ID));
+	}
+
+	public
+	void RemoveCell(final Cell c)
+	{
+		if (c == null) return;
+
+		//if cells are displayed, remove it first from the scene
+		if (cellsShown)
+		{
+			for (Node n : c.sphereNodes)
+				scene.removeChild(n);
+		}
+/*
+		//also remove the vector Nodes from the scene, possibly
+		if (vectorsShown)
+		{
+			//TODO
+		}
+*/
+		cellsData.remove(c.ID);
+	}
+
 	/** this one injects shape object(s) into the cell */
 	public
 	void UpdateCellNodes(final Cell c)

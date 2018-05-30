@@ -60,6 +60,7 @@ public class CommandScene implements Runnable
 			System.out.println("a - Toggles display of the axes in the scene centre");
 			System.out.println("b - Toggles display of the scene border");
 			System.out.println("c - Toggles display of the cells");
+			System.out.println("d - Deletes all cells (even if not displayed)");
 			System.out.println("r,R - decreases/increases radius of all cells by 0.2");
 			System.out.println("x,X - moves left/right x-position of all cells by 0.2");
 			break;
@@ -72,6 +73,9 @@ public class CommandScene implements Runnable
 			break;
 		case 'c':
 			scene.ToggleDisplayCells();
+			break;
+		case 'd':
+			scene.RemoveCells();
 			break;
 
 		case 'r':
