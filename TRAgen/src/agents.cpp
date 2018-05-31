@@ -398,7 +398,7 @@ void Cell::DrawIntoDisplayUnit(void) const
 {
 	if (displayUnit)
 	{
-		displayUnit->DrawPoint(ID,pos,outerRadius,ID);
+		displayUnit->DrawPoint(ID,pos,outerRadius,(curPhase < 3? 2:3));
 		//displayUnit->DrawVector(ID,pos,acceleration);
 	}
 }
@@ -1034,8 +1034,10 @@ void Cell::adjustShape(const float timeDelta)
             break;
         }
 
+	/*
 	if (ID == 1)
 		listOfForces.push_back(*(new ForceVector3d<float>(0.f,-0.3f,0.f,forceNames::desired)));
+	*/
 
 	//theoretically, this function may already set some forces...
 }
