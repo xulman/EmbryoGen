@@ -97,7 +97,8 @@ int main(void)
 	//bDU.UnregisterUnit(sDU);
 
 	//init agents accordingly
-	initializeAgents(&bDU);
+	initializeAgents(&sDU);
+	//initializeAgents(NULL);
 
 	std:: cout << "nuclei in the system: " << params.numberOfAgents << "\n";
 
@@ -113,9 +114,9 @@ int main(void)
 	std::cin >> fn[0];
 
 	//run the simulation
-	for (frameCnt=0; frameCnt < 200; ++frameCnt)
+	for (frameCnt=0; frameCnt < 500; ++frameCnt)
 	{
-		std::cout << "---------------" << frameCnt << "---------------\n";
+		std::cout << "--------------- " << frameCnt << " (" << agents.size() << " agents) ---------------\n";
 		if (frameCnt % 5 == 0)
 		{
 			//render cells into the image
@@ -129,6 +130,9 @@ int main(void)
 
 			//sprintf(fn,"mask%03d.tif",frameCnt);
 			//img.SaveImage(fn);
+
+			//wait for key...
+			std::cin >> fn[0];
 		}
 
 		//advance the simulation into the next frame
