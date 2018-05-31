@@ -74,21 +74,21 @@ public class DisplayScene extends SceneryBase implements Runnable
 
 		//calculate back corner of the scene
 		final float[] sceneSomeCorner = new float[3];
-		sceneSomeCorner[0] = (sceneOffset[0] + 0.8f*sceneSize[0]) *dsFactor;
-		sceneSomeCorner[1] = (sceneOffset[1] + 0.8f*sceneSize[1]) *dsFactor;
-		sceneSomeCorner[2] = (sceneOffset[2] + 1.2f*sceneSize[2]) *dsFactor;
-		final float xCorner = (sceneOffset[0] + 0.2f*sceneSize[0]) *dsFactor;
-		final float yCorner = (sceneOffset[1] + 0.2f*sceneSize[1]) *dsFactor;
+		final float xCorner = (sceneOffset[0] + 0.05f*sceneSize[0]) *dsFactor;
+		final float yCorner = (sceneOffset[1] + 0.05f*sceneSize[1]) *dsFactor;
+		sceneSomeCorner[0]  = (sceneOffset[0] + 0.95f*sceneSize[0]) *dsFactor;
+		sceneSomeCorner[1]  = (sceneOffset[1] + 0.95f*sceneSize[1]) *dsFactor;
+		sceneSomeCorner[2]     = (sceneOffset[2] + 1.3f*sceneSize[2]) *dsFactor;
+		final float farZCorner = (sceneOffset[2] - 0.3f*sceneSize[2]) *dsFactor;
 
 		float radius = sceneSize[0]*sceneSize[0] +
 		               sceneSize[1]*sceneSize[1] +
 		               sceneSize[2]*sceneSize[2];
-		radius = 1.5f * (float)Math.sqrt(radius) *dsFactor;
+		radius = 1.0f * (float)Math.sqrt(radius) *dsFactor;
 
 		//create the lights, one for each upper corner of the scene
-		final PointLight[] lights = new PointLight[]
-			{ new PointLight(radius), new PointLight(radius),
-			  new PointLight(radius), new PointLight(radius) };
+		final PointLight[] lights = new PointLight[8];
+		for (int i=0; i < 8; ++i) lights[i] = new PointLight(radius);
 
 		//position specifically to the corners
 		lights[0].setPosition(new GLVector(xCorner           ,yCorner           ,sceneSomeCorner[2]));
@@ -96,10 +96,15 @@ public class DisplayScene extends SceneryBase implements Runnable
 		lights[2].setPosition(new GLVector(xCorner           ,sceneSomeCorner[1],sceneSomeCorner[2]));
 		lights[3].setPosition(new GLVector(sceneSomeCorner[0],sceneSomeCorner[1],sceneSomeCorner[2]));
 
+		lights[4].setPosition(new GLVector(xCorner           ,yCorner           ,farZCorner));
+		lights[5].setPosition(new GLVector(sceneSomeCorner[0],yCorner           ,farZCorner));
+		lights[6].setPosition(new GLVector(xCorner           ,sceneSomeCorner[1],farZCorner));
+		lights[7].setPosition(new GLVector(sceneSomeCorner[0],sceneSomeCorner[1],farZCorner));
+
 		//common settings of the lights
 		for (PointLight l : lights)
 		{
-			l.setIntensity(5000.0f);
+			l.setIntensity(1000.0f);
 			l.setEmissionColor(new GLVector(1.0f, 1.0f, 1.0f));
 			scene.addChild(l);
 		}
