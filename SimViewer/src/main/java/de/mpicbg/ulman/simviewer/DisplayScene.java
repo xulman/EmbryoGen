@@ -53,7 +53,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 
 	/** Every coordinate and size must be multiplied with this factor to transform it
 	    to the coordinates that will be given to the scenery */
-	final float dsFactor = 0.005f;
+	final float dsFactor = 0.01f;
 
 	/** fixed lookup table with colors, in the form of materials... */
 	final Material[] materials;
