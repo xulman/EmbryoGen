@@ -23,19 +23,24 @@ std::list<Cell*> agents;
 int frameCnt;
 
 
-int main(int argc,char **argv)
+int main(void)
 {
+	//CTC drosophila:
+	//x,y,z res = 2.46306,2.46306,0.492369 px/um
+	//embryo along x-axis
+	//bbox size around the embryo: 480,220,220 um
+	//bbox size around the embryo: 1180,540,110 px
+
 	//set up the environment
 	params.sceneOffset=Vector3d<float>(0.f);
-	params.sceneSize=Vector3d<float>(200.f,200.f,200.f); //az se vyladi sily mezi nima
-	//params.sceneSize=Vector3d<float>(60.f,60.f,1.f); //testing with mode=1
-	params.sceneOuterBorder=Vector3d<float>(10.f);
+	params.sceneSize=Vector3d<float>(480.f,220.f,220.f);
+	params.sceneOuterBorder=Vector3d<float>(0.f);
 	params.sceneBorderColour.r=0.5f;
 	params.sceneBorderColour.g=0.5f;
 	params.sceneBorderColour.b=0.5f;
 
 	params.inputCellsFilename="cells/cell%d.txt";
-	params.numberOfAgents=10;
+	params.numberOfAgents=0;
 
 	params.friendshipDuration=10.f;
 	params.maxCellSpeed=0.20f;
@@ -56,12 +61,23 @@ int main(int argc,char **argv)
 	params.incrTime=0.1f;
 	params.stopTime=5000.f;
 
-	params.imgSizeX=600; //pixels
-	params.imgSizeY=600;
-	params.imgSizeZ=600;
-	params.imgResX=6.0f; //pixels per micrometer
-	params.imgResY=6.0f;
-	params.imgResZ=6.0f;
+	//original res
+	//params.imgResX=2.46f; //pixels per micrometer
+	//params.imgResY=2.46f;
+	//params.imgResZ=0.49f;
+	//
+	//my res
+	params.imgResX=2.0f; //pixels per micrometer
+	params.imgResY=2.0f;
+	params.imgResZ=2.0f;
+	params.imgSizeX=(size_t)ceil(params.sceneSize.x * params.imgResX); //pixels
+	params.imgSizeY=(size_t)ceil(params.sceneSize.y * params.imgResY);
+	params.imgSizeZ=(size_t)ceil(params.sceneSize.z * params.imgResZ);
+
+	std::cout << "scene size: "
+	  << params.sceneSize.x << " x " << params.sceneSize.y << " x " << params.sceneSize.z
+	  << "  =  "
+	  << params.imgSizeX << " x " << params.imgSizeY << " x " << params.imgSizeZ << "\n";
 
 	params.imgOutlineFilename="Outline%05d.tif";
 	params.imgPhantomFilename="Phantom%05d.tif";
@@ -82,6 +98,8 @@ int main(int argc,char **argv)
 
 	//init agents accordingly
 	initializeAgents(&bDU);
+
+	std:: cout << "nuclei in the system: " << params.numberOfAgents << "\n";
 
 	//output image that will be iteratively re-rendered
 	i3d::Image3d<i3d::GRAY8> img;

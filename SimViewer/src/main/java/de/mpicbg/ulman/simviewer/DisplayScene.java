@@ -21,7 +21,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 	DisplayScene(final float[] sOffset, final float[] sSize)
 	{
 		//the last param determines whether REPL is wanted, or not
-		super("EmbryoGen - live view using scenery", 768,768, false);
+		super("EmbryoGen - live view using scenery", 1024,512, false);
 
 		if (sOffset.length != 3 || sSize.length != 3)
 			throw new RuntimeException("Offset and Size must be 3-items long: 3D world!");
@@ -53,7 +53,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 
 	/** Every coordinate and size must be multiplied with this factor to transform it
 	    to the coordinates that will be given to the scenery */
-	final float dsFactor = 0.05f;
+	final float dsFactor = 0.005f;
 
 	/** fixed lookup table with colors, in the form of materials... */
 	final Material[] materials;
@@ -108,7 +108,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 		//NB: z-position should be such that the FOV covers the whole scene
 		sceneSomeCorner[0] = (sceneOffset[0] + 0.5f*sceneSize[0]) *dsFactor;
 		sceneSomeCorner[1] = (sceneOffset[1] + 0.5f*sceneSize[1]) *dsFactor;
-		sceneSomeCorner[2] = (sceneOffset[2] + 1.6f*sceneSize[2]) *dsFactor;
+		sceneSomeCorner[2] = (sceneOffset[2] + 1.7f*sceneSize[2]) *dsFactor;
 
 		Camera cam = new DetachedHeadCamera();
 		cam.setPosition( new GLVector(sceneSomeCorner[0],sceneSomeCorner[1],sceneSomeCorner[2]) );
@@ -145,9 +145,9 @@ public class DisplayScene extends SceneryBase implements Runnable
 		if (axesData == null)
 		{
 			axesData = new Cylinder[] {
-				new Cylinder(0.02f,0.8f,4),
-				new Cylinder(0.02f,0.8f,4),
-				new Cylinder(0.02f,0.8f,4)};
+				new Cylinder(0.01f,0.3f,4),
+				new Cylinder(0.01f,0.3f,4),
+				new Cylinder(0.01f,0.3f,4)};
 
 			//set material - color
 			//NB: RGB colors ~ XYZ axes

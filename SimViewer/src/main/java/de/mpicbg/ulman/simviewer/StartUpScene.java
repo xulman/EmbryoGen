@@ -23,8 +23,8 @@ public class StartUpScene
 {
 	public static void main(String... args)
 	{
-		DisplayScene scene = new DisplayScene(new float[] {20.f,20.f,20.f},
-		                                      new float[] {60.f,60.f,60.f});
+		DisplayScene scene = new DisplayScene(new float[] {  0.f,  0.f,  0.f},
+		                                      new float[] {480.f,220.f,220.f});
 
 		final Thread GUIwindow  = new Thread(scene);
 		final Thread GUIcontrol = new Thread(new CommandScene(scene));
