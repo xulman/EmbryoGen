@@ -51,6 +51,10 @@ public class DisplayScene extends SceneryBase implements Runnable
 	/** 3D size (diagonal vector) of the scene, to position well the lights and camera */
 	final float[] sceneSize;
 
+	/** Every coordinate and size must be multiplied with this factor to transform it
+	    to the coordinates that will be given to the scenery */
+	final float dsFactor = 0.05f;
+
 	/** fixed lookup table with colors, in the form of materials... */
 	final Material[] materials;
 
@@ -70,16 +74,16 @@ public class DisplayScene extends SceneryBase implements Runnable
 
 		//calculate back corner of the scene
 		final float[] sceneSomeCorner = new float[3];
-		sceneSomeCorner[0] = sceneOffset[0] + 0.8f*sceneSize[0];
-		sceneSomeCorner[1] = sceneOffset[1] + 0.8f*sceneSize[1];
-		sceneSomeCorner[2] = sceneOffset[2] + 1.2f*sceneSize[2];
-		final float xCorner = sceneOffset[0] + 0.2f*sceneSize[0];
-		final float yCorner = sceneOffset[1] + 0.2f*sceneSize[1];
+		sceneSomeCorner[0] = (sceneOffset[0] + 0.8f*sceneSize[0]) *dsFactor;
+		sceneSomeCorner[1] = (sceneOffset[1] + 0.8f*sceneSize[1]) *dsFactor;
+		sceneSomeCorner[2] = (sceneOffset[2] + 1.2f*sceneSize[2]) *dsFactor;
+		final float xCorner = (sceneOffset[0] + 0.2f*sceneSize[0]) *dsFactor;
+		final float yCorner = (sceneOffset[1] + 0.2f*sceneSize[1]) *dsFactor;
 
 		float radius = sceneSize[0]*sceneSize[0] +
 		               sceneSize[1]*sceneSize[1] +
 		               sceneSize[2]*sceneSize[2];
-		radius = 1.5f * (float)Math.sqrt(radius);
+		radius = 1.5f * (float)Math.sqrt(radius) *dsFactor;
 
 		//create the lights, one for each upper corner of the scene
 		final PointLight[] lights = new PointLight[]
@@ -102,9 +106,9 @@ public class DisplayScene extends SceneryBase implements Runnable
 
 		//camera position, looking from the top into the scene centre
 		//NB: z-position should be such that the FOV covers the whole scene
-		sceneSomeCorner[0] = sceneOffset[0] + 0.5f*sceneSize[0];
-		sceneSomeCorner[1] = sceneOffset[1] + 0.5f*sceneSize[1];
-		sceneSomeCorner[2] = sceneOffset[2] + 1.6f*sceneSize[2];
+		sceneSomeCorner[0] = (sceneOffset[0] + 0.5f*sceneSize[0]) *dsFactor;
+		sceneSomeCorner[1] = (sceneOffset[1] + 0.5f*sceneSize[1]) *dsFactor;
+		sceneSomeCorner[2] = (sceneOffset[2] + 1.6f*sceneSize[2]) *dsFactor;
 
 		Camera cam = new DetachedHeadCamera();
 		cam.setPosition( new GLVector(sceneSomeCorner[0],sceneSomeCorner[1],sceneSomeCorner[2]) );
@@ -141,9 +145,9 @@ public class DisplayScene extends SceneryBase implements Runnable
 		if (axesData == null)
 		{
 			axesData = new Cylinder[] {
-				new Cylinder(0.1f,2.0f,4),
-				new Cylinder(0.1f,2.0f,4),
-				new Cylinder(0.1f,2.0f,4)};
+				new Cylinder(0.02f,0.8f,4),
+				new Cylinder(0.02f,0.8f,4),
+				new Cylinder(0.02f,0.8f,4)};
 
 			//set material - color
 			//NB: RGB colors ~ XYZ axes
@@ -157,9 +161,9 @@ public class DisplayScene extends SceneryBase implements Runnable
 
 			//place all axes into the scene centre
 			final GLVector centre = new GLVector(
-				sceneOffset[0] + 0.5f*sceneSize[0],
-				sceneOffset[1] + 0.5f*sceneSize[1],
-				sceneOffset[2] + 0.5f*sceneSize[2]);
+				(sceneOffset[0] + 0.5f*sceneSize[0]) *dsFactor,
+				(sceneOffset[1] + 0.5f*sceneSize[1]) *dsFactor,
+				(sceneOffset[2] + 0.5f*sceneSize[2]) *dsFactor);
 			axesData[0].setPosition(centre);
 			axesData[1].setPosition(centre);
 			axesData[2].setPosition(centre);
@@ -312,10 +316,10 @@ public class DisplayScene extends SceneryBase implements Runnable
 			}
 
 			//update...
-			c.sphereNodes[i].setScale(new GLVector(c.sphereRadii[i],3));
-			c.sphereNodes[i].setPosition(new GLVector(c.sphereCentres[3*i+0],
-			                                          c.sphereCentres[3*i+1],
-			                                          c.sphereCentres[3*i+2]));
+			c.sphereNodes[i].setScale(new GLVector(c.sphereRadii[i] *dsFactor,3));
+			c.sphereNodes[i].setPosition(new GLVector(c.sphereCentres[3*i+0] *dsFactor,
+			                                          c.sphereCentres[3*i+1] *dsFactor,
+			                                          c.sphereCentres[3*i+2] *dsFactor));
 			c.sphereNodes[i].setMaterial(materials[c.sphereColors[i] % materials.length]);
 		}
 

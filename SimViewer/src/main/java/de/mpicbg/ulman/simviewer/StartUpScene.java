@@ -1,6 +1,5 @@
 package de.mpicbg.ulman.simviewer;
 
-import de.mpicbg.ulman.simviewer.agents.Cell;
 import de.mpicbg.ulman.simviewer.DisplayScene;
 import de.mpicbg.ulman.simviewer.CommandScene;
 import de.mpicbg.ulman.simviewer.NetworkScene;
