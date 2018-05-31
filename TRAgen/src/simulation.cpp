@@ -32,28 +32,46 @@ extern std::list<Cell*> agents;
 
 void initializeAgents(DisplayUnit* const ds)
 {
-	//number of cells defines required perimeter -> radius can be infered
-	const float radius = (float)params.numberOfAgents * 10.f /6.28f;
+	//stepping in all directions -> influences the final number of nuclei
+	const float dx = 14.0f;
 
-	for (int i=0; i < params.numberOfAgents; ++i)
+	//longer axis x
+	//symmetric/short axes y,z
+
+	const float Xside  = (0.9f*params.sceneSize.x)/2.0f;
+	const float YZside = (0.9f*params.sceneSize.y)/2.0f;
+
+	for (float z=-Xside; z <= +Xside; z += dx)
 	{
-		const float ang = float(i)/float(params.numberOfAgents);
+		//radius at this z position
+		const float radius = YZside * sin(acos(fabsf(z)/Xside));
 
-		Cell* ag=new Cell();
-		ag->pos.x = radius * cos(ang*6.28);
-		ag->pos.y = radius * sin(ang*6.28);
-		ag->pos.z = 0.0f;
-		ag->pos.x += (params.imgSizeX/2) / params.imgResX;
-		ag->pos.y += (params.imgSizeY/2) / params.imgResY;
-		ag->pos.z += (params.imgSizeZ/2) / params.imgResZ;
-		ag->displayUnit = ds;
-		ag->DrawIntoDisplayUnit();
-		agents.push_back(ag);
+		const int howManyToPlace = (int)ceil(6.28f*radius / dx);
+		for (int i=0; i < howManyToPlace; ++i)
+		{
+			const float ang = float(i)/float(howManyToPlace);
 
-		std::cout << "adding at [" << agents.back()->pos.x << ","
-		                           << agents.back()->pos.y << ","
-		                           << agents.back()->pos.z << "]\n";
+			Cell* ag=new Cell();
+			//the wished position relative to [0,0,0] centre
+			ag->pos.x = z;
+			ag->pos.y = radius * cosf(ang*6.28f);
+			ag->pos.z = radius * sinf(ang*6.28f);
+
+			//position is shifted to the scene centre
+			ag->pos.x += params.sceneSize.x/2.0f;
+			ag->pos.y += params.sceneSize.y/2.0f;
+			ag->pos.z += params.sceneSize.z/2.0f;
+
+			//drawing info...
+			ag->displayUnit = ds;
+			ag->DrawIntoDisplayUnit();
+
+			agents.push_back(ag);
+
+			//std::cout << "adding at " << agents.back()->pos << "\n";
+		}
 	}
+	params.numberOfAgents = (int)agents.size();
 
 	//agents.front()->isSelected = true;
 
