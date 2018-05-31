@@ -145,6 +145,32 @@ public class DisplayScene extends SceneryBase implements Runnable
 
 
 	private PointLight[][] lights;
+	/** which lights are active: 0 - front only, 1 - rear only, 2 - all of them */
+	private int lightsChoosen = 0;
+
+	public
+	void ToggleLights()
+	{
+		switch (lightsChoosen)
+		{
+		case 0:
+			lightsChoosen = 1;
+			for (PointLight l : lights[0]) scene.removeChild(l);
+			for (PointLight l : lights[1]) scene.addChild(l);
+			break;
+		case 1:
+			lightsChoosen = 2;
+			for (PointLight l : lights[0]) scene.addChild(l);
+			break;
+		case 2:
+			lightsChoosen = 0;
+			for (PointLight l : lights[1]) scene.removeChild(l);
+			break;
+		}
+	}
+	//----------------------------------------------------------------------------
+
+
 	private Cylinder[] axesData = null;
 	private boolean    axesShown = false;
 

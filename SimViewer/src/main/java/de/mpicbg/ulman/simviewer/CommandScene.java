@@ -57,11 +57,15 @@ public class CommandScene implements Runnable
 			System.out.println("List of accepted commands:");
 			System.out.println("h - Shows this help message");
 			System.out.println("q - Quits the program");
+
 			System.out.println("a - Toggles display of the axes in the scene centre");
 			System.out.println("b - Toggles display of the scene border");
+			System.out.println("l - Toggles between front/back/both lights");
+
 			System.out.println("c - Toggles display of the cells");
 			System.out.println("f - Adds some cells to have something to display");
 			System.out.println("d - Deletes all cells (even if not displayed)");
+
 			System.out.println("r,R - decreases/increases radius of all cells by 0.2");
 			System.out.println("x,X - moves left/right x-position of all cells by 0.2");
 			break;
@@ -72,6 +76,10 @@ public class CommandScene implements Runnable
 		case 'b':
 			scene.ToggleDisplaySceneBorder();
 			break;
+		case 'l':
+			scene.ToggleLights();
+			break;
+
 		case 'c':
 			scene.ToggleDisplayCells();
 			break;
