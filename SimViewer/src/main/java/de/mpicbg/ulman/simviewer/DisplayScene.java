@@ -72,52 +72,56 @@ public class DisplayScene extends SceneryBase implements Runnable
 		setRenderer( Renderer.createRenderer(getHub(), getApplicationName(), scene, getWindowWidth(), getWindowHeight()));
 		getHub().add(SceneryElement.Renderer, getRenderer());
 
-		//calculate back corner of the scene
-		final float[] sceneSomeCorner = new float[3];
-		final float xCorner = (sceneOffset[0] + 0.05f*sceneSize[0]) *dsFactor;
-		final float yCorner = (sceneOffset[1] + 0.05f*sceneSize[1]) *dsFactor;
-		sceneSomeCorner[0]  = (sceneOffset[0] + 0.95f*sceneSize[0]) *dsFactor;
-		sceneSomeCorner[1]  = (sceneOffset[1] + 0.95f*sceneSize[1]) *dsFactor;
-		sceneSomeCorner[2]     = (sceneOffset[2] + 1.3f*sceneSize[2]) *dsFactor;
-		final float farZCorner = (sceneOffset[2] - 0.3f*sceneSize[2]) *dsFactor;
+		//elements of coordinates of positions of lights
+		final float xLeft   = (sceneOffset[0] + 0.05f*sceneSize[0]) *dsFactor;
+		final float xCentre = (sceneOffset[0] + 0.50f*sceneSize[0]) *dsFactor;
+		final float xRight  = (sceneOffset[0] + 0.95f*sceneSize[0]) *dsFactor;
 
-		float radius = sceneSize[0]*sceneSize[0] +
-		               sceneSize[1]*sceneSize[1] +
-		               sceneSize[2]*sceneSize[2];
-		radius = 1.0f * (float)Math.sqrt(radius) *dsFactor;
+		final float yTop    = (sceneOffset[1] + 0.05f*sceneSize[1]) *dsFactor;
+		final float yCentre = (sceneOffset[1] + 0.50f*sceneSize[1]) *dsFactor;
+		final float yBottom = (sceneOffset[1] + 0.95f*sceneSize[1]) *dsFactor;
+
+		final float zNear = (sceneOffset[2] + 1.3f*sceneSize[2]) *dsFactor;
+		final float zFar  = (sceneOffset[2] - 0.3f*sceneSize[2]) *dsFactor;
+
+		//tuned such that, given current light intensity and fading, the rear cells are dark yet visible
+		float radius = 1.8f*sceneSize[1] *dsFactor;
 
 		//create the lights, one for each upper corner of the scene
-		final PointLight[] lights = new PointLight[8];
-		for (int i=0; i < 8; ++i) lights[i] = new PointLight(radius);
+		lights = new PointLight[2][6];
+		(lights[0][0] = new PointLight(radius)).setPosition(new GLVector(xLeft  ,yTop   ,zNear));
+		(lights[0][1] = new PointLight(radius)).setPosition(new GLVector(xLeft  ,yBottom,zNear));
+		(lights[0][2] = new PointLight(radius)).setPosition(new GLVector(xCentre,yTop   ,zNear));
+		(lights[0][3] = new PointLight(radius)).setPosition(new GLVector(xCentre,yBottom,zNear));
+		(lights[0][4] = new PointLight(radius)).setPosition(new GLVector(xRight ,yTop   ,zNear));
+		(lights[0][5] = new PointLight(radius)).setPosition(new GLVector(xRight ,yBottom,zNear));
 
-		//position specifically to the corners
-		lights[0].setPosition(new GLVector(xCorner           ,yCorner           ,sceneSomeCorner[2]));
-		lights[1].setPosition(new GLVector(sceneSomeCorner[0],yCorner           ,sceneSomeCorner[2]));
-		lights[2].setPosition(new GLVector(xCorner           ,sceneSomeCorner[1],sceneSomeCorner[2]));
-		lights[3].setPosition(new GLVector(sceneSomeCorner[0],sceneSomeCorner[1],sceneSomeCorner[2]));
-
-		lights[4].setPosition(new GLVector(xCorner           ,yCorner           ,farZCorner));
-		lights[5].setPosition(new GLVector(sceneSomeCorner[0],yCorner           ,farZCorner));
-		lights[6].setPosition(new GLVector(xCorner           ,sceneSomeCorner[1],farZCorner));
-		lights[7].setPosition(new GLVector(sceneSomeCorner[0],sceneSomeCorner[1],farZCorner));
+		(lights[1][0] = new PointLight(radius)).setPosition(new GLVector(xLeft  ,yTop   ,zFar));
+		(lights[1][1] = new PointLight(radius)).setPosition(new GLVector(xLeft  ,yBottom,zFar));
+		(lights[1][2] = new PointLight(radius)).setPosition(new GLVector(xCentre,yTop   ,zFar));
+		(lights[1][3] = new PointLight(radius)).setPosition(new GLVector(xCentre,yBottom,zFar));
+		(lights[1][4] = new PointLight(radius)).setPosition(new GLVector(xRight ,yTop   ,zFar));
+		(lights[1][5] = new PointLight(radius)).setPosition(new GLVector(xRight ,yBottom,zFar));
 
 		//common settings of the lights
-		for (PointLight l : lights)
+		for (PointLight l : lights[0])
 		{
-			l.setIntensity(1000.0f);
+			l.setIntensity(10.0f);
 			l.setEmissionColor(new GLVector(1.0f, 1.0f, 1.0f));
 			scene.addChild(l);
+		}
+		for (PointLight l : lights[1])
+		{
+			l.setIntensity(10.0f);
+			l.setEmissionColor(new GLVector(1.0f, 1.0f, 1.0f));
 		}
 
 		//camera position, looking from the top into the scene centre
 		//NB: z-position should be such that the FOV covers the whole scene
-		sceneSomeCorner[0] = (sceneOffset[0] + 0.5f*sceneSize[0]) *dsFactor;
-		sceneSomeCorner[1] = (sceneOffset[1] + 0.5f*sceneSize[1]) *dsFactor;
-		sceneSomeCorner[2] = (sceneOffset[2] + 1.7f*sceneSize[2]) *dsFactor;
-
+		final float zCam  = (sceneOffset[2] + 1.7f*sceneSize[2]) *dsFactor;
 		Camera cam = new DetachedHeadCamera();
-		cam.setPosition( new GLVector(sceneSomeCorner[0],sceneSomeCorner[1],sceneSomeCorner[2]) );
-		cam.perspectiveCamera(50.0f, getRenderer().getWindow().getWidth(), getRenderer().getWindow().getHeight(), 0.1f, 1000.0f);
+		cam.setPosition( new GLVector(xCentre,yCentre,zCam) );
+		cam.perspectiveCamera(50.0f, getRenderer().getWindow().getWidth(), getRenderer().getWindow().getHeight(), 0.05f, 1000.0f);
 		cam.setActive( true );
 		scene.addChild(cam);
 	}
@@ -140,6 +144,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 	//----------------------------------------------------------------------------
 
 
+	private PointLight[][] lights;
 	private Cylinder[] axesData = null;
 	private boolean    axesShown = false;
 
