@@ -257,6 +257,10 @@ class Cell {
 	//renders the sphere into this display unit
 	void DrawIntoDisplayUnit(void) const;
 
+	//only forwards the flush request to the underlying/registered display unit
+	void FlushDisplayUnit(void) const
+	{ if (displayUnit) displayUnit->Flush(); }
+
 
 	///lists content of the bp list
 	void ListBPs(void) const;

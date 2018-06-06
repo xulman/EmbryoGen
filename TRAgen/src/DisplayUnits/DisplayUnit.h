@@ -53,5 +53,14 @@ public:
 	                  const Vector3d<float>& posB,
 	                  const Vector3d<float>& posC,
 	                  const int color = 0) =0;
+
+	/** Forces the unit to display/send all what it has possibly buffered
+	    immediately. Some units may, typically for performance reasons, buffer
+	    all drawing request (see the functions above) and this method is here
+	    to notify them to submit/process the buffer (and empty it consequently).
+	    Many units, however, process the drawing requests immediately and this
+	    method is kept empty for them. */
+	virtual
+	void Flush(void) {};
 };
 #endif
