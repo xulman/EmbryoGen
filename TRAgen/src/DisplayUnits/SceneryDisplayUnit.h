@@ -2,7 +2,6 @@
 #define SCENERYDISPLAYUNIT_H
 
 #include "DisplayUnit.h"
-#include "../params.h"
 #include <string>
 #include <zmq.hpp>
 

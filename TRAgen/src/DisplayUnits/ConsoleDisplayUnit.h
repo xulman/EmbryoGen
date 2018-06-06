@@ -2,7 +2,6 @@
 #define CONSOLEDISPLAYUNIT_H
 
 #include "DisplayUnit.h"
-#include "../params.h"
 
 /**
  * This class implements drawing by reporting what is being drawed
