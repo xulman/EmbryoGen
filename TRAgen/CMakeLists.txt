@@ -94,7 +94,8 @@ set(SOURCES
 		  src/agents.cpp
 		  src/rnd_generators.cpp
 		  src/main.cpp
-		  src/DisplayUnits/SceneryDisplayUnit.cpp)
+		  src/DisplayUnits/SceneryDisplayUnit.cpp
+		  src/DisplayUnits/SceneryBufferedDisplayUnit.cpp)
 
 #---------
 # TARGETS

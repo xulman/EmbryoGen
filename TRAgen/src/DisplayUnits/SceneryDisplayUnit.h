@@ -56,7 +56,7 @@ public:
 	                  const Vector3d<float>& posC,
 	                  const int color = 0);
 
-private:
+protected:
 	/** URL of the host (a Scenery renderer) to which we are connected */
 	std::string hostUrl;
 
