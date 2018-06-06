@@ -11,7 +11,7 @@
 
 #include "DisplayUnits/BroadcasterDisplayUnit.h"
 #include "DisplayUnits/ConsoleDisplayUnit.h"
-#include "DisplayUnits/SceneryDisplayUnit.h"
+#include "DisplayUnits/SceneryBufferedDisplayUnit.h"
 
 //create single object (an instance of the global parameters class)
 ParamsClass params;
@@ -89,7 +89,7 @@ int main(void)
 
 	//init display units
 	ConsoleDisplayUnit cDU;
-	SceneryDisplayUnit sDU("localhost:8765");
+	SceneryBufferedDisplayUnit sDU("localhost:8765");
 
 	BroadcasterDisplayUnit bDU;
 	bDU.RegisterUnit(cDU);
@@ -100,7 +100,7 @@ int main(void)
 	initializeAgents(&sDU);
 	//initializeAgents(NULL);
 
-	std:: cout << "nuclei in the system: " << params.numberOfAgents << "\n";
+	std::cout << "nuclei in the system: " << params.numberOfAgents << "\n";
 
 	//output image that will be iteratively re-rendered
 	i3d::Image3d<i3d::GRAY8> img;
