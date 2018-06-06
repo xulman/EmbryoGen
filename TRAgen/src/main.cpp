@@ -127,6 +127,8 @@ int main(void)
 				(*c)->RasterInto(img);
 				(*c)->DrawIntoDisplayUnit();
 			}
+			//ask any cell (e.g. the first one) to forward the flush request to the used display unit
+			agents.front()->FlushDisplayUnit();
 
 			//sprintf(fn,"mask%03d.tif",frameCnt);
 			//img.SaveImage(fn);
