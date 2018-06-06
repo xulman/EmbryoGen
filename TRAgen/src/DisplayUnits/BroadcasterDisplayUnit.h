@@ -2,7 +2,6 @@
 #define BROADCASTERDISPLAYUNIT_H
 
 #include "DisplayUnit.h"
-#include "../params.h"
 #include <forward_list>
 
 /**
