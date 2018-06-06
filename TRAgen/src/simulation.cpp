@@ -73,6 +73,9 @@ void initializeAgents(DisplayUnit* const ds)
 	}
 	params.numberOfAgents = (int)agents.size();
 
+	//ask any cell (e.g. the first one) to forward the flush request to the used display unit
+	agents.front()->FlushDisplayUnit();
+
 	//agents.front()->isSelected = true;
 
 	//go over all cells and create their tracks
