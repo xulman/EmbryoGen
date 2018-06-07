@@ -52,16 +52,16 @@ public:
 
 	void InitBuffers(void)
 	{
-		BufferedPointMsgs.clear();
+		BufferedPointMsgs.seekp(std::ios_base::beg);
 		BufferedPointMsgs_count = 0;
 
-		BufferedLineMsgs.clear();
+		BufferedLineMsgs.seekp(std::ios_base::beg);
 		BufferedLineMsgs_count = 0;
 
-		BufferedVectorMsgs.clear();
+		BufferedVectorMsgs.seekp(std::ios_base::beg);
 		BufferedVectorMsgs_count = 0;
 
-		BufferedTriangleMsgs.clear();
+		BufferedTriangleMsgs.seekp(std::ios_base::beg);
 		BufferedTriangleMsgs_count = 0;
 	}
 
