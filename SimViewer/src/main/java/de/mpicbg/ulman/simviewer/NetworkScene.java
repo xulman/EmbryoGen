@@ -143,7 +143,7 @@ public class NetworkScene implements Runnable
 				if (cell == null)
 				{
 					//hmm, this cell ID is new to me...
-					cell = new Cell(N,0); //TODO, how much??
+					cell = new Cell(4,10); //TODO, how much?? now adjusted for TRAgen
 					cell.ID = ID;
 					scene.cellsData.put(cell.ID,cell);
 					//System.out.println("Starting ID "+ID);
