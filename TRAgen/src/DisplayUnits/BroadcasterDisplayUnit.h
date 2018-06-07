@@ -51,6 +51,12 @@ public:
 			(*it)->DrawTriangle(ID,posA,posB,posC,color);
 	}
 
+	void Flush(void)
+	{
+		for (auto it = displayUnits.begin(); it != displayUnits.end(); ++it)
+			(*it)->Flush();
+	}
+
 
 	///variants with reference params
 	void RegisterUnit(DisplayUnit& ds)
