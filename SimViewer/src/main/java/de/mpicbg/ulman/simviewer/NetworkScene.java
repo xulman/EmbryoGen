@@ -153,7 +153,7 @@ public class NetworkScene implements Runnable
 			//no, it is just another point within the block
 			else ++pointCount;
 
-			//now read save coordinates
+			//now read and save coordinates
 			int d=0;
 			for (; d < D && d < 3; ++d)
 			{
@@ -162,8 +162,8 @@ public class NetworkScene implements Runnable
 			//read possibly remaining coordinates (for which we have no room to store them)
 			for (; d < D; ++d) s.nextFloat();
 
-			cell.sphereRadii[0]  = s.nextFloat();
-			cell.sphereColors[0] = s.nextInt();
+			cell.sphereRadii[pointCount]  = s.nextFloat();
+			cell.sphereColors[pointCount] = s.nextInt();
 		}
 
 		//update previously finished block (if there was some)
