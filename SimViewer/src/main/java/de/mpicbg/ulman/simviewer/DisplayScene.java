@@ -3,6 +3,7 @@ package de.mpicbg.ulman.simviewer;
 import cleargl.GLVector;
 import graphics.scenery.*;
 import graphics.scenery.backends.Renderer;
+import graphics.scenery.Material.CullingMode;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -41,6 +42,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 		(materials[6] = new Material()).setDiffuse( new GLVector(1.0f, 1.0f, 0.0f) );
 		for (Material m : materials)
 		{
+			m.setCullingMode(CullingMode.None);
 			m.setAmbient(  new GLVector(1.0f, 1.0f, 1.0f) );
 			m.setSpecular( new GLVector(1.0f, 1.0f, 1.0f) );
 		}
@@ -225,27 +227,60 @@ public class DisplayScene extends SceneryBase implements Runnable
 		//first run, init the data
 		if (borderData == null)
 		{
-			borderData = new Line[] {
-				new Line(4), new Line(4),
-				new Line(4), new Line(4)};
+			borderData = new Line[] { new Line(6), new Line(6),
+			                          new Line(6), new Line(6)};
 
-			final GLVector xEdge = new GLVector(sceneSize[0],0.0f,0.0f);
-			final GLVector yEdge = new GLVector(0.0f,sceneSize[1],0.0f);
-			final GLVector zEdge = new GLVector(0.0f,0.0f,sceneSize[2]);
+			final GLVector sxsysz = new GLVector(sceneOffset[0]             , sceneOffset[1]             , sceneOffset[2]             );
+			final GLVector lxsysz = new GLVector(sceneOffset[0]+sceneSize[0], sceneOffset[1]             , sceneOffset[2]             );
+			final GLVector sxlysz = new GLVector(sceneOffset[0]             , sceneOffset[1]+sceneSize[1], sceneOffset[2]             );
+			final GLVector lxlysz = new GLVector(sceneOffset[0]+sceneSize[0], sceneOffset[1]+sceneSize[1], sceneOffset[2]             );
+			final GLVector sxsylz = new GLVector(sceneOffset[0]             , sceneOffset[1]             , sceneOffset[2]+sceneSize[2]);
+			final GLVector lxsylz = new GLVector(sceneOffset[0]+sceneSize[0], sceneOffset[1]             , sceneOffset[2]+sceneSize[2]);
+			final GLVector sxlylz = new GLVector(sceneOffset[0]             , sceneOffset[1]+sceneSize[1], sceneOffset[2]+sceneSize[2]);
+			final GLVector lxlylz = new GLVector(sceneOffset[0]+sceneSize[0], sceneOffset[1]+sceneSize[1], sceneOffset[2]+sceneSize[2]);
+			final GLVector dsVector = new GLVector(dsFactor,3);
+			sxsysz.timesAssign(dsVector);
+			lxsysz.timesAssign(dsVector);
+			sxlysz.timesAssign(dsVector);
+			lxlysz.timesAssign(dsVector);
+			sxsylz.timesAssign(dsVector);
+			lxsylz.timesAssign(dsVector);
+			sxlylz.timesAssign(dsVector);
+			lxlylz.timesAssign(dsVector);
 
-			GLVector corner = new GLVector(-1.0f,-1.0f,0.0f);
-			borderData[0].addPoint(corner);
-			borderData[0].addPoint(new GLVector(-1.0f,+1.0f,0.0f));
-			borderData[0].addPoint(new GLVector(+1.0f,+1.0f,0.0f));
-			borderData[0].addPoint(new GLVector(+1.0f,-1.0f,0.0f));
-			borderData[0].setPosition(corner);
+			//C-shape around the front face (one edge missing)
+			borderData[0].addPoint(lxlysz);
+			borderData[0].addPoint(sxlysz);
+			borderData[0].addPoint(sxsysz);
+			borderData[0].addPoint(lxsysz);
+			borderData[0].setMaterial(materials[1]);
 
-			//TODO: add correct edges of the scene box
+			//the same around the right face
+			borderData[1].addPoint(lxlylz);
+			borderData[1].addPoint(lxlysz);
+			borderData[1].addPoint(lxsysz);
+			borderData[1].addPoint(lxsylz);
+			borderData[1].setMaterial(materials[3]);
+
+			//the same around the rear face
+			borderData[2].addPoint(sxlylz);
+			borderData[2].addPoint(lxlylz);
+			borderData[2].addPoint(lxsylz);
+			borderData[2].addPoint(sxsylz);
+			borderData[2].setMaterial(materials[1]);
+
+			//the same around the left face
+			borderData[3].addPoint(sxlysz);
+			borderData[3].addPoint(sxlylz);
+			borderData[3].addPoint(sxsylz);
+			borderData[3].addPoint(sxsysz);
+			borderData[3].setMaterial(materials[3]);
 
 			for (Line l : borderData)
 			{
-				l.setEdgeWidth(2.0f);
-				l.setMaterial(materials[0]);
+				l.addPoint(sxsysz);
+				l.addPoint(sxsysz);
+				l.setEdgeWidth(0.02f);
 			}
 		}
 
