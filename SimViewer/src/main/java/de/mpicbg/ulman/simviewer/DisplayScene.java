@@ -55,13 +55,15 @@ public class DisplayScene extends SceneryBase implements Runnable
 
 	/** Every coordinate and size must be multiplied with this factor to transform it
 	    to the coordinates that will be given to the scenery */
-	final float dsFactor = 0.01f;
+	final float dsFactor = 1.0f;
 
 	/** fixed lookup table with colors, in the form of materials... */
 	final Material[] materials;
 
-	/** short cut to Scene, instead of calling getScene() */
-	Scene scene;
+	/** short cut to the root Node underwhich all displayed objects should be hooked up */
+	Node scene;
+
+	/** reference for the camera to be able to enable/disable head lights */
 	Camera cam;
 	//----------------------------------------------------------------------------
 
@@ -70,29 +72,40 @@ public class DisplayScene extends SceneryBase implements Runnable
 	public
 	void init()
 	{
-		scene = getScene();
-
-		setRenderer( Renderer.createRenderer(getHub(), getApplicationName(), scene, getWindowWidth(), getWindowHeight()));
+		setRenderer( Renderer.createRenderer(getHub(), getApplicationName(), getScene(), getWindowWidth(), getWindowHeight()));
 		getHub().add(SceneryElement.Renderer, getRenderer());
+
+		//the overall down scaling of the displayed objects such that moving around
+		//the scene with Scenery is vivid (move step size is fixed in Scenery), at
+		//the same time we want the objects and distances to be defined with our
+		//non-scaled coordinates -- so we hook everything underneath the fake object
+		//that is downscaled (and consequently all is downscaled too) but defined with
+		//at original scale (with original coordinates and distances)
+		final float DsFactor = 0.01f;
+
+		//introduce an invisible "fake" object
+		scene = new Box(new GLVector(0.0f,3));
+		scene.setScale(new GLVector(DsFactor,3));
+		getScene().addChild(scene);
 
 		//camera position, looking from the front into the scene centre
 		//NB: z-position should be such that the FOV covers the whole scene
-		float xCam = (sceneOffset[0] + 0.5f*sceneSize[0]) *dsFactor;
-		float yCam = (sceneOffset[1] + 0.5f*sceneSize[1]) *dsFactor;
-		float zCam = (sceneOffset[2] + 1.7f*sceneSize[2]) *dsFactor;
+		float xCam = (sceneOffset[0] + 0.5f*sceneSize[0]) *DsFactor;
+		float yCam = (sceneOffset[1] + 0.5f*sceneSize[1]) *DsFactor;
+		float zCam = (sceneOffset[2] + 1.7f*sceneSize[2]) *DsFactor;
 		cam = new DetachedHeadCamera();
 		cam.setPosition( new GLVector(xCam,yCam,zCam) );
 		cam.perspectiveCamera(50.0f, getRenderer().getWindow().getWidth(), getRenderer().getWindow().getHeight(), 0.05f, 1000.0f);
 		cam.setActive( true );
-		scene.addChild(cam);
+		getScene().addChild(cam);
 
 		//a cam-attached light mini-ramp
 		//------------------------------
-		xCam =  0.3f*sceneSize[0] *dsFactor;
-		yCam =  0.2f*sceneSize[1] *dsFactor;
-		zCam = -0.1f*sceneSize[2] *dsFactor;
+		xCam =  0.3f*sceneSize[0] *DsFactor;
+		yCam =  0.2f*sceneSize[1] *DsFactor;
+		zCam = -0.1f*sceneSize[2] *DsFactor;
 
-		float radius = 2.5f*sceneSize[1] *dsFactor;
+		float radius = 2.5f*sceneSize[1] *DsFactor;
 
 		headLights = new PointLight[6];
 		(headLights[0] = new PointLight(radius)).setPosition(new GLVector(-xCam,-yCam,zCam));
@@ -105,18 +118,18 @@ public class DisplayScene extends SceneryBase implements Runnable
 		//two light ramps at fixed positions
 		//----------------------------------
 		//elements of coordinates of positions of lights
-		final float xLeft   = (sceneOffset[0] + 0.05f*sceneSize[0]) *dsFactor;
-		final float xCentre = (sceneOffset[0] + 0.50f*sceneSize[0]) *dsFactor;
-		final float xRight  = (sceneOffset[0] + 0.95f*sceneSize[0]) *dsFactor;
+		final float xLeft   = (sceneOffset[0] + 0.05f*sceneSize[0]) *DsFactor;
+		final float xCentre = (sceneOffset[0] + 0.50f*sceneSize[0]) *DsFactor;
+		final float xRight  = (sceneOffset[0] + 0.95f*sceneSize[0]) *DsFactor;
 
-		final float yTop    = (sceneOffset[1] + 0.05f*sceneSize[1]) *dsFactor;
-		final float yBottom = (sceneOffset[1] + 0.95f*sceneSize[1]) *dsFactor;
+		final float yTop    = (sceneOffset[1] + 0.05f*sceneSize[1]) *DsFactor;
+		final float yBottom = (sceneOffset[1] + 0.95f*sceneSize[1]) *DsFactor;
 
-		final float zNear = (sceneOffset[2] + 1.3f*sceneSize[2]) *dsFactor;
-		final float zFar  = (sceneOffset[2] - 0.3f*sceneSize[2]) *dsFactor;
+		final float zNear = (sceneOffset[2] + 1.3f*sceneSize[2]) *DsFactor;
+		final float zFar  = (sceneOffset[2] - 0.3f*sceneSize[2]) *DsFactor;
 
 		//tuned such that, given current light intensity and fading, the rear cells are dark yet visible
-		radius = 1.8f*sceneSize[1] *dsFactor;
+		radius = 1.8f*sceneSize[1] *DsFactor;
 
 		//create the lights, one for each upper corner of the scene
 		fixedLights = new PointLight[2][6];
@@ -188,24 +201,26 @@ public class DisplayScene extends SceneryBase implements Runnable
 	public
 	fixedLightsState ToggleFixedLights()
 	{
+		final Node camRoot = cam.getParent();
+
 		switch (fixedLightsChoosen)
 		{
 		case FRONT:
-			for (PointLight l : fixedLights[0]) scene.removeChild(l);
-			for (PointLight l : fixedLights[1]) scene.addChild(l);
+			for (PointLight l : fixedLights[0]) camRoot.removeChild(l);
+			for (PointLight l : fixedLights[1]) camRoot.addChild(l);
 			fixedLightsChoosen = fixedLightsState.REAR;
 			break;
 		case REAR:
-			for (PointLight l : fixedLights[0]) scene.addChild(l);
+			for (PointLight l : fixedLights[0]) camRoot.addChild(l);
 			fixedLightsChoosen = fixedLightsState.BOTH;
 			break;
 		case BOTH:
-			for (PointLight l : fixedLights[0]) scene.removeChild(l);
-			for (PointLight l : fixedLights[1]) scene.removeChild(l);
+			for (PointLight l : fixedLights[0]) camRoot.removeChild(l);
+			for (PointLight l : fixedLights[1]) camRoot.removeChild(l);
 			fixedLightsChoosen = fixedLightsState.NONE;
 			break;
 		case NONE:
-			for (PointLight l : fixedLights[0]) scene.addChild(l);
+			for (PointLight l : fixedLights[0]) camRoot.addChild(l);
 			fixedLightsChoosen = fixedLightsState.FRONT;
 			break;
 		}
