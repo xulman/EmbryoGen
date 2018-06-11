@@ -53,10 +53,6 @@ public class DisplayScene extends SceneryBase implements Runnable
 	/** 3D size (diagonal vector) of the scene, to position well the lights and camera */
 	final float[] sceneSize;
 
-	/** Every coordinate and size must be multiplied with this factor to transform it
-	    to the coordinates that will be given to the scenery */
-	final float dsFactor = 1.0f;
-
 	/** fixed lookup table with colors, in the form of materials... */
 	final Material[] materials;
 
@@ -254,9 +250,9 @@ public class DisplayScene extends SceneryBase implements Runnable
 		if (axesData == null)
 		{
 			axesData = new Cylinder[] {
-				new Cylinder(dsFactor,30.f*dsFactor,4),
-				new Cylinder(dsFactor,30.f*dsFactor,4),
-				new Cylinder(dsFactor,30.f*dsFactor,4)};
+				new Cylinder(1.0f,30.f,4),
+				new Cylinder(1.0f,30.f,4),
+				new Cylinder(1.0f,30.f,4)};
 
 			//set material - color
 			//NB: RGB colors ~ XYZ axes
@@ -270,9 +266,9 @@ public class DisplayScene extends SceneryBase implements Runnable
 
 			//place all axes into the scene centre
 			final GLVector centre = new GLVector(
-				(sceneOffset[0] + 0.5f*sceneSize[0]) *dsFactor,
-				(sceneOffset[1] + 0.5f*sceneSize[1]) *dsFactor,
-				(sceneOffset[2] + 0.5f*sceneSize[2]) *dsFactor);
+				(sceneOffset[0] + 0.5f*sceneSize[0]),
+				(sceneOffset[1] + 0.5f*sceneSize[1]),
+				(sceneOffset[2] + 0.5f*sceneSize[2]));
 			axesData[0].setPosition(centre);
 			axesData[1].setPosition(centre);
 			axesData[2].setPosition(centre);
@@ -309,15 +305,6 @@ public class DisplayScene extends SceneryBase implements Runnable
 			final GLVector lxsylz = new GLVector(sceneOffset[0]+sceneSize[0], sceneOffset[1]             , sceneOffset[2]+sceneSize[2]);
 			final GLVector sxlylz = new GLVector(sceneOffset[0]             , sceneOffset[1]+sceneSize[1], sceneOffset[2]+sceneSize[2]);
 			final GLVector lxlylz = new GLVector(sceneOffset[0]+sceneSize[0], sceneOffset[1]+sceneSize[1], sceneOffset[2]+sceneSize[2]);
-			final GLVector dsVector = new GLVector(dsFactor,3);
-			sxsysz.timesAssign(dsVector);
-			lxsysz.timesAssign(dsVector);
-			sxlysz.timesAssign(dsVector);
-			lxlysz.timesAssign(dsVector);
-			sxsylz.timesAssign(dsVector);
-			lxsylz.timesAssign(dsVector);
-			sxlylz.timesAssign(dsVector);
-			lxlylz.timesAssign(dsVector);
 
 			//C-shape around the front face (one edge missing)
 			borderData[0].addPoint(lxlysz);
@@ -458,10 +445,10 @@ public class DisplayScene extends SceneryBase implements Runnable
 			}
 
 			//update...
-			c.sphereNodes[i].setScale(new GLVector(c.sphereRadii[i] *dsFactor,3));
-			c.sphereNodes[i].setPosition(new GLVector(c.sphereCentres[3*i+0] *dsFactor,
-			                                          c.sphereCentres[3*i+1] *dsFactor,
-			                                          c.sphereCentres[3*i+2] *dsFactor));
+			c.sphereNodes[i].setScale(new GLVector(c.sphereRadii[i],3));
+			c.sphereNodes[i].setPosition(new GLVector(c.sphereCentres[3*i+0],
+			                                          c.sphereCentres[3*i+1],
+			                                          c.sphereCentres[3*i+2]));
 			c.sphereNodes[i].setMaterial(materials[c.sphereColors[i] % materials.length]);
 		}
 
