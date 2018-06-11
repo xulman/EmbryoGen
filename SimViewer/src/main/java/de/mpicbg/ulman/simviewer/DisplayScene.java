@@ -239,9 +239,9 @@ public class DisplayScene extends SceneryBase implements Runnable
 		if (axesData == null)
 		{
 			axesData = new Cylinder[] {
-				new Cylinder(0.01f,0.3f,4),
-				new Cylinder(0.01f,0.3f,4),
-				new Cylinder(0.01f,0.3f,4)};
+				new Cylinder(dsFactor,30.f*dsFactor,4),
+				new Cylinder(dsFactor,30.f*dsFactor,4),
+				new Cylinder(dsFactor,30.f*dsFactor,4)};
 
 			//set material - color
 			//NB: RGB colors ~ XYZ axes
