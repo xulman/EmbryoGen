@@ -62,6 +62,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 
 	/** short cut to Scene, instead of calling getScene() */
 	Scene scene;
+	Camera cam;
 	//----------------------------------------------------------------------------
 
 
@@ -74,58 +75,86 @@ public class DisplayScene extends SceneryBase implements Runnable
 		setRenderer( Renderer.createRenderer(getHub(), getApplicationName(), scene, getWindowWidth(), getWindowHeight()));
 		getHub().add(SceneryElement.Renderer, getRenderer());
 
+		//camera position, looking from the front into the scene centre
+		//NB: z-position should be such that the FOV covers the whole scene
+		float xCam = (sceneOffset[0] + 0.5f*sceneSize[0]) *dsFactor;
+		float yCam = (sceneOffset[1] + 0.5f*sceneSize[1]) *dsFactor;
+		float zCam = (sceneOffset[2] + 1.7f*sceneSize[2]) *dsFactor;
+		cam = new DetachedHeadCamera();
+		cam.setPosition( new GLVector(xCam,yCam,zCam) );
+		cam.perspectiveCamera(50.0f, getRenderer().getWindow().getWidth(), getRenderer().getWindow().getHeight(), 0.05f, 1000.0f);
+		cam.setActive( true );
+		scene.addChild(cam);
+
+		//a cam-attached light mini-ramp
+		//------------------------------
+		xCam =  0.3f*sceneSize[0] *dsFactor;
+		yCam =  0.2f*sceneSize[1] *dsFactor;
+		zCam = -0.1f*sceneSize[2] *dsFactor;
+
+		float radius = 2.5f*sceneSize[1] *dsFactor;
+
+		headLights = new PointLight[6];
+		(headLights[0] = new PointLight(radius)).setPosition(new GLVector(-xCam,-yCam,zCam));
+		(headLights[1] = new PointLight(radius)).setPosition(new GLVector( 0.0f,-yCam,zCam));
+		(headLights[2] = new PointLight(radius)).setPosition(new GLVector(+xCam,-yCam,zCam));
+		(headLights[3] = new PointLight(radius)).setPosition(new GLVector(-xCam,+yCam,zCam));
+		(headLights[4] = new PointLight(radius)).setPosition(new GLVector( 0.0f,+yCam,zCam));
+		(headLights[5] = new PointLight(radius)).setPosition(new GLVector(+xCam,+yCam,zCam));
+
+		//two light ramps at fixed positions
+		//----------------------------------
 		//elements of coordinates of positions of lights
 		final float xLeft   = (sceneOffset[0] + 0.05f*sceneSize[0]) *dsFactor;
 		final float xCentre = (sceneOffset[0] + 0.50f*sceneSize[0]) *dsFactor;
 		final float xRight  = (sceneOffset[0] + 0.95f*sceneSize[0]) *dsFactor;
 
 		final float yTop    = (sceneOffset[1] + 0.05f*sceneSize[1]) *dsFactor;
-		final float yCentre = (sceneOffset[1] + 0.50f*sceneSize[1]) *dsFactor;
 		final float yBottom = (sceneOffset[1] + 0.95f*sceneSize[1]) *dsFactor;
 
 		final float zNear = (sceneOffset[2] + 1.3f*sceneSize[2]) *dsFactor;
 		final float zFar  = (sceneOffset[2] - 0.3f*sceneSize[2]) *dsFactor;
 
 		//tuned such that, given current light intensity and fading, the rear cells are dark yet visible
-		float radius = 1.8f*sceneSize[1] *dsFactor;
+		radius = 1.8f*sceneSize[1] *dsFactor;
 
 		//create the lights, one for each upper corner of the scene
-		lights = new PointLight[2][6];
-		(lights[0][0] = new PointLight(radius)).setPosition(new GLVector(xLeft  ,yTop   ,zNear));
-		(lights[0][1] = new PointLight(radius)).setPosition(new GLVector(xLeft  ,yBottom,zNear));
-		(lights[0][2] = new PointLight(radius)).setPosition(new GLVector(xCentre,yTop   ,zNear));
-		(lights[0][3] = new PointLight(radius)).setPosition(new GLVector(xCentre,yBottom,zNear));
-		(lights[0][4] = new PointLight(radius)).setPosition(new GLVector(xRight ,yTop   ,zNear));
-		(lights[0][5] = new PointLight(radius)).setPosition(new GLVector(xRight ,yBottom,zNear));
+		fixedLights = new PointLight[2][6];
+		(fixedLights[0][0] = new PointLight(radius)).setPosition(new GLVector(xLeft  ,yTop   ,zNear));
+		(fixedLights[0][1] = new PointLight(radius)).setPosition(new GLVector(xLeft  ,yBottom,zNear));
+		(fixedLights[0][2] = new PointLight(radius)).setPosition(new GLVector(xCentre,yTop   ,zNear));
+		(fixedLights[0][3] = new PointLight(radius)).setPosition(new GLVector(xCentre,yBottom,zNear));
+		(fixedLights[0][4] = new PointLight(radius)).setPosition(new GLVector(xRight ,yTop   ,zNear));
+		(fixedLights[0][5] = new PointLight(radius)).setPosition(new GLVector(xRight ,yBottom,zNear));
 
-		(lights[1][0] = new PointLight(radius)).setPosition(new GLVector(xLeft  ,yTop   ,zFar));
-		(lights[1][1] = new PointLight(radius)).setPosition(new GLVector(xLeft  ,yBottom,zFar));
-		(lights[1][2] = new PointLight(radius)).setPosition(new GLVector(xCentre,yTop   ,zFar));
-		(lights[1][3] = new PointLight(radius)).setPosition(new GLVector(xCentre,yBottom,zFar));
-		(lights[1][4] = new PointLight(radius)).setPosition(new GLVector(xRight ,yTop   ,zFar));
-		(lights[1][5] = new PointLight(radius)).setPosition(new GLVector(xRight ,yBottom,zFar));
+		(fixedLights[1][0] = new PointLight(radius)).setPosition(new GLVector(xLeft  ,yTop   ,zFar));
+		(fixedLights[1][1] = new PointLight(radius)).setPosition(new GLVector(xLeft  ,yBottom,zFar));
+		(fixedLights[1][2] = new PointLight(radius)).setPosition(new GLVector(xCentre,yTop   ,zFar));
+		(fixedLights[1][3] = new PointLight(radius)).setPosition(new GLVector(xCentre,yBottom,zFar));
+		(fixedLights[1][4] = new PointLight(radius)).setPosition(new GLVector(xRight ,yTop   ,zFar));
+		(fixedLights[1][5] = new PointLight(radius)).setPosition(new GLVector(xRight ,yBottom,zFar));
 
-		//common settings of the lights
-		for (PointLight l : lights[0])
+		//common settings of all lights, front fixed ramp is currently in use
+		//------------------------------
+		final GLVector lightsColor = new GLVector(1.0f, 1.0f, 1.0f);
+		for (PointLight l : headLights)
+		{
+			l.setIntensity(20.0f);
+			l.setEmissionColor(lightsColor);
+		}
+		for (PointLight l : fixedLights[0])
 		{
 			l.setIntensity(10.0f);
-			l.setEmissionColor(new GLVector(1.0f, 1.0f, 1.0f));
-			scene.addChild(l);
+			l.setEmissionColor(lightsColor);
 		}
-		for (PointLight l : lights[1])
+		for (PointLight l : fixedLights[1])
 		{
 			l.setIntensity(10.0f);
-			l.setEmissionColor(new GLVector(1.0f, 1.0f, 1.0f));
+			l.setEmissionColor(lightsColor);
 		}
 
-		//camera position, looking from the top into the scene centre
-		//NB: z-position should be such that the FOV covers the whole scene
-		final float zCam  = (sceneOffset[2] + 1.7f*sceneSize[2]) *dsFactor;
-		Camera cam = new DetachedHeadCamera();
-		cam.setPosition( new GLVector(xCentre,yCentre,zCam) );
-		cam.perspectiveCamera(50.0f, getRenderer().getWindow().getWidth(), getRenderer().getWindow().getHeight(), 0.05f, 1000.0f);
-		cam.setActive( true );
-		scene.addChild(cam);
+		//enable the fixed ramp lights
+		ToggleFixedLights();
 	}
 
 	/** runs the scenery rendering backend in a separate thread */
@@ -146,29 +175,56 @@ public class DisplayScene extends SceneryBase implements Runnable
 	//----------------------------------------------------------------------------
 
 
-	private PointLight[][] lights;
-	/** which lights are active: 0 - front only, 1 - rear only, 2 - all of them */
-	private int lightsChoosen = 0;
+	//initiated in this.init() to match their state flags below
+	private PointLight[][] fixedLights;
+	private PointLight[]   headLights;
+
+	public enum fixedLightsState { FRONT, REAR, BOTH, NONE };
+
+	//the state flags of the lights
+	private fixedLightsState fixedLightsChoosen = fixedLightsState.NONE;
+	private boolean          headLightsChoosen  = false;
 
 	public
-	void ToggleLights()
+	fixedLightsState ToggleFixedLights()
 	{
-		switch (lightsChoosen)
+		switch (fixedLightsChoosen)
 		{
-		case 0:
-			lightsChoosen = 1;
-			for (PointLight l : lights[0]) scene.removeChild(l);
-			for (PointLight l : lights[1]) scene.addChild(l);
+		case FRONT:
+			for (PointLight l : fixedLights[0]) scene.removeChild(l);
+			for (PointLight l : fixedLights[1]) scene.addChild(l);
+			fixedLightsChoosen = fixedLightsState.REAR;
 			break;
-		case 1:
-			lightsChoosen = 2;
-			for (PointLight l : lights[0]) scene.addChild(l);
+		case REAR:
+			for (PointLight l : fixedLights[0]) scene.addChild(l);
+			fixedLightsChoosen = fixedLightsState.BOTH;
 			break;
-		case 2:
-			lightsChoosen = 0;
-			for (PointLight l : lights[1]) scene.removeChild(l);
+		case BOTH:
+			for (PointLight l : fixedLights[0]) scene.removeChild(l);
+			for (PointLight l : fixedLights[1]) scene.removeChild(l);
+			fixedLightsChoosen = fixedLightsState.NONE;
+			break;
+		case NONE:
+			for (PointLight l : fixedLights[0]) scene.addChild(l);
+			fixedLightsChoosen = fixedLightsState.FRONT;
 			break;
 		}
+
+		//report the current state
+		return fixedLightsChoosen;
+	}
+
+	public
+	boolean ToggleHeadLights()
+	{
+		headLightsChoosen ^= true; //toggles the state
+
+		if (headLightsChoosen)
+			for (PointLight l : headLights) cam.addChild(l);
+		else
+			for (PointLight l : headLights) cam.removeChild(l);
+
+		return headLightsChoosen;
 	}
 	//----------------------------------------------------------------------------
 

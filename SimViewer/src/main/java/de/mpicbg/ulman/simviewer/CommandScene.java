@@ -58,9 +58,10 @@ public class CommandScene implements Runnable
 			System.out.println("h - Shows this help message");
 			System.out.println("q - Quits the program");
 
-			System.out.println("a - Toggles display of the axes in the scene centre");
-			System.out.println("b - Toggles display of the scene border");
-			System.out.println("l - Toggles between front/back/both lights");
+			System.out.println("A - Toggles display of the axes in the scene centre");
+			System.out.println("B - Toggles display of the scene border");
+			System.out.println("L - Toggles between front/back/both/none ramp lights");
+			System.out.println("H - Toggles on/off of camera-attached lights");
 
 			System.out.println("c - Toggles display of the cells");
 			System.out.println("f - Adds some cells to have something to display");
@@ -70,14 +71,17 @@ public class CommandScene implements Runnable
 			System.out.println("x,X - moves left/right x-position of all cells by 0.2");
 			break;
 
-		case 'a':
+		case 'A':
 			scene.ToggleDisplayAxes();
 			break;
-		case 'b':
+		case 'B':
 			scene.ToggleDisplaySceneBorder();
 			break;
-		case 'l':
-			scene.ToggleLights();
+		case 'L':
+			System.out.println("Current ramp lights: "+scene.ToggleFixedLights());
+			break;
+		case 'H':
+			System.out.println("Current head lights: "+scene.ToggleHeadLights());
 			break;
 
 		case 'c':
