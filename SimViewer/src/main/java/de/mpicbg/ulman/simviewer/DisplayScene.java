@@ -524,4 +524,118 @@ public class DisplayScene extends SceneryBase implements Runnable
 		currentNormalizedOrientVec.plusAssign(newOrientVec);
 		currentNormalizedOrientVec.normalize();
 	}
+
+
+	/** Creates a vector node, that needs to be setMaterial'ed(), setPosition'ed(), and
+	    addChild'ed(), as a line with two perpendicular triangles as a "3D arrow". */
+	Line CreateVector(final GLVector v)
+	{
+		final Line l = new Line(9);
+		l.setEdgeWidth(0.02f);
+
+		/*
+		  /|\
+		 / | \
+		/--+--\
+		   |
+		   |
+		   |
+		Vector is created as the main segment (drawn vertically bottom to up),
+		then 3 segments to build a triangle and then another triangle perpendicular
+		to the former one; alltogehter 7 segments drawn sequentially
+		*/
+
+		//the main "vertical" segment of the vector
+		l.addPoint(new GLVector(0.f,3));
+		l.addPoint(v);
+
+		//the first triangle:
+		//the shape of the triangle
+		final float V = 0.1f * v.magnitude();
+
+		//vector base is perpendicular to the input vector v
+		GLVector base = new GLVector(-v.y(), v.x(), 0.0f);
+		base.timesAssign(new GLVector(V/base.magnitude(),3));
+
+		l.addPoint(v.times(0.8f).plus(base));
+		l.addPoint(v.times(0.8f).minus(base));
+		l.addPoint(v);
+
+		//the second triangle:
+		base = base.cross(v);
+		base.timesAssign(new GLVector(V/base.magnitude(),3));
+
+		l.addPoint(v.times(0.8f).plus(base));
+		l.addPoint(v.times(0.8f).minus(base));
+		l.addPoint(v);
+
+		//add two mandatory fake points that are never displayed
+		l.addPoint(v);
+		l.addPoint(v);
+
+		return l;
+	}
+
+	/** Creates a vector node, that needs to be setMaterial'ed(), setPosition'ed(), and
+	    addChild'ed(), as a line with a pyramid as a "3D arrow". */
+	Line CreateVector_Pyramid(final GLVector v)
+	{
+		final Line l = new Line(9);
+		l.setEdgeWidth(0.02f);
+
+		/*
+		  /|\
+		 / | \
+		/--+--\
+		   |
+		   |
+		   |
+		Vector is created as the main segment (drawn vertically bottom to up),
+		then 3 segments to build a triangle and then another triangle perpendicular
+		to the former one; alltogehter 7 segments drawn sequentially
+		*/
+
+		//the main "vertical" segment of the vector
+		l.addPoint(new GLVector(0.f,3));
+		l.addPoint(v);
+
+		//the first triangle:
+		//the shape of the triangle
+		final float V = 0.1f * v.magnitude();
+
+		//vector base is perpendicular to the input vector v
+		GLVector base = new GLVector(-v.y(), v.x(), 0.0f);
+		base.timesAssign(new GLVector(V/base.magnitude(),3));
+
+		GLVector a,b,c,d;
+		a = v.times(0.8f).plus(base);
+		c = v.times(0.8f).minus(base);
+		l.addPoint(a);
+		l.addPoint(c);
+		l.addPoint(v);
+
+		//the second triangle:
+		base = base.cross(v);
+		base.timesAssign(new GLVector(V/base.magnitude(),3));
+
+		b = v.times(0.8f).plus(base);
+		d = v.times(0.8f).minus(base);
+		l.addPoint(b);
+		l.addPoint(d);
+
+		//the base
+		l.addPoint(a);
+		l.addPoint(b);
+		l.addPoint(c);
+		l.addPoint(d);
+
+		//finish the 2nd triangle
+		l.addPoint(v);
+
+		//add two mandatory fake points that are never displayed
+		l.addPoint(v);
+		l.addPoint(v);
+
+		return l;
+	}
 }
