@@ -658,4 +658,41 @@ public class DisplayScene extends SceneryBase implements Runnable
 
 		return l;
 	}
+
+
+	Node[] ns;
+	void
+	testVector()
+	{
+		ns = new Node[] {
+			CreateVector(new GLVector(10.f,2.f,0.f)),
+			CreateVector(new GLVector(5.f,5.f,0.f)),
+			CreateVector(new GLVector(2.f,10.f,0.f)),
+			CreateVector_Cone(new GLVector(-5.f,5.f,0.f)),
+			CreateVector(new GLVector(-10.f,2.f,0.f)),
+			CreateVector_Pyramid(new GLVector(-5.f,-5.f,0.f))
+		};
+
+		for (Node n : ns)
+		{
+			n.setPosition(new GLVector(sceneOffset[0]+10.f,
+			                           sceneOffset[1]+10.f,
+			                           sceneOffset[2]+10.f));
+			n.setMaterial(materials[0]);
+			scene.addChild(n);
+		}
+
+		ns[3].setMaterial(materials[1]);
+		ns[3].getChildren().forEach(c -> c.setMaterial(materials[1]));
+		ns[5].setMaterial(materials[2]);
+		ns[5].getChildren().forEach(c -> c.setMaterial(materials[2]));
+	}
+	void
+	changeVector()
+	{
+		ns[3].setMaterial(materials[3]);
+		ns[3].getChildren().forEach(c -> c.setMaterial(materials[3]));
+		ns[5].setMaterial(materials[4]);
+		ns[5].getChildren().forEach(c -> c.setMaterial(materials[4]));
+	}
 }

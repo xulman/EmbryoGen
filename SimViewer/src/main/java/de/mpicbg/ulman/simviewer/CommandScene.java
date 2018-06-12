@@ -94,6 +94,13 @@ public class CommandScene implements Runnable
 			scene.RemoveCells();
 			break;
 
+		case 'v':
+			scene.testVector();
+			break;
+		case 'V':
+			scene.changeVector();
+			break;
+
 		case 'r':
 			for (Cell c : scene.cellsData.values())
 			{
