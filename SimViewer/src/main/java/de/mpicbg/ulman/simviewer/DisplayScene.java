@@ -477,12 +477,16 @@ public class DisplayScene extends SceneryBase implements Runnable
 		//for now, the second vector for the cross product
 		GLVector tmpVec = newOrientVec;
 
-		//extra case when the two orientations are co-linear
-		if (Math.abs(rotAngle) < 0.01f || Math.abs(rotAngle-3.14159f) < 0.01f)
+		//two special cases when the two orientations are (nearly) colinear:
+		//
+		//a) the same direction -> nothing to do (don't even update the currentNormalizedOrientVec)
+		if (Math.abs(rotAngle) < 0.01f) return;
+		//
+		//b) the opposite direction -> need to "flip"
+		if (Math.abs(rotAngle-Math.PI) < 0.01f)
 		{
-			//System.out.println("rotating with supporting vector");
-			tmpVec = new GLVector(1.0f,1.0f,0.0f);
-			//NB: tmpVec still might be co-linear with the currentNormalizedOrientVec...
+			//define non-colinear helping vector, e.g. take a perpendicular one
+			tmpVec = new GLVector(-newOrientVec.y(), newOrientVec.x(), 0.0f);
 		}
 
 		//axis along which to perform the rotation
