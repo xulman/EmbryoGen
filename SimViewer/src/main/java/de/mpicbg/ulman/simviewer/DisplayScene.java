@@ -504,10 +504,11 @@ public class DisplayScene extends SceneryBase implements Runnable
 
 
 	/** Creates a vector node, that needs to be setMaterial'ed(), setPosition'ed(), and
-	    addChild'ed(), as a line with two perpendicular triangles as a "3D arrow". */
+	    addChild'ed(), as a line with two perpendicular triangles as a "3D arrow".
+	    The base of the arrow head is a cross. */
 	Line CreateVector(final GLVector v)
 	{
-		final Line l = new Line(9);
+		final Line l = new Line(10);
 		l.setEdgeWidth(0.02f);
 
 		/*
@@ -519,7 +520,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 		   |
 		Vector is created as the main segment (drawn vertically bottom to up),
 		then 3 segments to build a triangle and then another triangle perpendicular
-		to the former one; alltogehter 7 segments drawn sequentially
+		to the former one; altogehter 7 segments drawn sequentially
 		*/
 
 		//the main "vertical" segment of the vector
@@ -554,10 +555,11 @@ public class DisplayScene extends SceneryBase implements Runnable
 	}
 
 	/** Creates a vector node, that needs to be setMaterial'ed(), setPosition'ed(), and
-	    addChild'ed(), as a line with a pyramid as a "3D arrow". */
+	    addChild'ed(), as a line with a pyramid as a "3D arrow".
+	    The base of the arrow head is a square with diagonals. */
 	Line CreateVector_Pyramid(final GLVector v)
 	{
-		final Line l = new Line(9);
+		final Line l = new Line(14);
 		l.setEdgeWidth(0.02f);
 
 		/*
@@ -569,7 +571,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 		   |
 		Vector is created as the main segment (drawn vertically bottom to up),
 		then 3 segments to build a triangle and then another triangle perpendicular
-		to the former one; alltogehter 7 segments drawn sequentially
+		to the former one; altogehter 7 segments drawn sequentially
 		*/
 
 		//the main "vertical" segment of the vector
@@ -612,6 +614,47 @@ public class DisplayScene extends SceneryBase implements Runnable
 		//add two mandatory fake points that are never displayed
 		l.addPoint(v);
 		l.addPoint(v);
+
+		return l;
+	}
+
+	/** Creates a vector node, that needs to be setMaterial'ed(), setPosition'ed(), and
+	    addChild'ed(), as a line with a fancy cone as a "3D arrow".
+	    The Scenery.Cone is used for the cone and is nested under the returned node.
+	    The base of the arrow head is a circle.
+
+	    Since the vector consists of two different graphics elements, we better
+	    return common ancester type of them because any method of the Node can be
+	    applied on the subsequent objects too. */
+	Node CreateVector_Cone(final GLVector v)
+	{
+		final Line l = new Line(4);
+		l.setEdgeWidth(0.02f);
+
+		/* .
+		  / \
+		 /   \
+		/-----\
+		   |
+		   |
+		   |
+		Vector is created as the main segment (drawn vertically bottom to up)
+		with a cone sitting on top of it
+		*/
+
+		//the main "vertical" segment of the vector
+		l.addPoint(new GLVector(0.f,3));
+		l.addPoint(v.times(0.8f));
+		l.addPoint(v);
+		l.addPoint(v);
+
+		//the cone
+		//the shape of the cone
+		final float V = 0.1f * v.magnitude();
+		final Cone c = new Cone(V,2.0f*V,6);
+		ReOrientNode(c,new GLVector(0.0f,1.0f,0.0f),v);
+		c.setPosition(v.times(0.8f));
+		l.addChild(c);
 
 		return l;
 	}
