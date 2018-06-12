@@ -455,33 +455,6 @@ public class DisplayScene extends SceneryBase implements Runnable
 		//update the vector Nodes
 		//TODO
 	}
-
-/*
-		final Sphere sph1 = new Sphere(1.0f, 12);
-		sph1.setMaterial( material );
-		sph1.setPosition( new GLVector(0.0f, 0.0f, 0.0f) );
-		getScene().addChild(sph1);
-		//System.out.println("Sphere is made of "+sph1.getVertices().capacity()+" vertices");
-		//getScene().removeChild(sph1);
-		final Cylinder cyl1 = new Cylinder(0.1f,2.0f,4);
-
-		cyl1.setMaterial(material);
-		sph1.addChild(cyl1);
-
-		//here, the order of getRotation() and setPosition() does not matter
-		//(seems that it rotates always around object's own center, rotates the model)
-		//
-		//if object is child to another object, the setPosition() is relative to the
-		//parent object's position
-
-		//this is the current orientation of the cylinder's main axis
-		final GLVector mainAxis1 = new GLVector(0.0f,1.0f,0.0f); //NB: already normalized
-
-		//this is the vector that we aim to display as a narrow cylinder
-		GLVector vec1 = new GLVector(2.0f,0.0f,0.0f);
-		ReOrientNode(cyl1,mainAxis1,vec1);
-		System.out.println("main axis=("+mainAxis1.x()+","+mainAxis1.y()+","+mainAxis1.z()+")");
-*/
 	//----------------------------------------------------------------------------
 
 
