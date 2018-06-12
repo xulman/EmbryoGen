@@ -660,6 +660,19 @@ public class DisplayScene extends SceneryBase implements Runnable
 	}
 
 
+	public class NodeAndChild extends Node
+	{
+		private static final long serialVersionUID = -5351042065800518863L;
+
+		public
+		void setMateril(Material m)
+		{
+			super.setMaterial(m);
+			super.getChildren().forEach(c -> c.setMaterial(m));
+		}
+	}
+
+
 	Node[] ns;
 	void
 	testVector()
