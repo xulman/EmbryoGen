@@ -357,19 +357,38 @@ public class DisplayScene extends SceneryBase implements Runnable
 	public Map<Integer,Cell> cellsData  = new HashMap<Integer,Cell>();
 	//signal we want to have them displayed (even if cellsData is initially empty)
 	private boolean          cellsShown = true;
+	private boolean        vectorsShown = false;
 
 	public
 	void ToggleDisplayCells()
 	{
 		//add-or-remove from the scene
-		for (Cell c : cellsData.values())
-		for (Node n : c.sphereNodes)
-			if (cellsShown) scene.removeChild(n);
-			else            scene.addChild(n);
+		if (cellsShown)
+			cellsData.values().forEach( c ->
+				{ for (final Node n : c.sphereNodes) scene.removeChild(n); } );
+		else
+			cellsData.values().forEach( c ->
+				{ for (final Node n : c.sphereNodes) scene.addChild(n); } );
 
 		//toggle the flag
 		cellsShown ^= true;
 	}
+
+	public
+	void ToggleDisplayVectors()
+	{
+		//add-or-remove from the scene
+		if (vectorsShown)
+			cellsData.values().forEach( c ->
+				{ for (final Node n : c.forceNodes) scene.removeChild(n); } );
+		else
+			cellsData.values().forEach( c ->
+				{ for (final Node n : c.forceNodes) scene.addChild(n); } );
+
+		//toggle the flag
+		vectorsShown ^= true;
+	}
+
 
 	/** only removes the cells from the scene, but keeps
 	    displaying them (despite none exists afterwards) */
