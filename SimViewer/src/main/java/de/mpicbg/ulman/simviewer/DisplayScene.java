@@ -644,7 +644,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 
 		//the main "vertical" segment of the vector
 		l.addPoint(new GLVector(0.f,3));
-		l.addPoint(v.times(0.8f));
+		l.addPoint(v.times(0.95f));
 		l.addPoint(v);
 		l.addPoint(v);
 
