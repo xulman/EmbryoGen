@@ -678,30 +678,27 @@ public class DisplayScene extends SceneryBase implements Runnable
 	testVector()
 	{
 		ns = new Node[] {
-			CreateVector(new GLVector(10.f,2.f,0.f)),
-			CreateVector(new GLVector(5.f,5.f,0.f)),
-			CreateVector(new GLVector(2.f,10.f,0.f)),
-			CreateVector_Cone(new GLVector(-5.f,5.f,0.f)),
-			CreateVector(new GLVector(-10.f,2.f,0.f)),
-			CreateVector_Pyramid(new GLVector(-5.f,-5.f,0.f))
+			CreateVector(        new GLVector(0.f,30.f,0.f)),
+			CreateVector_Cone(   new GLVector(0.f,30.f,0.f)),
+			CreateVector_Pyramid(new GLVector(0.f,30.f,0.f))
 		};
 
+		float cnt = 0.f;
 		for (Node n : ns)
 		{
-			n.setPosition(new GLVector(sceneOffset[0]+10.f,
-			                           sceneOffset[1]+10.f,
-			                           sceneOffset[2]+10.f));
-			n.setMaterial(materials[0]);
+			n.setPosition(new GLVector(sceneOffset[0]+0.5f*sceneSize[0] +cnt,
+			                           sceneOffset[1]+50.f,
+			                           sceneOffset[2]+0.9f*sceneSize[2]));
+			n.runRecursive(N -> N.setMaterial(materials[0]));
 			scene.addChild(n);
-		}
 
-		ns[3].runRecursive(n -> n.setMaterial(materials[1]));
-		ns[5].runRecursive(n -> n.setMaterial(materials[2]));
+			cnt += 8.f;
+		}
 	}
 	void
 	changeVector()
 	{
-		ns[3].runRecursive(n -> n.setMaterial(materials[3]));
-		ns[5].runRecursive(n -> n.setMaterial(materials[4]));
+		for (Node n : ns)
+			n.runRecursive(N -> N.setMaterial(materials[2]));
 	}
 }
