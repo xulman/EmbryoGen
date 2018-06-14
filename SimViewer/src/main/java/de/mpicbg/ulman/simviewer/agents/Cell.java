@@ -24,6 +24,7 @@ public class Cell
 
 
 	public int[]   forceColors;
+	public float[] forceBases;   //length must be 3*forceColors.length
 	public float[] forceVectors; //length must be 3*forceColors.length
 	//
 	public final Node[] forceNodes;
@@ -36,7 +37,8 @@ public class Cell
 		sphereNodes   = new  Node[  sphereCapacity];
 
 		forceColors  = new   int[  vectorCapacity];
-		forceVectors = new float[3*vectorCapacity];
+		forceBases   = new float[3*vectorCapacity]; //where the vector is placed
+		forceVectors = new float[3*vectorCapacity]; //"shape" of the vector itself
 		forceNodes   = new  Node[  vectorCapacity];
 	}
 }
