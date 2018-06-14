@@ -695,17 +695,13 @@ public class DisplayScene extends SceneryBase implements Runnable
 			scene.addChild(n);
 		}
 
-		ns[3].setMaterial(materials[1]);
-		ns[3].getChildren().forEach(c -> c.setMaterial(materials[1]));
-		ns[5].setMaterial(materials[2]);
-		ns[5].getChildren().forEach(c -> c.setMaterial(materials[2]));
+		ns[3].runRecursive(n -> n.setMaterial(materials[1]));
+		ns[5].runRecursive(n -> n.setMaterial(materials[2]));
 	}
 	void
 	changeVector()
 	{
-		ns[3].setMaterial(materials[3]);
-		ns[3].getChildren().forEach(c -> c.setMaterial(materials[3]));
-		ns[5].setMaterial(materials[4]);
-		ns[5].getChildren().forEach(c -> c.setMaterial(materials[4]));
+		ns[3].runRecursive(n -> n.setMaterial(materials[3]));
+		ns[5].runRecursive(n -> n.setMaterial(materials[4]));
 	}
 }
