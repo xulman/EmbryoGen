@@ -36,7 +36,8 @@ public:
 	                const int color = 0)
 	{
 		REPORT("ID " << ID << ": "
-		       << vector << " @ " << pos << ", color=" << color);
+		       << "(" << vector.x << "," << vector.y << "," << vector.z << ")"
+		       << " @ " << pos << ", color=" << color);
 	}
 
 	void DrawTriangle(const int ID,
