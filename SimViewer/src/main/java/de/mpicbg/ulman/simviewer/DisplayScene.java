@@ -355,9 +355,16 @@ public class DisplayScene extends SceneryBase implements Runnable
 
 	/** these guys will be displayed on the display */
 	public Map<Integer,Cell> cellsData  = new HashMap<Integer,Cell>();
-	//signal we want to have them displayed (even if cellsData is initially empty)
-	private boolean          cellsShown = true;
-	private boolean        vectorsShown = false;
+
+	/** signals we want to have cells (spheres) displayed (even if cellsData is initially empty) */
+	private boolean cellsShown = true;
+
+	/** signals we want to have cell forces (vectors) displayed */
+	private boolean vectorsShown = false;
+
+	/** cell forces are typically small in magnitude compared to the cell size,
+	    this defines the current magnification applied when displaying the force vectors */
+	private float vectorsStretch = 1000.f;
 
 	public
 	void ToggleDisplayCells()
@@ -387,6 +394,20 @@ public class DisplayScene extends SceneryBase implements Runnable
 
 		//toggle the flag
 		vectorsShown ^= true;
+	}
+
+	float getVectorsStretch()
+	{ return vectorsStretch; }
+
+	void setVectorsStretch(final float vs)
+	{
+		//update the stretch factor...
+		vectorsStretch = vs;
+
+		//...and rescale all vectors presently existing in the system
+		final GLVector scaleVec = new GLVector(vectorsStretch,3);
+		cellsData.values().forEach( c ->
+			{ for (final Node n : c.forceNodes) n.setScale(scaleVec); } );
 	}
 
 
@@ -502,11 +523,15 @@ catch ( NullPointerException e )
 			c.forceNodes[i] = CreateVector(new GLVector(c.forceVectors[3*i+0],
 			                                            c.forceVectors[3*i+1],
 			                                            c.forceVectors[3*i+2]));
-			//update...
+			//update (position and scale)...
 			c.forceNodes[i].setPosition(new GLVector(c.forceBases[3*i+0],
 			                                         c.forceBases[3*i+1],
 			                                         c.forceBases[3*i+2]));
-			c.forceNodes[i].setMaterial(materials[c.forceColors[i] % materials.length]);
+			c.forceNodes[i].setScale(new GLVector(vectorsStretch,3));
+
+			//update (material -- color)...
+			final Material m = materials[c.forceColors[i] % materials.length];
+			c.forceNodes[i].runRecursive(nn -> nn.setMaterial(m));
 
 			if (vectorsShown) scene.addChild(c.forceNodes[i]);
 		}
