@@ -99,7 +99,7 @@ public class CommandScene implements Runnable
 			{
 				for (int i=0; i < c.sphereRadii.length; ++i)
 					c.sphereRadii[i] -= 0.2f;
-				scene.UpdateCellNodes(c);
+				scene.UpdateCellSphereNodes(c);
 			}
 			break;
 		case 'R':
@@ -107,7 +107,7 @@ public class CommandScene implements Runnable
 			{
 				for (int i=0; i < c.sphereRadii.length; ++i)
 					c.sphereRadii[i] += 0.2f;
-				scene.UpdateCellNodes(c);
+				scene.UpdateCellSphereNodes(c);
 			}
 			break;
 
@@ -116,7 +116,7 @@ public class CommandScene implements Runnable
 			{
 				for (int i=0; i < c.sphereRadii.length; ++i)
 					c.sphereCentres[3*i +0] -= 0.2f;
-				scene.UpdateCellNodes(c);
+				scene.UpdateCellSphereNodes(c);
 			}
 			break;
 		case 'X':
@@ -124,7 +124,7 @@ public class CommandScene implements Runnable
 			{
 				for (int i=0; i < c.sphereRadii.length; ++i)
 					c.sphereCentres[3*i +0] += 0.2f;
-				scene.UpdateCellNodes(c);
+				scene.UpdateCellSphereNodes(c);
 			}
 			break;
 
@@ -165,7 +165,7 @@ public class CommandScene implements Runnable
 				c.sphereCentres[5] = zCentre + 1.0f;
 
 				scene.cellsData.put(c.ID, c);
-				scene.UpdateCellNodes(c);
+				scene.UpdateCellSphereNodes(c);
 			}
 		}
 	}

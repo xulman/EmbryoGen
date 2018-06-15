@@ -134,7 +134,7 @@ public class NetworkScene implements Runnable
 			{
 				//yes...
 				//update previously finished block (if there was some)
-				if (cell != null) scene.UpdateCellNodes(cell);
+				if (cell != null) scene.UpdateCellSphereNodes(cell);
 
 				//get ready for the processing of the new block
 				lastID = ID;
@@ -167,7 +167,7 @@ public class NetworkScene implements Runnable
 		}
 
 		//update previously finished block (if there was some)
-		if (cell != null) scene.UpdateCellNodes(cell);
+		if (cell != null) scene.UpdateCellSphereNodes(cell);
 
 		s.close();
 	}

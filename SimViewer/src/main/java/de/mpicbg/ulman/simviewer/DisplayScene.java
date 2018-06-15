@@ -433,7 +433,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 
 	/** this one updates, or injects new, cell shape object(s) into the scene */
 	public
-	void UpdateCellNodes(final Cell c)
+	void UpdateCellSphereNodes(final Cell c)
 	{
 		//update the sphere Nodes (regardless of the actual value of the radius:
 		//once Cell exists, all elements of its ...Nodes[] must not be null)
