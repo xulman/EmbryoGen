@@ -258,7 +258,7 @@ public class NetworkScene implements Runnable
 			//read possibly remaining coordinates (for which we have no room to store them)
 			for (; d < D; ++d) s.nextFloat();
 
-			cell.sphereColors[pairCount] = s.nextInt();
+			cell.forceColors[pairCount] = s.nextInt();
 		}
 
 		//update previously finished block (if there was some)
