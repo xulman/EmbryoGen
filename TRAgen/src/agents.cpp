@@ -399,7 +399,11 @@ void Cell::DrawIntoDisplayUnit(void) const
 	if (displayUnit)
 	{
 		displayUnit->DrawPoint(ID,pos,outerRadius,(curPhase < 3? 2:3));
-		//displayUnit->DrawVector(ID,pos,acceleration);
+		displayUnit->DrawVector(ID,pos,acceleration,1);
+
+		Vector3d<float> minusAccel(acceleration);
+		minusAccel*=-1.0f;
+		displayUnit->DrawVector(ID,pos,minusAccel,2);
 	}
 }
 
