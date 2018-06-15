@@ -447,12 +447,32 @@ public class DisplayScene extends SceneryBase implements Runnable
 				return;
 			}
 
+// ------------ DEBUGING ------------
+try {
 			if (c.sphereNodes[i] == null)
 			{
 				//create and enable a new display element (Node)
 				c.sphereNodes[i] = new Sphere(1.0f, 12);
 				if (cellsShown) scene.addChild(c.sphereNodes[i]);
 			}
+}
+catch ( NullPointerException e )
+{
+	//this comes up from time to time, why?
+	//from the complains it seems that either scene == null,
+	//or c.sphereNodes[i] == null
+
+	//hence, a bit of debug...
+	System.out.println("Cell: c="+c);
+	System.out.println("i="+i+", radii.length="+c.sphereRadii.length);
+	for (int qq=0; qq < c.sphereNodes.length; ++qq)
+		System.out.println("nodes["+qq+"]="+c.sphereNodes[qq]);
+	System.out.println("scene="+scene);
+
+	//pass it further down.... (to stop)
+	throw e;
+}
+// ------------ DEBUGING ------------
 
 			//update...
 			c.sphereNodes[i].setScale(new GLVector(c.sphereRadii[i],3));

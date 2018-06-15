@@ -64,6 +64,7 @@ public class NetworkScene implements Runnable
 		}
 		catch (Exception e) {
 			System.out.println("Network listener: Error: " + e.getMessage());
+			e.printStackTrace();
 		}
 		finally {
 			if (socket != null)
