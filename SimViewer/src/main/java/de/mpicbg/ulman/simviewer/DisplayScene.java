@@ -395,10 +395,11 @@ public class DisplayScene extends SceneryBase implements Runnable
 	public
 	void RemoveCells()
 	{
-		for (Cell c : cellsData.values()) RemoveCell(c);
+		for (Cell c : cellsData.values().toArray(new Cell[0])) RemoveCell(c);
 
 		//NB: just to make sure... should be empty by now
-		cellsData.clear();
+		if (cellsData.isEmpty() == false)
+			throw new RuntimeException("RemoveCells() failed to empty the cell array.");
 	}
 
 	public
