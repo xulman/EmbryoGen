@@ -63,9 +63,11 @@ public class CommandScene implements Runnable
 			System.out.println("L - Toggles between front/back/both/none ramp lights");
 			System.out.println("H - Toggles on/off of camera-attached lights");
 
-			System.out.println("c - Toggles display of the cells");
-			System.out.println("f - Adds some cells to have something to display");
+			System.out.println("F - Adds some cells to have something to display");
 			System.out.println("d - Deletes all cells (even if not displayed)");
+			System.out.println("c - Toggles display of the cells (cell spheres)");
+			System.out.println("f - Toggles display of the forces (cell vectors)");
+			System.out.println("v,V - Decreases/Increases the vector display stretch");
 
 			System.out.println("r,R - decreases/increases radius of all cells by 0.2");
 			System.out.println("x,X - moves left/right x-position of all cells by 0.2");
@@ -84,14 +86,26 @@ public class CommandScene implements Runnable
 			System.out.println("Current head lights: "+scene.ToggleHeadLights());
 			break;
 
-		case 'c':
-			scene.ToggleDisplayCells();
-			break;
-		case 'f':
+		case 'F':
 			CreateFakeCells();
 			break;
 		case 'd':
 			scene.RemoveCells();
+			break;
+		case 'c':
+			scene.ToggleDisplayCells();
+			break;
+
+		case 'f':
+			scene.ToggleDisplayVectors();
+			break;
+		case 'v':
+			scene.setVectorsStretch(scene.getVectorsStretch()-100.f);
+			System.out.println("new vector stretch: "+scene.getVectorsStretch());
+			break;
+		case 'V':
+			scene.setVectorsStretch(scene.getVectorsStretch()+100.f);
+			System.out.println("new vector stretch: "+scene.getVectorsStretch());
 			break;
 
 		case 'r':
