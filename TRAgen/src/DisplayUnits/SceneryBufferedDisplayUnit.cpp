@@ -56,12 +56,15 @@ void SceneryBufferedDisplayUnit::DrawVector(const int ID,
 	//where o1,...,oD,p1,...,pD are real scalars, ID,color are integer scalars
 	//
 	// o is the base coordinate/anchor point of the vector, p is the vector itself
+	//
+	//vector  ID   essentially determines to which cell it belongs
+	//vector color essentially determines what type this vector is
 
-	//for now display vectors as lines...
-	Vector3d<float> endPoint(pos);
-	endPoint+=vector;
-
-	DrawLine(ID,pos,endPoint,color);
+	BufferedVectorMsgs << " " << ID << " "
+	    << pos.x    << " " << pos.y    << " " << pos.z    << " "
+	    << vector.x << " " << vector.y << " " << vector.z << " "
+	    << color;
+	++BufferedVectorMsgs_count;
 }
 
 

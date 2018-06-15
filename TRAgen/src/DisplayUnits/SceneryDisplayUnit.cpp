@@ -57,6 +57,7 @@ void SceneryDisplayUnit::DrawVector(const int ID,
                                     const Vector3d<float>& vector,
                                     const int color)
 {
+	std::ostringstream msg;
 
 	//  message syntax := v1 vectors N dim D PointPair1 ... PointPairN
 	//PointPair syntax := ID o1 ... oD p1 ... pD color
@@ -66,12 +67,17 @@ void SceneryDisplayUnit::DrawVector(const int ID,
 	//where o1,...,oD,p1,...,pD are real scalars, ID,color are integer scalars
 	//
 	// o is the base coordinate/anchor point of the vector, p is the vector itself
+	//
+	//vector  ID   essentially determines to which cell it belongs
+	//vector color essentially determines what type this vector is
 
-	//for now display vectors as lines...
-	Vector3d<float> endPoint(pos);
-	endPoint+=vector;
+	msg << "v1 vectors 1 dim 3 " << ID << " "
+	    << pos.x    << " " << pos.y    << " " << pos.z    << " "
+	    << vector.x << " " << vector.y << " " << vector.z << " "
+	    << color;
 
-	DrawLine(ID,pos,endPoint,color);
+	std::string msgString(msg.str());
+	socket->send(msgString.c_str(),msgString.size());
 }
 
 
