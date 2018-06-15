@@ -395,20 +395,9 @@ public class DisplayScene extends SceneryBase implements Runnable
 	public
 	void RemoveCells()
 	{
-		//if cells are displayed, remove it first from the scene
-		if (cellsShown)
-		{
-			for (Cell c : cellsData.values())
-			for (Node n : c.sphereNodes)
-				scene.removeChild(n);
-		}
-/*
-		//also remove the vector Nodes from the scene, possibly
-		if (vectorsShown)
-		{
-			//TODO
-		}
-*/
+		for (Cell c : cellsData.values()) RemoveCell(c);
+
+		//NB: just to make sure... should be empty by now
 		cellsData.clear();
 	}
 
@@ -430,17 +419,19 @@ public class DisplayScene extends SceneryBase implements Runnable
 			if (n != null)
 				scene.removeChild(n);
 		}
-/*
+
 		//also remove the vector Nodes from the scene, possibly
 		if (vectorsShown)
 		{
-			//TODO
+			for (Node n : c.forceNodes)
+			if (n != null)
+				scene.removeChild(n);
 		}
-*/
+
 		cellsData.remove(c.ID);
 	}
 
-	/** this one injects shape object(s) into the cell */
+	/** this one updates, or injects new, cell shape object(s) into the scene */
 	public
 	void UpdateCellNodes(final Cell c)
 	{
