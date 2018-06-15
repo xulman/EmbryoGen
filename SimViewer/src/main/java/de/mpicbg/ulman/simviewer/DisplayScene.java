@@ -386,11 +386,21 @@ public class DisplayScene extends SceneryBase implements Runnable
 	{
 		//add-or-remove from the scene
 		if (vectorsShown)
+		{
 			cellsData.values().forEach( c ->
 				{ for (final Node n : c.forceNodes) scene.removeChild(n); } );
+
+			for (Material m : materials)
+				m.setCullingMode(CullingMode.None);
+		}
 		else
+		{
 			cellsData.values().forEach( c ->
 				{ for (final Node n : c.forceNodes) scene.addChild(n); } );
+
+			for (Material m : materials)
+				m.setCullingMode(CullingMode.Front);
+		}
 
 		//toggle the flag
 		vectorsShown ^= true;
