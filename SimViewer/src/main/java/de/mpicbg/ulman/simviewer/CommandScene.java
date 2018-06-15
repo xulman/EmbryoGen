@@ -58,36 +58,54 @@ public class CommandScene implements Runnable
 			System.out.println("h - Shows this help message");
 			System.out.println("q - Quits the program");
 
-			System.out.println("a - Toggles display of the axes in the scene centre");
-			System.out.println("b - Toggles display of the scene border");
-			System.out.println("l - Toggles between front/back/both lights");
+			System.out.println("A - Toggles display of the axes in the scene centre");
+			System.out.println("B - Toggles display of the scene border");
+			System.out.println("L - Toggles between front/back/both/none ramp lights");
+			System.out.println("H - Toggles on/off of camera-attached lights");
 
-			System.out.println("c - Toggles display of the cells");
-			System.out.println("f - Adds some cells to have something to display");
+			System.out.println("F - Adds some cells to have something to display");
 			System.out.println("d - Deletes all cells (even if not displayed)");
+			System.out.println("c - Toggles display of the cells (cell spheres)");
+			System.out.println("f - Toggles display of the forces (cell vectors)");
+			System.out.println("v,V - Decreases/Increases the vector display stretch");
 
 			System.out.println("r,R - decreases/increases radius of all cells by 0.2");
 			System.out.println("x,X - moves left/right x-position of all cells by 0.2");
 			break;
 
-		case 'a':
+		case 'A':
 			scene.ToggleDisplayAxes();
 			break;
-		case 'b':
+		case 'B':
 			scene.ToggleDisplaySceneBorder();
 			break;
-		case 'l':
-			scene.ToggleLights();
+		case 'L':
+			System.out.println("Current ramp lights: "+scene.ToggleFixedLights());
+			break;
+		case 'H':
+			System.out.println("Current head lights: "+scene.ToggleHeadLights());
 			break;
 
-		case 'c':
-			scene.ToggleDisplayCells();
-			break;
-		case 'f':
+		case 'F':
 			CreateFakeCells();
 			break;
 		case 'd':
 			scene.RemoveCells();
+			break;
+		case 'c':
+			scene.ToggleDisplayCells();
+			break;
+
+		case 'f':
+			scene.ToggleDisplayVectors();
+			break;
+		case 'v':
+			scene.setVectorsStretch(scene.getVectorsStretch()-100.f);
+			System.out.println("new vector stretch: "+scene.getVectorsStretch());
+			break;
+		case 'V':
+			scene.setVectorsStretch(scene.getVectorsStretch()+100.f);
+			System.out.println("new vector stretch: "+scene.getVectorsStretch());
 			break;
 
 		case 'r':
@@ -95,7 +113,7 @@ public class CommandScene implements Runnable
 			{
 				for (int i=0; i < c.sphereRadii.length; ++i)
 					c.sphereRadii[i] -= 0.2f;
-				scene.UpdateCellNodes(c);
+				scene.UpdateCellSphereNodes(c);
 			}
 			break;
 		case 'R':
@@ -103,7 +121,7 @@ public class CommandScene implements Runnable
 			{
 				for (int i=0; i < c.sphereRadii.length; ++i)
 					c.sphereRadii[i] += 0.2f;
-				scene.UpdateCellNodes(c);
+				scene.UpdateCellSphereNodes(c);
 			}
 			break;
 
@@ -112,7 +130,7 @@ public class CommandScene implements Runnable
 			{
 				for (int i=0; i < c.sphereRadii.length; ++i)
 					c.sphereCentres[3*i +0] -= 0.2f;
-				scene.UpdateCellNodes(c);
+				scene.UpdateCellSphereNodes(c);
 			}
 			break;
 		case 'X':
@@ -120,7 +138,7 @@ public class CommandScene implements Runnable
 			{
 				for (int i=0; i < c.sphereRadii.length; ++i)
 					c.sphereCentres[3*i +0] += 0.2f;
-				scene.UpdateCellNodes(c);
+				scene.UpdateCellSphereNodes(c);
 			}
 			break;
 
@@ -161,7 +179,7 @@ public class CommandScene implements Runnable
 				c.sphereCentres[5] = zCentre + 1.0f;
 
 				scene.cellsData.put(c.ID, c);
-				scene.UpdateCellNodes(c);
+				scene.UpdateCellSphereNodes(c);
 			}
 		}
 	}

@@ -91,9 +91,9 @@
     </dependency>
 
     <dependency>
-     <groupId>sc.iview</groupId>
-     <artifactId>sciview</artifactId>
-     <version>0.1.2-SNAPSHOT</version>
+      <groupId>graphics.scenery</groupId>
+      <artifactId>scenery</artifactId>
+      <version>0.4.2-SNAPSHOT</version>
     </dependency>
   </dependencies>
 </project>
