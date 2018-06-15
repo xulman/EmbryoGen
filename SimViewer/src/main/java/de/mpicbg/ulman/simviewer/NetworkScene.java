@@ -181,7 +181,90 @@ public class NetworkScene implements Runnable
 	private
 	void processVectors(final String msg)
 	{
-		System.out.println("not implemented yet: "+msg);
+		//vector  ID   essentially determines to which cell it belongs
+		//vector color essentially determines what type this vector is
+		Scanner s = new Scanner(msg);
+
+		//System.out.println("processing point msg: "+msg);
+
+		//this skips the "v1 vectors" - the two tokens
+		s.next();
+		s.next();
+		final int N = s.nextInt();
+
+		//is the next token 'dim'?
+		if (s.next("dim").startsWith("dim") == false)
+		{
+			System.out.println("Don't understand this msg: "+msg);
+			s.close();
+			return;
+		}
+
+		//so the next token is dimensionality of the points
+		final int D = s.nextInt();
+
+		//now, point pair by pair is reported
+		//
+		//we will be updating consequent forces within a cell as long as we
+		//will be reading the same ID again and again
+		int lastID = -999999888;
+		int pairCount = 0;
+		Cell cell = null;
+
+		for (int n=0; n < N; ++n)
+		{
+			//extract the point ID
+			final int ID = s.nextInt();
+
+			//is it a new block of points with the same ID?
+			if (ID != lastID)
+			{
+				//yes...
+				//update previously finished block (if there was some)
+				if (cell != null) scene.UpdateCellVectorNodes(cell);
+
+				//get ready for the processing of the new block
+				lastID = ID;
+				pairCount = 0;
+				cell = scene.cellsData.get(ID);
+				if (cell == null)
+				{
+					//hmm, this cell ID is new to me...
+					cell = new Cell(4,10); //TODO, how much?? now adjusted for TRAgen
+					cell.ID = ID;
+					scene.cellsData.put(cell.ID,cell);
+					//System.out.println("Starting ID "+ID);
+				}
+				//else System.out.println("Updating ID "+ID);
+			}
+			//no, it is just another point within the block
+			else ++pairCount;
+
+			//now read the first in the pair and save coordinates
+			int d=0;
+			for (; d < D && d < 3; ++d)
+			{
+				cell.forceBases[3*pairCount +d]=s.nextFloat();
+			}
+			//read possibly remaining coordinates (for which we have no room to store them)
+			for (; d < D; ++d) s.nextFloat();
+
+			//now read the second in the pair and save sizes
+			d=0;
+			for (; d < D && d < 3; ++d)
+			{
+				cell.forceVectors[3*pairCount +d]=s.nextFloat();
+			}
+			//read possibly remaining coordinates (for which we have no room to store them)
+			for (; d < D; ++d) s.nextFloat();
+
+			cell.sphereColors[pairCount] = s.nextInt();
+		}
+
+		//update previously finished block (if there was some)
+		if (cell != null) scene.UpdateCellVectorNodes(cell);
+
+		s.close();
 	}
 
 	private
