@@ -436,7 +436,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 	void UpdateCellSphereNodes(final Cell c)
 	{
 		//update the sphere Nodes (regardless of the actual value of the radius:
-		//once Cell exists, all elements of its ...Nodes[] must not be null)
+		//once Cell exists, all elements of its ...Nodes[] must not be null
 		for (int i=0; i < c.sphereRadii.length; ++i)
 		{
 			//negative radius is an agreed signal to remove the cell
@@ -461,9 +461,34 @@ public class DisplayScene extends SceneryBase implements Runnable
 			                                          c.sphereCentres[3*i+2]));
 			c.sphereNodes[i].setMaterial(materials[c.sphereColors[i] % materials.length]);
 		}
+	}
 
+	/** this one updates, or injects new, cell force vectors' object(s) into the scene */
+	public
+	void UpdateCellVectorNodes(final Cell c)
+	{
 		//update the vector Nodes
-		//TODO
+		//once Cell exists, all elements of its ...Nodes[] must not be null
+		for (int i=0; i < c.forceColors.length; ++i)
+		{
+			//remove the old vector from the scene (if displayed and there was one)
+			if (vectorsShown && c.forceNodes[i] != null)
+				scene.removeChild(c.forceNodes[i]);
+
+			//create and enable (down below) a new display element (Node)
+			//NB: for Line elements, one could consider clearPoints() and updating them,
+			//    but that's cumbersome (matching IDs, removing, updating...)
+			c.forceNodes[i] = CreateVector(new GLVector(c.forceVectors[3*i+0],
+			                                            c.forceVectors[3*i+1],
+			                                            c.forceVectors[3*i+2]));
+			//update...
+			c.forceNodes[i].setPosition(new GLVector(c.forceBases[3*i+0],
+			                                         c.forceBases[3*i+1],
+			                                         c.forceBases[3*i+2]));
+			c.forceNodes[i].setMaterial(materials[c.forceColors[i] % materials.length]);
+
+			if (vectorsShown) scene.addChild(c.forceNodes[i]);
+		}
 	}
 	//----------------------------------------------------------------------------
 
