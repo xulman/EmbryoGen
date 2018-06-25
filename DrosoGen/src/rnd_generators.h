@@ -1,5 +1,5 @@
-#ifndef GTGEN_RND_GENERATORS_H
-#define GTGEN_RND_GENERATORS_H
+#ifndef RNDGENERATORS_H
+#define RNDGENERATORS_H
 
 #include <gsl/gsl_rng.h>
 

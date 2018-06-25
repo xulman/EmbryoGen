@@ -89,6 +89,7 @@ std::ostream& operator<<(std::ostream& s,const Vector3d<T>& v)
 }
 
 //function for dot product of two vectors
+static
 float dotProduct(const Vector3d<float>& u, const Vector3d<float>& v)
 {
 	return u.x*v.x+u.y*v.y;

@@ -3,38 +3,48 @@
 
 #include "Geometry.h"
 
+/**
+ * TBA
+ *
+ * Author: Vladimir Ulman, 2018
+ */
 class Mesh: public Geometry
 {
 private:
 	//TODO: attribute of type mesh
 
 public:
-	Mesh(void): shapeStyle(Mesh)
+	Mesh(void): Geometry(ListOfShapes::Mesh)
 	{
 		//TODO, somehow create this.mesh
 	}
 
-	/** calculate min distance between myself and some foreign agent */
-	FLOAT getDistance(const Spheres& spheres) const
-	{
-		//TODO: attempt to project mesh vertices against the spheres and look for collision
-		REPORT("this.Mesh vs Spheres is not implemented yet!");
-	}
 
 	/** calculate min distance between myself and some foreign agent */
-	FLOAT getDistance(const Mesh& mesh) const
+	FLOAT getDistance(const Geometry& otherGeometry) const
 	{
-		//TODO
-		REPORT("this.Mesh vs Mesh is not implemented yet!");
+		switch (otherGeometry.shapeStyle)
+		{
+		case ListOfShapes::Spheres:
+			//TODO: attempt to project mesh vertices against the spheres and look for collision
+			REPORT("this.Mesh vs Spheres is not implemented yet!");
+			break;
+		case ListOfShapes::Mesh:
+			//TODO
+			REPORT("this.Mesh vs Mesh is not implemented yet!");
+			break;
+		case ListOfShapes::MaskImg:
+			//TODO: attempt to project mesh vertices into the mask image and look for collision
+			REPORT("this.Mesh vs MaskImg is not implemented yet!");
+			break;
+		default:
+			REPORT("TODO: throw new RuntimeException(cannot calculate distance!)");
+			return 999.9f;
+		}
+
+		return 10.f;
 	}
 
-	/** calculate min distance between myself and some foreign agent */
-	template <class FMT> //Foreign MT
-	FLOAT getDistance(const MaskImg<FMT>& mask) const
-	{
-		//TODO: attempt to project mesh vertices into the mask image and look for collision
-		REPORT("this.Mesh vs MaskImg is not implemented yet!");
-	}
 
 	///construct AABB from the given Mesh
 	void setAABB(AxisAlignedBoundingBox& AABB) const
@@ -43,5 +53,5 @@ public:
 		//TODO
 		REPORT("not implemented yet!");
 	}
-}
+};
 #endif

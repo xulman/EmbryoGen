@@ -1,6 +1,8 @@
 #ifndef ABSTRACTAGENT_H
 #define ABSTRACTAGENT_H
 
+#include <i3d/image3d.h>
+#include "../DisplayUnits/DisplayUnit.h"
 #include "../Geometries/Geometry.h"
 
 /**
@@ -17,22 +19,25 @@
 class ShadowAgent
 {
 protected:
+	//TODO add docs
+	ShadowAgent(Geometry& geom) : geometry(geom) {};
+
 	/** The geometry of an agent that is exposed to the world.
 	    It might be a light-weight version of the agent's exact geometry.
 	    However, it is this geometry that is examined for calculating
 	    distances between agents. */
-	Geometry geometry;
+	Geometry& geometry;
 
 
 public:
 	/// returns read-only reference to the agent's (axis aligned) bounding box
-	const AxisAlignedBoundingBox getAABB(void) const
+	const AxisAlignedBoundingBox& getAABB(void) const
 	{
 		return geometry.AABB;
 	}
 
 	/// returns read-only reference to the agent's geometry
-	const Geometry getGeometry(void) const
+	const Geometry& getGeometry(void) const
 	{
 		return geometry;
 	}
@@ -49,13 +54,24 @@ public:
 class AbstractAgent: public ShadowAgent
 {
 protected:
-	// ------------- geometry -------------
-	/** the geometry that is being built in the current round of simulation,
-	    it may be also much more accurate than this.geometry */
-	Geometry futureGeometry;
+	//TODO add docs
+	AbstractAgent(const int _ID,
+	              Geometry& geometryContainer)
+		: ShadowAgent(geometryContainer), ID(_ID) {};
 
-	/** Updates the (old) this.geometry with the (new) this.futureGeometry.
-	    In other words, "publishes" the new geometry to the world */
+public:
+	virtual
+	~AbstractAgent() {};
+
+protected:
+	// ------------- geometry -------------
+	/** An agent maintains yet another geometry data structure. This one is being
+	    built in the current round of simulation, the "futureGeometry" of this agent.
+	    Additionally, the futureGeometry may be much more detailed than this.geometry.
+	    However, since this.geometry is what is visible to the outside world, we need
+	    a convertor function to "publish" the new geometry to the world. In other words,
+	    to update the (old) this.geometry with the (new) this.futureGeometry. */
+	virtual
 	void updateGeometry(void) =0;
 
 
@@ -102,21 +118,21 @@ public:
 	void drawMask(DisplayUnit& du) {};
 
 	virtual
-	template <class MT> //MT = Mask Type
-	void drawMask(Image3d<MT>& img) {};
+	//template <class MT> //MT = Mask Type
+	void drawMask(i3d::Image3d<i3d::GRAY16>& img) {};
 
 	virtual
 	void drawTexture(DisplayUnit& du) {};
 
 	virtual
-	template <class VT> //VT = Voxel Type
-	void drawTexture(Image3d<VT>& img) {};
+	//template <class VT> //VT = Voxel Type
+	void drawTexture(i3d::Image3d<i3d::GRAY16>& img) {};
 
 	virtual
 	void drawForDebug(DisplayUnit& du) {};
 
 	virtual
-	template <class T> //T = just some Type
-	void drawForDebug(Image3d<T>& img) {};
+	//template <class T> //T = just some Type
+	void drawForDebug(i3d::Image3d<i3d::GRAY16>& img) {};
 };
 #endif

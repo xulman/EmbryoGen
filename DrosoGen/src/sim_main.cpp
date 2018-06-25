@@ -1,10 +1,13 @@
 #include <list>
 #include <map>
+#include <fstream>
 #include <i3d/image3d.h>
 
 #include "tools.h"
 #include "vector3d.h"
-#include "sim_constants.h"
+
+#include "Agents/AbstractAgent.h"
+#include "Agents/NucleusAgent.h"
 
 #include "DisplayUnits/VoidDisplayUnit.h"
 #include "DisplayUnits/ConsoleDisplayUnit.h"
@@ -25,8 +28,8 @@ private:
 	//bbox size around the embryo: 1180,540,110 px
 
 	//set up the environment
-	const Vector3d<float> sceneOffset = Vector3d<float>(0.f);
-	const Vector3d<float> sceneSize   = Vector3d<float>(480.f,220.f,220.f);
+	const Vector3d<float> sceneOffset; //[micrometer]
+	const Vector3d<float> sceneSize;   //[micrometer]
 
 	// --------------------------------------------------
 
@@ -34,7 +37,7 @@ private:
 	//const Vector3d<float>  imgRes(2.46f,2.46f,0.49f); //[pixels per micrometer]
 	//
 	//my res
-	const Vector3d<float>  imgRes(2.0f,2.0f,2.0f); //[pixels per micrometer]
+	const Vector3d<float>  imgRes;  //[pixels per micrometer]
 	const Vector3d<size_t> imgSize; //[pixels]
 
 	/*
@@ -45,10 +48,10 @@ private:
 	*/
 
 	//output image that will be iteratively re-rendered
-	i3d::Image3d<i3d::GRAY8> img;
+	i3d::Image3d<i3d::GRAY16> img;
 
 	//output display unit
-	DisplayUnit& displayUnit;
+	BroadcasterDisplayUnit displayUnit;
 
 	//export counter
 	int frameCnt = 0;
@@ -72,10 +75,10 @@ private:
 	// --------------------------------------------------
 
 	//the list of all agents
-	std::list<Cell*> agents;
+	std::list<AbstractAgent*> agents;
 
 	//list of agents to be removed
-	std::list<Cell*> dead_agents;
+	std::list<AbstractAgent*> dead_agents;
 
 	//the structure to hold all track data
 	std::map<int,TrackRecord> tracks;
@@ -85,15 +88,17 @@ private:
 public:
 	//only initializes the simulation parameters
 	Simulation(void)
+		: sceneOffset(0.f),             //[micrometer]
+		  sceneSize(480.f,220.f,220.f), //[micrometer]
+		  imgRes(2.0f,2.0f,2.0f),       //[pixels per micrometer]
+		  imgSize((size_t)ceil(sceneSize.x * imgRes.x), //[pixels]
+                (size_t)ceil(sceneSize.y * imgRes.y),
+                (size_t)ceil(sceneSize.z * imgRes.z))
 	{
-		imgSize.x=(size_t)ceil(sceneSize.x * imgRes.x); //[pixels]
-		imgSize.y=(size_t)ceil(sceneSize.y * imgRes.y);
-		imgSize.z=(size_t)ceil(sceneSize.z * imgRes.z);
-
 		std::cout << "scene size: "
 		  << sceneSize.x << " x " << sceneSize.y << " x " << sceneSize.z
 		  << "  =  "
-		  << imgSizeX << " x " << imgSizeY << " x " << imgSizeZ << "\n";
+		  << imgSize.x << " x " << imgSize.y << " x " << imgSize.z << "\n";
 
 		//output image that will be iteratively re-rendered
 		img.MakeRoom(imgSize.x,imgSize.y,imgSize.z);
@@ -105,11 +110,8 @@ public:
 		ConsoleDisplayUnit cDU;
 		//SceneryBufferedDisplayUnit sDU("localhost:8765");
 
-		//BroadcasterDisplayUnit bDU;
-		//bDU.RegisterUnit(cDU);
-		//bDU.RegisterUnit(sDU);
-
-		displayUnit = cDU;
+		displayUnit.RegisterUnit(cDU);
+		//displayUnit.RegisterUnit(sDU);
 
 		// --------------------------------------------------
 
@@ -117,9 +119,8 @@ public:
 		std::cout << "init----------- " << currTime << " (" << agents.size() << " agents) ---------------\n";
 
 		//go over all cells...
-		std::list<Cell*>::const_iterator c=agents.begin();
+		std::list<AbstractAgent*>::const_iterator c=agents.begin();
 		for (; c != agents.end(); c++)
-			tracks.insert(std::pair<int,TrackRecord>((*c)->ID,TrackRecord((*c)->ID,frameCnt,-1,0)));
 
 		renderNextFrame();
 	}
@@ -131,17 +132,14 @@ public:
 		while (currTime < stopTime)
 		{
 			//obtain new shapes... (can run in parallel)
-			std::list<Cell*>::iterator c=agents.begin();
+			std::list<AbstractAgent*>::iterator c=agents.begin();
 			for (; c != agents.end(); c++)
-				(*c)->adjustShape(timeDelta);
-
-			//obtain fresh forces... (can run in parallel)
-			for (c=agents.begin(); c != agents.end(); c++)
-				(*c)->calculateForces(timeDelta);
-
-			//obtain new positions... (can run in parallel)
-			for (c=agents.begin(); c != agents.end(); c++)
-				(*c)->applyForces(timeDelta);
+			{
+				(*c)->advanceAndBuildIntForces();
+				(*c)->adjustGeometryByIntForces();
+				(*c)->collectExtForces();
+				(*c)->adjustGeometryByExtForces();
+			}
 
 			//remove removable (can't run in parallel)
 			c=dead_agents.begin();
@@ -195,7 +193,7 @@ public:
 			std::cout << "--------------- " << currTime << " (" << agents.size() << " agents) ---------------\n";
 
 			// is this the right time to export data
-			if (currTime % expoTime == 0.f) renderNextFrame();
+			if (currTime >= frameCnt*expoTime) renderNextFrame();
 		}
 	}
 
@@ -204,10 +202,9 @@ public:
 	~Simulation()
 	{
 		//delete all agents...
-		std::list<Cell*>::iterator iter=agents.begin();
+		std::list<AbstractAgent*>::iterator iter=agents.begin();
 		while (iter != agents.end())
 		{
-			(*iter)->displayUnit = NULL;
 			delete *iter; *iter = NULL;
 			iter++;
 		}
@@ -236,13 +233,16 @@ public:
 
 private:
 	/**
-	 * Just initializes all agents: positions, weights, etc.
-	 * The function may possibly open some files for reporting the progress.
+	 * Just initializes all agents: positions, weights, etc.,
+	 * and adds them into the this->agents, and into the this->tracks.
 	 */
 	void initializeAgents(void)
 	{
 		//stepping in all directions -> influences the final number of nuclei
 		const float dx = 14.0f;
+
+		//to obtain a sequence of IDs for new agents...
+		int ID=1;
 
 		//longer axis x
 		//symmetric/short axes y,z
@@ -253,33 +253,33 @@ private:
 		for (float z=-Xside; z <= +Xside; z += dx)
 		{
 			//radius at this z position
-			const float radius = YZside * sin(acos(fabsf(z)/Xside));
+			const float radius = YZside * sinf(acosf(fabsf(z)/Xside));
 
 			const int howManyToPlace = (int)ceil(6.28f*radius / dx);
 			for (int i=0; i < howManyToPlace; ++i)
 			{
 				const float ang = float(i)/float(howManyToPlace);
 
-				Cell* ag=new Cell();
 				//the wished position relative to [0,0,0] centre
-				ag->pos.x = z;
-				ag->pos.y = radius * cosf(ang*6.28f);
-				ag->pos.z = radius * sinf(ang*6.28f);
+				Vector3d<float> pos(z,radius * cosf(ang*6.28f),radius * sinf(ang*6.28f));
 
 				//position is shifted to the scene centre
-				ag->pos.x += sceneSize.x/2.0f;
-				ag->pos.y += sceneSize.y/2.0f;
-				ag->pos.z += sceneSize.z/2.0f;
+				pos.x += sceneSize.x/2.0f;
+				pos.y += sceneSize.y/2.0f;
+				pos.z += sceneSize.z/2.0f;
 
 				//position is shifted due to scene offset
-				ag->pos.x += sceneOffset.x;
-				ag->pos.y += sceneOffset.y;
-				ag->pos.z += sceneOffset.z;
+				pos.x += sceneOffset.x;
+				pos.y += sceneOffset.y;
+				pos.z += sceneOffset.z;
 
-				//drawing info...
-				ag->displayUnit = &displayUnit;
+				Spheres s(4);
+				s.updateCentre(0,pos);
+				s.updateRadius(0,4.0f);
 
+				AbstractAgent* ag = new NucleusAgent(ID++,s,currTime,incrTime);
 				agents.push_back(ag);
+				tracks.insert(std::pair<int,TrackRecord>(ag->ID,TrackRecord(ag->ID,frameCnt,-1,0)));
 				//std::cout << "adding at " << agents.back()->pos << "\n";
 			}
 		}
@@ -294,11 +294,11 @@ private:
 		img.GetVoxelData() = 0;
 
 		//go over all cells, and render them
-		std::list<Cell*>::const_iterator c=agents.begin();
+		std::list<AbstractAgent*>::const_iterator c=agents.begin();
 		for (; c != agents.end(); c++)
 		{
-			(*c)->DrawIntoDisplayUnit();
-			(*c)->RasterInto(img);
+			(*c)->drawMask(displayUnit);
+			(*c)->drawMask(img);
 		}
 
 		//render the current frame
@@ -311,7 +311,7 @@ private:
 		//wait for key...
 		std::cin >> fn[0];
 	}
-} //end of Simulation class
+}; //end of the Simulation class
 
 
 int main(void)

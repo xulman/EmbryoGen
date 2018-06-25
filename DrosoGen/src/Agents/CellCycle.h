@@ -1,5 +1,5 @@
-#ifndef SIMCONSTANTS_H
-#define SIMCONSTANTS_H
+#ifndef CELLCYCLE_H
+#define CELLCYCLE_H
 
 /** A datatype enumerating the particular phases of cell cycle */
 typedef enum
@@ -18,25 +18,15 @@ typedef enum
 /** A holder of simulation parameters relevant to a cell itself.
     Note that any (more specialized) cell can extend this class
     with attributes it needs to have... */
-class CellSimParams
+class CellCycleParams
 {
 public:
 	float cellCycleLength;      //[min]
 	float cellPhaseDuration[8]; //[min]
 
-	///cells local watches
-	float currTime; //[min]
-
-	///global time increment, cell needs it for planning
-	float incrTime; //[min]
-
-
 	/* when created, it needs to know the current global time and time increment */
-	CellSimParams(const float _currTime, const float _incrTime)
+	CellCycleParams(void)
 	{
-		currTime = _currTime;
-		incrTime = _incrTime;
-
 		//adapted for cell cycle length of 24 hours
 		//params.cellCycleLength = 14.5*60; //[min]
 		cellCycleLength = 30.f; //[min]
@@ -51,8 +41,8 @@ public:
 		cellPhaseDuration[Cytokinesis]= 0.00325f * cellCycleLength;
 	}
 
-	/** a copy constructor */
-	CellSimParams(const CellSimParams& otherCellParams)
+	/** a randomizing! no-exact-copy constructor */
+	CellCycleParams(const CellCycleParams& otherCellParams)
 	{
 		//TODO
 	}

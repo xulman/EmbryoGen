@@ -16,44 +16,87 @@ private:
 	const int noOfSpheres;
 
 	///list of centres of the spheres
-	Vector3d<FLOAT> centres[noOfSpheres];
+	Vector3d<FLOAT>* const centres;
 
 	///list of radii of the spheres
-	FLOAT radii[noOfSpheres];
+	FLOAT* const radii;
 
 public:
-	Spheres(const int _noOfSpheres): shapeStyle(Spheres)
+	///empty shape constructor
+	Spheres(const int _noOfSpheres)
+		: Geometry(ListOfShapes::Spheres),
+		  noOfSpheres(_noOfSpheres),
+		  centres(new Vector3d<FLOAT>[noOfSpheres]),
+		  radii(new FLOAT[noOfSpheres])
 	{
-		noOfSpheres = _noOfSpheres;
 		for (int i=0; i < noOfSpheres; ++i) radii[i] = 0.0;
 	}
 
-	/** calculate min distance between myself and some foreign agent */
-	FLOAT getDistance(const Spheres& spheres) const
+	///copy constructor
+	Spheres(const Spheres& s)
+		: Geometry(ListOfShapes::Spheres),
+		  noOfSpheres(s.getNoOfSpheres()),
+		  centres(new Vector3d<FLOAT>[noOfSpheres]),
+		  radii(new FLOAT[noOfSpheres])
 	{
-		//TODO
-		REPORT("this.Spheres vs Spheres is not implemented yet!");
+		const Vector3d<FLOAT>* sCentres = s.getCentres();
+		const FLOAT* sRadii = s.getRadii();
+
+		for (int i=0; i < noOfSpheres; ++i)
+		{
+			centres[i] = sCentres[i];
+			radii[i]   = sRadii[i];
+		}
 	}
 
-	/** calculate min distance between myself and some foreign agent */
-	FLOAT getDistance(const Mesh& mesh) const
-	{
-		return mesh.getDistance(*this);
-	}
 
 	/** calculate min distance between myself and some foreign agent */
-	template <class FMT> //Foreign MT
-	FLOAT getDistance(const MaskImg<FMT>& mask) const
+	FLOAT getDistance(const Geometry& otherGeometry) const
 	{
-		//TODO: attempt to render spheres into the mask image and look for collision
-		REPORT("this.Spheres vs MaskImg is not implemented yet!");
+		switch (otherGeometry.shapeStyle)
+		{
+		case ListOfShapes::Spheres:
+			//TODO
+			REPORT("this.Spheres vs Spheres is not implemented yet!");
+			break;
+		case ListOfShapes::Mesh:
+			return otherGeometry.getDistance(*this);
+			break;
+		case ListOfShapes::MaskImg:
+			//TODO: attempt to render spheres into the mask image and look for collision
+			REPORT("this.Spheres vs MaskImg is not implemented yet!");
+			break;
+		default:
+			REPORT("TODO: throw new RuntimeException(cannot calculate distance!)");
+			return 999.9f;
+		}
+
+		return 10.f;
 	}
+
 
 	void setAABB(AxisAlignedBoundingBox& AABB) const
 	{
 		//check centre plus/minus radius in every axis and record extremal coordinates
 		//TODO
 		REPORT("not implemented yet!");
+	}
+
+
+	// ------------- get/set methods -------------
+	int getNoOfSpheres(void) const
+	{
+		return noOfSpheres;
+	}
+
+	const Vector3d<FLOAT>* getCentres(void) const
+	{
+		return centres;
+	}
+
+	const FLOAT* getRadii(void) const
+	{
+		return radii;
 	}
 
 
@@ -67,6 +110,7 @@ public:
 		radii[i] = radius;
 	}
 
+
 	friend class NucleusAgent;
-}
+};
 #endif

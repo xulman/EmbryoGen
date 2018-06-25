@@ -1,39 +1,50 @@
 #ifndef MASKIMG_H
 #define MASKIMG_H
 
+#include <i3d/image3d.h>
 #include "Geometry.h"
 
+/**
+ * TBA
+ *
+ * Author: Vladimir Ulman, 2018
+ */
 template <class MT>
 class MaskImg: public Geometry
 {
 private:
-	Image3d<MT> mask;
+	i3d::Image3d<MT> mask;
 
 public:
-	MaskImg(void): shapeStyle(MaskImg)
+	MaskImg(void): Geometry(ListOfShapes::MaskImg)
 	{
 		//TODO, somehow create this.mask
 	}
 
-	/** calculate min distance between myself and some foreign agent */
-	FLOAT getDistance(const Spheres& spheres) const
-	{
-		return spheres.getDistance(*this);
-	}
 
 	/** calculate min distance between myself and some foreign agent */
-	FLOAT getDistance(const Mesh& mesh) const
+	FLOAT getDistance(const Geometry& otherGeometry) const
 	{
-		return mesh.getDistance(*this);
+		switch (otherGeometry.shapeStyle)
+		{
+		case ListOfShapes::Spheres:
+			return otherGeometry.getDistance(*this);
+			break;
+		case ListOfShapes::Mesh:
+			return otherGeometry.getDistance(*this);
+			break;
+		case ListOfShapes::MaskImg:
+			//TODO
+			REPORT("this.MaskImg vs MaskImg is not implemented yet!");
+			break;
+		default:
+			REPORT("TODO: throw new RuntimeException(cannot calculate distance!)");
+			return 999.9f;
+		}
+
+		return 10.f;
 	}
 
-	/** calculate min distance between myself and some foreign agent */
-	template <class FMT> //Foreign MT
-	FLOAT getDistance(const MaskImg<FMT>& mask) const
-	{
-		//TODO
-		REPORT("this.MaskImg vs MaskImg is not implemented yet!");
-	}
 
 	/** construct AABB from the the mask image considering
 	    only non-zero valued voxels, and considering mask's
@@ -44,5 +55,5 @@ public:
 		//TODO
 		REPORT("not implemented yet!");
 	}
-}
+};
 #endif

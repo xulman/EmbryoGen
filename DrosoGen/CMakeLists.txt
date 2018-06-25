@@ -65,11 +65,10 @@ endif()
 # SOURCE FILES
 #--------------
 
-set(SOURCES 
+set(SOURCES
 		  src/DisplayUnits/SceneryDisplayUnit.cpp
 		  src/DisplayUnits/SceneryBufferedDisplayUnit.cpp
 		  src/rnd_generators.cpp
-		  src/agents.cpp
 		  src/sim_main.cpp)
 
 #---------

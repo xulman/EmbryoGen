@@ -2,8 +2,8 @@
 #define GEOMETRY_H
 
 #include "../vector3d.h"
-#include <image3d.h>
 
+/// accuracy of the geometry representation
 #define FLOAT float
 
 /** An x,y,z-axes aligned 3D bounding box for approximate representation of agent's geometry */
@@ -20,33 +20,28 @@ public:
 		reset();
 	}
 
+	/*
 	///construct AABB from the given geometry
 	AxisAlignedBoundingBox(const Geometry& shape)
 	{
 		update(shape);
 	}
+	*/
 
 	///resets the BB (before one starts filling it)
 	void inline reset(void)
 	{
-		minCorner = +999999999.0;
-		maxCorner = -999999999.0;
+		minCorner = FLOAT(+999999999.0);
+		maxCorner = FLOAT(-999999999.0);
 	}
 
+	/*
 	void inline update(const Geometry& shape)
 	{
 		shape.setAABB(*this);
 	}
+	*/
 };
-
-
-/** A variant of how the shape of an simulated agent is represented */
-typedef enum
-{
-	Spheres=0,
-	Mesh=1,
-	MaskImg=2
-} ListOfShapes;
 
 
 /** A common ancestor class/type for the Spheres, Mesh and Mask Image
@@ -54,26 +49,31 @@ typedef enum
     calculate distance between agents. */
 class Geometry
 {
+protected:
+	/** A variant of how the shape of an simulated agent is represented */
+	typedef enum
+	{
+		Spheres=0,
+		Mesh=1,
+		MaskImg=2
+	} ListOfShapes;
+
+	Geometry(const ListOfShapes _shapeStyle) : shapeStyle(_shapeStyle), AABB() {};
+
+
 public:
 	const ListOfShapes shapeStyle;
 	AxisAlignedBoundingBox AABB;
 
 	/** calculate min distance between myself and some foreign agent */
 	virtual
-	FLOAT getDistance(const Spheres& spheres) const =0;
+	FLOAT getDistance(const Geometry& otherGeometry) const =0;
 
-	/** calculate min distance between myself and some foreign agent */
-	virtual
-	FLOAT getDistance(const Mesh& mesh) const =0;
-
-	/** calculate min distance between myself and some foreign agent */
-	virtual
-	template <class FMT> //Foreign MT
-	FLOAT getDistance(const MaskImg<FMT>& mask) const =0;
-
+	/** sets the given AABB to reflect the current geometry */
 	virtual
 	void setAABB(AxisAlignedBoundingBox& AABB) const =0;
 
+	/** sets this object's own AABB to reflect the current geometry */
 	void setAABB(void)
 	{
 		setAABB(this->AABB);
