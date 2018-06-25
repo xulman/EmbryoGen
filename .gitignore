@@ -1,6 +1,6 @@
 # Compiled object files (C++)
 *.o
-BUILD
+BUILD*
 
 # Compiled class file (Java)
 *.class

@@ -1,0 +1,322 @@
+#include <list>
+#include <map>
+#include <i3d/image3d.h>
+
+#include "tools.h"
+#include "vector3d.h"
+#include "sim_constants.h"
+
+#include "DisplayUnits/VoidDisplayUnit.h"
+#include "DisplayUnits/ConsoleDisplayUnit.h"
+#include "DisplayUnits/SceneryBufferedDisplayUnit.h"
+#include "DisplayUnits/BroadcasterDisplayUnit.h"
+
+/** This class contains all simulation agents, scene and simulation
+    parameters, and takes care of the iterations of the simulation */
+class Simulation
+{
+private:
+	//fixed parameters of the simulation:
+
+	//CTC drosophila:
+	//x,y,z res = 2.46306,2.46306,0.492369 px/um
+	//embryo along x-axis
+	//bbox size around the embryo: 480,220,220 um
+	//bbox size around the embryo: 1180,540,110 px
+
+	//set up the environment
+	const Vector3d<float> sceneOffset = Vector3d<float>(0.f);
+	const Vector3d<float> sceneSize   = Vector3d<float>(480.f,220.f,220.f);
+
+	// --------------------------------------------------
+
+	//original res
+	//const Vector3d<float>  imgRes(2.46f,2.46f,0.49f); //[pixels per micrometer]
+	//
+	//my res
+	const Vector3d<float>  imgRes(2.0f,2.0f,2.0f); //[pixels per micrometer]
+	const Vector3d<size_t> imgSize; //[pixels]
+
+	/*
+	imgMaskFilename="Mask%05d.tif";
+	imgPhantomFilename="Phantom%05d.tif";
+	imgFluoFilename="FluoImg%05d.tif";
+	tracksFilename="tracks.txt";
+	*/
+
+	//output image that will be iteratively re-rendered
+	i3d::Image3d<i3d::GRAY8> img;
+
+	//output display unit
+	DisplayUnit& displayUnit;
+
+	//export counter
+	int frameCnt = 0;
+
+	// --------------------------------------------------
+
+	/// current global simulation time [min]
+	float currTime = 0.0f;
+
+	/// increment of the current global simulation time, [min]
+	/// represents the time step of one simulatino step
+	const float incrTime = 0.1f;
+
+	/// at what global time should the simulation stop [min]
+	const float stopTime = 50.f;
+
+	/// export simulation status always after this amount of global time, [min]
+	/// should be multiple of incrTime
+	const float expoTime = 0.5f;
+
+	// --------------------------------------------------
+
+	//the list of all agents
+	std::list<Cell*> agents;
+
+	//list of agents to be removed
+	std::list<Cell*> dead_agents;
+
+	//the structure to hold all track data
+	std::map<int,TrackRecord> tracks;
+
+	// --------------------------------------------------
+
+public:
+	//only initializes the simulation parameters
+	void Simulation()
+	{
+		imgSize.x=(size_t)ceil(sceneSize.x * imgRes.x); //[pixels]
+		imgSize.y=(size_t)ceil(sceneSize.y * imgRes.y);
+		imgSize.z=(size_t)ceil(sceneSize.z * imgRes.z);
+
+		std::cout << "scene size: "
+		  << sceneSize.x << " x " << sceneSize.y << " x " << sceneSize.z
+		  << "  =  "
+		  << imgSizeX << " x " << imgSizeY << " x " << imgSizeZ << "\n";
+
+		//output image that will be iteratively re-rendered
+		img.MakeRoom(imgSize.x,imgSize.y,imgSize.z);
+		//img.SetResolution(*(new i3d::Resolution(imgRes.x,imgRes.y,imgRes.z))); //TODO
+		img.SetResolution(i3d::Resolution(imgRes.x,imgRes.y,imgRes.z));
+
+		//init display/export units
+		//VoidDisplayUnit vDU;
+		ConsoleDisplayUnit cDU;
+		//SceneryBufferedDisplayUnit sDU("localhost:8765");
+
+		//BroadcasterDisplayUnit bDU;
+		//bDU.RegisterUnit(cDU);
+		//bDU.RegisterUnit(sDU);
+
+		displayUnit = cDU;
+
+		// --------------------------------------------------
+
+		initializeAgents();
+		std::cout << "init----------- " << currTime << " (" << agents.size() << " agents) ---------------\n";
+
+		//go over all cells...
+		std::list<Cell*>::const_iterator c=agents.begin();
+		for (; c != agents.end(); c++)
+			tracks.insert(std::pair<int,TrackRecord>((*c)->ID,TrackRecord((*c)->ID,frameCnt,-1,0)));
+
+		renderNextFrame();
+	}
+
+
+	void execute(void)
+	{
+		//run the simulation
+		while (currTime < stopTime)
+		{
+			//obtain new shapes... (can run in parallel)
+			std::list<Cell*>::iterator c=agents.begin();
+			for (; c != agents.end(); c++)
+				(*c)->adjustShape(timeDelta);
+
+			//obtain fresh forces... (can run in parallel)
+			for (c=agents.begin(); c != agents.end(); c++)
+				(*c)->calculateForces(timeDelta);
+
+			//obtain new positions... (can run in parallel)
+			for (c=agents.begin(); c != agents.end(); c++)
+				(*c)->applyForces(timeDelta);
+
+			//remove removable (can't run in parallel)
+			c=dead_agents.begin();
+			while (c != dead_agents.end())
+			{
+				delete (*c);
+				c=dead_agents.erase(c);
+			}
+
+			//TODO: remove after sometime
+			if (dead_agents.size() != 0)
+				REPORT("CONFUSION: dead_agents IS NOT EMPTY!");
+
+			/*
+			//create removable (can't run in parallel)
+			c=agents.begin();
+			while (c != agents.end())
+			{
+				if ((*c)->shouldDie)
+				{
+					//schedule this one for removal
+					dead_agents.push_back(*c);
+
+					if (tracks[(*c)->ID].toTimeStamp > -1)
+						REPORT("CONFUSION: dying cell HAS CLOSED TRACK!");
+					tracks[(*c)->ID].toTimeStamp=frameCnt-1;
+
+					c=agents.erase(c);
+					//this removed the agent from the list of active cells,
+					//but does not remove it from the memory!
+					//(so that other agents that still hold _pointer_
+					//on this one in their Cell::listOfFriends lists
+					//can _safely_ notice this one has Cell::shouldDie
+					//flag on and take appropriate action)
+					//
+					//after the next round of Cell::applyForces() is over,
+					//all agents have definitely removed this agent from
+					//their Cell::listOfFriends, that is when we can delete
+					//this agent from the memory
+				}
+				else c++;
+			}
+			*/
+	#ifdef DEBUG
+			if (dead_agents.size() > 0)
+				REPORT(dead_agents.size() << " cells will be removed from memory");
+	#endif
+
+			// move to the next simulation time point
+			currTime += incrTime;
+			std::cout << "--------------- " << currTime << " (" << agents.size() << " agents) ---------------\n";
+
+			// is this the right time to export data
+			if (currTime % expoTime == 0.f) renderNextFrame();
+		}
+	}
+
+
+	/** the destructor frees simulation agents and creates/writes the tracks.txt file */
+	void ~Simulation()
+	{
+		//delete all agents...
+		std::list<Cell*>::iterator iter=agents.begin();
+		while (iter != agents.end())
+		{
+			(*iter)->displayUnit = NULL;
+			delete *iter; *iter = NULL;
+			iter++;
+		}
+		DEBUG_REPORT("all agents were removed...");
+
+		// write out the track record:
+		std::map<int, TrackRecord >::iterator itTr;
+		std::ofstream of("tracks.txt");
+
+		for (itTr = tracks.begin(); itTr != tracks.end(); itTr++)
+		{
+			//finish unclosed tracks....
+			if (itTr->second.toTimeStamp < 0) itTr->second.toTimeStamp=frameCnt-1;
+
+			//export on harddrive (only if the cell has really been displayed at least once)
+			if (itTr->second.toTimeStamp >= itTr->second.fromTimeStamp)
+				of << itTr->second.ID << " "
+					<< itTr->second.fromTimeStamp << " "
+					<< itTr->second.toTimeStamp << " "
+					<< itTr->second.parentID << std::endl;
+		}
+		of.close();
+		DEBUG_REPORT("tracks.txt were saved...");
+	}
+
+
+private:
+	/**
+	 * Just initializes all agents: positions, weights, etc.
+	 * The function may possibly open some files for reporting the progress.
+	 */
+	void initializeAgents(void)
+	{
+		//stepping in all directions -> influences the final number of nuclei
+		const float dx = 14.0f;
+
+		//longer axis x
+		//symmetric/short axes y,z
+
+		const float Xside  = (0.9f*sceneSize.x)/2.0f;
+		const float YZside = (0.9f*sceneSize.y)/2.0f;
+
+		for (float z=-Xside; z <= +Xside; z += dx)
+		{
+			//radius at this z position
+			const float radius = YZside * sin(acos(fabsf(z)/Xside));
+
+			const int howManyToPlace = (int)ceil(6.28f*radius / dx);
+			for (int i=0; i < howManyToPlace; ++i)
+			{
+				const float ang = float(i)/float(howManyToPlace);
+
+				Cell* ag=new Cell();
+				//the wished position relative to [0,0,0] centre
+				ag->pos.x = z;
+				ag->pos.y = radius * cosf(ang*6.28f);
+				ag->pos.z = radius * sinf(ang*6.28f);
+
+				//position is shifted to the scene centre
+				ag->pos.x += sceneSize.x/2.0f;
+				ag->pos.y += sceneSize.y/2.0f;
+				ag->pos.z += sceneSize.z/2.0f;
+
+				//position is shifted due to scene offset
+				ag->pos.x += sceneOffset.x;
+				ag->pos.y += sceneOffset.y;
+				ag->pos.z += sceneOffset.z;
+
+				//drawing info...
+				ag->displayUnit = &displayUnit;
+
+				agents.push_back(ag);
+				//std::cout << "adding at " << agents.back()->pos << "\n";
+			}
+		}
+	} //end of initializeAgents()
+
+
+	void renderNextFrame(void)
+	{
+		static char fn[1024];
+
+		//clear the output image
+		img.GetVoxelData() = 0;
+
+		//go over all cells, and render them
+		std::list<Cell*>::const_iterator c=agents.begin();
+		for (; c != agents.end(); c++)
+		{
+			(*c)->DrawIntoDisplayUnit();
+			(*c)->RasterInto(img);
+		}
+
+		//render the current frame
+		displayUnit.Flush();
+
+		//save the image
+		sprintf(fn,"mask%03d.tif",frameCnt++);
+		//img.SaveImage(fn);
+
+		//wait for key...
+		std::cin >> fn[0];
+	}
+} //end of Simulation class
+
+
+int main(void)
+{
+	Simulation s;    //init and render the first frame
+	s.execute();     //execute the simulation
+	return(0);       //closes the simulation (as a side effect)
+}

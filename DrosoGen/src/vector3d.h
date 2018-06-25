@@ -1,0 +1,140 @@
+#ifndef VECTOR3D_H
+#define VECTOR3D_H
+
+#include <iostream>
+
+///simply a 3D vector...
+template <typename T>
+class Vector3d
+{
+public:
+	///the vector data
+	T x,y,z;
+
+	///default constructor...
+	Vector3d(void) :
+		x(0), y(0), z(0) {}
+
+	///init constructor...
+	Vector3d(const T xx,const T yy,const T zz) :
+		x(xx), y(yy), z(zz) {}
+
+	///init constructor...
+	Vector3d(const T xyz) :
+		x(xyz), y(xyz), z(xyz) {}
+
+	///copy constructor...
+	Vector3d(const Vector3d<T>& vec)
+	{
+		this->x=vec.x;
+		this->y=vec.y;
+		this->z=vec.z;
+	}
+
+	Vector3d<T>& operator=(const Vector3d<T>& vec)
+	{
+		this->x=vec.x;
+		this->y=vec.y;
+		this->z=vec.z;
+		return( *this );
+	}
+
+	Vector3d<T>& operator=(const T scalar)
+	{
+		this->x=scalar;
+		this->y=scalar;
+		this->z=scalar;
+		return( *this );
+	}
+
+	Vector3d<T>& operator+=(const Vector3d<T>& vec)
+	{
+		this->x+=vec.x;
+		this->y+=vec.y;
+		this->z+=vec.z;
+		return( *this );
+	}
+
+	Vector3d<T>& operator-=(const Vector3d<T>& vec)
+	{
+		this->x-=vec.x;
+		this->y-=vec.y;
+		this->z-=vec.z;
+		return( *this );
+	}
+
+	Vector3d<T>& operator*=(const T& scal)
+	{
+		this->x*=scal;
+		this->y*=scal;
+		this->z*=scal;
+		return( *this );
+	}
+
+	Vector3d<T>& operator/=(const T& scal)
+	{
+		this->x/=scal;
+		this->y/=scal;
+		this->z/=scal;
+		return( *this );
+	}
+};
+
+///reports vector as a position coordinate
+template <typename T>
+std::ostream& operator<<(std::ostream& s,const Vector3d<T>& v)
+{
+	s << "[" << v.x << "," << v.y << "," << v.z << "]";
+	return s;
+}
+// ----------------------------------------------------------------------------
+
+
+///current (lightweight) representation of the force name
+typedef char* ForceName;
+
+///essentially a "named" 3D vector
+template <typename T>
+class ForceVector3d : public Vector3d<T>
+{
+public:
+	///type of the force (only to find out how to report it)
+	ForceName type;
+
+	///default constructor...
+	ForceVector3d(void) : Vector3d<T>(), type("unknown force") {}
+
+	///init constructor...
+	ForceVector3d(const T xx,const T yy,const T zz,const ForceName tt) :
+			Vector3d<T>(xx,yy,zz), type(tt) {}
+
+	///init constructor...
+	ForceVector3d(const T xyz,const ForceName tt) :
+			Vector3d<T>(xyz), type(tt) {}
+
+	///init constructor...
+	ForceVector3d(const Vector3d<T>& v,const ForceName tt) :
+			Vector3d<T>(v), type(tt) {}
+
+	///copy constructor...
+	ForceVector3d(const ForceVector3d<T>& vec) : Vector3d<T>(vec.x,vec.y,vec.z)
+	{
+		this->type=vec.type;
+	}
+
+	ForceVector3d<T>& operator=(const Vector3d<T>& vec)
+	{
+		this->x=vec.x;
+		this->y=vec.y;
+		this->z=vec.z;
+		return( *this );
+	}
+
+	ForceVector3d<T>& operator=(const T scalar)
+	{
+		this->x=scalar;
+		this->y=scalar;
+		this->z=scalar;
+		return( *this );
+	}
+};
