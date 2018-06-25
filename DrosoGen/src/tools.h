@@ -1,6 +1,8 @@
 #ifndef TOOLS_H
 #define TOOLS_H
 
+#include <map>
+#include <iostream>
 
 /// a datatype for keeping records of tracks
 struct TrackRecord
@@ -17,9 +19,9 @@ struct TrackRecord
 		ID(0), fromTimeStamp(0), toTimeStamp(0), parentID(0) {};
 
 	/** MoID mother got divided into DoAID and DoBID daughters
-	    who came to being at frameNo, mother was last seen at frameNo-1;
+	    who came to being at frameNo, mother was last seen at frameNo-1.
 
-	    it is also assumed that mother's track record is already existing */
+	    It is also assumed that mother's track record is already existing. */
 	static 
 	void ReportNewBornDaughters(std::map<int,TrackRecord>& tracks,
 		const int MoID,

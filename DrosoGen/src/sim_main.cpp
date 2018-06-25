@@ -84,7 +84,7 @@ private:
 
 public:
 	//only initializes the simulation parameters
-	void Simulation()
+	Simulation(void)
 	{
 		imgSize.x=(size_t)ceil(sceneSize.x * imgRes.x); //[pixels]
 		imgSize.y=(size_t)ceil(sceneSize.y * imgRes.y);
@@ -201,7 +201,7 @@ public:
 
 
 	/** the destructor frees simulation agents and creates/writes the tracks.txt file */
-	void ~Simulation()
+	~Simulation()
 	{
 		//delete all agents...
 		std::list<Cell*>::iterator iter=agents.begin();

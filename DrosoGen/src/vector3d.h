@@ -87,11 +87,35 @@ std::ostream& operator<<(std::ostream& s,const Vector3d<T>& v)
 	s << "[" << v.x << "," << v.y << "," << v.z << "]";
 	return s;
 }
+
+//function for dot product of two vectors
+float dotProduct(const Vector3d<float>& u, const Vector3d<float>& v)
+{
+	return u.x*v.x+u.y*v.y;
+}
+
+///calculates addition of two vector: \e vecA + \e vecB
+template <typename T>
+Vector3d<T> operator+(const Vector3d<T>& vecA, const Vector3d<T>& vecB)
+{
+	Vector3d<T> res(vecA);
+	res+=vecB;
+	return (res);
+}
+
+///calculates difference of two vector: \e vecA - \e vecB
+template <typename T>
+Vector3d<T> operator-(const Vector3d<T>& vecA, const Vector3d<T>& vecB)
+{
+	Vector3d<T> res(vecA);
+	res-=vecB;
+	return (res);
+}
 // ----------------------------------------------------------------------------
 
 
 ///current (lightweight) representation of the force name
-typedef char* ForceName;
+typedef const char* ForceName;
 
 ///essentially a "named" 3D vector
 template <typename T>
@@ -138,3 +162,4 @@ public:
 		return( *this );
 	}
 };
+#endif
