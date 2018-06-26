@@ -8,10 +8,10 @@
 class NucleusAgent: public AbstractAgent
 {
 public:
-	NucleusAgent(const int _ID,const Spheres& _shape,
+	NucleusAgent(const int _ID, const Spheres& _shape,
 	             const float _currTime, const float _incrTime)
 		: AbstractAgent(_ID,*(new Spheres(_shape))),
-		  futureGeometry(4)
+		  futureGeometry(_shape)
 	{
 		currTime = _currTime;
 		incrTime = _incrTime;
