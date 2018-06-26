@@ -38,6 +38,10 @@ typedef struct rndGeneratorHandle_t
  */
 float GetRandomGauss(const float mean, const float sigma, rndGeneratorHandle& rngHandle);
 
+/** The same as GetRandomGauss(...,rngHandle) but default handle is used.
+    This may be used in non-critical applications. */
+float GetRandomGauss(const float mean, const float sigma);
+
 /**
  * Generates random numbers that tend to form in uniform/flat distribution
  * within given interval \e A and \e B.
@@ -57,6 +61,10 @@ float GetRandomGauss(const float mean, const float sigma, rndGeneratorHandle& rn
  */
 float GetRandomUniform(const float A, const float B, rndGeneratorHandle& rngHandle);
 
+/** The same as GetRandomUniform(...,rngHandle) but default handle is used.
+    This may be used in non-critical applications. */
+float GetRandomUniform(const float A, const float B);
+
 /**
  * Generates random numbers that tend to form in Poisson distribution
  * with given \e mean.
@@ -74,4 +82,8 @@ float GetRandomUniform(const float A, const float B, rndGeneratorHandle& rngHand
  * http://www.gnu.org/software/gsl/manual/html_node/The-Poisson-Distribution.html
  */
 unsigned int GetRandomPoisson(const float mean, rndGeneratorHandle& rngHandle);
+
+/** The same as GetRandomPoisson(...,rngHandle) but default handle is used.
+    This may be used in non-critical applications. */
+unsigned int GetRandomPoisson(const float mean);
 #endif

@@ -42,6 +42,7 @@ void inline PossiblyReSeed(rndGeneratorHandle& rngHandle)
 }
 
 
+// -------------- rnd generator WITH explicit rndGeneratorHandle --------------
 float GetRandomGauss(const float mean, const float sigma, rndGeneratorHandle& rngHandle)
 {
 	PossiblyReSeed(rngHandle);
@@ -60,4 +61,23 @@ unsigned int GetRandomPoisson(const float mean, rndGeneratorHandle& rngHandle)
 {
 	PossiblyReSeed(rngHandle);
 	return ( gsl_ran_poisson(rngHandle.rngState, mean) );
+}
+
+
+// -------------- rnd generator WITHOUT explicit rndGeneratorHandle --------------
+rndGeneratorHandle lostSoulRngHandle;
+
+float GetRandomGauss(const float mean, const float sigma)
+{
+	return GetRandomUniform(mean,sigma, lostSoulRngHandle);
+}
+
+float GetRandomUniform(const float A, const float B)
+{
+	return GetRandomUniform(A,B, lostSoulRngHandle);
+}
+
+unsigned int GetRandomPoisson(const float mean)
+{
+	return GetRandomPoisson(mean, lostSoulRngHandle);
 }
