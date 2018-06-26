@@ -1,6 +1,8 @@
 #ifndef CELLCYCLE_H
 #define CELLCYCLE_H
 
+#include "../rnd_generators.h"
+
 /** A datatype enumerating the particular phases of cell cycle */
 typedef enum
 {
@@ -21,16 +23,32 @@ typedef enum
 class CellCycleParams
 {
 public:
-	float cellCycleLength;      //[min]
-	float cellPhaseDuration[8]; //[min]
+	/** the cell cycle length [min] */
+	float cellCycleLength;
 
-	/* when created, it needs to know the current global time and time increment */
+	/** the length of individual cell cycle phases [min] */
+	float cellPhaseDuration[8];
+
+	/** constructor with default settings */
 	CellCycleParams(void)
 	{
 		//adapted for cell cycle length of 24 hours
 		//params.cellCycleLength = 14.5*60; //[min]
 		cellCycleLength = 30.f; //[min]
+		determinePhaseDurations();
+	}
 
+	/** a randomizing! no-exact-copy constructor */
+	CellCycleParams(const CellCycleParams& otherCellParams)
+	{
+		//a randomized copy of the cell cycle
+		cellCycleLength = GetRandomGauss(cellCycleLength, 0.17f*cellCycleLength);
+		determinePhaseDurations();
+	}
+
+private:
+	void determinePhaseDurations(void)
+	{
 		cellPhaseDuration[G1Phase]    = 0.5f     * cellCycleLength;
 		cellPhaseDuration[SPhase]     = 0.3f     * cellCycleLength;
 		cellPhaseDuration[G2Phase]    = 0.15f    * cellCycleLength;
@@ -39,12 +57,8 @@ public:
 		cellPhaseDuration[Anaphase]   = 0.0025f  * cellCycleLength;
 		cellPhaseDuration[Telophase]  = 0.00325f * cellCycleLength;
 		cellPhaseDuration[Cytokinesis]= 0.00325f * cellCycleLength;
-	}
-
-	/** a randomizing! no-exact-copy constructor */
-	CellCycleParams(const CellCycleParams& otherCellParams)
-	{
-		//TODO
+		//                              --------
+		//                      sums to 1.0f
 	}
 };
 #endif
