@@ -4,7 +4,7 @@
 #include <i3d/image3d.h>
 
 #include "tools.h"
-#include "vector3d.h"
+#include "Vector3d.h"
 
 #include "Agents/AbstractAgent.h"
 #include "Agents/NucleusAgent.h"

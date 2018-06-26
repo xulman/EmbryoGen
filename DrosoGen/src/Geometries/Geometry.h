@@ -1,7 +1,8 @@
 #ifndef GEOMETRY_H
 #define GEOMETRY_H
 
-#include "../vector3d.h"
+#include <list>
+#include "../Vector3d.h"
 
 /// accuracy of the geometry representation
 #define FLOAT float
