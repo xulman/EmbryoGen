@@ -17,7 +17,7 @@ public:
 	void DrawPoint(const int ID,
 	               const Vector3d<float>& pos,
 	               const float radius = 1.0f,
-	               const int color = 0)
+	               const int color = 0) override
 	{
 		for (auto it = displayUnits.begin(); it != displayUnits.end(); ++it)
 			(*it)->DrawPoint(ID,pos,radius,color);
@@ -26,7 +26,7 @@ public:
 	void DrawLine(const int ID,
 	              const Vector3d<float>& posA,
 	              const Vector3d<float>& posB,
-	              const int color = 0)
+	              const int color = 0) override
 	{
 		for (auto it = displayUnits.begin(); it != displayUnits.end(); ++it)
 			(*it)->DrawLine(ID,posA,posB,color);
@@ -35,7 +35,7 @@ public:
 	void DrawVector(const int ID,
 	                const Vector3d<float>& pos,
 	                const Vector3d<float>& vector,
-	                const int color = 0)
+	                const int color = 0) override
 	{
 		for (auto it = displayUnits.begin(); it != displayUnits.end(); ++it)
 			(*it)->DrawVector(ID,pos,vector,color);
@@ -45,13 +45,13 @@ public:
 	                  const Vector3d<float>& posA,
 	                  const Vector3d<float>& posB,
 	                  const Vector3d<float>& posC,
-	                  const int color = 0)
+	                  const int color = 0) override
 	{
 		for (auto it = displayUnits.begin(); it != displayUnits.end(); ++it)
 			(*it)->DrawTriangle(ID,posA,posB,posC,color);
 	}
 
-	void Flush(void)
+	void Flush(void) override
 	{
 		for (auto it = displayUnits.begin(); it != displayUnits.end(); ++it)
 			(*it)->Flush();

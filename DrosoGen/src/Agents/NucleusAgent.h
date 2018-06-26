@@ -38,28 +38,28 @@ private:
 	Spheres futureGeometry;
 
 	// ------------- to implement one round of simulation -------------
-	void advanceAndBuildIntForces(void)
+	void advanceAndBuildIntForces(void) override
 	{
 	}
 
-	void adjustGeometryByIntForces(void)
+	void adjustGeometryByIntForces(void) override
 	{
 	}
 
-	void collectExtForces(void)
+	void collectExtForces(void) override
 	{
 	}
 
-	void adjustGeometryByExtForces(void)
+	void adjustGeometryByExtForces(void) override
 	{
 	}
 
-	void updateGeometry(void)
+	void updateGeometry(void) override
 	{
 	}
 
 	// ------------- rendering -------------
-	void drawMask(DisplayUnit& du)
+	void drawMask(DisplayUnit& du) override
 	{
 		int i=0;
 		while (i < futureGeometry.noOfSpheres && futureGeometry.radii[i] > 0.f)

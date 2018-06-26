@@ -16,7 +16,7 @@ public:
 	void DrawPoint(const int ID,
 	               const Vector3d<float>& pos,
 	               const float radius = 1.0f,
-	               const int color = 0)
+	               const int color = 0) override
 	{
 		REPORT("ID " << ID << ": "
 		       << pos << ", radius=" << radius << ", color=" << color);
@@ -25,7 +25,7 @@ public:
 	void DrawLine(const int ID,
 	              const Vector3d<float>& posA,
 	              const Vector3d<float>& posB,
-	              const int color = 0)
+	              const int color = 0) override
 	{
 		REPORT("ID " << ID << ": "
 		       << posA << " <-> " << posB << ", color=" << color);
@@ -34,7 +34,7 @@ public:
 	void DrawVector(const int ID,
 	                const Vector3d<float>& pos,
 	                const Vector3d<float>& vector,
-	                const int color = 0)
+	                const int color = 0) override
 	{
 		REPORT("ID " << ID << ": "
 		       << "(" << vector.x << "," << vector.y << "," << vector.z << ")"
@@ -45,7 +45,7 @@ public:
 	                  const Vector3d<float>& posA,
 	                  const Vector3d<float>& posB,
 	                  const Vector3d<float>& posC,
-	                  const int color = 0)
+	                  const int color = 0) override
 	{
 		REPORT("ID " << ID << ": "
 		       << posA << ", " << posB << ", " << posC << ", color=" << color);

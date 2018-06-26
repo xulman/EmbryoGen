@@ -52,7 +52,7 @@ public:
 
 	/** calculate min distance between myself and some foreign agent */
 	std::list<ProximityPair>*
-	getDistance(const Geometry& otherGeometry) const
+	getDistance(const Geometry& otherGeometry) const override
 	{
 		//default return value
 		std::list<ProximityPair>* l = emptyCollisionListPtr;
@@ -80,7 +80,7 @@ public:
 	}
 
 
-	void setAABB(AxisAlignedBoundingBox& AABB) const
+	void setAABB(AxisAlignedBoundingBox& AABB) const override
 	{
 		//check centre plus/minus radius in every axis and record extremal coordinates
 		//TODO

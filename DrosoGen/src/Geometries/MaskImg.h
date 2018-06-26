@@ -24,7 +24,7 @@ public:
 
 	/** calculate min distance between myself and some foreign agent */
 	std::list<ProximityPair>*
-	getDistance(const Geometry& otherGeometry) const
+	getDistance(const Geometry& otherGeometry) const override
 	{
 		//default return value
 		std::list<ProximityPair>* l = emptyCollisionListPtr;
@@ -56,7 +56,7 @@ public:
 	/** construct AABB from the the mask image considering
 	    only non-zero valued voxels, and considering mask's
 		 offset and resolution */
-	void setAABB(AxisAlignedBoundingBox& AABB) const
+	void setAABB(AxisAlignedBoundingBox& AABB) const override
 	{
 		//scan through the image and find extremal coordinates of non-zero voxels
 		//TODO

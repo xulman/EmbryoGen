@@ -22,7 +22,7 @@ public:
 
 	/** calculate min distance between myself and some foreign agent */
 	std::list<ProximityPair>*
-	getDistance(const Geometry& otherGeometry) const
+	getDistance(const Geometry& otherGeometry) const override
 	{
 		//default return value
 		std::list<ProximityPair>* l = emptyCollisionListPtr;
@@ -50,7 +50,7 @@ public:
 
 
 	/** construct AABB from the given Mesh */
-	void setAABB(AxisAlignedBoundingBox& AABB) const
+	void setAABB(AxisAlignedBoundingBox& AABB) const override
 	{
 		//scan through the mesh vertices/nodes and find extremal coordinates
 		//TODO
