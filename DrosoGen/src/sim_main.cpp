@@ -102,7 +102,6 @@ public:
 
 		//output image that will be iteratively re-rendered
 		img.MakeRoom(imgSize.x,imgSize.y,imgSize.z);
-		//img.SetResolution(*(new i3d::Resolution(imgRes.x,imgRes.y,imgRes.z))); //TODO
 		img.SetResolution(i3d::Resolution(imgRes.x,imgRes.y,imgRes.z));
 
 		//init display/export units,
@@ -330,7 +329,7 @@ private:
 		static char fn[1024];
 
 		//clear the output image
-		img.GetVoxelData() = 0;
+		//img.GetVoxelData() = 0;
 
 		//go over all cells, and render them
 		std::list<AbstractAgent*>::const_iterator c=agents.begin();
