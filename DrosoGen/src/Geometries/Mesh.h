@@ -14,7 +14,7 @@ private:
 	//TODO: attribute of type mesh
 
 public:
-	Mesh(void): Geometry(ListOfShapes::Mesh)
+	Mesh(void): Geometry(ListOfShapeForms::Mesh)
 	{
 		//TODO, somehow create this.mesh
 	}
@@ -27,29 +27,29 @@ public:
 		//default return value
 		std::list<ProximityPair>* l = emptyCollisionListPtr;
 
-		switch (otherGeometry.shapeStyle)
+		switch (otherGeometry.shapeForm)
 		{
-		case ListOfShapes::Spheres:
+		case ListOfShapeForms::Spheres:
 			//TODO: attempt to project mesh vertices against the spheres and look for collision
 			REPORT("this.Mesh vs Spheres is not implemented yet!");
 			break;
-		case ListOfShapes::Mesh:
+		case ListOfShapeForms::Mesh:
 			//TODO identity case
 			REPORT("this.Mesh vs Mesh is not implemented yet!");
 			break;
-		case ListOfShapes::MaskImg:
+		case ListOfShapeForms::MaskImg:
 			//TODO: attempt to project mesh vertices into the mask image and look for collision
 			REPORT("this.Mesh vs MaskImg is not implemented yet!");
 			break;
 		default:
-			REPORT("TODO: throw new RuntimeException(cannot calculate distance!)");
+			throw new std::runtime_error("Geometry::getDistance(): Not supported combination of shape representations.");
 		}
 
 		return l;
 	}
 
 
-	///construct AABB from the given Mesh
+	/** construct AABB from the given Mesh */
 	void setAABB(AxisAlignedBoundingBox& AABB) const
 	{
 		//scan through the mesh vertices/nodes and find extremal coordinates

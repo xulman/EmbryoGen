@@ -16,7 +16,7 @@ private:
 	i3d::Image3d<MT> mask;
 
 public:
-	MaskImg(void): Geometry(ListOfShapes::MaskImg)
+	MaskImg(void): Geometry(ListOfShapeForms::MaskImg)
 	{
 		//TODO, somehow create this.mask
 	}
@@ -29,24 +29,24 @@ public:
 		//default return value
 		std::list<ProximityPair>* l = emptyCollisionListPtr;
 
-		switch (otherGeometry.shapeStyle)
+		switch (otherGeometry.shapeForm)
 		{
-		case ListOfShapes::Spheres:
+		case ListOfShapeForms::Spheres:
 			//find collision "from the other side" and revert orientation of all elements on the list
 			l = otherGeometry.getDistance(*this);
 			for (auto lit = l->begin(); lit != l->end(); lit++) lit->swap();
 			break;
-		case ListOfShapes::Mesh:
+		case ListOfShapeForms::Mesh:
 			//find collision "from the other side" and revert orientation of all elements on the list
 			l = otherGeometry.getDistance(*this);
 			for (auto lit = l->begin(); lit != l->end(); lit++) lit->swap();
 			break;
-		case ListOfShapes::MaskImg:
+		case ListOfShapeForms::MaskImg:
 			//TODO identity case
 			REPORT("this.MaskImg vs MaskImg is not implemented yet!");
 			break;
 		default:
-			REPORT("TODO: throw new RuntimeException(cannot calculate distance!)");
+			throw new std::runtime_error("Geometry::getDistance(): Not supported combination of shape representations.");
 		}
 
 		return l;

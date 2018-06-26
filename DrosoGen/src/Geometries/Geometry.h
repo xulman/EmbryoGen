@@ -4,32 +4,28 @@
 #include <list>
 #include "../Vector3d.h"
 
-/// accuracy of the geometry representation
+/** accuracy of the geometry representation, choose float or double */
 #define FLOAT float
 
 /** An x,y,z-axes aligned 3D bounding box for approximate representation of agent's geometry */
 class AxisAlignedBoundingBox
 {
 public:
-	///defines the bounding box with its volumetric diagonal
+	/** defines the bounding box with its volumetric diagonal,
+	    this is the "bottom-left" corner of the box [micrometers] */
 	Vector3d<FLOAT> minCorner;
+
+	/** defines the bounding box with its volumetric diagonal,
+	    this is the "upper-right" corner of the box [micrometers] */
 	Vector3d<FLOAT> maxCorner;
 
-	///construct an empty AABB
+	/** construct an empty AABB */
 	AxisAlignedBoundingBox(void)
 	{
 		reset();
 	}
 
-	/*
-	///construct AABB from the given geometry
-	AxisAlignedBoundingBox(const Geometry& shape)
-	{
-		update(shape);
-	}
-	*/
-
-	///resets the BB (before one starts filling it)
+	/** resets the BB (make it ready for someone to start filling it) */
 	void inline reset(void)
 	{
 		minCorner = FLOAT(+999999999.0);
@@ -96,8 +92,8 @@ static std::list<ProximityPair>* const emptyCollisionListPtr = new std::list<Pro
 
 
 /** A common ancestor class/type for the Spheres, Mesh and Mask Image
-    representations of agent's geometry. It defines (empty) methods to
-    calculate distance between agents. */
+    representations of agent's geometry. It defines (pure virtual) methods
+    to report collision pairs, see Geometry::getDistance(), between agents. */
 class Geometry
 {
 protected:
@@ -107,13 +103,20 @@ protected:
 		Spheres=0,
 		Mesh=1,
 		MaskImg=2
-	} ListOfShapes;
+	} ListOfShapeForms;
 
-	Geometry(const ListOfShapes _shapeStyle) : shapeStyle(_shapeStyle), AABB() {};
+	/** Construct empty geometry object of given shape form.
+	    This class should never be used constructed directly, always use some
+	    derived class such as Spheres, Mesh or MaskImg. */
+	Geometry(const ListOfShapeForms _shapeForm) : shapeForm(_shapeForm), AABB() {};
 
 
 public:
-	const ListOfShapes shapeStyle;
+	/** choosen form of shape representation */
+	const ListOfShapeForms shapeForm;
+
+	/** optional, i.e. not automatically updated with every geometry change,
+	    bounding box to outline where the agent lives in the scene */
 	AxisAlignedBoundingBox AABB;
 
 	/** Calculate and determine collision pairs, if any, between

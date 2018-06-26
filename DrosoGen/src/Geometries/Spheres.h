@@ -12,19 +12,19 @@
 class Spheres: public Geometry
 {
 private:
-	///length of the this.centres and this.radii arrays
+	/** length of the this.centres and this.radii arrays */
 	const int noOfSpheres;
 
-	///list of centres of the spheres
+	/** list of centres of the spheres */
 	Vector3d<FLOAT>* const centres;
 
-	///list of radii of the spheres
+	/** list of radii of the spheres */
 	FLOAT* const radii;
 
 public:
-	///empty shape constructor
+	/** empty shape constructor */
 	Spheres(const int _noOfSpheres)
-		: Geometry(ListOfShapes::Spheres),
+		: Geometry(ListOfShapeForms::Spheres),
 		  noOfSpheres(_noOfSpheres),
 		  centres(new Vector3d<FLOAT>[noOfSpheres]),
 		  radii(new FLOAT[noOfSpheres])
@@ -32,15 +32,15 @@ public:
 		for (int i=0; i < noOfSpheres; ++i) radii[i] = 0.0;
 	}
 
-	///copy constructor
+	/** copy constructor */
 	Spheres(const Spheres& s)
-		: Geometry(ListOfShapes::Spheres),
+		: Geometry(ListOfShapeForms::Spheres),
 		  noOfSpheres(s.getNoOfSpheres()),
 		  centres(new Vector3d<FLOAT>[noOfSpheres]),
 		  radii(new FLOAT[noOfSpheres])
 	{
 		const Vector3d<FLOAT>* sCentres = s.getCentres();
-		const FLOAT* sRadii = s.getRadii();
+		const FLOAT*           sRadii   = s.getRadii();
 
 		for (int i=0; i < noOfSpheres; ++i)
 		{
@@ -57,23 +57,23 @@ public:
 		//default return value
 		std::list<ProximityPair>* l = emptyCollisionListPtr;
 
-		switch (otherGeometry.shapeStyle)
+		switch (otherGeometry.shapeForm)
 		{
-		case ListOfShapes::Spheres:
+		case ListOfShapeForms::Spheres:
 			//TODO identity case
 			REPORT("this.Spheres vs Spheres is not implemented yet!");
 			break;
-		case ListOfShapes::Mesh:
+		case ListOfShapeForms::Mesh:
 			//find collision "from the other side" and revert orientation of all elements on the list
 			l = otherGeometry.getDistance(*this);
 			for (auto lit = l->begin(); lit != l->end(); lit++) lit->swap();
 			break;
-		case ListOfShapes::MaskImg:
+		case ListOfShapeForms::MaskImg:
 			//TODO: attempt to render spheres into the mask image and look for collision
 			REPORT("this.Spheres vs MaskImg is not implemented yet!");
 			break;
 		default:
-			REPORT("TODO: throw new RuntimeException(cannot calculate distance!)");
+			throw new std::runtime_error("Geometry::getDistance(): Not supported combination of shape representations.");
 		}
 
 		return l;
