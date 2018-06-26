@@ -284,7 +284,7 @@ private:
 
 				AbstractAgent* ag = new NucleusAgent(ID++,s,currTime,incrTime);
 				agents.push_back(ag);
-				tracks.insert(std::pair<int,TrackRecord>(ag->ID,TrackRecord(ag->ID,frameCnt,-1,0)));
+				TrackRecord::StartNewTrack(tracks,ag->ID,frameCnt);
 			}
 		}
 	} //end of initializeAgents()
@@ -320,7 +320,7 @@ private:
 
 			AbstractAgent* ag = new NucleusAgent(ID++,s,currTime,incrTime);
 			agents.push_back(ag);
-			tracks.insert(std::pair<int,TrackRecord>(ag->ID,TrackRecord(ag->ID,frameCnt,-1,0)));
+			TrackRecord::StartNewTrack(tracks,ag->ID,frameCnt);
 		}
 	}
 
