@@ -82,9 +82,30 @@ public:
 
 	void setAABB(AxisAlignedBoundingBox& AABB) const override
 	{
+		AABB.reset();
+
 		//check centre plus/minus radius in every axis and record extremal coordinates
-		//TODO
-		REPORT("not implemented yet!");
+		for (int i=0; i < noOfSpheres; ++i)
+		if (radii[i] > 0.f)
+		{
+			if (centres[i].x-radii[i] < AABB.minCorner.x)
+				AABB.minCorner.x = centres[i].x-radii[i];
+
+			if (centres[i].x+radii[i] > AABB.maxCorner.x)
+				AABB.maxCorner.x = centres[i].x+radii[i];
+
+			if (centres[i].y-radii[i] < AABB.minCorner.y)
+				AABB.minCorner.y = centres[i].y-radii[i];
+
+			if (centres[i].y+radii[i] > AABB.maxCorner.y)
+				AABB.maxCorner.y = centres[i].y+radii[i];
+
+			if (centres[i].z-radii[i] < AABB.minCorner.z)
+				AABB.minCorner.z = centres[i].z-radii[i];
+
+			if (centres[i].z+radii[i] > AABB.maxCorner.z)
+				AABB.maxCorner.z = centres[i].z+radii[i];
+		}
 	}
 
 
