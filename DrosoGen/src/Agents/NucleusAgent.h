@@ -28,17 +28,14 @@ public:
 
 
 private:
-	// ------------- internals -------------
-	CellCycleParams cellCycle; //TODO test if constructor was executed, or must be exec explicitly
-	Spheres futureGeometry;
+	// ------------- internals state -------------
+	CellCycleParams cellCycle;
 
 	///currently exhibited cell phase
 	ListOfPhases curPhase;
 
-	// ------------- geometry -------------
-	void updateGeometry(void)
-	{
-	}
+	// ------------- internals geometry -------------
+	Spheres futureGeometry; //TODO test if constructor was executed, or must be exec explicitly
 
 	// ------------- to implement one round of simulation -------------
 	void advanceAndBuildIntForces(void)
@@ -54,6 +51,10 @@ private:
 	}
 
 	void adjustGeometryByExtForces(void)
+	{
+	}
+
+	void updateGeometry(void)
 	{
 	}
 

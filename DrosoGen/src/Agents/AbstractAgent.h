@@ -25,7 +25,7 @@ protected:
 	/** The geometry of an agent that is exposed to the world.
 	    It might be a light-weight version of the agent's exact geometry.
 	    However, it is this geometry that is examined for calculating
-	    distances between agents. */
+	    distances between agents. See also the discussion AbstractAgent::drawMask(). */
 	Geometry& geometry;
 
 
@@ -64,17 +64,6 @@ public:
 	~AbstractAgent() {};
 
 protected:
-	// ------------- geometry -------------
-	/** An agent maintains yet another geometry data structure. This one is being
-	    built in the current round of simulation, the "futureGeometry" of this agent.
-	    Additionally, the futureGeometry may be much more detailed than this.geometry.
-	    However, since this.geometry is what is visible to the outside world, we need
-	    a convertor function to "publish" the new geometry to the world. In other words,
-	    to update the (old) this.geometry with the (new) this.futureGeometry. */
-	virtual
-	void updateGeometry(void) =0;
-
-
 	// ------------- local time -------------
 	///agent's local time
 	float currTime; //[min]
@@ -110,13 +99,37 @@ public:
 	virtual
 	void adjustGeometryByExtForces(void) =0;
 
+	/** An agent maintains data structure to represent next-time-point geometry. This one is
+	    being built in the current round of simulation, the "futureGeometry" of this agent.
+	    Additionally, the futureGeometry may be much more detailed than this.geometry.
+	    However, since this.geometry is what is visible to the outside world, we need
+	    a convertor function to "publish" the new geometry to the world. In other words,
+	    to update the (old) this.geometry with the (new) this.futureGeometry. */
+	virtual
+	void updateGeometry(void) =0;
+
 
 	// ------------- rendering -------------
+	/// label of this agent
 	const int ID;
 
+	/** Should render the current detailed shape, i.e. the futureGeometry, into
+	    the DisplayUnit; may use this->ID or its state somehow for colors.
+
+	    It is was not expected to render the content of this->geometry as this
+	    one might be less accurate -- the this->geometry is designed for assesing
+	    mutual distances between all neighboring cells and should be a good trade-off
+	    between sparse (fast to examine) representation and rich (accurate distances)
+	    representation.
+
+	    Besides, the texture rendering/rasterizing methods below also work with data
+	    that are in sync with the futureGeometry. */
 	virtual
 	void drawMask(DisplayUnit& du) {};
 
+	/** Should raster the current detailed shape, i.e. the futureGeometry, into
+	    the image; may use this->ID or its state somehow for colors.
+	    Must take into account image's resolution and offset. */
 	virtual
 	//template <class MT> //MT = Mask Type
 	void drawMask(i3d::Image3d<i3d::GRAY16>& img) {};

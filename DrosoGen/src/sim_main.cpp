@@ -131,7 +131,7 @@ public:
 		//run the simulation
 		while (currTime < stopTime)
 		{
-			//obtain new shapes... (can run in parallel)
+			//obtain develop new shapes... (can run in parallel)
 			std::list<AbstractAgent*>::iterator c=agents.begin();
 			for (; c != agents.end(); c++)
 			{
@@ -139,6 +139,13 @@ public:
 				(*c)->adjustGeometryByIntForces();
 				(*c)->collectExtForces();
 				(*c)->adjustGeometryByExtForces();
+			}
+
+			//to export new geometries ... (can run in parallel)
+			c=agents.begin();
+			for (; c != agents.end(); c++)
+			{
+				(*c)->updateGeometry();
 			}
 
 			//remove removable (can't run in parallel)
