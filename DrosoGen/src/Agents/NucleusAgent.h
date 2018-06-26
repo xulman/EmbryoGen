@@ -31,11 +31,11 @@ private:
 	// ------------- internals state -------------
 	CellCycleParams cellCycle;
 
-	///currently exhibited cell phase
+	/** currently exhibited cell phase */
 	ListOfPhases curPhase;
 
 	// ------------- internals geometry -------------
-	Spheres futureGeometry; //TODO test if constructor was executed, or must be exec explicitly
+	Spheres futureGeometry;
 
 	// ------------- to implement one round of simulation -------------
 	void advanceAndBuildIntForces(void)
