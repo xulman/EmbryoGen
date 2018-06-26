@@ -134,14 +134,15 @@ public:
 			{
 				(*c)->advanceAndBuildIntForces();
 				(*c)->adjustGeometryByIntForces();
-				(*c)->collectExtForces();
-				(*c)->adjustGeometryByExtForces();
+				(*c)->updateGeometry();
 			}
 
-			//to export new geometries ... (can run in parallel)
+			//react to the new geometries ... (can run in parallel)
 			c=agents.begin();
 			for (; c != agents.end(); c++)
 			{
+				(*c)->collectExtForces();
+				(*c)->adjustGeometryByExtForces();
 				(*c)->updateGeometry();
 			}
 
