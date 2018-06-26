@@ -66,7 +66,7 @@ private:
 	const float incrTime = 0.1f;
 
 	/// at what global time should the simulation stop [min]
-	const float stopTime = 50.f;
+	const float stopTime = 1.2f;
 
 	/// export simulation status always after this amount of global time, [min]
 	/// should be multiple of incrTime
@@ -115,7 +115,8 @@ public:
 
 		// --------------------------------------------------
 
-		initializeAgents();
+		//initializeAgents();
+		initializeAgents_aFew();
 		std::cout << "--init--------- " << currTime << " (" << agents.size() << " agents) ---------------\n";
 
 		renderNextFrame();
@@ -287,6 +288,42 @@ private:
 			}
 		}
 	} //end of initializeAgents()
+
+	void initializeAgents_aFew(void)
+	{
+		//to obtain a sequence of IDs for new agents...
+		int ID=1;
+
+		const float radius = 0.7f*sceneSize.y;
+		const int howManyToPlace = 6;
+
+		for (int i=0; i < howManyToPlace; ++i)
+		{
+			const float ang = float(i)/float(howManyToPlace);
+
+			//the wished position relative to [0,0,0] centre
+			Vector3d<float> pos(radius * cosf(ang*6.28f),radius * sinf(ang*6.28f),0.0f);
+
+			//position is shifted to the scene centre
+			pos.x += sceneSize.x/2.0f;
+			pos.y += sceneSize.y/2.0f;
+			pos.z += sceneSize.z/2.0f;
+
+			//position is shifted due to scene offset
+			pos.x += sceneOffset.x;
+			pos.y += sceneOffset.y;
+			pos.z += sceneOffset.z;
+
+			Spheres s(4);
+			s.updateCentre(0,pos);
+			s.updateRadius(0,4.0f);
+
+			AbstractAgent* ag = new NucleusAgent(ID++,s,currTime,incrTime);
+			agents.push_back(ag);
+			tracks.insert(std::pair<int,TrackRecord>(ag->ID,TrackRecord(ag->ID,frameCnt,-1,0)));
+			//std::cout << "adding at " << agents.back()->pos << "\n";
+		}
+	}
 
 
 	void renderNextFrame(void)
