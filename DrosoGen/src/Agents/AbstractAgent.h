@@ -145,33 +145,33 @@ public:
 	    Besides, the texture rendering/rasterizing methods below also work with data
 	    that are in sync with the futureGeometry. */
 	virtual
-	void drawMask(DisplayUnit& du) {};
+	void drawMask(DisplayUnit&) {};
 
 	/** Should raster the current detailed shape, i.e. the futureGeometry, into
 	    the image; may use this->ID or its state somehow for colors.
 	    Must take into account image's resolution and offset. */
 	virtual
 	//template <class MT> //MT = Mask Type
-	void drawMask(i3d::Image3d<i3d::GRAY16>& img) {};
+	void drawMask(i3d::Image3d<i3d::GRAY16>&) {};
 
 	/** Should render the current texture into the DisplayUnit */
 	virtual
-	void drawTexture(DisplayUnit& du) {};
+	void drawTexture(DisplayUnit&) {};
 
 	/** Should raster the current texture into the image.
 	    Must take into account image's resolution and offset. */
 	virtual
 	//template <class VT> //VT = Voxel Type
-	void drawTexture(i3d::Image3d<i3d::GRAY16>& img) {};
+	void drawTexture(i3d::Image3d<i3d::GRAY16>&) {};
 
 	/** Render whatever might be appropriate for debug into the DisplayUnit. */
 	virtual
-	void drawForDebug(DisplayUnit& du) {};
+	void drawForDebug(DisplayUnit&) {};
 
 	/** Raster whatever might be appropriate for debug into the image.
 	    Must take into account image's resolution and offset. */
 	virtual
 	//template <class T> //T = just some Type
-	void drawForDebug(i3d::Image3d<i3d::GRAY16>& img) {};
+	void drawForDebug(i3d::Image3d<i3d::GRAY16>&) {};
 };
 #endif
