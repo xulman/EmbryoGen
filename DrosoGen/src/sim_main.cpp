@@ -95,20 +95,21 @@ public:
                 (size_t)ceil(sceneSize.y * imgRes.y),
                 (size_t)ceil(sceneSize.z * imgRes.z))
 	{
-		std::cout << "scene size: "
+		REPORT("scene size: "
 		  << sceneSize.x << " x " << sceneSize.y << " x " << sceneSize.z
-		  << "  =  "
-		  << imgSize.x << " x " << imgSize.y << " x " << imgSize.z << "\n";
+		  << " um =  "
+		  << imgSize.x << " x " << imgSize.y << " x " << imgSize.z << " px");
 
 		//output image that will be iteratively re-rendered
 		img.MakeRoom(imgSize.x,imgSize.y,imgSize.z);
 		//img.SetResolution(*(new i3d::Resolution(imgRes.x,imgRes.y,imgRes.z))); //TODO
 		img.SetResolution(i3d::Resolution(imgRes.x,imgRes.y,imgRes.z));
 
-		//init display/export units
-		//VoidDisplayUnit vDU;
-		ConsoleDisplayUnit cDU;
-		//SceneryBufferedDisplayUnit sDU("localhost:8765");
+		//init display/export units,
+		//and make them persistent (to survive after this method is finished)
+		//static VoidDisplayUnit vDU;
+		static ConsoleDisplayUnit cDU;
+		//static SceneryBufferedDisplayUnit sDU("localhost:8765");
 
 		displayUnit.RegisterUnit(cDU);
 		//displayUnit.RegisterUnit(sDU);
@@ -117,7 +118,7 @@ public:
 
 		//initializeAgents();
 		initializeAgents_aFew();
-		std::cout << "--init--------- " << currTime << " (" << agents.size() << " agents) ---------------\n";
+		REPORT("--init--------- " << currTime << " (" << agents.size() << " agents) ---------------");
 
 		renderNextFrame();
 	}
@@ -194,9 +195,9 @@ public:
 
 			// move to the next simulation time point
 			currTime += incrTime;
-			std::cout << "--------------- " << currTime << " (" << agents.size() << " agents) ---------------\n";
+			REPORT("--------------- " << currTime << " (" << agents.size() << " agents) ---------------");
 
-			// is this the right time to export data
+			// is this the right time to export data?
 			if (currTime >= frameCnt*expoTime) renderNextFrame();
 		}
 	}
@@ -284,7 +285,6 @@ private:
 				AbstractAgent* ag = new NucleusAgent(ID++,s,currTime,incrTime);
 				agents.push_back(ag);
 				tracks.insert(std::pair<int,TrackRecord>(ag->ID,TrackRecord(ag->ID,frameCnt,-1,0)));
-				//std::cout << "adding at " << agents.back()->pos << "\n";
 			}
 		}
 	} //end of initializeAgents()
@@ -321,7 +321,6 @@ private:
 			AbstractAgent* ag = new NucleusAgent(ID++,s,currTime,incrTime);
 			agents.push_back(ag);
 			tracks.insert(std::pair<int,TrackRecord>(ag->ID,TrackRecord(ag->ID,frameCnt,-1,0)));
-			//std::cout << "adding at " << agents.back()->pos << "\n";
 		}
 	}
 
