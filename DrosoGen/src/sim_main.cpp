@@ -116,11 +116,7 @@ public:
 		// --------------------------------------------------
 
 		initializeAgents();
-		std::cout << "init----------- " << currTime << " (" << agents.size() << " agents) ---------------\n";
-
-		//go over all cells...
-		std::list<AbstractAgent*>::const_iterator c=agents.begin();
-		for (; c != agents.end(); c++)
+		std::cout << "--init--------- " << currTime << " (" << agents.size() << " agents) ---------------\n";
 
 		renderNextFrame();
 	}
@@ -316,6 +312,7 @@ private:
 		//img.SaveImage(fn);
 
 		//wait for key...
+		REPORT_NOENDL("Wait for key [and press Enter]: ");
 		std::cin >> fn[0];
 	}
 }; //end of the Simulation class
