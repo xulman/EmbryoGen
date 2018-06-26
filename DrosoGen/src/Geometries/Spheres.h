@@ -51,16 +51,22 @@ public:
 
 
 	/** calculate min distance between myself and some foreign agent */
-	FLOAT getDistance(const Geometry& otherGeometry) const
+	std::list<ProximityPair>*
+	getDistance(const Geometry& otherGeometry) const
 	{
+		//default return value
+		std::list<ProximityPair>* l = emptyCollisionListPtr;
+
 		switch (otherGeometry.shapeStyle)
 		{
 		case ListOfShapes::Spheres:
-			//TODO
+			//TODO identity case
 			REPORT("this.Spheres vs Spheres is not implemented yet!");
 			break;
 		case ListOfShapes::Mesh:
-			return otherGeometry.getDistance(*this);
+			//find collision "from the other side" and revert orientation of all elements on the list
+			l = otherGeometry.getDistance(*this);
+			for (auto lit = l->begin(); lit != l->end(); lit++) lit->swap();
 			break;
 		case ListOfShapes::MaskImg:
 			//TODO: attempt to render spheres into the mask image and look for collision
@@ -68,10 +74,9 @@ public:
 			break;
 		default:
 			REPORT("TODO: throw new RuntimeException(cannot calculate distance!)");
-			return 999.9f;
 		}
 
-		return 10.f;
+		return l;
 	}
 
 
