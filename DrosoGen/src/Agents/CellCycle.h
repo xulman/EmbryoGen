@@ -42,7 +42,8 @@ public:
 	CellCycleParams(const CellCycleParams& otherCellParams)
 	{
 		//a randomized copy of the cell cycle
-		cellCycleLength = GetRandomGauss(cellCycleLength, 0.17f*cellCycleLength);
+		cellCycleLength = GetRandomGauss(otherCellParams.cellCycleLength,
+		                                 0.17f * otherCellParams.cellCycleLength);
 		determinePhaseDurations();
 	}
 
