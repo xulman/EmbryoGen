@@ -118,6 +118,10 @@ Vector3d<T> operator-(const Vector3d<T>& vecA, const Vector3d<T>& vecB)
 ///current (lightweight) representation of the force name
 typedef const char* ForceName;
 
+/** a placeholder for ForceName type of "unknown force",
+    to prevent of allocating it over and over again */
+static ForceName unknownForceType = "unknown force";
+
 ///essentially a "named" 3D vector
 template <typename T>
 class ForceVector3d : public Vector3d<T>
@@ -127,7 +131,7 @@ public:
 	ForceName type;
 
 	///default constructor...
-	ForceVector3d(void) : Vector3d<T>(), type("unknown force") {}
+	ForceVector3d(void) : Vector3d<T>(), type(unknownForceType) {}
 
 	///init constructor...
 	ForceVector3d(const T xx,const T yy,const T zz,const ForceName tt) :
@@ -152,6 +156,7 @@ public:
 		this->x=vec.x;
 		this->y=vec.y;
 		this->z=vec.z;
+		this->type = vec.type;
 		return( *this );
 	}
 
@@ -160,6 +165,7 @@ public:
 		this->x=scalar;
 		this->y=scalar;
 		this->z=scalar;
+		this->type = unknownForceType;
 		return( *this );
 	}
 };
