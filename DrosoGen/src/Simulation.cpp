@@ -1,8 +1,8 @@
 #include "util/Vector3d.h"
 #include "Geometries/Spheres.h"
+#include "Simulation.h"
 #include "Agents/AbstractAgent.h"
 #include "Agents/NucleusAgent.h"
-#include "Simulation.h"
 
 void Simulation::initializeAgents(void)
 {
@@ -46,6 +46,7 @@ void Simulation::initializeAgents(void)
 			s.updateRadius(0,4.0f);
 
 			AbstractAgent* ag = new NucleusAgent(ID++,s,currTime,incrTime);
+			ag->setOfficer(this);
 			agents.push_back(ag);
 			tracks.startNewTrack(ag->ID,frameCnt);
 		}
@@ -83,6 +84,7 @@ void Simulation::initializeAgents_aFew(void)
 		s.updateRadius(0,4.0f);
 
 		AbstractAgent* ag = new NucleusAgent(ID++,s,currTime,incrTime);
+		ag->setOfficer(this);
 		agents.push_back(ag);
 		tracks.startNewTrack(ag->ID,frameCnt);
 	}
