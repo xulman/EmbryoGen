@@ -1,6 +1,7 @@
 #ifndef NUCLEUSAGENT_H
 #define NUCLEUSAGENT_H
 
+#include "../report.h"
 #include "AbstractAgent.h"
 #include "CellCycle.h"
 #include "../Geometries/Spheres.h"

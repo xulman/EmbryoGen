@@ -3,7 +3,8 @@
 #include <fstream>
 #include <i3d/image3d.h>
 
-#include "tools.h"
+#include "report.h"
+#include "TrackRecord.h"
 #include "Vector3d.h"
 
 #include "Agents/AbstractAgent.h"

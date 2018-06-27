@@ -3,7 +3,7 @@
 #include <time.h>
 #include <unistd.h>
 
-#include "tools.h"
+#include "report.h"
 #include "rnd_generators.h"
 
 /*
