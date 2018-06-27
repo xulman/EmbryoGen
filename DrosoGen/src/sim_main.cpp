@@ -1,6 +1,4 @@
 #include <list>
-#include <map>
-#include <fstream>
 #include <i3d/image3d.h>
 
 #include "report.h"
@@ -82,7 +80,7 @@ private:
 	std::list<AbstractAgent*> dead_agents;
 
 	//the structure to hold all track data
-	std::map<int,TrackRecord> tracks;
+	TrackRecords tracks;
 
 	// --------------------------------------------------
 
@@ -211,29 +209,15 @@ public:
 		std::list<AbstractAgent*>::iterator iter=agents.begin();
 		while (iter != agents.end())
 		{
+			tracks.closeTrack((*iter)->ID,frameCnt-1);
+
 			delete *iter; *iter = NULL;
 			iter++;
 		}
 		DEBUG_REPORT("all agents were removed...");
 
-		// write out the track record:
-		std::map<int, TrackRecord >::iterator itTr;
-		std::ofstream of("tracks.txt");
-
-		for (itTr = tracks.begin(); itTr != tracks.end(); itTr++)
-		{
-			//finish unclosed tracks....
-			if (itTr->second.toTimeStamp < 0) itTr->second.toTimeStamp=frameCnt-1;
-
-			//export on harddrive (only if the cell has really been displayed at least once)
-			if (itTr->second.toTimeStamp >= itTr->second.fromTimeStamp)
-				of << itTr->second.ID << " "
-					<< itTr->second.fromTimeStamp << " "
-					<< itTr->second.toTimeStamp << " "
-					<< itTr->second.parentID << std::endl;
-		}
-		of.close();
-		DEBUG_REPORT("tracks.txt were saved...");
+		tracks.exportAllToFile("tracks.txt");
+		DEBUG_REPORT("tracks.txt was saved...");
 	}
 
 
@@ -285,7 +269,7 @@ private:
 
 				AbstractAgent* ag = new NucleusAgent(ID++,s,currTime,incrTime);
 				agents.push_back(ag);
-				TrackRecord::StartNewTrack(tracks,ag->ID,frameCnt);
+				tracks.startNewTrack(ag->ID,frameCnt);
 			}
 		}
 	} //end of initializeAgents()
@@ -321,7 +305,7 @@ private:
 
 			AbstractAgent* ag = new NucleusAgent(ID++,s,currTime,incrTime);
 			agents.push_back(ag);
-			TrackRecord::StartNewTrack(tracks,ag->ID,frameCnt);
+			tracks.startNewTrack(ag->ID,frameCnt);
 		}
 	}
 

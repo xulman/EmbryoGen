@@ -2,8 +2,10 @@
 #define TRACKRECORD_H
 
 #include <map>
+#include <fstream>
 
-/// a datatype for keeping records of tracks
+/** A datatype for keeping records of tracks according
+    to the Cell Tracking Challenge format */
 struct TrackRecord
 {
 	int ID;
@@ -16,43 +18,57 @@ struct TrackRecord
 
 	TrackRecord():
 		ID(0), fromTimeStamp(0), toTimeStamp(0), parentID(0) {};
+};
 
+
+/** A datatype to hold all tracks with a few convenience functions such
+    as startNewTrack() or exportAllToFile() */
+class TrackRecords: public std::map<int,TrackRecord>
+{
+public:
 	/** initiates a new track ID at time point frameNo */
-	static
-	void StartNewTrack(std::map<int,TrackRecord>& tracks,
-		const int ID, const int frameNo)
+	void startNewTrack(const int ID, const int frameNo)
 	{
-		tracks[ID] = TrackRecord(ID,frameNo,-1,0);
+		(*this)[ID] = TrackRecord(ID,frameNo,-1,0);
 	}
 
 	/** MoID mother got divided into DoAID and DoBID daughters
 	    who came to being at frameNo, mother was last seen at frameNo-1.
 	    It is also assumed that mother's track record is already existing. */
-	static
-	void ReportNewBornDaughters(std::map<int,TrackRecord>& tracks,
-		const int MoID,
-		const int DoAID, const int DoBID,
-		const int frameNo)
+	void reportNewBornDaughters(const int MoID,
+	                            const int DoAID, const int DoBID,
+	                            const int frameNo)
 	{
 		//close the mother tracks
-		tracks[MoID].toTimeStamp=frameNo-1;
+		(*this)[MoID].toTimeStamp = frameNo-1;
 
 		//start up two new daughter tracks
-		tracks[DoAID].fromTimeStamp=frameNo;
-		tracks[DoAID].toTimeStamp=-1;
-		tracks[DoAID].parentID=MoID;
-
-		tracks[DoBID].fromTimeStamp=frameNo;
-		tracks[DoBID].toTimeStamp=-1;
-		tracks[DoBID].parentID=MoID;
+		(*this)[DoAID] = TrackRecord(DoAID,frameNo,-1,MoID);
+		(*this)[DoBID] = TrackRecord(DoBID,frameNo,-1,MoID);
 	}
 
 	/** closes the track ID at time point frameNo */
-	static
-	void CloseTrack(std::map<int,TrackRecord>& tracks,
-		const int ID, const int frameNo)
+	void closeTrack(const int ID, const int frameNo)
 	{
-		tracks[ID].toTimeStamp = frameNo;
+		(*this)[ID].toTimeStamp = frameNo;
+	}
+
+	void exportAllToFile(const char* filename)
+	{
+		// write out the track record:
+		std::map<int,TrackRecord>::const_iterator itTr;
+		std::ofstream of(filename);
+
+		for (itTr = (*this).begin(); itTr != (*this).end(); itTr++)
+		{
+			//export on harddrive (only if the cell has really been displayed at least once)
+			if (itTr->second.toTimeStamp >= itTr->second.fromTimeStamp)
+				of << itTr->second.ID << " "
+					<< itTr->second.fromTimeStamp << " "
+					<< itTr->second.toTimeStamp << " "
+					<< itTr->second.parentID << std::endl;
+		}
+		of.close();
 	}
 };
 #endif
