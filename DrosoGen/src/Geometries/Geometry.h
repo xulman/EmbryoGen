@@ -25,11 +25,32 @@ public:
 		reset();
 	}
 
-	/** resets the BB (make it ready for someone to start filling it) */
+
+	/** resets AABB (make it ready for someone to start filling it) */
 	void inline reset(void)
 	{
 		minCorner = FLOAT(+999999999.0);
 		maxCorner = FLOAT(-999999999.0);
+	}
+
+
+	/** returns SQUARED shortest distance along any axis between this and
+	    the given AABB, or 0.0 if they intersect */
+	FLOAT minDistance(const AxisAlignedBoundingBox& AABB) const
+	{
+		FLOAT M = std::max(minCorner.x,AABB.minCorner.x);
+		FLOAT m = std::min(maxCorner.x,AABB.maxCorner.x);
+		FLOAT dx = M > m ? M-m : 0; //min dist along x-axis
+
+		M = std::max(minCorner.y,AABB.minCorner.y);
+		m = std::min(maxCorner.y,AABB.maxCorner.y);
+		FLOAT dy = M > m ? M-m : 0; //min dist along y-axis
+
+		M = std::max(minCorner.z,AABB.minCorner.z);
+		m = std::min(maxCorner.z,AABB.maxCorner.z);
+		FLOAT dz = M > m ? M-m : 0; //min dist along z-axis
+
+		return (dx*dx + dy*dy + dz*dz);
 	}
 };
 
