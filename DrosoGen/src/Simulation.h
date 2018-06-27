@@ -15,8 +15,18 @@
 #include "DisplayUnits/SceneryBufferedDisplayUnit.h"
 #include "DisplayUnits/BroadcasterDisplayUnit.h"
 
-/** This class contains all simulation agents, scene and simulation
-    parameters, and takes care of the iterations of the simulation */
+/**
+ * This class contains all simulation agents, scene and simulation
+ * parameters, and takes care of the iterations of the simulation.
+ *
+ * Essentially, the simulation is initiated with this class's constructor,
+ * iterations happen in the execute() method and the simulation is closed
+ * in this class's destructor. The execute() goes over all simulation agents
+ * and calls their methods (via AbstractAgent methods) in the correct order etc.
+ * The execute() is essentially a "commanding" method.
+ *
+ * Author: Vladimir Ulman, 2018
+ */
 class Simulation
 {
 private:
@@ -28,9 +38,10 @@ private:
 	//bbox size around the embryo: 480,220,220 um
 	//bbox size around the embryo: 1180,540,110 px
 
-	//set up the environment
-	const Vector3d<float> sceneOffset; //[micrometer]
-	const Vector3d<float> sceneSize;   //[micrometer]
+	/** set up the environment: offset of the scene [micrometer] */
+	const Vector3d<float> sceneOffset;
+	/** set up the environment: size of the scene [micrometer] */
+	const Vector3d<float> sceneSize;
 
 	// --------------------------------------------------
 
@@ -38,50 +49,45 @@ private:
 	//const Vector3d<float>  imgRes(2.46f,2.46f,0.49f); //[pixels per micrometer]
 	//
 	//my res
-	const Vector3d<float>  imgRes;  //[pixels per micrometer]
-	const Vector3d<size_t> imgSize; //[pixels]
+	/** resolution of the output (phantom & mask) images [pixels per micrometer] */
+	const Vector3d<float>  imgRes;
 
-	/*
-	imgMaskFilename="Mask%05d.tif";
-	imgPhantomFilename="Phantom%05d.tif";
-	imgFluoFilename="FluoImg%05d.tif";
-	tracksFilename="tracks.txt";
-	*/
+	/** size of the output (phantom & mask) images, [pixels]
+	    it is a function of this->sceneSize and this->imgRes */
+	const Vector3d<size_t> imgSize;
 
-	//output image that will be iteratively re-rendered
+	/** output image into which the simulation will be iteratively rasterized/rendered,
+	    just one image for now... */
 	i3d::Image3d<i3d::GRAY16> img;
 
-	//output display unit
+	/** output display unit into which the simulation will be iteratively rendered */
 	BroadcasterDisplayUnit displayUnit;
 
-	//export counter
+	/** counter of exports/snapshots, used to numerate frames and output image files */
 	int frameCnt = 0;
 
 	// --------------------------------------------------
 
-	/// current global simulation time [min]
+	/** current global simulation time [min] */
 	float currTime = 0.0f;
 
-	/// increment of the current global simulation time, [min]
-	/// represents the time step of one simulatino step
+	/** increment of the current global simulation time, [min]
+	    represents the time step of one simulation step */
 	const float incrTime = 0.1f;
 
-	/// at what global time should the simulation stop [min]
+	/** at what global time should the simulation stop [min] */
 	const float stopTime = 1.2f;
 
-	/// export simulation status always after this amount of global time, [min]
-	/// should be multiple of incrTime
+	/** export simulation status always after this amount of global time, [min]
+	    should be multiple of incrTime to obtain regular sampling */
 	const float expoTime = 0.5f;
 
 	// --------------------------------------------------
 
-	//the list of all agents
+	/** list of all agents currently active in the simulation */
 	std::list<AbstractAgent*> agents;
 
-	//list of agents to be removed
-	std::list<AbstractAgent*> dead_agents;
-
-	//the structure to hold all track data
+	/** structure to hold durations of tracks and the mother-daughter relations */
 	TrackRecords tracks;
 
 	// --------------------------------------------------
@@ -148,57 +154,6 @@ public:
 				(*c)->updateGeometry();
 			}
 
-			// -------------------------------------
-
-			//remove removable (can't run in parallel)
-			c=dead_agents.begin();
-			while (c != dead_agents.end())
-			{
-				delete (*c);
-				c=dead_agents.erase(c);
-			}
-
-			//TODO: remove after sometime
-			if (dead_agents.size() != 0)
-				REPORT("CONFUSION: dead_agents IS NOT EMPTY!");
-
-			/*
-			//create removable (can't run in parallel)
-			c=agents.begin();
-			while (c != agents.end())
-			{
-				if ((*c)->shouldDie)
-				{
-					//schedule this one for removal
-					dead_agents.push_back(*c);
-
-					if (tracks[(*c)->ID].toTimeStamp > -1)
-						REPORT("CONFUSION: dying cell HAS CLOSED TRACK!");
-					tracks[(*c)->ID].toTimeStamp=frameCnt-1;
-
-					c=agents.erase(c);
-					//this removed the agent from the list of active cells,
-					//but does not remove it from the memory!
-					//(so that other agents that still hold _pointer_
-					//on this one in their Cell::listOfFriends lists
-					//can _safely_ notice this one has Cell::shouldDie
-					//flag on and take appropriate action)
-					//
-					//after the next round of Cell::applyForces() is over,
-					//all agents have definitely removed this agent from
-					//their Cell::listOfFriends, that is when we can delete
-					//this agent from the memory
-				}
-				else c++;
-			}
-			*/
-	#ifdef DEBUG
-			if (dead_agents.size() > 0)
-				REPORT(dead_agents.size() << " cells will be removed from memory");
-	#endif
-
-			// -------------------------------------
-
 			// move to the next simulation time point
 			currTime += incrTime;
 			REPORT("--------------- " << currTime << " (" << agents.size() << " agents) ---------------");
@@ -221,7 +176,6 @@ public:
 			delete *iter; *iter = NULL;
 			iter++;
 		}
-		DEBUG_REPORT("all agents were removed...");
 
 		tracks.exportAllToFile("tracks.txt");
 		DEBUG_REPORT("tracks.txt was saved...");

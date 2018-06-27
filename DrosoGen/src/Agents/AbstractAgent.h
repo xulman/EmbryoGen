@@ -88,7 +88,7 @@ protected:
 	/** agent's local time [min] */
 	float currTime;
 
-	/** global time increment, agent needs it for planning [min]*/
+	/** global time increment, agent might need to know it for planning [min] */
 	float incrTime;
 
 
