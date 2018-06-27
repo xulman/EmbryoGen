@@ -66,6 +66,18 @@ private:
 		Officer->getNearbyAgents(this,170.f,l);
 
 		//now process the list
+
+		//ONLY FOR DEBUG !!!!
+		if (l.size() > 0)
+		{
+			DEBUG_REPORT("ID " << ID << ": These are nearby:");
+			for (auto sa = l.begin(); sa != l.end(); sa++)
+			{
+				//we know that geometries are Spheres... for now!
+				const Spheres* s = (Spheres*)&((*sa)->getGeometry());
+				DEBUG_REPORT(s->getCentres()[0]);
+			}
+		}
 	}
 
 	void adjustGeometryByExtForces(void) override
