@@ -1,3 +1,6 @@
+#ifndef SIMULATION_H
+#define SIMULATION_H
+
 #include <list>
 #include <i3d/image3d.h>
 
@@ -6,7 +9,6 @@
 #include "util/Vector3d.h"
 
 #include "Agents/AbstractAgent.h"
-#include "Agents/NucleusAgent.h"
 
 #include "DisplayUnits/VoidDisplayUnit.h"
 #include "DisplayUnits/ConsoleDisplayUnit.h"
@@ -85,7 +87,7 @@ private:
 	// --------------------------------------------------
 
 public:
-	//only initializes the simulation parameters
+	/** initializes the simulation parameters, adds agents, renders the first frame */
 	Simulation(void)
 		: sceneOffset(0.f),             //[micrometer]
 		  sceneSize(480.f,220.f,220.f), //[micrometer]
@@ -122,6 +124,7 @@ public:
 	}
 
 
+	/** does the simulation loops, i.e. calls AbstractAgent's methods in the right order */
 	void execute(void)
 	{
 		//run the simulation
@@ -144,6 +147,8 @@ public:
 				(*c)->adjustGeometryByExtForces();
 				(*c)->updateGeometry();
 			}
+
+			// -------------------------------------
 
 			//remove removable (can't run in parallel)
 			c=dead_agents.begin();
@@ -192,6 +197,8 @@ public:
 				REPORT(dead_agents.size() << " cells will be removed from memory");
 	#endif
 
+			// -------------------------------------
+
 			// move to the next simulation time point
 			currTime += incrTime;
 			REPORT("--------------- " << currTime << " (" << agents.size() << " agents) ---------------");
@@ -202,7 +209,7 @@ public:
 	}
 
 
-	/** the destructor frees simulation agents and creates/writes the tracks.txt file */
+	/** the destructor frees simulation agents, writes the tracks.txt file */
 	~Simulation()
 	{
 		//delete all agents...
@@ -222,94 +229,12 @@ public:
 
 
 private:
-	/**
-	 * Just initializes all agents: positions, weights, etc.,
-	 * and adds them into the this->agents, and into the this->tracks.
-	 */
-	void initializeAgents(void)
-	{
-		//stepping in all directions -> influences the final number of nuclei
-		const float dx = 14.0f;
+	/** Just initializes all agents: positions, weights, etc.,
+	    and adds them into the this->agents, and into the this->tracks. */
+	void initializeAgents(void);
+	void initializeAgents_aFew(void);
 
-		//to obtain a sequence of IDs for new agents...
-		int ID=1;
-
-		//longer axis x
-		//symmetric/short axes y,z
-
-		const float Xside  = (0.9f*sceneSize.x)/2.0f;
-		const float YZside = (0.9f*sceneSize.y)/2.0f;
-
-		for (float z=-Xside; z <= +Xside; z += dx)
-		{
-			//radius at this z position
-			const float radius = YZside * sinf(acosf(fabsf(z)/Xside));
-
-			const int howManyToPlace = (int)ceil(6.28f*radius / dx);
-			for (int i=0; i < howManyToPlace; ++i)
-			{
-				const float ang = float(i)/float(howManyToPlace);
-
-				//the wished position relative to [0,0,0] centre
-				Vector3d<float> pos(z,radius * cosf(ang*6.28f),radius * sinf(ang*6.28f));
-
-				//position is shifted to the scene centre
-				pos.x += sceneSize.x/2.0f;
-				pos.y += sceneSize.y/2.0f;
-				pos.z += sceneSize.z/2.0f;
-
-				//position is shifted due to scene offset
-				pos.x += sceneOffset.x;
-				pos.y += sceneOffset.y;
-				pos.z += sceneOffset.z;
-
-				Spheres s(4);
-				s.updateCentre(0,pos);
-				s.updateRadius(0,4.0f);
-
-				AbstractAgent* ag = new NucleusAgent(ID++,s,currTime,incrTime);
-				agents.push_back(ag);
-				tracks.startNewTrack(ag->ID,frameCnt);
-			}
-		}
-	} //end of initializeAgents()
-
-	void initializeAgents_aFew(void)
-	{
-		//to obtain a sequence of IDs for new agents...
-		int ID=1;
-
-		const float radius = 0.7f*sceneSize.y;
-		const int howManyToPlace = 6;
-
-		for (int i=0; i < howManyToPlace; ++i)
-		{
-			const float ang = float(i)/float(howManyToPlace);
-
-			//the wished position relative to [0,0,0] centre
-			Vector3d<float> pos(radius * cosf(ang*6.28f),radius * sinf(ang*6.28f),0.0f);
-
-			//position is shifted to the scene centre
-			pos.x += sceneSize.x/2.0f;
-			pos.y += sceneSize.y/2.0f;
-			pos.z += sceneSize.z/2.0f;
-
-			//position is shifted due to scene offset
-			pos.x += sceneOffset.x;
-			pos.y += sceneOffset.y;
-			pos.z += sceneOffset.z;
-
-			Spheres s(4);
-			s.updateCentre(0,pos);
-			s.updateRadius(0,4.0f);
-
-			AbstractAgent* ag = new NucleusAgent(ID++,s,currTime,incrTime);
-			agents.push_back(ag);
-			tracks.startNewTrack(ag->ID,frameCnt);
-		}
-	}
-
-
+	/** Asks all agents to render and raster their state into this.displayUnit and this.img */
 	void renderNextFrame(void)
 	{
 		static char fn[1024];
@@ -336,12 +261,5 @@ private:
 		REPORT_NOENDL("Wait for key [and press Enter]: ");
 		std::cin >> fn[0];
 	}
-}; //end of the Simulation class
-
-
-int main(void)
-{
-	Simulation s;    //init and render the first frame
-	s.execute();     //execute the simulation
-	return(0);       //closes the simulation (as a side effect)
-}
+};
+#endif
