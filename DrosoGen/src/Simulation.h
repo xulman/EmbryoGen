@@ -229,6 +229,32 @@ public:
 	}
 
 
+	/** Fills the list 'l' of ShadowAgents that are no further than maxDist
+	    parameter [micrometer]. The distance is examined as the distance
+	    between AABBs (axis-aligned bounding boxes) of the ShadowAgents
+	    and the given ShadowAgent. */
+	void getNearbyAgents(const ShadowAgent* const fromSA,   //reference agent
+	                     const float maxDist,               //threshold dist
+	                     std::list<const ShadowAgent*>& l)  //output list
+	{
+		//cache fromSA's bounding box
+		const AxisAlignedBoundingBox& fromAABB = fromSA->getAABB();
+		const float maxDist2 = maxDist*maxDist;
+
+		//examine all agents
+		std::list<AbstractAgent*>::const_iterator c=agents.begin();
+		for (; c != agents.end(); c++)
+		{
+			//don't evaluate against itself
+			if (*c == fromSA) continue;
+
+			//close enough?
+			if (fromAABB.minDistance((*c)->getAABB()) < maxDist2)
+				l.push_back(*c);
+		}
+	}
+
+
 private:
 	/** Just initializes all agents: positions, weights, etc.,
 	    and adds them into the this->agents, and into the this->tracks. */

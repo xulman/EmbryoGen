@@ -61,6 +61,11 @@ private:
 		//  be able to cache the result... since real AbstractAgents from the same tile
 		//  could ask for the same calculation, however ShadowAgents (that are AbstractAgents
 		//  in some other tile) will never ask and so calculations to these need not be cached]
+
+		std::list<const ShadowAgent*> l;
+		Officer->getNearbyAgents(this,170.f,l);
+
+		//now process the list
 	}
 
 	void adjustGeometryByExtForces(void) override
@@ -69,6 +74,9 @@ private:
 
 	void updateGeometry(void) override
 	{
+
+		//update AABB
+		geometry.setAABB();
 	}
 
 	// ------------- rendering -------------
