@@ -1,7 +1,7 @@
 #ifndef CONSOLEDISPLAYUNIT_H
 #define CONSOLEDISPLAYUNIT_H
 
-#include "../report.h"
+#include "../util/report.h"
 #include "DisplayUnit.h"
 
 /**

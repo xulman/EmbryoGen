@@ -68,7 +68,7 @@ endif()
 set(SOURCES
 		  src/DisplayUnits/SceneryDisplayUnit.cpp
 		  src/DisplayUnits/SceneryBufferedDisplayUnit.cpp
-		  src/rnd_generators.cpp
+		  src/util/rnd_generators.cpp
 		  src/sim_main.cpp)
 
 #---------

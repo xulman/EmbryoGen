@@ -1,7 +1,7 @@
 #ifndef DISPLAYUNIT_H
 #define DISPLAYUNIT_H
 
-#include "../Vector3d.h"
+#include "../util/Vector3d.h"
 
 /**
  * This class is essentially only a collection of (empty) functions

@@ -2,7 +2,7 @@
 #define MASKIMG_H
 
 #include <i3d/image3d.h>
-#include "../report.h"
+#include "../util/report.h"
 #include "Geometry.h"
 
 /**

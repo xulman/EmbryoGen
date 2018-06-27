@@ -2,7 +2,7 @@
 #define GEOMETRY_H
 
 #include <list>
-#include "../Vector3d.h"
+#include "../util/Vector3d.h"
 
 /** accuracy of the geometry representation, choose float or double */
 #define FLOAT float

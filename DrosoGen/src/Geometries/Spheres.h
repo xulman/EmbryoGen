@@ -1,7 +1,7 @@
 #ifndef SPHERES_H
 #define SPHERES_H
 
-#include "../report.h"
+#include "../util/report.h"
 #include "Geometry.h"
 
 /**

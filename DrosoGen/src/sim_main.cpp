@@ -1,9 +1,9 @@
 #include <list>
 #include <i3d/image3d.h>
 
-#include "report.h"
+#include "util/report.h"
 #include "TrackRecord.h"
-#include "Vector3d.h"
+#include "util/Vector3d.h"
 
 #include "Agents/AbstractAgent.h"
 #include "Agents/NucleusAgent.h"
