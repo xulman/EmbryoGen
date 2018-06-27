@@ -1,8 +1,7 @@
-#ifndef TOOLS_H
-#define TOOLS_H
+#ifndef TRACKRECORD_H
+#define TRACKRECORD_H
 
 #include <map>
-#include <iostream>
 
 /// a datatype for keeping records of tracks
 struct TrackRecord
@@ -29,7 +28,7 @@ struct TrackRecord
 	/** MoID mother got divided into DoAID and DoBID daughters
 	    who came to being at frameNo, mother was last seen at frameNo-1.
 	    It is also assumed that mother's track record is already existing. */
-	static 
+	static
 	void ReportNewBornDaughters(std::map<int,TrackRecord>& tracks,
 		const int MoID,
 		const int DoAID, const int DoBID,
@@ -56,18 +55,4 @@ struct TrackRecord
 		tracks[ID].toTimeStamp = frameNo;
 	}
 };
-
-
-/// helper macro to unify reports:
-#define REPORT(x)        std::cout << __FUNCTION__ << "(): " << x << std::endl;
-#define REPORT_NOENDL(x) std::cout << __FUNCTION__ << "(): " << x;
-
-#ifdef DEBUG
-	#define DEBUG_REPORT(x)         REPORT(x)
-	#define DEBUG_REPORT_NOENDL(x)  REPORT_NOENDL(x)
-#else
-	#define DEBUG_REPORT(x)
-	#define DEBUG_REPORT_NOENDL(x)
-#endif
-
 #endif
