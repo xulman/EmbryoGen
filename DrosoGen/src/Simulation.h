@@ -89,11 +89,12 @@ private:
 
 	/** structure to hold durations of tracks and the mother-daughter relations */
 	TrackRecords tracks;
+	bool tracksSaved = false;
 
 	// --------------------------------------------------
 
 public:
-	/** initializes the simulation parameters, adds agents, renders the first frame */
+	/** initializes the simulation parameters */
 	Simulation(void)
 		: sceneOffset(0.f),             //[micrometer]
 		  sceneSize(480.f,220.f,220.f), //[micrometer]
@@ -102,14 +103,10 @@ public:
                 (size_t)ceil(sceneSize.y * imgRes.y),
                 (size_t)ceil(sceneSize.z * imgRes.z))
 	{
-		REPORT("scene size: "
+		REPORT("scene size will be: "
 		  << sceneSize.x << " x " << sceneSize.y << " x " << sceneSize.z
 		  << " um =  "
 		  << imgSize.x << " x " << imgSize.y << " x " << imgSize.z << " px");
-
-		//output image that will be iteratively re-rendered
-		img.MakeRoom(imgSize.x,imgSize.y,imgSize.z);
-		img.SetResolution(i3d::Resolution(imgRes.x,imgRes.y,imgRes.z));
 
 		//init display/export units,
 		//and make them persistent (to survive after this method is finished)
@@ -119,12 +116,19 @@ public:
 
 		displayUnit.RegisterUnit(cDU);
 		//displayUnit.RegisterUnit(sDU);
+	}
 
-		// --------------------------------------------------
+
+	/** allocates output images, adds agents, renders the first frame */
+	void init(void)
+	{
+		//output image that will be iteratively re-rendered
+		img.MakeRoom(imgSize.x,imgSize.y,imgSize.z);
+		img.SetResolution(i3d::Resolution(imgRes.x,imgRes.y,imgRes.z));
 
 		//initializeAgents();
 		initializeAgents_aFew();
-		REPORT("--init--------- " << currTime << " (" << agents.size() << " agents) ---------------");
+		REPORT("--------------- " << currTime << " (" << agents.size() << " agents) ---------------");
 
 		renderNextFrame();
 	}
@@ -186,8 +190,8 @@ public:
 	}
 
 
-	/** the destructor frees simulation agents, writes the tracks.txt file */
-	~Simulation()
+	/** frees simulation agents, writes the tracks.txt file */
+	void close(void)
 	{
 		//delete all agents...
 		std::list<AbstractAgent*>::iterator iter=agents.begin();
@@ -200,7 +204,19 @@ public:
 		}
 
 		tracks.exportAllToFile("tracks.txt");
+		tracksSaved = true;
 		DEBUG_REPORT("tracks.txt was saved...");
+	}
+
+
+	/** tries to save tracks.txt at least, if not done earlier */
+	~Simulation(void)
+	{
+		if (!tracksSaved)
+		{
+			tracks.exportAllToFile("tracks.txt");
+			DEBUG_REPORT("tracks.txt was saved...");
+		}
 	}
 
 
