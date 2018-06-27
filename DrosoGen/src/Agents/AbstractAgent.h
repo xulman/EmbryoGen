@@ -98,28 +98,45 @@ protected:
 
 public:
 	// ------------- to implement one round of simulation -------------
+	/** reports the agent's current local time */
+	float getLocalTime(void) const
+	{
+		return currTime;
+	}
+
 	/** This is where agent's internal affairs happen, e.g., development
 	    of agent's state (other simulated sub-objects, texture), movement,
 	    chemotaxis smelling etc., the agent signals its will to change
-	    shape by creating (internal) forces. */
+	    shape by creating (internal) forces.
+
+	    The agent is expected to develop its simulation to at least the given
+	    futureGlobalTime, which is where the current simulation round will
+	    end up. Should the agent be using different local time step than the
+	    global one (this->incrTime), this might require no activity from the agent
+	    or, the opposite, might require multiple local iterations if the agent
+	    uses smaller time step than the global one. In any case, the agent must
+	    keep itself in synchrony with the global time.
+
+	    This is method implements agent's development (e.g. the process of growth).
+	    It should, therefore, be concluded with adjusting the local time. */
 	virtual
-	void advanceAndBuildIntForces(void) =0;
+	void advanceAndBuildIntForces(const float futureGlobalTime) =0;
 
 	/** This is where agent's shape (geometry) change is implemented as
-	    a result of the acting of internal forces. */
+	    a result of the acting of internal forces. Don't call updateGeometry()
+	    as it will be triggered from the outside automatically. */
 	virtual
 	void adjustGeometryByIntForces(void) =0;
 
 	/** This is where agent's interaction with its surrounding happen,
 	    e.g. with other agents, ECM, force fields such as gravity etc.,
-	    and shape changes is requested by creating (external) forces. */
+	    and shape change is requested by creating (external) forces. */
 	virtual
 	void collectExtForces(void) =0;
 
 	/** This is where agent's shape (geometry) change is implemented as
-	    a result of the acting of external forces. This method is typically
-	    called at the end of one round of simulation and so it is a good
-	    adept for where to call this.updateGeometry(). */
+	    a result of the acting of external forces. Don't call updateGeometry()
+	    as it will be triggered from the outside automatically. */
 	virtual
 	void adjustGeometryByExtForces(void) =0;
 

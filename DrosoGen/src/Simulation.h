@@ -133,19 +133,30 @@ public:
 	/** does the simulation loops, i.e. calls AbstractAgent's methods in the right order */
 	void execute(void)
 	{
-		//run the simulation
+		//run the simulation rounds, one after another one
 		while (currTime < stopTime)
 		{
-			//obtain develop new shapes... (can run in parallel)
+			//one simulation round is happening here
+
+			//after this simulation round is done, all agents should
+			//reach local times greater than this global time
+			const float futureTime = currTime + incrTime -0.0001f;
+
+			//develop (willingly) new shapes... (can run in parallel)
 			std::list<AbstractAgent*>::iterator c=agents.begin();
 			for (; c != agents.end(); c++)
 			{
-				(*c)->advanceAndBuildIntForces();
+				(*c)->advanceAndBuildIntForces(futureTime);
 				(*c)->adjustGeometryByIntForces();
+
+				#ifdef DEBUG
+				if ((*c)->getLocalTime() < futureTime)
+					throw new std::runtime_error("Simulation::execute(): Agent is not synchronized.");
+				#endif
 				(*c)->updateGeometry();
 			}
 
-			//react to the new geometries ... (can run in parallel)
+			//react (unwillingly) to the new geometries... (can run in parallel)
 			c=agents.begin();
 			for (; c != agents.end(); c++)
 			{

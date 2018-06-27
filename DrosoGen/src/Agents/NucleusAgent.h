@@ -36,8 +36,11 @@ private:
 	Spheres futureGeometry;
 
 	// ------------- to implement one round of simulation -------------
-	void advanceAndBuildIntForces(void) override
+	void advanceAndBuildIntForces(const float) override
 	{
+
+		//increase the local time of the agent
+		currTime += incrTime;
 	}
 
 	void adjustGeometryByIntForces(void) override
