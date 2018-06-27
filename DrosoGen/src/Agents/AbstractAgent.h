@@ -73,10 +73,14 @@ public:
 class AbstractAgent: public ShadowAgent
 {
 protected:
-	/** Define a new agent in the simulation by giving its ID and its current
-	    geometry (which get's 'forwarded' to the ShadowAgent). */
-	AbstractAgent(const int _ID, Geometry& geometryContainer)
-		: ShadowAgent(geometryContainer), ID(_ID) {};
+	/** Define a new agent in the simulation by giving its ID, its current
+	    geometry (which get's 'forwarded' to the ShadowAgent), and
+	    current global time as well as global time increment. */
+	AbstractAgent(const int _ID, Geometry& geometryContainer,
+	              const float _currTime, const float _incrTime)
+		: ShadowAgent(geometryContainer),
+		  currTime(_currTime), incrTime(_incrTime),
+		  ID(_ID) {};
 
 public:
 	/** Please, override in inherited classes (see docs of AbstractAgent). */

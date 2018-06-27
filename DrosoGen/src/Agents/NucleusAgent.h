@@ -9,14 +9,11 @@
 class NucleusAgent: public AbstractAgent
 {
 public:
-	NucleusAgent(const int _ID, const Spheres& _shape,
-	             const float _currTime, const float _incrTime)
-		: AbstractAgent(_ID,*(new Spheres(_shape))),
-		  futureGeometry(_shape)
+	NucleusAgent(const int ID, const Spheres& shape,
+	             const float currTime, const float incrTime)
+		: AbstractAgent(ID,*(new Spheres(shape)),currTime,incrTime),
+		  futureGeometry(shape)
 	{
-		currTime = _currTime;
-		incrTime = _incrTime;
-
 		curPhase = G1Phase;
 
 		DEBUG_REPORT("Nucleus with ID=" << ID << " was just created");
