@@ -25,6 +25,14 @@
  * and calls their methods (via AbstractAgent methods) in the correct order etc.
  * The execute() is essentially a "commanding" method.
  *
+ * Every agent, however, needs to examine its surrounding environment, e.g.
+ * calculate distances to his neighbors, during its operation. To realize this,
+ * a set of "callback" functions is provided in this class. Namely, a rough
+ * distance (based on bounding boxes) and detailed (and computationally
+ * expensive) distance measurements. The latter will be cached. Both
+ * methods must be able to handle multi-threaded situation (should be
+ * re-entrant).
+ *
  * Author: Vladimir Ulman, 2018
  */
 class Simulation
@@ -158,6 +166,7 @@ public:
 					throw new std::runtime_error("Simulation::execute(): Agent is not synchronized.");
 				#endif
 			}
+
 			//propagate current internal geometries to the exported ones... (can run in parallel)
 			c=agents.begin();
 			for (; c != agents.end(); c++)

@@ -49,6 +49,18 @@ private:
 
 	void collectExtForces(void) override
 	{
+		//scheduler, please give me ShadowAgents that are not further than myself-given delta
+		//(and the distance is evaluated based on distances of AABBs)
+		//
+		// [scheduler will consider also ShadowAgents from neighboring tiles]
+
+		//those on the list are ShadowAgents who are potentially close enough to interact with me
+		//and these I need to inspect closely
+		//
+		// [there will be a scheduler function for the detailed distance calculation to
+		//  be able to cache the result... since real AbstractAgents from the same tile
+		//  could ask for the same calculation, however ShadowAgents (that are AbstractAgents
+		//  in some other tile) will never ask and so calculations to these need not be cached]
 	}
 
 	void adjustGeometryByExtForces(void) override
