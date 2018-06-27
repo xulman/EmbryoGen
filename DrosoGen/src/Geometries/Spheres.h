@@ -89,23 +89,14 @@ public:
 		for (int i=0; i < noOfSpheres; ++i)
 		if (radii[i] > 0.f)
 		{
-			if (centres[i].x-radii[i] < AABB.minCorner.x)
-				AABB.minCorner.x = centres[i].x-radii[i];
+			AABB.minCorner.x = std::min(AABB.minCorner.x, centres[i].x-radii[i]);
+			AABB.maxCorner.x = std::max(AABB.maxCorner.x, centres[i].x+radii[i]);
 
-			if (centres[i].x+radii[i] > AABB.maxCorner.x)
-				AABB.maxCorner.x = centres[i].x+radii[i];
+			AABB.minCorner.y = std::min(AABB.minCorner.y, centres[i].y-radii[i]);
+			AABB.maxCorner.y = std::max(AABB.maxCorner.y, centres[i].y+radii[i]);
 
-			if (centres[i].y-radii[i] < AABB.minCorner.y)
-				AABB.minCorner.y = centres[i].y-radii[i];
-
-			if (centres[i].y+radii[i] > AABB.maxCorner.y)
-				AABB.maxCorner.y = centres[i].y+radii[i];
-
-			if (centres[i].z-radii[i] < AABB.minCorner.z)
-				AABB.minCorner.z = centres[i].z-radii[i];
-
-			if (centres[i].z+radii[i] > AABB.maxCorner.z)
-				AABB.maxCorner.z = centres[i].z+radii[i];
+			AABB.minCorner.z = std::min(AABB.minCorner.z, centres[i].z-radii[i]);
+			AABB.maxCorner.z = std::max(AABB.maxCorner.z, centres[i].z+radii[i]);
 		}
 	}
 
