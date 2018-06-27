@@ -16,13 +16,13 @@
 class SceneryBufferedDisplayUnit : public SceneryDisplayUnit
 {
 public:
-	SceneryBufferedDisplayUnit(const std::string& _hostUrl) :
-		SceneryDisplayUnit(_hostUrl)
+	SceneryBufferedDisplayUnit(const std::string& _hostUrl)
+		: SceneryDisplayUnit(_hostUrl)
 	{ }
 	//NB: relying on the fact that Buffered* are initiated below
 
-	SceneryBufferedDisplayUnit(const char* _hostUrl) :
-		SceneryDisplayUnit(_hostUrl)
+	SceneryBufferedDisplayUnit(const char* _hostUrl)
+		: SceneryDisplayUnit(_hostUrl)
 	{ }
 
 	//destructor is used from the parent
@@ -30,25 +30,25 @@ public:
 	void DrawPoint(const int ID,
 	               const Vector3d<float>& pos,
 	               const float radius = 1.0f,
-	               const int color = 0);
+	               const int color = 0) override;
 
 	void DrawLine(const int ID,
 	              const Vector3d<float>& posA,
 	              const Vector3d<float>& posB,
-	              const int color = 0);
+	              const int color = 0) override;
 
 	void DrawVector(const int ID,
 	                const Vector3d<float>& pos,
 	                const Vector3d<float>& vector,
-	                const int color = 0);
+	                const int color = 0) override;
 
 	void DrawTriangle(const int ID,
 	                  const Vector3d<float>& posA,
 	                  const Vector3d<float>& posB,
 	                  const Vector3d<float>& posC,
-	                  const int color = 0);
+	                  const int color = 0) override;
 
-	void Flush(void);
+	void Flush(void) override;
 
 	void InitBuffers(void)
 	{

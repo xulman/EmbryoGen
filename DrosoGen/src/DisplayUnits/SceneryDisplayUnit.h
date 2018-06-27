@@ -16,14 +16,14 @@
 class SceneryDisplayUnit : public DisplayUnit
 {
 public:
-	SceneryDisplayUnit(const std::string& _hostUrl) :
-		hostUrl(_hostUrl)
+	SceneryDisplayUnit(const std::string& _hostUrl)
+		: hostUrl(_hostUrl)
 	{
 		ConnectToHost();
 	}
 
-	SceneryDisplayUnit(const char* _hostUrl) :
-		hostUrl(_hostUrl)
+	SceneryDisplayUnit(const char* _hostUrl)
+		: hostUrl(_hostUrl)
 	{
 		ConnectToHost();
 	}
@@ -37,23 +37,23 @@ public:
 	void DrawPoint(const int ID,
 	               const Vector3d<float>& pos,
 	               const float radius = 1.0f,
-	               const int color = 0);
+	               const int color = 0) override;
 
 	void DrawLine(const int ID,
 	              const Vector3d<float>& posA,
 	              const Vector3d<float>& posB,
-	              const int color = 0);
+	              const int color = 0) override;
 
 	void DrawVector(const int ID,
 	                const Vector3d<float>& pos,
 	                const Vector3d<float>& vector,
-	                const int color = 0);
+	                const int color = 0) override;
 
 	void DrawTriangle(const int ID,
 	                  const Vector3d<float>& posA,
 	                  const Vector3d<float>& posB,
 	                  const Vector3d<float>& posC,
-	                  const int color = 0);
+	                  const int color = 0) override;
 
 protected:
 	/** URL of the host (a Scenery renderer) to which we are connected */
