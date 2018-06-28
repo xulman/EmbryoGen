@@ -108,9 +108,6 @@ struct ProximityPair
 	}
 };
 
-/** A constant to represent no collision situation */
-static std::list<ProximityPair>* const emptyCollisionListPtr = new std::list<ProximityPair>();
-
 
 /** A common ancestor class/type for the Spheres, Mesh and Mask Image
     representations of agent's geometry. It defines (pure virtual) methods
@@ -140,14 +137,37 @@ public:
 	    bounding box to outline where the agent lives in the scene */
 	AxisAlignedBoundingBox AABB;
 
-	/** Calculate and determine collision pairs, if any, between
-	    myself and some other agent. A (scaled) ForceVector<FLOAT> can
-	    be easily constructed from the points of the ProximityPair.
-	    If no collision is found, emptyCollisionListPtr is returned. */
+	/** Calculate and determine proximity and collision pairs, if any,
+	    between myself and some other agent. A (scaled) ForceVector<FLOAT>
+	    can be easily constructed from the points of the ProximityPair.
+	    The discovered ProximityPairs are added to the current list l. */
 	virtual
-	std::list<ProximityPair>*
-	getDistance(const Geometry& otherGeometry) const =0;
+	void getDistance(const Geometry& otherGeometry,
+	                 std::list<ProximityPair>& l) const =0;
 
+protected:
+	/** Helper routine to complement getDistance() with the symmetric cases.
+	    For example, to provide measurement between Mesh and Spheres when
+	    there is an implementation between Spheres and Mesh. In the symmetric
+	    case, the getDistance() is in a reversed/symmetric setting and the
+	    ProximityPairs are reversed afterwards (to make 'local' relevant to
+	    this object). */
+	void getSymmetricDistance(const Geometry& otherGeometry,
+	                          std::list<ProximityPair>& l) const
+	{
+		//setup a new list for the symmetric case...
+		std::list<ProximityPair> nl;
+		otherGeometry.getDistance(*this,nl);
+
+		//...and reverse ProximityPairs afterwards
+		for (auto p = nl.begin(); p != nl.end(); ++p) p->swap();
+
+		//"return" the original list with the new one
+		l.splice(l.end(),nl);
+	}
+
+
+public:
 	/** sets the given AABB to reflect the current geometry */
 	virtual
 	void setAABB(AxisAlignedBoundingBox& AABB) const =0;

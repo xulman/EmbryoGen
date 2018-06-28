@@ -22,12 +22,9 @@ public:
 
 
 	/** calculate min distance between myself and some foreign agent */
-	std::list<ProximityPair>*
-	getDistance(const Geometry& otherGeometry) const override
+	void getDistance(const Geometry& otherGeometry,
+	                 std::list<ProximityPair>& l) const override
 	{
-		//default return value
-		std::list<ProximityPair>* l = emptyCollisionListPtr;
-
 		switch (otherGeometry.shapeForm)
 		{
 		case ListOfShapeForms::Spheres:
@@ -45,8 +42,6 @@ public:
 		default:
 			throw new std::runtime_error("Geometry::getDistance(): Not supported combination of shape representations.");
 		}
-
-		return l;
 	}
 
 
