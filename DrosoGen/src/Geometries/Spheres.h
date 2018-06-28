@@ -130,6 +130,7 @@ public:
 				p.localPos += (    +radii[im]/dp.len()) * dp;
 				p.otherPos += (-radiiO[bestI]/dp.len()) * dp;
 
+				//NB: a copy is of the ProximityPair 'p' is created while pushing...
 				l.push_back(p);
 			}
 		}

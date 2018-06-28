@@ -1,6 +1,7 @@
 #ifndef NUCLEUSAGENT_H
 #define NUCLEUSAGENT_H
 
+#include <list>
 #include "../util/report.h"
 #include "AbstractAgent.h"
 #include "CellCycle.h"
@@ -36,7 +37,18 @@ private:
 	// ------------- internals geometry -------------
 	/** reference to my exposed geometry ShadowAgents::geometry */
 	Spheres geometryAlias;
+
+	/** my internal representation of my geometry, which is exactly
+	    of the same form as my ShadowAgent::geometry, even the same noOfSpheres */
 	Spheres futureGeometry;
+
+	// ------------- externals geometry -------------
+	/** limiting distance beyond which I consider no interaction possible
+	    with other nuclei */
+	float ignoreDistance = 85.f;
+
+	/** locations of possible interaction with nearby nuclei */
+	std::list<ProximityPair> proximityPairs;
 
 	// ------------- to implement one round of simulation -------------
 	void advanceAndBuildIntForces(const float) override
@@ -48,41 +60,48 @@ private:
 
 	void adjustGeometryByIntForces(void) override
 	{
+		//update my futureGeometry
 	}
 
 	void collectExtForces(void) override
 	{
-		//scheduler, please give me ShadowAgents that are not further than myself-given delta
+		//scheduler, please give me ShadowAgents that are not further than ignoreDistance
 		//(and the distance is evaluated based on distances of AABBs)
-		//
-		// [scheduler will consider also ShadowAgents from neighboring tiles]
-
-		//those on the list are ShadowAgents who are potentially close enough to interact with me
-		//and these I need to inspect closely
-		//
-		// [there will be a scheduler function for the detailed distance calculation to
-		//  be able to cache the result... since real AbstractAgents from the same tile
-		//  could ask for the same calculation, however ShadowAgents (that are AbstractAgents
-		//  in some other tile) will never ask and so calculations to these need not be cached]
-
 		std::list<const ShadowAgent*> l;
-		Officer->getNearbyAgents(this,170.f,l);
+		Officer->getNearbyAgents(this,ignoreDistance,l);
 
-		//now process the list
+		//DEBUG_REPORT("Found " << l.size() << " nearby agents");
+
+		//those on the list are ShadowAgents who are potentially close enough
+		//to interact with me and these I need to inspect closely
+		proximityPairs.clear();
+		for (auto sa = l.begin(); sa != l.end(); ++sa)
+			geometry.getDistance((*sa)->getGeometry(),proximityPairs);
+
+		//now, postprocess the proximityPairs
 	}
 
 	void adjustGeometryByExtForces(void) override
 	{
+		//update my futureGeometry
 	}
 
 	void updateGeometry(void) override
 	{
+		//promote my futureGeometry to my geometry, which happens
+		//to be overlaid/mapped-over with geometryAlias (see the constructor)
+		for (int i=0; i < geometryAlias.noOfSpheres; ++i)
+		{
+			geometryAlias.centres[i] = futureGeometry.centres[i];
+			geometryAlias.radii[i]   = futureGeometry.radii[i];
+		}
 
 		//update AABB
-		geometry.setAABB();
+		geometryAlias.Geometry::setAABB();
 	}
 
 	// ------------- rendering -------------
+
 	void drawMask(DisplayUnit& du) override
 	{
 		int i=0;
@@ -90,6 +109,12 @@ private:
 		{
 			du.DrawPoint(ID,futureGeometry.centres[i],futureGeometry.radii[i],(curPhase < 3? 2:3));
 			++i;
+		}
+
+		if (ID == 1 || ID == 3)
+		{
+			for (auto& p : proximityPairs)
+				du.DrawVector(ID, p.localPos, p.otherPos-p.localPos);
 		}
 	}
 };
