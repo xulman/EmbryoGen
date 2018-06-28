@@ -7,6 +7,9 @@
 /** accuracy of the geometry representation, choose float or double */
 #define FLOAT float
 
+/** a coordinate value that is way far outside of any scene... [micrometers] */
+#define TOOFAR 999999999
+
 /** An x,y,z-axes aligned 3D bounding box for approximate representation of agent's geometry */
 class AxisAlignedBoundingBox
 {
@@ -29,8 +32,8 @@ public:
 	/** resets AABB (make it ready for someone to start filling it) */
 	void inline reset(void)
 	{
-		minCorner = FLOAT(+999999999.0);
-		maxCorner = FLOAT(-999999999.0);
+		minCorner = +TOOFAR;
+		maxCorner = -TOOFAR;
 	}
 
 
