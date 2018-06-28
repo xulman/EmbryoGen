@@ -364,7 +364,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 
 	/** cell forces are typically small in magnitude compared to the cell size,
 	    this defines the current magnification applied when displaying the force vectors */
-	private float vectorsStretch = 1000.f;
+	private float vectorsStretch = 1.f;
 
 	public
 	void ToggleDisplayCells()

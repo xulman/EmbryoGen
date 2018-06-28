@@ -100,11 +100,11 @@ public class CommandScene implements Runnable
 			scene.ToggleDisplayVectors();
 			break;
 		case 'v':
-			scene.setVectorsStretch(scene.getVectorsStretch()-100.f);
+			scene.setVectorsStretch(0.80f * scene.getVectorsStretch());
 			System.out.println("new vector stretch: "+scene.getVectorsStretch());
 			break;
 		case 'V':
-			scene.setVectorsStretch(scene.getVectorsStretch()+100.f);
+			scene.setVectorsStretch(1.25f * scene.getVectorsStretch());
 			System.out.println("new vector stretch: "+scene.getVectorsStretch());
 			break;
 
