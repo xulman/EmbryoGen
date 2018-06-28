@@ -4,6 +4,7 @@
 #include <i3d/image3d.h>
 #include "../DisplayUnits/DisplayUnit.h"
 #include "../Geometries/Geometry.h"
+class Simulation;
 
 /**
  * This class is essentially only a read-only representation of
@@ -87,7 +88,18 @@ public:
 	virtual
 	~AbstractAgent() {};
 
+	/** (re)sets the officer to which this agent belongs to */
+	void setOfficer(Simulation* _officer)
+	{
+		if (_officer == NULL)
+			throw new std::runtime_error("AbstractAgent::setOfficer(): got NULL new Officer.");
+
+		Officer = _officer;
+	}
+
 protected:
+	Simulation* Officer = NULL;
+
 	// ------------- local time -------------
 	/** agent's local time [min] */
 	float currTime;

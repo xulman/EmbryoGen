@@ -21,17 +21,14 @@ public:
 	}
 
 
-	/** calculate min distance between myself and some foreign agent */
-	std::list<ProximityPair>*
-	getDistance(const Geometry& otherGeometry) const override
+	/** calculate min surface distance between myself and some foreign agent */
+	void getDistance(const Geometry& otherGeometry,
+	                 std::list<ProximityPair>& l) const override
 	{
-		//default return value
-		std::list<ProximityPair>* l = emptyCollisionListPtr;
-
 		switch (otherGeometry.shapeForm)
 		{
 		case ListOfShapeForms::Spheres:
-			//TODO: attempt to project mesh vertices against the spheres and look for collision
+			//TODO: attempt to project mesh vertices against the spheres (or their AABB) and look for collision
 			REPORT("this.Mesh vs Spheres is not implemented yet!");
 			break;
 		case ListOfShapeForms::Mesh:
@@ -39,14 +36,12 @@ public:
 			REPORT("this.Mesh vs Mesh is not implemented yet!");
 			break;
 		case ListOfShapeForms::MaskImg:
-			//TODO: attempt to project mesh vertices into the mask image and look for collision
-			REPORT("this.Mesh vs MaskImg is not implemented yet!");
+			//find collision "from the other side"
+			getSymmetricDistance(otherGeometry,l);
 			break;
 		default:
 			throw new std::runtime_error("Geometry::getDistance(): Not supported combination of shape representations.");
 		}
-
-		return l;
 	}
 
 

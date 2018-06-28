@@ -1,8 +1,8 @@
 #include "util/Vector3d.h"
 #include "Geometries/Spheres.h"
+#include "Simulation.h"
 #include "Agents/AbstractAgent.h"
 #include "Agents/NucleusAgent.h"
-#include "Simulation.h"
 
 void Simulation::initializeAgents(void)
 {
@@ -46,6 +46,7 @@ void Simulation::initializeAgents(void)
 			s.updateRadius(0,4.0f);
 
 			AbstractAgent* ag = new NucleusAgent(ID++,s,currTime,incrTime);
+			ag->setOfficer(this);
 			agents.push_back(ag);
 			tracks.startNewTrack(ag->ID,frameCnt);
 		}
@@ -58,7 +59,7 @@ void Simulation::initializeAgents_aFew(void)
 	//to obtain a sequence of IDs for new agents...
 	int ID=1;
 
-	const float radius = 0.7f*sceneSize.y;
+	const float radius = 0.4f*sceneSize.y;
 	const int howManyToPlace = 6;
 
 	for (int i=0; i < howManyToPlace; ++i)
@@ -80,9 +81,16 @@ void Simulation::initializeAgents_aFew(void)
 
 		Spheres s(4);
 		s.updateCentre(0,pos);
-		s.updateRadius(0,4.0f);
+		s.updateRadius(0,3.0f);
+		s.updateCentre(1,pos+Vector3d<float>(0,0,6));
+		s.updateRadius(1,5.0f);
+		s.updateCentre(2,pos+Vector3d<float>(0,0,12));
+		s.updateRadius(2,5.0f);
+		s.updateCentre(3,pos+Vector3d<float>(0,0,18));
+		s.updateRadius(3,3.0f);
 
 		AbstractAgent* ag = new NucleusAgent(ID++,s,currTime,incrTime);
+		ag->setOfficer(this);
 		agents.push_back(ag);
 		tracks.startNewTrack(ag->ID,frameCnt);
 	}

@@ -7,6 +7,9 @@
 /** accuracy of the geometry representation, choose float or double */
 #define FLOAT float
 
+/** a coordinate value that is way far outside of any scene... [micrometers] */
+#define TOOFAR 999999999
+
 /** An x,y,z-axes aligned 3D bounding box for approximate representation of agent's geometry */
 class AxisAlignedBoundingBox
 {
@@ -25,11 +28,32 @@ public:
 		reset();
 	}
 
-	/** resets the BB (make it ready for someone to start filling it) */
+
+	/** resets AABB (make it ready for someone to start filling it) */
 	void inline reset(void)
 	{
-		minCorner = FLOAT(+999999999.0);
-		maxCorner = FLOAT(-999999999.0);
+		minCorner = +TOOFAR;
+		maxCorner = -TOOFAR;
+	}
+
+
+	/** returns SQUARED shortest distance along any axis between this and
+	    the given AABB, or 0.0 if they intersect */
+	FLOAT minDistance(const AxisAlignedBoundingBox& AABB) const
+	{
+		FLOAT M = std::max(minCorner.x,AABB.minCorner.x);
+		FLOAT m = std::min(maxCorner.x,AABB.maxCorner.x);
+		FLOAT dx = M > m ? M-m : 0; //min dist along x-axis
+
+		M = std::max(minCorner.y,AABB.minCorner.y);
+		m = std::min(maxCorner.y,AABB.maxCorner.y);
+		FLOAT dy = M > m ? M-m : 0; //min dist along y-axis
+
+		M = std::max(minCorner.z,AABB.minCorner.z);
+		m = std::min(maxCorner.z,AABB.maxCorner.z);
+		FLOAT dz = M > m ? M-m : 0; //min dist along z-axis
+
+		return (dx*dx + dy*dy + dz*dz);
 	}
 };
 
@@ -87,9 +111,6 @@ struct ProximityPair
 	}
 };
 
-/** A constant to represent no collision situation */
-static std::list<ProximityPair>* const emptyCollisionListPtr = new std::list<ProximityPair>();
-
 
 /** A common ancestor class/type for the Spheres, Mesh and Mask Image
     representations of agent's geometry. It defines (pure virtual) methods
@@ -119,14 +140,37 @@ public:
 	    bounding box to outline where the agent lives in the scene */
 	AxisAlignedBoundingBox AABB;
 
-	/** Calculate and determine collision pairs, if any, between
-	    myself and some other agent. A (scaled) ForceVector<FLOAT> can
-	    be easily constructed from the points of the ProximityPair.
-	    If no collision is found, emptyCollisionListPtr is returned. */
+	/** Calculate and determine proximity and collision pairs, if any,
+	    between myself and some other agent. A (scaled) ForceVector<FLOAT>
+	    can be easily constructed from the points of the ProximityPair.
+	    The discovered ProximityPairs are added to the current list l. */
 	virtual
-	std::list<ProximityPair>*
-	getDistance(const Geometry& otherGeometry) const =0;
+	void getDistance(const Geometry& otherGeometry,
+	                 std::list<ProximityPair>& l) const =0;
 
+protected:
+	/** Helper routine to complement getDistance() with the symmetric cases.
+	    For example, to provide measurement between Mesh and Spheres when
+	    there is an implementation between Spheres and Mesh. In the symmetric
+	    case, the getDistance() is in a reversed/symmetric setting and the
+	    ProximityPairs are reversed afterwards (to make 'local' relevant to
+	    this object). */
+	void getSymmetricDistance(const Geometry& otherGeometry,
+	                          std::list<ProximityPair>& l) const
+	{
+		//setup a new list for the symmetric case...
+		std::list<ProximityPair> nl;
+		otherGeometry.getDistance(*this,nl);
+
+		//...and reverse ProximityPairs afterwards
+		for (auto p = nl.begin(); p != nl.end(); ++p) p->swap();
+
+		//"return" the original list with the new one
+		l.splice(l.end(),nl);
+	}
+
+
+public:
 	/** sets the given AABB to reflect the current geometry */
 	virtual
 	void setAABB(AxisAlignedBoundingBox& AABB) const =0;

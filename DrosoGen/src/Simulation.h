@@ -25,6 +25,14 @@
  * and calls their methods (via AbstractAgent methods) in the correct order etc.
  * The execute() is essentially a "commanding" method.
  *
+ * Every agent, however, needs to examine its surrounding environment, e.g.
+ * calculate distances to his neighbors, during its operation. To realize this,
+ * a set of "callback" functions is provided in this class. Namely, a rough
+ * distance (based on bounding boxes) and detailed (and computationally
+ * expensive) distance measurements. The latter will be cached. Both
+ * methods must be able to handle multi-threaded situation (should be
+ * re-entrant).
+ *
  * Author: Vladimir Ulman, 2018
  */
 class Simulation
@@ -158,6 +166,7 @@ public:
 					throw new std::runtime_error("Simulation::execute(): Agent is not synchronized.");
 				#endif
 			}
+
 			//propagate current internal geometries to the exported ones... (can run in parallel)
 			c=agents.begin();
 			for (; c != agents.end(); c++)
@@ -216,6 +225,32 @@ public:
 		{
 			tracks.exportAllToFile("tracks.txt");
 			DEBUG_REPORT("tracks.txt was saved...");
+		}
+	}
+
+
+	/** Fills the list 'l' of ShadowAgents that are no further than maxDist
+	    parameter [micrometer]. The distance is examined as the distance
+	    between AABBs (axis-aligned bounding boxes) of the ShadowAgents
+	    and the given ShadowAgent. */
+	void getNearbyAgents(const ShadowAgent* const fromSA,   //reference agent
+	                     const float maxDist,               //threshold dist
+	                     std::list<const ShadowAgent*>& l)  //output list
+	{
+		//cache fromSA's bounding box
+		const AxisAlignedBoundingBox& fromAABB = fromSA->getAABB();
+		const float maxDist2 = maxDist*maxDist;
+
+		//examine all agents
+		std::list<AbstractAgent*>::const_iterator c=agents.begin();
+		for (; c != agents.end(); c++)
+		{
+			//don't evaluate against itself
+			if (*c == fromSA) continue;
+
+			//close enough?
+			if (fromAABB.minDistance((*c)->getAABB()) < maxDist2)
+				l.push_back(*c);
 		}
 	}
 

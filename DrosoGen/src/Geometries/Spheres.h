@@ -51,33 +51,89 @@ public:
 	}
 
 
-	/** calculate min distance between myself and some foreign agent */
-	std::list<ProximityPair>*
-	getDistance(const Geometry& otherGeometry) const override
+	/** calculate min surface distance between myself and some foreign agent */
+	void getDistance(const Geometry& otherGeometry,
+	                 std::list<ProximityPair>& l) const override
 	{
-		//default return value
-		std::list<ProximityPair>* l = emptyCollisionListPtr;
-
 		switch (otherGeometry.shapeForm)
 		{
 		case ListOfShapeForms::Spheres:
-			//TODO identity case
-			REPORT("this.Spheres vs Spheres is not implemented yet!");
+			getDistanceToSpheres((Spheres*)&otherGeometry,l);
 			break;
 		case ListOfShapeForms::Mesh:
-			//find collision "from the other side" and revert orientation of all elements on the list
-			l = otherGeometry.getDistance(*this);
-			for (auto lit = l->begin(); lit != l->end(); lit++) lit->swap();
+			//find collision "from the other side"
+			getSymmetricDistance(otherGeometry,l);
 			break;
 		case ListOfShapeForms::MaskImg:
-			//TODO: attempt to render spheres into the mask image and look for collision
-			REPORT("this.Spheres vs MaskImg is not implemented yet!");
+			//find collision "from the other side"
+			getSymmetricDistance(otherGeometry,l);
 			break;
 		default:
 			throw new std::runtime_error("Geometry::getDistance(): Not supported combination of shape representations.");
 		}
+	}
 
-		return l;
+	/** Specialized implementation of getDistance() for Spheres-Spheres geometries.
+	    For every non-zero-radius 'local' sphere, there is an 'other' sphere found
+	    that has the nearest surface distance and corresponding ProximityPair is
+	    added to the output list l. */
+	void getDistanceToSpheres(const Spheres* otherSpheres,
+	                          std::list<ProximityPair>& l) const
+	{
+		//shortcuts to the otherGeometry's spheres
+		const Vector3d<FLOAT>* const centresO = otherSpheres->getCentres();
+		const FLOAT* const radiiO             = otherSpheres->getRadii();
+
+		//for every my sphere: find nearest other sphere
+		for (int im = 0; im < noOfSpheres; ++im)
+		{
+			//skip calculation for this sphere if it has no radius...
+			if (radii[im] == 0) continue;
+
+			//nearest other sphere discovered so far
+			int bestI = -1;
+			FLOAT bestDist = TOOFAR;
+
+			for (int io = 0; io < otherSpheres->getNoOfSpheres(); ++io)
+			{
+				//skip calculation for this sphere if it has no radius...
+				if (radiiO[io] == 0) continue;
+
+				//dist to centres //TODO: not sure: dc^2 - r1^2 - r2^2 =?= (dc -r1 -r2)^2
+				//FLOAT dist = (centres[im] - centresO[io]).len2();
+				//dist -= radii[im]*radii[im] + radiiO[io]*radiiO[io];
+
+				//dist between surfaces of the two spheres
+				FLOAT dist = (centres[im] - centresO[io]).len();
+				dist -= radii[im] + radiiO[io];
+
+				//is nearer?
+				if (dist < bestDist)
+				{
+					bestDist = dist;
+					bestI    = io;
+				}
+			}
+
+			//just in case otherSpheres->getNoOfSpheres() is 0...
+			if (bestI > -1)
+			{
+				//we have now a shortest distance between 'im' and 'bestI',
+				//create output ProximityPairs
+				ProximityPair p(centres[im],centresO[bestI], bestDist,
+									 (void*)(centres+im),(void*)(centresO+bestI));
+
+				//vector between the two centres
+				Vector3d<FLOAT> dp = centresO[bestI] - centres[im];
+
+				//the vector made 'radius' longer, and offets the 'centre' point
+				p.localPos += (    +radii[im]/dp.len()) * dp;
+				p.otherPos += (-radiiO[bestI]/dp.len()) * dp;
+
+				//NB: a copy is of the ProximityPair 'p' is created while pushing...
+				l.push_back(p);
+			}
+		}
 	}
 
 
@@ -89,23 +145,14 @@ public:
 		for (int i=0; i < noOfSpheres; ++i)
 		if (radii[i] > 0.f)
 		{
-			if (centres[i].x-radii[i] < AABB.minCorner.x)
-				AABB.minCorner.x = centres[i].x-radii[i];
+			AABB.minCorner.x = std::min(AABB.minCorner.x, centres[i].x-radii[i]);
+			AABB.maxCorner.x = std::max(AABB.maxCorner.x, centres[i].x+radii[i]);
 
-			if (centres[i].x+radii[i] > AABB.maxCorner.x)
-				AABB.maxCorner.x = centres[i].x+radii[i];
+			AABB.minCorner.y = std::min(AABB.minCorner.y, centres[i].y-radii[i]);
+			AABB.maxCorner.y = std::max(AABB.maxCorner.y, centres[i].y+radii[i]);
 
-			if (centres[i].y-radii[i] < AABB.minCorner.y)
-				AABB.minCorner.y = centres[i].y-radii[i];
-
-			if (centres[i].y+radii[i] > AABB.maxCorner.y)
-				AABB.maxCorner.y = centres[i].y+radii[i];
-
-			if (centres[i].z-radii[i] < AABB.minCorner.z)
-				AABB.minCorner.z = centres[i].z-radii[i];
-
-			if (centres[i].z+radii[i] > AABB.maxCorner.z)
-				AABB.maxCorner.z = centres[i].z+radii[i];
+			AABB.minCorner.z = std::min(AABB.minCorner.z, centres[i].z-radii[i]);
+			AABB.maxCorner.z = std::max(AABB.maxCorner.z, centres[i].z+radii[i]);
 		}
 	}
 
