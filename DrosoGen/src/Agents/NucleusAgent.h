@@ -11,7 +11,8 @@ class NucleusAgent: public AbstractAgent
 public:
 	NucleusAgent(const int ID, const Spheres& shape,
 	             const float currTime, const float incrTime)
-		: AbstractAgent(ID,*(new Spheres(shape)),currTime,incrTime),
+		: AbstractAgent(ID,geometryAlias,currTime,incrTime),
+		  geometryAlias(shape),
 		  futureGeometry(shape)
 	{
 		curPhase = G1Phase;
@@ -33,6 +34,8 @@ private:
 	ListOfPhases curPhase;
 
 	// ------------- internals geometry -------------
+	/** reference to my exposed geometry ShadowAgents::geometry */
+	Spheres geometryAlias;
 	Spheres futureGeometry;
 
 	// ------------- to implement one round of simulation -------------
