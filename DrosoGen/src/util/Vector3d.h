@@ -2,6 +2,7 @@
 #define VECTOR3D_H
 
 #include <iostream>
+#include <cmath>
 
 ///simply a 3D vector...
 template <typename T>
@@ -78,6 +79,16 @@ public:
 		this->z/=scal;
 		return( *this );
 	}
+
+	T inline len(void)
+	{
+		return static_cast<T>( std::sqrt(len2()) );
+	}
+
+	T inline len2(void)
+	{
+		return (x*x + y*y + z*z);
+	}
 };
 
 ///reports vector as a position coordinate
@@ -97,7 +108,7 @@ float dotProduct(const Vector3d<float>& u, const Vector3d<float>& v)
 }
 */
 
-///calculates addition of two vector: \e vecA + \e vecB
+/** calculates addition of two vectors: vecA + vecB */
 template <typename T>
 Vector3d<T> operator+(const Vector3d<T>& vecA, const Vector3d<T>& vecB)
 {
@@ -106,12 +117,21 @@ Vector3d<T> operator+(const Vector3d<T>& vecA, const Vector3d<T>& vecB)
 	return (res);
 }
 
-///calculates difference of two vector: \e vecA - \e vecB
+/** calculates difference of two vectors: vecA - vecB */
 template <typename T>
 Vector3d<T> operator-(const Vector3d<T>& vecA, const Vector3d<T>& vecB)
 {
 	Vector3d<T> res(vecA);
 	res-=vecB;
+	return (res);
+}
+
+/** calculates scalar multiplication with vector: scal * vec */
+template <typename T>
+Vector3d<T> operator*(const T scal, const Vector3d<T>& vec)
+{
+	Vector3d<T> res(vec);
+	res *= scal;
 	return (res);
 }
 // ----------------------------------------------------------------------------
