@@ -58,8 +58,7 @@ public:
 		switch (otherGeometry.shapeForm)
 		{
 		case ListOfShapeForms::Spheres:
-			//TODO identity case
-			REPORT("this.Spheres vs Spheres is not implemented yet!");
+			getDistanceToSpheres((Spheres*)&otherGeometry,l);
 			break;
 		case ListOfShapeForms::Mesh:
 			//find collision "from the other side"
@@ -71,6 +70,68 @@ public:
 			break;
 		default:
 			throw new std::runtime_error("Geometry::getDistance(): Not supported combination of shape representations.");
+		}
+	}
+
+	/** Specialized implementation of getDistance() for Spheres-Spheres geometries.
+	    For every non-zero-radius 'local' sphere, there is an 'other' sphere found
+	    that has the nearest surface distance and corresponding ProximityPair is
+	    added to the output list l. */
+	void getDistanceToSpheres(const Spheres* otherSpheres,
+	                          std::list<ProximityPair>& l) const
+	{
+		//shortcuts to the otherGeometry's spheres
+		const Vector3d<FLOAT>* const centresO = otherSpheres->getCentres();
+		const FLOAT* const radiiO             = otherSpheres->getRadii();
+
+		//for every my sphere: find nearest other sphere
+		for (int im = 0; im < noOfSpheres; ++im)
+		{
+			//skip calculation for this sphere if it has no radius...
+			if (radii[im] == 0) continue;
+
+			//nearest other sphere discovered so far
+			int bestI = -1;
+			FLOAT bestDist = TOOFAR;
+
+			for (int io = 0; io < otherSpheres->getNoOfSpheres(); ++io)
+			{
+				//skip calculation for this sphere if it has no radius...
+				if (radiiO[io] == 0) continue;
+
+				//dist to centres //TODO: not sure: dc^2 - r1^2 - r2^2 =?= (dc -r1 -r2)^2
+				//FLOAT dist = (centres[im] - centresO[io]).len2();
+				//dist -= radii[im]*radii[im] + radiiO[io]*radiiO[io];
+
+				//dist between surfaces of the two spheres
+				FLOAT dist = (centres[im] - centresO[io]).len();
+				dist -= radii[im] + radiiO[io];
+
+				//is nearer?
+				if (dist < bestDist)
+				{
+					bestDist = dist;
+					bestI    = io;
+				}
+			}
+
+			//just in case otherSpheres->getNoOfSpheres() is 0...
+			if (bestI > -1)
+			{
+				//we have now a shortest distance between 'im' and 'bestI',
+				//create output ProximityPairs
+				ProximityPair p(centres[im],centresO[bestI], bestDist,
+									 (void*)(centres+im),(void*)(centresO+bestI));
+
+				//vector between the two centres
+				Vector3d<FLOAT> dp = centresO[bestI] - centres[im];
+
+				//the vector made 'radius' longer, and offets the 'centre' point
+				p.localPos += (    +radii[im]/dp.len()) * dp;
+				p.otherPos += (-radiiO[bestI]/dp.len()) * dp;
+
+				l.push_back(p);
+			}
 		}
 	}
 
