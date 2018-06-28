@@ -372,10 +372,12 @@ public class DisplayScene extends SceneryBase implements Runnable
 		//add-or-remove from the scene
 		if (cellsShown)
 			cellsData.values().forEach( c ->
-				{ for (final Node n : c.sphereNodes) scene.removeChild(n); } );
+				{ for (final Node n : c.sphereNodes) if (n != null) scene.removeChild(n); } );
+			//NB: Cell might not have spheres defined yet (while vectors exist which justifies the existence of this object),
+			//    hence we better test for their existence
 		else
 			cellsData.values().forEach( c ->
-				{ for (final Node n : c.sphereNodes) scene.addChild(n); } );
+				{ for (final Node n : c.sphereNodes) if (n != null) scene.addChild(n); } );
 
 		//toggle the flag
 		cellsShown ^= true;
@@ -388,7 +390,9 @@ public class DisplayScene extends SceneryBase implements Runnable
 		if (vectorsShown)
 		{
 			cellsData.values().forEach( c ->
-				{ for (final Node n : c.forceNodes) scene.removeChild(n); } );
+				{ for (final Node n : c.forceNodes) if (n != null) scene.removeChild(n); } );
+			//NB: Cell might not have vector defined yet (while spheres exist which justifies the existence of this object),
+			//    hence we better test for their existence
 
 			for (Material m : materials)
 				m.setCullingMode(CullingMode.None);
@@ -396,7 +400,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 		else
 		{
 			cellsData.values().forEach( c ->
-				{ for (final Node n : c.forceNodes) scene.addChild(n); } );
+				{ for (final Node n : c.forceNodes) if (n != null) scene.addChild(n); } );
 
 			for (Material m : materials)
 				m.setCullingMode(CullingMode.Front);
@@ -417,7 +421,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 		//...and rescale all vectors presently existing in the system
 		final GLVector scaleVec = new GLVector(vectorsStretch,3);
 		cellsData.values().forEach( c ->
-			{ for (final Node n : c.forceNodes) n.setScale(scaleVec); } );
+			{ for (final Node n : c.forceNodes) if (n != null) n.setScale(scaleVec); } );
 	}
 
 
