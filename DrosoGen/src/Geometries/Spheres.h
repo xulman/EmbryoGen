@@ -51,7 +51,7 @@ public:
 	}
 
 
-	/** calculate min distance between myself and some foreign agent */
+	/** calculate min surface distance between myself and some foreign agent */
 	void getDistance(const Geometry& otherGeometry,
 	                 std::list<ProximityPair>& l) const override
 	{
@@ -66,8 +66,8 @@ public:
 			getSymmetricDistance(otherGeometry,l);
 			break;
 		case ListOfShapeForms::MaskImg:
-			//TODO: attempt to render spheres into the mask image and look for collision
-			REPORT("this.Spheres vs MaskImg is not implemented yet!");
+			//find collision "from the other side"
+			getSymmetricDistance(otherGeometry,l);
 			break;
 		default:
 			throw new std::runtime_error("Geometry::getDistance(): Not supported combination of shape representations.");

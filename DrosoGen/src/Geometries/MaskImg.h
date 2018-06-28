@@ -23,19 +23,19 @@ public:
 	}
 
 
-	/** calculate min distance between myself and some foreign agent */
+	/** calculate min surface distance between myself and some foreign agent */
 	void getDistance(const Geometry& otherGeometry,
 	                 std::list<ProximityPair>& l) const override
 	{
 		switch (otherGeometry.shapeForm)
 		{
 		case ListOfShapeForms::Spheres:
-			//find collision "from the other side"
-			getSymmetricDistance(otherGeometry,l);
+			//TODO: attempt to rasterize Spheres within their AABB and look for collision
+			REPORT("this.MaskImg vs Spheres is not implemented yet!");
 			break;
 		case ListOfShapeForms::Mesh:
-			//find collision "from the other side"
-			getSymmetricDistance(otherGeometry,l);
+			//TODO: attempt to project mesh vertices into the mask image and look for collision
+			REPORT("this.MaskImg vs Mesh is not implemented yet!");
 			break;
 		case ListOfShapeForms::MaskImg:
 			//TODO identity case
