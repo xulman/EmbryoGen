@@ -252,6 +252,9 @@ private:
 		//wait for key...
 		REPORT_NOENDL("Wait for key [and press Enter]: ");
 		std::cin >> fn[0];
+
+		if (fn[0] == 'q')
+			throw new std::runtime_error("Simulation::renderNextFrame(): User requested exit.");
 	}
 };
 #endif
