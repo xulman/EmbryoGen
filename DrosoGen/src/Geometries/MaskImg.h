@@ -62,6 +62,47 @@ public:
 	MaskImg(const i3d::Image3d<MT>& _mask, DistanceModel _model)
 		: Geometry(ListOfShapeForms::MaskImg), model(_model)
 	{
+		updateWithNewMask(_mask);
+	}
+
+	/** just for debug purposes: save the distance image to a filename */
+	void saveDistImg(const char* filename)
+	{
+		distImg.SaveImage(filename);
+	}
+
+
+	// ------------- distances -------------
+	/** calculate min surface distance between myself and some foreign agent */
+	void getDistance(const Geometry& otherGeometry,
+	                 std::list<ProximityPair>& l) const override
+	{
+		switch (otherGeometry.shapeForm)
+		{
+		case ListOfShapeForms::Spheres:
+			//TODO: attempt to rasterize Spheres within their AABB and look for collision
+			REPORT("this.MaskImg vs Spheres is not implemented yet!");
+			break;
+		case ListOfShapeForms::Mesh:
+			//TODO: attempt to project mesh vertices into the mask image and look for collision
+			REPORT("this.MaskImg vs Mesh is not implemented yet!");
+			break;
+		case ListOfShapeForms::MaskImg:
+			//TODO identity case
+			REPORT("this.MaskImg vs MaskImg is not implemented yet!");
+			break;
+		default:
+			throw new std::runtime_error("Geometry::getDistance(): Not supported combination of shape representations.");
+		}
+	}
+
+
+	// ------------- AABB -------------
+	/** construct AABB from the the mask image considering
+	    only non-zero valued voxels, and considering mask's
+		 offset and resolution */
+	void setAABB(AxisAlignedBoundingBox& AABB) const override
+	{
 
 
 	// ------------- get/set methods -------------
@@ -80,8 +121,13 @@ public:
 		return distImgRes;
 	}
 
+
+	template <class MT>
+	void updateWithNewMask(const i3d::Image3d<MT>& _mask)
+	{
 		//allocates the distance image, voxel values are not initiated
 		distImg.CopyMetaData(_mask);
+		updateDistImgResOff();
 
 		//running pointers (dimension independent code)
 		const MT* m = _mask.GetFirstVoxelAddr();
@@ -134,47 +180,19 @@ public:
 		}
 	}
 
-	/** just for debug purposes: save the distance image to a filename */
-	void saveDistImg(const char* filename)
+
+private:
+	/** updates MaskImg::distImgOff and MaskImg::distImgRes
+	    to the current MaskImg::distImg */
+	void updateDistImgResOff(void)
 	{
-		distImg.SaveImage(filename);
-	}
+		distImgOff.x = distImg.GetOffset().x;
+		distImgOff.y = distImg.GetOffset().y;
+		distImgOff.z = distImg.GetOffset().z;
 
-
-	// ------------- distances -------------
-	/** calculate min surface distance between myself and some foreign agent */
-	void getDistance(const Geometry& otherGeometry,
-	                 std::list<ProximityPair>& l) const override
-	{
-		switch (otherGeometry.shapeForm)
-		{
-		case ListOfShapeForms::Spheres:
-			//TODO: attempt to rasterize Spheres within their AABB and look for collision
-			REPORT("this.MaskImg vs Spheres is not implemented yet!");
-			break;
-		case ListOfShapeForms::Mesh:
-			//TODO: attempt to project mesh vertices into the mask image and look for collision
-			REPORT("this.MaskImg vs Mesh is not implemented yet!");
-			break;
-		case ListOfShapeForms::MaskImg:
-			//TODO identity case
-			REPORT("this.MaskImg vs MaskImg is not implemented yet!");
-			break;
-		default:
-			throw new std::runtime_error("Geometry::getDistance(): Not supported combination of shape representations.");
-		}
-	}
-
-
-	// ------------- AABB -------------
-	/** construct AABB from the the mask image considering
-	    only non-zero valued voxels, and considering mask's
-		 offset and resolution */
-	void setAABB(AxisAlignedBoundingBox& AABB) const override
-	{
-		//scan through the image and find extremal coordinates of non-zero voxels
-		//TODO
-		REPORT("not implemented yet!");
+		distImgRes.x = distImg.GetResolution().GetRes().x;
+		distImgRes.y = distImg.GetResolution().GetRes().y;
+		distImgRes.z = distImg.GetResolution().GetRes().z;
 	}
 };
 #endif
