@@ -43,8 +43,13 @@ public:
 
 private:
 	/** Image with precomputed distances, it is of the same offset, size, resolution
-	    as the one given during construction of this object */
+	    (see docs of class MaskImg) as the one given during construction of this object */
 	i3d::Image3d<float> distImg;
+
+	/** (cached) offset of the distImg [micrometer] */
+	Vector3d<FLOAT> distImgOff;
+	/** (cached) resolution of the distImg [pixels per micrometer] */
+	Vector3d<FLOAT> distImgRes;
 
 	/** This is just a reminder of how the MaskImg::distImg was created, since we don't
 	    have reference or copy to the original source image and we cannot reconstruct it
@@ -57,6 +62,24 @@ public:
 	MaskImg(const i3d::Image3d<MT>& _mask, DistanceModel _model)
 		: Geometry(ListOfShapeForms::MaskImg), model(_model)
 	{
+
+
+	// ------------- get/set methods -------------
+	const i3d::Image3d<float>& getDistImg(void) const
+	{
+		return distImg;
+	}
+
+	const Vector3d<FLOAT>& getDistImgOff(void) const
+	{
+		return distImgOff;
+	}
+
+	const Vector3d<FLOAT>& getDistImgRes(void) const
+	{
+		return distImgRes;
+	}
+
 		//allocates the distance image, voxel values are not initiated
 		distImg.CopyMetaData(_mask);
 
