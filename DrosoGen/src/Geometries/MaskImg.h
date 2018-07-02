@@ -103,6 +103,52 @@ public:
 		 offset and resolution */
 	void setAABB(AxisAlignedBoundingBox& AABB) const override
 	{
+		if (model == GradIN_ZeroOUT)
+		{
+			//check distImg > 0, and take "outer boundary" of voxels for the AABB
+			AABB.reset();
+
+			//micrometer [X,Y,Z] coordinates of pixels at [x,y,z]
+			float X,Y,Z;
+
+			const float* f = distImg.GetFirstVoxelAddr();
+			for (size_t z = 0; z < distImg.GetSizeZ(); ++z)
+			for (size_t y = 0; y < distImg.GetSizeY(); ++y)
+			for (size_t x = 0; x < distImg.GetSizeX(); ++x)
+			{
+				if (*f > 0)
+				{
+					//get micrometers coordinate
+					X = x/distImgRes.x + distImgOff.x;
+					Y = y/distImgRes.y + distImgOff.y;
+					Z = z/distImgRes.z + distImgOff.z;
+
+					//update the AABB
+					AABB.minCorner.x = std::min(AABB.minCorner.x, X);
+					AABB.maxCorner.x = std::max(AABB.maxCorner.x, X+distImgRes.x);
+
+					AABB.minCorner.y = std::min(AABB.minCorner.y, Y);
+					AABB.maxCorner.y = std::max(AABB.maxCorner.y, Y+distImgRes.y);
+
+					AABB.minCorner.z = std::min(AABB.minCorner.z, Z);
+					AABB.maxCorner.z = std::max(AABB.maxCorner.z, Z+distImgRes.z);
+				}
+				++f;
+			}
+		}
+		else
+		{
+			//the interesting part of the shape is either everywhere in the image
+			//(GradIN_GradOUT model), or outside the shape (ZeroIN_GradOUT model),
+			//the AABB is therefore the whole image
+			AABB.minCorner = distImgOff;
+
+			AABB.maxCorner.x = distImg.GetSizeX() / distImgRes.x; //size in micrometers
+			AABB.maxCorner.y = distImg.GetSizeY() / distImgRes.y;
+			AABB.maxCorner.z = distImg.GetSizeZ() / distImgRes.z;
+			AABB.maxCorner  += distImgOff;
+		}
+	}
 
 
 	// ------------- get/set methods -------------
