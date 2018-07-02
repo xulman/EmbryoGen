@@ -51,6 +51,7 @@ public:
 	}
 
 
+	// ------------- distances -------------
 	/** calculate min surface distance between myself and some foreign agent */
 	void getDistance(const Geometry& otherGeometry,
 	                 std::list<ProximityPair>& l) const override
@@ -137,6 +138,7 @@ public:
 	}
 
 
+	// ------------- AABB -------------
 	void setAABB(AxisAlignedBoundingBox& AABB) const override
 	{
 		AABB.reset();

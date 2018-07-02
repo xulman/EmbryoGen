@@ -2,27 +2,123 @@
 #define MASKIMG_H
 
 #include <i3d/image3d.h>
+#include <i3d/DistanceTransform.h>
 #include "../util/report.h"
 #include "Geometry.h"
 
 /**
- * TBA
+ * Shape form based on image (given its size [px], offset [micrometers] and
+ * resolution [px/micrometers]) where non-zero valued voxels represent each
+ * a piece of a volume that is taken up by the represented agent. The set of
+ * non-zero voxels need not form single connected component.
+ *
+ * When interacting with other objects, there are three modes available on
+ * how to calculate distances:
+ *
+ * mask: 0001111000  - 1 represent the agent, 0 is outside of the agent
+ *
+ * a)    TT\____/TT  - distance inside is 0 everywhere, increases away from object
+ *
+ * b)    TT\/TT\/TT  - distance increases away from boundary of the object
+ *
+ * c)    ___/TT\___  - distance outside is 0 everywhere, increases towards the centre of the object
+ *
+ * Variant a) defines a shape/agent that does not distinguish within its volume,
+ * making your agents "be afraid of non-zero distances" will make them stay
+ * inside this geometry. Variant b) will make the agents stay along the boundary/surface
+ * of this geometry. Variant c) will prevent agents from staying inside this geometry.
  *
  * Author: Vladimir Ulman, 2018
  */
-template <class MT>
 class MaskImg: public Geometry
 {
+public:
+	/** Defines how distances will be calculated on this geometry, see class MaskImg docs */
+	typedef enum
+	{
+		ZeroIN_GradOUT=0,
+		GradIN_GradOUT=1,
+		GradIN_ZeroOUT=2
+	} DistanceModel;
+
 private:
-	i3d::Image3d<MT> mask;
+	/** Image with precomputed distances, it is of the same offset, size, resolution
+	    as the one given during construction of this object */
+	i3d::Image3d<float> distImg;
+
+	/** This is just a reminder of how the MaskImg::distImg was created, since we don't
+	    have reference or copy to the original source image and we cannot reconstruct it
+	    easily... */
+	const DistanceModel model;
 
 public:
-	MaskImg(void): Geometry(ListOfShapeForms::MaskImg)
+	/** constructor can be a bit more memory expensive if _model is GradIN_GradOUT */
+	template <class MT>
+	MaskImg(const i3d::Image3d<MT>& _mask, DistanceModel _model)
+		: Geometry(ListOfShapeForms::MaskImg), model(_model)
 	{
-		//TODO, somehow create this.mask
+		//allocates the distance image, voxel values are not initiated
+		distImg.CopyMetaData(_mask);
+
+		//running pointers (dimension independent code)
+		const MT* m = _mask.GetFirstVoxelAddr();
+		float*    f = distImg.GetFirstVoxelAddr();
+		float* const fE = f + distImg.GetImageSize();
+
+		//do DT inside the mask?
+		if (model == GradIN_GradOUT || model == GradIN_ZeroOUT)
+		{
+			//yes, "extract" non-zero (inside) mask
+			while (f != fE)
+				*f++ = *m++ > 0 ? 1.0f : 0.0f;
+		}
+		else
+		{
+			//ZeroIN_GradOUT, "extract" zero (outside) mask
+			while (f != fE)
+				*f++ = *m++ > 0 ? 0.0f : 1.0f;
+		}
+
+		//distance _transform_ non-zero part
+		i3d::FastSaito(distImg, 1.0f, true);
+
+		if (model == GradIN_GradOUT)
+		{
+			//we need to additionally do the "GradOUT" part,
+			//and we cannot distance _transform_ directly distImg
+			i3d::Image3d<float> dtImg;
+			dtImg.CopyMetaData(_mask);
+
+			m = _mask.GetFirstVoxelAddr();
+			float* ff = dtImg.GetFirstVoxelAddr();
+			float* const fEE = ff + dtImg.GetImageSize();
+
+			//"extract" zero (outside) mask
+			while (ff != fEE)
+				*ff++ = *m++ > 0 ? 0.0f : 1.0f;
+
+			//distance _transform_ non-zero part
+			i3d::FastSaito(dtImg, 1.0f, true);
+
+			//now copy non-zero values from dtImg into zero values of distImg
+			f = distImg.GetFirstVoxelAddr();
+			ff = dtImg.GetFirstVoxelAddr();
+			while (f != fE)
+			{
+				*f = *ff > 0 ? *ff-1 : *f;
+				++f; ++ff;
+			}
+		}
+	}
+
+	/** just for debug purposes: save the distance image to a filename */
+	void saveDistImg(const char* filename)
+	{
+		distImg.SaveImage(filename);
 	}
 
 
+	// ------------- distances -------------
 	/** calculate min surface distance between myself and some foreign agent */
 	void getDistance(const Geometry& otherGeometry,
 	                 std::list<ProximityPair>& l) const override
@@ -47,6 +143,7 @@ public:
 	}
 
 
+	// ------------- AABB -------------
 	/** construct AABB from the the mask image considering
 	    only non-zero valued voxels, and considering mask's
 		 offset and resolution */
