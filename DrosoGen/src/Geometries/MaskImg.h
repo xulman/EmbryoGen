@@ -55,10 +55,12 @@ private:
 	    (see docs of class MaskImg) as the one given during construction of this object */
 	i3d::Image3d<float> distImg;
 
-	/** (cached) offset of the distImg [micrometer] */
-	Vector3d<FLOAT> distImgOff;
 	/** (cached) resolution of the distImg [pixels per micrometer] */
 	Vector3d<FLOAT> distImgRes;
+	/** (cached) offset of the distImg's "minCorner" [micrometer] */
+	Vector3d<FLOAT> distImgOff;
+	/** (cached) offset of the distImg's "maxCorner" [micrometer] */
+	Vector3d<FLOAT> distImgFarEnd;
 
 	/** This is just a reminder of how the MaskImg::distImg was created, since we don't
 	    have reference or copy to the original source image and we cannot reconstruct it
@@ -166,14 +168,19 @@ public:
 		return distImg;
 	}
 
+	const Vector3d<FLOAT>& getDistImgRes(void) const
+	{
+		return distImgRes;
+	}
+
 	const Vector3d<FLOAT>& getDistImgOff(void) const
 	{
 		return distImgOff;
 	}
 
-	const Vector3d<FLOAT>& getDistImgRes(void) const
+	const Vector3d<FLOAT>& getDistImgFarEnd(void) const
 	{
-		return distImgRes;
+		return distImgFarEnd;
 	}
 
 
@@ -182,7 +189,7 @@ public:
 	{
 		//allocates the distance image, voxel values are not initiated
 		distImg.CopyMetaData(_mask);
-		updateDistImgResOff();
+		updateDistImgResOffFarEnd();
 
 		//running pointers (dimension independent code)
 		const MT* m = _mask.GetFirstVoxelAddr();
@@ -245,17 +252,25 @@ public:
 
 
 private:
-	/** updates MaskImg::distImgOff and MaskImg::distImgRes
+	/** updates MaskImg::distImgOff, MaskImg::distImgRes and MaskImg::distImgFarEnd
 	    to the current MaskImg::distImg */
-	void updateDistImgResOff(void)
+	void updateDistImgResOffFarEnd(void)
 	{
+		distImgRes.x = distImg.GetResolution().GetRes().x;
+		distImgRes.y = distImg.GetResolution().GetRes().y;
+		distImgRes.z = distImg.GetResolution().GetRes().z;
+
+		//"min" corner
 		distImgOff.x = distImg.GetOffset().x;
 		distImgOff.y = distImg.GetOffset().y;
 		distImgOff.z = distImg.GetOffset().z;
 
-		distImgRes.x = distImg.GetResolution().GetRes().x;
-		distImgRes.y = distImg.GetResolution().GetRes().y;
-		distImgRes.z = distImg.GetResolution().GetRes().z;
+		//this mask image's "max" corner in micrometers
+		distImgFarEnd.x = (FLOAT)distImg.GetSizeX();
+		distImgFarEnd.y = (FLOAT)distImg.GetSizeY();
+		distImgFarEnd.z = (FLOAT)distImg.GetSizeZ();
+		distImgFarEnd.elemDiv(distImgRes); //in mu
+		distImgFarEnd += distImgOff;       //max/far end in mu
 	}
 };
 #endif
