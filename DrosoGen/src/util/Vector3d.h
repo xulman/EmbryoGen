@@ -80,14 +80,46 @@ public:
 		return( *this );
 	}
 
-	T inline len(void)
+	T inline len(void) const
 	{
 		return static_cast<T>( std::sqrt(len2()) );
 	}
 
-	T inline len2(void)
+	T inline len2(void) const
 	{
 		return (x*x + y*y + z*z);
+	}
+
+	/** element-wise minimum is stored in this vector */
+	void elemMin(const Vector3d<T>& v)
+	{
+		x = x < v.x ? x : v.x;
+		y = y < v.y ? y : v.y;
+		z = z < v.z ? z : v.z;
+	}
+
+	/** element-wise maximum is stored in this vector */
+	void elemMax(const Vector3d<T>& v)
+	{
+		x = x > v.x ? x : v.x;
+		y = y > v.y ? y : v.y;
+		z = z > v.z ? z : v.z;
+	}
+
+	/** element-wise multiplication is stored in this vector */
+	void elemMult(const Vector3d<T>& v)
+	{
+		x *= v.x;
+		y *= v.y;
+		z *= v.z;
+	}
+
+	/** element-wise division is stored in this vector */
+	void elemDiv(const Vector3d<T>& v)
+	{
+		x /= v.x;
+		y /= v.y;
+		z /= v.z;
 	}
 };
 
