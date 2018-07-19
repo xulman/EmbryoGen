@@ -15,13 +15,19 @@
  * When interacting with other objects, there are three modes available on
  * how to calculate distances:
  *
- * mask: 0001111000  - 1 represent the agent, 0 is outside of the agent
+ * mask: 0001111000  - 1 represents inside the agent, 0 is outside of the agent
  *
  * a)    TT\____/TT  - distance inside is 0 everywhere, increases away from object
  *
- * b)    TT\/TT\/TT  - distance increases away from boundary of the object
+ * b)    TT\    /TT  - distance decreases & increases away from boundary of the object
+ *          \__/
  *
- * c)    ___/TT\___  - distance outside is 0 everywhere, increases towards the centre of the object
+ * c)    ___    ___  - distance outside is 0 everywhere, decreases towards the centre of the agent
+ *          \__/
+ *
+ * Actually, the distance inside the object is reported with negative sign.
+ * This way, an agent can distinguish how far it is from the "edge" (taking
+ * absolute value of the distance) and on which "side of the edge" it is.
  *
  * Variant a) defines a shape/agent that does not distinguish within its volume,
  * making your agents "be afraid of non-zero distances" will make them stay
@@ -105,7 +111,7 @@ public:
 	{
 		if (model == GradIN_ZeroOUT)
 		{
-			//check distImg > 0, and take "outer boundary" of voxels for the AABB
+			//check distImg < 0, and take "outer boundary" of voxels for the AABB
 			AABB.reset();
 
 			//micrometer [X,Y,Z] coordinates of pixels at [x,y,z]
@@ -116,7 +122,7 @@ public:
 			for (size_t y = 0; y < distImg.GetSizeY(); ++y)
 			for (size_t x = 0; x < distImg.GetSizeX(); ++x)
 			{
-				if (*f > 0)
+				if (*f < 0)
 				{
 					//get micrometers coordinate
 					X = x/distImgRes.x + distImgOff.x;
@@ -196,6 +202,14 @@ public:
 
 		//distance _transform_ non-zero part
 		i3d::FastSaito(distImg, 1.0f, true);
+
+		//if the "inside" was DT'ed, we need to "inverse" the distances
+		if (model == GradIN_GradOUT || model == GradIN_ZeroOUT)
+		{
+			f = distImg.GetFirstVoxelAddr();
+			while (f != fE)
+				*f++ *= -1.0f;
+		}
 
 		if (model == GradIN_GradOUT)
 		{
