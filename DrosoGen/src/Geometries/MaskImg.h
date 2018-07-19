@@ -5,6 +5,7 @@
 #include <i3d/DistanceTransform.h>
 #include "../util/report.h"
 #include "Geometry.h"
+#include "Spheres.h"
 
 /**
  * Shape form based on image (given its size [px], offset [micrometers] and
@@ -91,21 +92,150 @@ public:
 		switch (otherGeometry.shapeForm)
 		{
 		case ListOfShapeForms::Spheres:
-			//TODO: attempt to rasterize Spheres within their AABB and look for collision
-			REPORT("this.MaskImg vs Spheres is not implemented yet!");
+			getDistanceToSpheres((class Spheres*)&otherGeometry,l);
 			break;
 		case ListOfShapeForms::Mesh:
 			//TODO: attempt to project mesh vertices into the mask image and look for collision
 			REPORT("this.MaskImg vs Mesh is not implemented yet!");
 			break;
 		case ListOfShapeForms::MaskImg:
-			//TODO identity case
 			REPORT("this.MaskImg vs MaskImg is not implemented yet!");
+			//getDistanceToMaskImg((MaskImg*)&otherGeometry,l);
 			break;
 		default:
 			throw new std::runtime_error("Geometry::getDistance(): Not supported combination of shape representations.");
 		}
 	}
+
+	/** Specialized implementation of getDistance() for MaskImg & Spheres geometries.
+	    Rasterizes the 'other' spheres into the 'local' MaskImg and finds min distance
+		 for every other sphere. These nearest surface distances and corresponding
+		 ProximityPairs are added to the output list l. */
+	void getDistanceToSpheres(const class Spheres* otherSpheres,
+	                          std::list<ProximityPair>& l) const
+	{
+		//da plan: determine bounding box within this MaskImg where
+		//we can potentially see any piece of the foreign Spheres;
+		//sweep it and consider voxel centres; construct a thought
+		//vector from a sphere's centre to the voxel centre, make it
+		//that sphere's radius long and check the end of this vector
+		//(when positioned at sphere's centre) if it falls into the
+		//currently examined voxel; if it does, we have found a voxel
+		//that contains a piece of the sphere's surface
+		//
+		//if half of a voxel diagonal is pre-calculated, one can optimize
+		//by first comparing it against abs.val. of the difference of
+		//the sphere's radius from the length of the thought vector
+
+		//sweeping box in micrometers, initiated to match spheres' bounding box
+		Vector3d<FLOAT> minSweep(otherSpheres->AABB.minCorner),
+		                maxSweep(otherSpheres->AABB.maxCorner);
+
+		//update the sweeping box
+		minSweep.elemMax(distImgOff);  //in mu
+		maxSweep.elemMin(distImgFarEnd);
+
+		//convert to pixel distances
+		minSweep -= distImgOff;
+		maxSweep -= distImgOff;
+
+		minSweep.elemMult(distImgRes); //in px
+		maxSweep.elemMult(distImgRes);
+
+		//the sweeping box in pixels, in coordinates of this distImg
+		Vector3d<size_t>
+		  minSweepPX( (size_t)std::floor(minSweep.x),(size_t)std::floor(minSweep.y),(size_t)std::floor(minSweep.z) ),
+		  maxSweepPX( (size_t) std::ceil(maxSweep.x),(size_t) std::ceil(maxSweep.y),(size_t) std::ceil(maxSweep.z) );
+		Vector3d<size_t> curPos;
+
+		//a "universal" (and inaccurate) half "thickness" of spheres' surfaces
+		//for detection of voxels that coincide with such volumes
+		const FLOAT halfPXdiagonal = distImgRes.len() / 2.0f;
+
+		//shortcuts to the otherGeometry's spheres
+		const Vector3d<FLOAT>* const centresO = otherSpheres->getCentres();
+		const FLOAT* const radiiO             = otherSpheres->getRadii();
+		const int io                          = otherSpheres->getNoOfSpheres();
+
+		//remember the smallest distance observed so far for every foreign sphere...
+		FLOAT* distances = new FLOAT[io];
+		for (int i = 0; i < io; ++i) distances[i] = TOOFAR;
+		//...and where it was observed
+		Vector3d<size_t>* hints = new Vector3d<size_t>[io];
+
+		//finally, sweep and check intersection with spheres' surfaces
+		for (curPos.z = minSweepPX.z; curPos.z < maxSweepPX.z; curPos.z++)
+		for (curPos.y = minSweepPX.y; curPos.y < maxSweepPX.y; curPos.y++)
+		for (curPos.x = minSweepPX.x; curPos.x < maxSweepPX.x; curPos.x++)
+		{
+			//we are now visiting voxels where some sphere can be seen
+			minSweep.x = (FLOAT)curPos.x / distImgRes.x;
+			minSweep.y = (FLOAT)curPos.y / distImgRes.y;
+			minSweep.z = (FLOAT)curPos.z / distImgRes.z;
+			minSweep += distImgOff;
+
+			//check the current voxel against all spheres
+			for (int i = 0; i < io; ++i)
+			{
+				maxSweep  = minSweep;
+				maxSweep -= centresO[i];
+				if (std::abs(maxSweep.len() - radiiO[i]) < halfPXdiagonal)
+				{
+					//hooray, a voxel (nearby) i-th sphere's surface was found,
+					//let's inspect the distImg at this position
+					const FLOAT dist = distImg.GetVoxel(curPos.x,curPos.y,curPos.z);
+
+					if (dist < distances[i])
+					{
+						distances[i] = dist;
+						hints[i] = curPos;
+					}
+				}
+			} //over all foreign spheres
+		} //over all voxels in the sweeping box
+
+		//add ProximityPairs where found some
+		for (int i = 0; i < io; ++i)
+		if (distances[i] < TOOFAR)
+		{
+			//found some pair:
+			//determine the local gradient at the coinciding voxel
+			Vector3d<FLOAT> grad;
+			grad.x  = distImg.GetVoxel(hints[i].x+1,hints[i].y,hints[i].z); //TODO: might get outside image!
+			grad.x -= distImg.GetVoxel(hints[i].x-1,hints[i].y,hints[i].z);
+			grad.y  = distImg.GetVoxel(hints[i].x,hints[i].y+1,hints[i].z);
+			grad.y -= distImg.GetVoxel(hints[i].x,hints[i].y-1,hints[i].z);
+			grad.z  = distImg.GetVoxel(hints[i].x,hints[i].y,hints[i].z+1);
+			grad.z -= distImg.GetVoxel(hints[i].x,hints[i].y,hints[i].z-1);
+			grad.elemMult(distImgRes); //account for anisotropy
+			grad /= grad.len2();       //normalize
+
+			//determine the exact point on the sphere surface
+			Vector3d<FLOAT> exactSurfPoint;
+			exactSurfPoint.x = (FLOAT)hints[i].x / distImgRes.x; //coordinate within in the image, in microns
+			exactSurfPoint.y = (FLOAT)hints[i].y / distImgRes.y;
+			exactSurfPoint.z = (FLOAT)hints[i].z / distImgRes.z;
+			exactSurfPoint += distImgOff;  //now real world coordinate of the pixel's centre
+			exactSurfPoint -= centresO[i]; //now vector from sphere's centre
+			exactSurfPoint *= radiiO[i] / exactSurfPoint.len(); //stretch the vector
+			exactSurfPoint += centresO[i]; //now point on the surface...
+
+			//NB: a copy is of the ProximityPair 'p' is created while pushing...
+			l.push_back( ProximityPair(exactSurfPoint-grad,exactSurfPoint,
+			  distances[i],NULL,(void*)distImg.GetVoxelAddr(curPos.x,curPos.y,curPos.z)) );
+		}
+
+		delete[] distances;
+		delete[] hints;
+	}
+
+	/** Specialized implementation of getDistance() for MaskImg-MaskImg geometries. */
+	/*
+	void getDistanceToMaskImg(const MaskImg* otherMaskImg,
+	                          std::list<ProximityPair>& l) const
+	{
+	}
+	*/
 
 
 	// ------------- AABB -------------
