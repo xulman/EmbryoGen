@@ -34,6 +34,9 @@
  * inside this geometry. Variant b) will make the agents stay along the boundary/surface
  * of this geometry. Variant c) will prevent agents from staying inside this geometry.
  *
+ * The class was designed with the assumption that agents who interact with this
+ * agent will want to minimize their mutual (surface) distance.
+ *
  * Author: Vladimir Ulman, 2018
  */
 class MaskImg: public Geometry

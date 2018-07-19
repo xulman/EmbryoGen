@@ -63,7 +63,7 @@ public:
  * The geometry object on which getDistance() is called plays the role of 'local' and
  * the argument of the method plays the role of 'other' in the nomenclature of attribute
  * names. If the distance between the two points is negative, the points represent
- * a colliding pair.
+ * a colliding pair, and absolute value of the distance represents a "penetration depth".
  *
  * The structure can possibly hold 'helper data' that depend on form of the geometry that
  * is investigated during the getDistance(). This can be, e.g., a pointer on mesh vertex
