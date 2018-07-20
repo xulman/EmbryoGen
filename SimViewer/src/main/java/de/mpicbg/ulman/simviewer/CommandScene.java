@@ -4,7 +4,6 @@ import java.io.InputStreamReader;
 import java.io.IOException;
 
 import de.mpicbg.ulman.simviewer.DisplayScene;
-import de.mpicbg.ulman.simviewer.agents.Cell;
 
 /**
  * Adapted from TexturedCubeJavaExample.java from the scenery project,
@@ -90,14 +89,14 @@ public class CommandScene implements Runnable
 			CreateFakeCells();
 			break;
 		case 'd':
-			scene.RemoveCells();
+			//scene.RemoveCells();
 			break;
 		case 'c':
-			scene.ToggleDisplayCells();
+			//scene.ToggleDisplayCells();
 			break;
 
 		case 'f':
-			scene.ToggleDisplayVectors();
+			//scene.ToggleDisplayVectors();
 			break;
 		case 'v':
 			scene.setVectorsStretch(0.80f * scene.getVectorsStretch());
@@ -108,6 +107,7 @@ public class CommandScene implements Runnable
 			System.out.println("new vector stretch: "+scene.getVectorsStretch());
 			break;
 
+		/*
 		case 'r':
 			for (Cell c : scene.cellsData.values())
 			{
@@ -141,6 +141,7 @@ public class CommandScene implements Runnable
 				scene.UpdateCellSphereNodes(c);
 			}
 			break;
+		*/
 
 		case 'q':
 			scene.stop();
@@ -159,27 +160,29 @@ public class CommandScene implements Runnable
 		final float yCentre  = scene.sceneOffset[1] + 0.5f*scene.sceneSize[1];
 		final float zCentre  = scene.sceneOffset[2] + 0.5f*scene.sceneSize[2];
 
+		final DisplayScene.myPoint c = scene.new myPoint();
+		int ID = 0;
+
 		for (int y=0; y < 5; ++y)
 		for (int x=0; x < 5; ++x)
 		{
 			//if (x != 2 && y != 2)
 			{
-				final Cell c = new Cell(2,0);
-				c.ID = x+10*y;
-				c.sphereRadii[0]  = 3.0f;
-				c.sphereColors[0] = 2;
-				c.sphereCentres[0] = xCentre + xStep*(x-2.0f) -2.0f;
-				c.sphereCentres[1] = yCentre + yStep*(y-2.0f);
-				c.sphereCentres[2] = zCentre - 1.0f;
+				ID = ((x+10*y) << 48) +1;
+				c.centre[0] = xCentre + xStep*(x-2.0f) -2.0f;
+				c.centre[1] = yCentre + yStep*(y-2.0f);
+				c.centre[2] = zCentre - 1.0f;
+				c.radius  = 3.0f;
+				c.color = 2;
+				scene.addUpdateOrRemovePoint(ID,c);
 
-				c.sphereRadii[1]  = 3.0f;
-				c.sphereColors[1] = 3;
-				c.sphereCentres[3] = xCentre + xStep*(x-2.0f) +2.0f;
-				c.sphereCentres[4] = yCentre + yStep*(y-2.0f);
-				c.sphereCentres[5] = zCentre + 1.0f;
-
-				scene.cellsData.put(c.ID, c);
-				scene.UpdateCellSphereNodes(c);
+				ID = ((x+10*y) << 48) +2;
+				c.centre[0] = xCentre + xStep*(x-2.0f) +2.0f;
+				c.centre[1] = yCentre + yStep*(y-2.0f);
+				c.centre[2] = zCentre + 1.0f;
+				c.radius  = 3.0f;
+				c.color = 3;
+				scene.addUpdateOrRemovePoint(ID,c);
 			}
 		}
 	}
