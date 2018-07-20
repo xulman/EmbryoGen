@@ -115,7 +115,7 @@ public:
 	}
 
 	/** element-wise division is stored in this vector */
-	void elemDiv(const Vector3d<T>& v)
+	void elemDivBy(const Vector3d<T>& v)
 	{
 		x /= v.x;
 		y /= v.y;

@@ -433,8 +433,8 @@ private:
 		distImgFarEnd.x = (FLOAT)distImg.GetSizeX();
 		distImgFarEnd.y = (FLOAT)distImg.GetSizeY();
 		distImgFarEnd.z = (FLOAT)distImg.GetSizeZ();
-		distImgFarEnd.elemDiv(distImgRes); //in mu
-		distImgFarEnd += distImgOff;       //max/far end in mu
+		distImgFarEnd.elemDivBy(distImgRes); //in mu
+		distImgFarEnd += distImgOff;         //max/far end in mu
 	}
 };
 #endif
