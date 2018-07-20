@@ -201,12 +201,46 @@ public:
 			//found some pair:
 			//determine the local gradient at the coinciding voxel
 			Vector3d<FLOAT> grad;
-			grad.x  = distImg.GetVoxel(hints[i].x+1,hints[i].y,hints[i].z); //TODO: might get outside image!
-			grad.x -= distImg.GetVoxel(hints[i].x-1,hints[i].y,hints[i].z);
-			grad.y  = distImg.GetVoxel(hints[i].x,hints[i].y+1,hints[i].z);
-			grad.y -= distImg.GetVoxel(hints[i].x,hints[i].y-1,hints[i].z);
-			grad.z  = distImg.GetVoxel(hints[i].x,hints[i].y,hints[i].z+1);
-			grad.z -= distImg.GetVoxel(hints[i].x,hints[i].y,hints[i].z-1);
+
+			//default value at the coinciding voxel to be used whenever we cannot retrieve proper value
+			const FLOAT defValue = distImg.GetVoxel(hints[i].x,hints[i].y,hints[i].z);
+
+			//distance between voxels that occur in the difference calculation
+			char span = 2;
+			if (hints[i].x+1 < distImg.GetSizeX())
+				grad.x  = distImg.GetVoxel(hints[i].x+1,hints[i].y,hints[i].z);
+			else
+				grad.x  = defValue, span--;
+			if (hints[i].x > 0)
+				grad.x -= distImg.GetVoxel(hints[i].x-1,hints[i].y,hints[i].z);
+			else
+				grad.x -= defValue, span--;
+			grad.x *= 3-span; //missing /2.0
+			//NB: this stretches the value difference as if central difference is calculated,
+			//    and leaves it at zero when GetSizeX() == 1 because grad.x == defValue - defValue
+
+			span = 2;
+			if (hints[i].y+1 < distImg.GetSizeY())
+				grad.y  = distImg.GetVoxel(hints[i].x,hints[i].y+1,hints[i].z);
+			else
+				grad.y  = defValue, span--;
+			if (hints[i].y > 0)
+				grad.y -= distImg.GetVoxel(hints[i].x,hints[i].y-1,hints[i].z);
+			else
+				grad.y -= defValue, span--;
+			grad.y *= 3-span; //missing /2.0
+
+			span = 2;
+			if (hints[i].z+1 < distImg.GetSizeZ())
+				grad.z  = distImg.GetVoxel(hints[i].x,hints[i].y,hints[i].z+1);
+			else
+				grad.z  = defValue, span--;
+			if (hints[i].z > 0)
+				grad.z -= distImg.GetVoxel(hints[i].x,hints[i].y,hints[i].z-1);
+			else
+				grad.z -= defValue, span--;
+			grad.z *= 3-span; //missing /2.0
+
 			grad.elemMult(distImgRes); //account for anisotropy
 			grad /= grad.len2();       //normalize
 
