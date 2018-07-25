@@ -247,7 +247,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 	private boolean    axesShown = false;
 
 	public
-	void ToggleDisplayAxes()
+	boolean ToggleDisplayAxes()
 	{
 		//first run, init the data
 		if (axesData == null)
@@ -284,6 +284,8 @@ public class DisplayScene extends SceneryBase implements Runnable
 
 		//toggle the flag
 		axesShown ^= true;
+
+		return axesShown;
 	}
 	//----------------------------------------------------------------------------
 
@@ -292,7 +294,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 	private boolean borderShown = false;
 
 	public
-	void ToggleDisplaySceneBorder()
+	boolean ToggleDisplaySceneBorder()
 	{
 		//first run, init the data
 		if (borderData == null)
@@ -352,6 +354,8 @@ public class DisplayScene extends SceneryBase implements Runnable
 
 		//toggle the flag
 		borderShown ^= true;
+
+		return borderShown;
 	}
 	//----------------------------------------------------------------------------
 
@@ -583,53 +587,70 @@ public class DisplayScene extends SceneryBase implements Runnable
 
 
 	public
-	void ToggleDisplayCellGeom()
+	boolean ToggleDisplayCellGeom()
 	{
 		//toggle the flag
 		cellGeomShown ^= true;
 
 		//sync expected_* constants with current state of visibility flags
-		UpdateMasking();
-
 		//apply the new setting on the points
-		for (Integer ID : pointNodes.keySet())
-			showOrHideMe(ID,pointNodes.get(ID));
+		UpdateMaskingAndApply(pointNodes);
+
+		return cellGeomShown;
 	}
 
-/*
-	TOGGLE FUNCTIONS! will call UpdateMasking()
-		//don't forget to change cullingModes when playing with cell vectors
-	TOGGLE FUNCTIONS! will call UpdateMasking()
 	public
-	void ToggleDisplayVectors()
+	boolean ToggleDisplayCellLines()
 	{
-		//add-or-remove from the scene
-		if (vectorsShown)
-		{
-			cellsData.values().forEach( c ->
-				{ for (final Node n : c.forceNodes) if (n != null) scene.removeChild(n); } );
-			//NB: Cell might not have vector defined yet (while spheres exist which justifies the existence of this object),
-			//    hence we better test for their existence
-
-			for (Material m : materials)
-				m.setCullingMode(CullingMode.None);
-		}
-		else
-		{
-			cellsData.values().forEach( c ->
-				{ for (final Node n : c.forceNodes) if (n != null) scene.addChild(n); } );
-
-			for (Material m : materials)
-				m.setCullingMode(CullingMode.Front);
-		}
-
-		//toggle the flag
-		vectorsShown ^= true;
+		cellLinesShown ^= true;
+		UpdateMaskingAndApply(lineNodes);
+		return cellLinesShown;
 	}
-	TOGGLE FUNCTIONS! will call UpdateMasking()
-		//don't forget to change cullingModes when playing with cell vectors
-	TOGGLE FUNCTIONS! will call UpdateMasking()
-*/
+
+	public
+	boolean ToggleDisplayCellVectors()
+	{
+		cellVectorsShown ^= true;
+		UpdateMaskingAndApply(vectorNodes);
+		return cellVectorsShown;
+	}
+
+	public
+	boolean ToggleDisplayCellDebug()
+	{
+		cellDebugShown ^= true;
+		//"debug" objects might be present in any shape primitive
+		UpdateMaskingAndApply(pointNodes);
+		UpdateMaskingAndApply(lineNodes);
+		UpdateMaskingAndApply(vectorNodes);
+		return cellDebugShown;
+	}
+
+	public
+	boolean ToggleDisplayGeneralDebug()
+	{
+		generalDebugShown ^= true;
+		//"debug" objects might be present in any shape primitive
+		UpdateMaskingAndApply(pointNodes);
+		UpdateMaskingAndApply(lineNodes);
+		UpdateMaskingAndApply(vectorNodes);
+		return generalDebugShown;
+	}
+
+
+	public
+	void EnableFrontFaceCulling()
+	{
+		for (Material m : materials)
+			m.setCullingMode(CullingMode.Front);
+	}
+
+	public
+	void DisableFrontFaceCulling()
+	{
+		for (Material m : materials)
+			m.setCullingMode(CullingMode.None);
+	}
 	//----------------------------------------------------------------------------
 
 
@@ -656,6 +677,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 	private int expected_FORCES = 0;
 	private int expected_DEBUG  = 0;
 
+	/** just synchronizes the "blocking" constants to the flags, e.g., this.cellGeomShown */
 	private
 	void UpdateMasking()
 	{
@@ -663,6 +685,18 @@ public class DisplayScene extends SceneryBase implements Runnable
 		expected_LINES  = cellLinesShown   == true ? MASK_LINES  : 0;
 		expected_FORCES = cellVectorsShown == true ? MASK_FORCES : 0;
 		expected_DEBUG  = cellDebugShown   == true ? MASK_DEBUG  : 0;
+	}
+
+	/** synchronizes constants via UpdateMasking() and applies the new setting
+	    on the given list of objects */
+	private
+	void UpdateMaskingAndApply(final Map<Integer,?> list)
+	{
+		UpdateMasking();
+
+		//apply the new setting on the list
+		for (Integer ID : list.keySet())
+			showOrHideMe(ID,(Node)list.get(ID));
 	}
 
 

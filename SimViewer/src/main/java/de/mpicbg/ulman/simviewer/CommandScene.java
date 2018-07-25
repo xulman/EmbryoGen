@@ -63,17 +63,21 @@ public class CommandScene implements Runnable
 			System.out.println("H - Toggles on/off of camera-attached lights");
 
 			System.out.println("F - Adds some cells to have something to display");
-			System.out.println("d - Deletes all cells (even if not displayed)");
-			System.out.println("c - Toggles display of the cells (cell spheres)");
-			System.out.println("f - Toggles display of the forces (cell vectors)");
+			System.out.println("D - Deletes all cells (even if not displayed)");
+			System.out.println("c - Toggles display of the cell geometry (spheres)");
+			System.out.println("l - Toggles display of the cell lines");
+			System.out.println("f - Toggles display of the cell vectors (forces)");
 			System.out.println("v,V - Decreases/Increases the vector display stretch");
+			System.out.println("g - Toggles display of the cell debug");
+			System.out.println("G - Toggles display of the general purpose debug");
+			System.out.println("m,M - Disable/Enable culling of front faces (Display/Hide)");
 			break;
 
 		case 'A':
-			scene.ToggleDisplayAxes();
+			System.out.println("Axes displayed: "+scene.ToggleDisplayAxes());
 			break;
 		case 'B':
-			scene.ToggleDisplaySceneBorder();
+			System.out.println("Scene border displayed: "+scene.ToggleDisplaySceneBorder());
 			break;
 		case 'L':
 			System.out.println("Current ramp lights: "+scene.ToggleFixedLights());
@@ -84,17 +88,23 @@ public class CommandScene implements Runnable
 
 		case 'F':
 			CreateFakeCells();
+			System.out.println("Fake cells added");
 			break;
-		case 'd':
+		case 'D':
 			scene.RemoveCells();
-			break;
-		case 'c':
-			scene.ToggleDisplayCellGeom();
+			System.out.println("All cells removed (incl. their lines and vectors)");
 			break;
 
-		case 'f':
-			//scene.ToggleDisplayVectors();
+		case 'c':
+			System.out.println("Cell geometry displayed: "+scene.ToggleDisplayCellGeom());
 			break;
+		case 'l':
+			System.out.println("Cell lines displayed: "+scene.ToggleDisplayCellLines());
+			break;
+		case 'f':
+			System.out.println("Cell vectors displayed: "+scene.ToggleDisplayCellVectors());
+			break;
+
 		case 'v':
 			scene.setVectorsStretch(0.80f * scene.getVectorsStretch());
 			System.out.println("new vector stretch: "+scene.getVectorsStretch());
@@ -104,10 +114,29 @@ public class CommandScene implements Runnable
 			System.out.println("new vector stretch: "+scene.getVectorsStretch());
 			break;
 
+		case 'g':
+			System.out.println("Cell debug displayed: "+scene.ToggleDisplayCellDebug());
+			break;
+		case 'G':
+			System.out.println("General debug displayed: "+scene.ToggleDisplayGeneralDebug());
+			break;
+
+		case 'm':
+			scene.DisableFrontFaceCulling();
+			System.out.println("Front faces displayed");
+			break;
+		case 'M':
+			scene.EnableFrontFaceCulling();
+			System.out.println("Front faces NOT displayed");
+			break;
+
 		case 'q':
 			scene.stop();
 			//don't wait for GUI to tell me to stop
 			throw new InterruptedException("Stop myself now.");
+		default:
+			if (key != '\n') //do not respond to Enter keystrokes
+				System.out.println("Not recognized command, no action taken");
 		}
 	}
 
