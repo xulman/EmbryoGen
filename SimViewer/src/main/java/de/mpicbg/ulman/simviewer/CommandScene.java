@@ -89,10 +89,10 @@ public class CommandScene implements Runnable
 			CreateFakeCells();
 			break;
 		case 'd':
-			//scene.RemoveCells();
+			scene.RemoveCells();
 			break;
 		case 'c':
-			//scene.ToggleDisplayCells();
+			scene.ToggleDisplayCellGeom();
 			break;
 
 		case 'f':

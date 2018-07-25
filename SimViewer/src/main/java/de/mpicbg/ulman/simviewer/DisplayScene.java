@@ -7,6 +7,7 @@ import graphics.scenery.Material.CullingMode;
 
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Iterator;
 
 /**
  * Adapted from TexturedCubeJavaExample.java from the scenery project,
@@ -476,6 +477,48 @@ public class DisplayScene extends SceneryBase implements Runnable
 		scene.addChild(n);
 		showOrHideMe(ID,n);
 	}
+
+
+	public
+	void RemoveCells()
+	{
+		//NB: HashMap may be modified while being swept through only via iterator
+		//    (and iterator must remove the elements actually)
+		Iterator<Integer> i = pointNodes.keySet().iterator();
+		int ID;
+
+		while (i.hasNext())
+		{
+			ID = i.next();
+			if ((ID & MASK_CELLID) > 0)
+			{
+				scene.removeChild(pointNodes.get(ID));
+				i.remove();
+			}
+		}
+
+		i = lineNodes.keySet().iterator();
+		while (i.hasNext())
+		{
+			ID = i.next();
+			if ((ID & MASK_CELLID) > 0)
+			{
+				scene.removeChild(lineNodes.get(ID));
+				i.remove();
+			}
+		}
+
+		i = vectorNodes.keySet().iterator();
+		while (i.hasNext())
+		{
+			ID = i.next();
+			if ((ID & MASK_CELLID) > 0)
+			{
+				scene.removeChild(vectorNodes.get(ID));
+				i.remove();
+			}
+		}
+	}
 	//----------------------------------------------------------------------------
 
 
@@ -539,27 +582,24 @@ public class DisplayScene extends SceneryBase implements Runnable
 	private boolean generalDebugShown = false;
 
 
+	public
+	void ToggleDisplayCellGeom()
+	{
+		//toggle the flag
+		cellGeomShown ^= true;
+
+		//sync expected_* constants with current state of visibility flags
+		UpdateMasking();
+
+		//apply the new setting on the points
+		for (Integer ID : pointNodes.keySet())
+			showOrHideMe(ID,pointNodes.get(ID));
+	}
+
 /*
 	TOGGLE FUNCTIONS! will call UpdateMasking()
 		//don't forget to change cullingModes when playing with cell vectors
 	TOGGLE FUNCTIONS! will call UpdateMasking()
-	public
-	void ToggleDisplayCells()
-	{
-		//add-or-remove from the scene
-		if (cellsShown)
-			cellsData.values().forEach( c ->
-				{ for (final Node n : c.sphereNodes) if (n != null) scene.removeChild(n); } );
-			//NB: Cell might not have spheres defined yet (while vectors exist which justifies the existence of this object),
-			//    hence we better test for their existence
-		else
-			cellsData.values().forEach( c ->
-				{ for (final Node n : c.sphereNodes) if (n != null) scene.addChild(n); } );
-
-		//toggle the flag
-		cellsShown ^= true;
-	}
-
 	public
 	void ToggleDisplayVectors()
 	{
