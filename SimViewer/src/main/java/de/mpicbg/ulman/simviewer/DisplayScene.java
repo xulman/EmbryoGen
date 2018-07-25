@@ -46,9 +46,6 @@ public class DisplayScene extends SceneryBase implements Runnable
 			m.setAmbient(  new GLVector(1.0f, 1.0f, 1.0f) );
 			m.setSpecular( new GLVector(1.0f, 1.0f, 1.0f) );
 		}
-
-		//sync expected_* constants with current state of visibility flags
-		UpdateMasking();
 	}
 
 	/** 3D position of the scene, to position well the lights and camera */
@@ -393,7 +390,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 			n = new Sphere(1.0f, 12);
 			pointNodes.put(ID,n);
 			scene.addChild(n);
-			showOrHideMe(ID,n);
+			showOrHideMe(ID,n,cellGeomShown);
 		}
 
 		//now update the point with the current data
@@ -428,7 +425,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 			n.setEdgeWidth(0.02f);
 			lineNodes.put(ID,n);
 			scene.addChild(n);
-			showOrHideMe(ID,n);
+			showOrHideMe(ID,n,cellLinesShown);
 		}
 
 		//now update the line with the current data
@@ -479,7 +476,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 		//register the new vector into the system...
 		vectorNodes.put(ID,n);
 		scene.addChild(n);
-		showOrHideMe(ID,n);
+		showOrHideMe(ID,n,cellVectorsShown);
 	}
 
 
@@ -594,7 +591,8 @@ public class DisplayScene extends SceneryBase implements Runnable
 
 		//sync expected_* constants with current state of visibility flags
 		//apply the new setting on the points
-		UpdateMaskingAndApply(pointNodes);
+		for (Integer ID : pointNodes.keySet())
+			showOrHideMe(ID,pointNodes.get(ID),cellGeomShown);
 
 		return cellGeomShown;
 	}
@@ -603,7 +601,10 @@ public class DisplayScene extends SceneryBase implements Runnable
 	boolean ToggleDisplayCellLines()
 	{
 		cellLinesShown ^= true;
-		UpdateMaskingAndApply(lineNodes);
+
+		for (Integer ID : lineNodes.keySet())
+			showOrHideMe(ID,lineNodes.get(ID),cellLinesShown);
+
 		return cellLinesShown;
 	}
 
@@ -611,7 +612,10 @@ public class DisplayScene extends SceneryBase implements Runnable
 	boolean ToggleDisplayCellVectors()
 	{
 		cellVectorsShown ^= true;
-		UpdateMaskingAndApply(vectorNodes);
+
+		for (Integer ID : vectorNodes.keySet())
+			showOrHideMe(ID,vectorNodes.get(ID),cellVectorsShown);
+
 		return cellVectorsShown;
 	}
 
@@ -619,10 +623,15 @@ public class DisplayScene extends SceneryBase implements Runnable
 	boolean ToggleDisplayCellDebug()
 	{
 		cellDebugShown ^= true;
+
 		//"debug" objects might be present in any shape primitive
-		UpdateMaskingAndApply(pointNodes);
-		UpdateMaskingAndApply(lineNodes);
-		UpdateMaskingAndApply(vectorNodes);
+		for (Integer ID : pointNodes.keySet())
+			showOrHideMe(ID,pointNodes.get(ID),cellGeomShown);
+		for (Integer ID : lineNodes.keySet())
+			showOrHideMe(ID,lineNodes.get(ID),cellLinesShown);
+		for (Integer ID : vectorNodes.keySet())
+			showOrHideMe(ID,vectorNodes.get(ID),cellVectorsShown);
+
 		return cellDebugShown;
 	}
 
@@ -630,10 +639,15 @@ public class DisplayScene extends SceneryBase implements Runnable
 	boolean ToggleDisplayGeneralDebug()
 	{
 		generalDebugShown ^= true;
+
 		//"debug" objects might be present in any shape primitive
-		UpdateMaskingAndApply(pointNodes);
-		UpdateMaskingAndApply(lineNodes);
-		UpdateMaskingAndApply(vectorNodes);
+		for (Integer ID : pointNodes.keySet())
+			showOrHideMe(ID,pointNodes.get(ID),cellGeomShown);
+		for (Integer ID : lineNodes.keySet())
+			showOrHideMe(ID,lineNodes.get(ID),cellLinesShown);
+		for (Integer ID : vectorNodes.keySet())
+			showOrHideMe(ID,vectorNodes.get(ID),cellVectorsShown);
+
 		return generalDebugShown;
 	}
 
@@ -654,57 +668,29 @@ public class DisplayScene extends SceneryBase implements Runnable
 	//----------------------------------------------------------------------------
 
 
-	//ID space: 64 bits -> 5 sectors of 12,12,12,12,14 bits each, 14 bits = 16384
+	//ID space of graphics primitives: 31 bits
 	//
-	//lowest 0. sector: 4096 elements that make up geometry/shape of ONE cell
-	//       1. sector: 4096 lines that outline whatever (debug) of ONE cell
-	//       2. sector: 4096 (force) vectors of ONE cell
-	//       3. sector: 4096 elements for debugging of ONE cell
-	//       4. sector: 14 bits of "identification" of ONE single cell
+	//     lowest 16 bits: ID of the graphics element itself
+	//next lowest  1 bit : proper (=0) or debug (=1) element
+	//next lowest 14 bits: "identification" of ONE single cell
+	//     highest 1 bit : not used (sign bit)
 	//
-	//note: 2^48 general purpose elements is available when 4th sector equals 0
+	//note: general purpose elements have cell "identification" equal to 0
+	//      in which case the debug bit is not applied
+	//note: there are 4 graphics primitives: points, lines, vectors, meshes;
+	//      each is living in its own list of elements (e.g. this.pointNodes)
 
 	//constants to "read out" respective information
-	static private final int MASK_SHAPE  = ((1 << 12)-1);
-	static private final int MASK_LINES  = ((1 << 24)-1) ^MASK_SHAPE;
-	static private final int MASK_FORCES = ((1 << 36)-1) ^MASK_SHAPE ^MASK_LINES;
-	static private final int MASK_DEBUG  = ((1 << 48)-1) ^MASK_SHAPE ^MASK_LINES ^MASK_FORCES;
-	static private final int MASK_CELLID = ((1 << 62)-1) ^MASK_SHAPE ^MASK_LINES ^MASK_FORCES ^MASK_DEBUG;
+	@SuppressWarnings("unused")
+	private static final int MASK_ELEM   = ((1 << 16)-1);
+	private static final int MASK_DEBUG  =   1 << 16;
+	private static final int MASK_CELLID = ((1 << 14)-1) << 17;
 
-	//"blocking" constants
-	private int expected_SHAPE  = 0;
-	private int expected_LINES  = 0;
-	private int expected_FORCES = 0;
-	private int expected_DEBUG  = 0;
-
-	/** just synchronizes the "blocking" constants to the flags, e.g., this.cellGeomShown */
+	/** given the current display preference in 'displayFlag',
+	    the visibility of the object 'n' with ID is adjusted,
+	    the decided state is indicated in the return value */
 	private
-	void UpdateMasking()
-	{
-		expected_SHAPE  = cellGeomShown    == true ? MASK_SHAPE  : 0;
-		expected_LINES  = cellLinesShown   == true ? MASK_LINES  : 0;
-		expected_FORCES = cellVectorsShown == true ? MASK_FORCES : 0;
-		expected_DEBUG  = cellDebugShown   == true ? MASK_DEBUG  : 0;
-	}
-
-	/** synchronizes constants via UpdateMasking() and applies the new setting
-	    on the given list of objects */
-	private
-	void UpdateMaskingAndApply(final Map<Integer,?> list)
-	{
-		UpdateMasking();
-
-		//apply the new setting on the list
-		for (Integer ID : list.keySet())
-			showOrHideMe(ID,(Node)list.get(ID));
-	}
-
-
-	/** given the current display preferences, the visibility of
-	    the object 'n' with ID is adjusted, the decided state is
-	    indicated in the return value */
-	private
-	boolean showOrHideMe(final int ID, final Node n)
+	boolean showOrHideMe(final int ID, final Node n, final boolean displayFlag)
 	{
 		boolean vis = false;
 		if ((ID & MASK_CELLID) == 0)
@@ -714,11 +700,19 @@ public class DisplayScene extends SceneryBase implements Runnable
 		}
 		else
 		{
-			//ID belongs to some cell, check the result
-			vis = ((ID & MASK_SHAPE  & expected_SHAPE )
-			    |  (ID & MASK_LINES  & expected_LINES )
-			    |  (ID & MASK_FORCES & expected_FORCES)
-			    |  (ID & MASK_DEBUG  & expected_DEBUG )) > 0 ? true : false;
+			vis = displayFlag == true && (ID & MASK_DEBUG) > 0 ? cellDebugShown : displayFlag;
+
+			//NB: follows this table
+			// flag  MASK_DEBUG   cellDebugShown    result
+			// true    1          true              true
+			// true    1          false             false
+			// true    0          true              true
+			// true    0          false             true
+
+			// false   1          true              false
+			// false   1          false             false
+			// false   0          true              false
+			// false   0          false             false
 		}
 
 		if (n != null) n.setVisible(vis);

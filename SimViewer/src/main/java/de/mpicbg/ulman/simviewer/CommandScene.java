@@ -158,7 +158,7 @@ public class CommandScene implements Runnable
 		{
 			//if (x != 2 && y != 2)
 			{
-				ID = (x+10*y +1) << 48; //cell ID
+				ID = (x+10*y +1) << 17; //cell ID
 				ID++;                   //1st element of this cell
 				c.centre[0] = xCentre + xStep*(x-2.0f) -2.0f;
 				c.centre[1] = yCentre + yStep*(y-2.0f);

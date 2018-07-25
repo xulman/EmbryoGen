@@ -107,14 +107,15 @@ private:
 		int i=0;
 		while (i < futureGeometry.noOfSpheres && futureGeometry.radii[i] > 0.f)
 		{
-			du.DrawPoint(ID,futureGeometry.centres[i],futureGeometry.radii[i],(curPhase < 3? 2:3));
+			du.DrawPoint((ID << 17) + i,futureGeometry.centres[i],futureGeometry.radii[i],(curPhase < 3? 2:3));
 			++i;
 		}
 
 		if (ID == 1 || ID == 3)
 		{
+			int cnt=1;
 			for (auto& p : proximityPairs)
-				du.DrawVector(ID, p.localPos, p.otherPos-p.localPos);
+				du.DrawVector((ID << 17) +cnt++, p.localPos, p.otherPos-p.localPos);
 		}
 	}
 };

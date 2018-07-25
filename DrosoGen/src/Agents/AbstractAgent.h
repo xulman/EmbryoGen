@@ -170,13 +170,28 @@ public:
 	    the DisplayUnit; may use this->ID or its state somehow for colors.
 
 	    It is was not expected to render the content of this->geometry as this
-	    one might be less accurate -- the this->geometry is designed for assesing
+	    one might be less accurate -- the this->geometry is designed for assessing
 	    mutual distances between all neighboring cells and should be a good trade-off
 	    between sparse (fast to examine) representation and rich (accurate distances)
 	    representation.
 
 	    Besides, the texture rendering/rasterizing methods below also work with data
-	    that are in sync with the futureGeometry. */
+	    that are in sync with the futureGeometry.
+
+	    When Imagej2/Scenery/Java DisplayUnit is used for the visualization,
+	    note then that the displayed graphics primitives have their own IDs and
+	    these must obey certain system/format:
+
+	    ID space of graphics primitives: 31 bits
+
+	         lowest 16 bits: ID of the graphics element itself
+	    next lowest  1 bit : proper (=0) or debug (=1) element
+	    next lowest 14 bits: "identification" of ONE single cell
+	         highest 1 bit : not used (sign bit)
+
+	    note: general purpose elements have cell "identification" equal to 0
+	          in which case the debug bit is not applied
+	    note: there are 4 graphics primitives: points, lines, vectors, meshes */
 	virtual
 	void drawMask(DisplayUnit&) {};
 
@@ -187,7 +202,8 @@ public:
 	//template <class MT> //MT = Mask Type
 	void drawMask(i3d::Image3d<i3d::GRAY16>&) {};
 
-	/** Should render the current texture into the DisplayUnit */
+	/** Should render the current texture into the DisplayUnit,
+	    see AbstractAgent::drawMask(DisplayUnit&) for details. */
 	virtual
 	void drawTexture(DisplayUnit&) {};
 
@@ -197,7 +213,8 @@ public:
 	//template <class VT> //VT = Voxel Type
 	void drawTexture(i3d::Image3d<i3d::GRAY16>&) {};
 
-	/** Render whatever might be appropriate for debug into the DisplayUnit. */
+	/** Render whatever might be appropriate for debug into the DisplayUnit,
+	    see AbstractAgent::drawMask(DisplayUnit&) for details. */
 	virtual
 	void drawForDebug(DisplayUnit&) {};
 
