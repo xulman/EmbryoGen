@@ -659,10 +659,10 @@ public class DisplayScene extends SceneryBase implements Runnable
 	private
 	void UpdateMasking()
 	{
-		expected_SHAPE  = cellGeomShown    ? MASK_SHAPE  : 0;
-		expected_LINES  = cellLinesShown   ? MASK_LINES  : 0;
-		expected_FORCES = cellVectorsShown ? MASK_FORCES : 0;
-		expected_DEBUG  = cellDebugShown   ? MASK_DEBUG  : 0;
+		expected_SHAPE  = cellGeomShown    == true ? MASK_SHAPE  : 0;
+		expected_LINES  = cellLinesShown   == true ? MASK_LINES  : 0;
+		expected_FORCES = cellVectorsShown == true ? MASK_FORCES : 0;
+		expected_DEBUG  = cellDebugShown   == true ? MASK_DEBUG  : 0;
 	}
 
 

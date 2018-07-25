@@ -168,7 +168,8 @@ public class CommandScene implements Runnable
 		{
 			//if (x != 2 && y != 2)
 			{
-				ID = ((x+10*y) << 48) +1;
+				ID = (x+10*y +1) << 48; //cell ID
+				ID++;                   //1st element of this cell
 				c.centre[0] = xCentre + xStep*(x-2.0f) -2.0f;
 				c.centre[1] = yCentre + yStep*(y-2.0f);
 				c.centre[2] = zCentre - 1.0f;
@@ -176,7 +177,7 @@ public class CommandScene implements Runnable
 				c.color = 2;
 				scene.addUpdateOrRemovePoint(ID,c);
 
-				ID = ((x+10*y) << 48) +2;
+				ID++;                   //2nd element of this cell
 				c.centre[0] = xCentre + xStep*(x-2.0f) +2.0f;
 				c.centre[1] = yCentre + yStep*(y-2.0f);
 				c.centre[2] = zCentre + 1.0f;
