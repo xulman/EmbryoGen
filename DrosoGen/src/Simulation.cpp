@@ -1,8 +1,10 @@
 #include "util/Vector3d.h"
 #include "Geometries/Spheres.h"
+#include "Geometries/MaskImg.h"
 #include "Simulation.h"
 #include "Agents/AbstractAgent.h"
 #include "Agents/NucleusAgent.h"
+#include "Agents/ShapeHinter.h"
 
 void Simulation::initializeAgents(void)
 {
@@ -62,6 +64,10 @@ void Simulation::initializeAgents_aFew(void)
 	const float radius = 0.4f*sceneSize.y;
 	const int howManyToPlace = 6;
 
+	Vector3d<float> sceneCentre(sceneSize);
+	sceneCentre /= 2.0f;
+	sceneCentre += sceneOffset;
+
 	for (int i=0; i < howManyToPlace; ++i)
 	{
 		const float ang = float(i)/float(howManyToPlace);
@@ -69,15 +75,8 @@ void Simulation::initializeAgents_aFew(void)
 		//the wished position relative to [0,0,0] centre
 		Vector3d<float> pos(radius * cosf(ang*6.28f),radius * sinf(ang*6.28f),0.0f);
 
-		//position is shifted to the scene centre
-		pos.x += sceneSize.x/2.0f;
-		pos.y += sceneSize.y/2.0f;
-		pos.z += sceneSize.z/2.0f;
-
-		//position is shifted due to scene offset
-		pos.x += sceneOffset.x;
-		pos.y += sceneOffset.y;
-		pos.z += sceneOffset.z;
+		//position is shifted to the scene centre, accounting for scene offset
+		pos += sceneCentre;
 
 		Spheres s(4);
 		s.updateCentre(0,pos);
@@ -94,4 +93,43 @@ void Simulation::initializeAgents_aFew(void)
 		agents.push_back(ag);
 		tracks.startNewTrack(ag->ID,frameCnt);
 	}
+
+
+	//shadow hinter geometry (micron size and resolution)
+	Vector3d<float> size(1.5f*radius,1.5f*radius,0.5f*radius);
+	const float xRes = 1.0f; //px/um
+	const float yRes = 1.0f;
+	const float zRes = 1.0f;
+	DEBUG_REPORT("Shape hinter image size   [um]: " << size);
+
+	//allocate and init memory for the hinter representation
+	i3d::Image3d<i3d::GRAY8> Img;
+	Img.MakeRoom((size_t)(size.x*xRes),(size_t)(size.y*yRes),(size_t)(size.z*zRes));
+	Img.GetVoxelData() = 0;
+
+	//metadata...
+	size *= -0.5f;
+	size += sceneCentre;
+	Img.SetOffset(     i3d::Offset(size.x,size.y,size.z) );
+	Img.SetResolution( i3d::Resolution(xRes,yRes,zRes) );
+	DEBUG_REPORT("Shape hinter image offset [um]: " << size);
+
+	//fill the actual shape
+	const size_t z=Img.GetSizeZ()/2;
+	for (size_t y=(size_t)(0.1*Img.GetSizeY()); y <= (size_t)(0.9*Img.GetSizeY()); ++y)
+	for (size_t x=(size_t)(0.1*Img.GetSizeX()); x <= (size_t)(0.9*Img.GetSizeX()); ++x)
+		Img.SetVoxel(x,y,z,20);
+	//Img.SaveImage("GradIN_ZeroOUT__original.tif");
+
+	//now convert the actual shape into the shape geometry
+	MaskImg m(Img,MaskImg::DistanceModel::GradIN_ZeroOUT);
+	m.Geometry::setAABB();
+
+	//m.saveDistImg("GradIN_ZeroOUT.tif");
+	DEBUG_REPORT("AABB: " << m.AABB.minCorner << " -> " << m.AABB.maxCorner);
+
+	//finally, create the simulation agent to register this shape
+	AbstractAgent* ag = new ShapeHinter(ID++,m,currTime,incrTime);
+	ag->setOfficer(this);
+	agents.push_back(ag);
 }
