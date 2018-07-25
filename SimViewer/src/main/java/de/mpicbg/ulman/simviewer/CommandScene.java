@@ -4,7 +4,6 @@ import java.io.InputStreamReader;
 import java.io.IOException;
 
 import de.mpicbg.ulman.simviewer.DisplayScene;
-import de.mpicbg.ulman.simviewer.agents.Cell;
 
 /**
  * Adapted from TexturedCubeJavaExample.java from the scenery project,
@@ -64,20 +63,21 @@ public class CommandScene implements Runnable
 			System.out.println("H - Toggles on/off of camera-attached lights");
 
 			System.out.println("F - Adds some cells to have something to display");
-			System.out.println("d - Deletes all cells (even if not displayed)");
-			System.out.println("c - Toggles display of the cells (cell spheres)");
-			System.out.println("f - Toggles display of the forces (cell vectors)");
+			System.out.println("D - Deletes all cells (even if not displayed)");
+			System.out.println("c - Toggles display of the cell geometry (spheres)");
+			System.out.println("l - Toggles display of the cell lines");
+			System.out.println("f - Toggles display of the cell vectors (forces)");
 			System.out.println("v,V - Decreases/Increases the vector display stretch");
-
-			System.out.println("r,R - decreases/increases radius of all cells by 0.2");
-			System.out.println("x,X - moves left/right x-position of all cells by 0.2");
+			System.out.println("g - Toggles display of the cell debug");
+			System.out.println("G - Toggles display of the general purpose debug");
+			System.out.println("m,M - Disable/Enable culling of front faces (Display/Hide)");
 			break;
 
 		case 'A':
-			scene.ToggleDisplayAxes();
+			System.out.println("Axes displayed: "+scene.ToggleDisplayAxes());
 			break;
 		case 'B':
-			scene.ToggleDisplaySceneBorder();
+			System.out.println("Scene border displayed: "+scene.ToggleDisplaySceneBorder());
 			break;
 		case 'L':
 			System.out.println("Current ramp lights: "+scene.ToggleFixedLights());
@@ -88,17 +88,23 @@ public class CommandScene implements Runnable
 
 		case 'F':
 			CreateFakeCells();
+			System.out.println("Fake cells added");
 			break;
-		case 'd':
+		case 'D':
 			scene.RemoveCells();
-			break;
-		case 'c':
-			scene.ToggleDisplayCells();
+			System.out.println("All cells removed (incl. their lines and vectors)");
 			break;
 
-		case 'f':
-			scene.ToggleDisplayVectors();
+		case 'c':
+			System.out.println("Cell geometry displayed: "+scene.ToggleDisplayCellGeom());
 			break;
+		case 'l':
+			System.out.println("Cell lines displayed: "+scene.ToggleDisplayCellLines());
+			break;
+		case 'f':
+			System.out.println("Cell vectors displayed: "+scene.ToggleDisplayCellVectors());
+			break;
+
 		case 'v':
 			scene.setVectorsStretch(0.80f * scene.getVectorsStretch());
 			System.out.println("new vector stretch: "+scene.getVectorsStretch());
@@ -108,44 +114,29 @@ public class CommandScene implements Runnable
 			System.out.println("new vector stretch: "+scene.getVectorsStretch());
 			break;
 
-		case 'r':
-			for (Cell c : scene.cellsData.values())
-			{
-				for (int i=0; i < c.sphereRadii.length; ++i)
-					c.sphereRadii[i] -= 0.2f;
-				scene.UpdateCellSphereNodes(c);
-			}
+		case 'g':
+			System.out.println("Cell debug displayed: "+scene.ToggleDisplayCellDebug());
 			break;
-		case 'R':
-			for (Cell c : scene.cellsData.values())
-			{
-				for (int i=0; i < c.sphereRadii.length; ++i)
-					c.sphereRadii[i] += 0.2f;
-				scene.UpdateCellSphereNodes(c);
-			}
+		case 'G':
+			System.out.println("General debug displayed: "+scene.ToggleDisplayGeneralDebug());
 			break;
 
-		case 'x':
-			for (Cell c : scene.cellsData.values())
-			{
-				for (int i=0; i < c.sphereRadii.length; ++i)
-					c.sphereCentres[3*i +0] -= 0.2f;
-				scene.UpdateCellSphereNodes(c);
-			}
+		case 'm':
+			scene.DisableFrontFaceCulling();
+			System.out.println("Front faces displayed");
 			break;
-		case 'X':
-			for (Cell c : scene.cellsData.values())
-			{
-				for (int i=0; i < c.sphereRadii.length; ++i)
-					c.sphereCentres[3*i +0] += 0.2f;
-				scene.UpdateCellSphereNodes(c);
-			}
+		case 'M':
+			scene.EnableFrontFaceCulling();
+			System.out.println("Front faces NOT displayed");
 			break;
 
 		case 'q':
 			scene.stop();
 			//don't wait for GUI to tell me to stop
 			throw new InterruptedException("Stop myself now.");
+		default:
+			if (key != '\n') //do not respond to Enter keystrokes
+				System.out.println("Not recognized command, no action taken");
 		}
 	}
 
@@ -159,27 +150,30 @@ public class CommandScene implements Runnable
 		final float yCentre  = scene.sceneOffset[1] + 0.5f*scene.sceneSize[1];
 		final float zCentre  = scene.sceneOffset[2] + 0.5f*scene.sceneSize[2];
 
+		final DisplayScene.myPoint c = scene.new myPoint();
+		int ID = 0;
+
 		for (int y=0; y < 5; ++y)
 		for (int x=0; x < 5; ++x)
 		{
 			//if (x != 2 && y != 2)
 			{
-				final Cell c = new Cell(2,0);
-				c.ID = x+10*y;
-				c.sphereRadii[0]  = 3.0f;
-				c.sphereColors[0] = 2;
-				c.sphereCentres[0] = xCentre + xStep*(x-2.0f) -2.0f;
-				c.sphereCentres[1] = yCentre + yStep*(y-2.0f);
-				c.sphereCentres[2] = zCentre - 1.0f;
+				ID = (x+10*y +1) << 48; //cell ID
+				ID++;                   //1st element of this cell
+				c.centre[0] = xCentre + xStep*(x-2.0f) -2.0f;
+				c.centre[1] = yCentre + yStep*(y-2.0f);
+				c.centre[2] = zCentre - 1.0f;
+				c.radius  = 3.0f;
+				c.color = 2;
+				scene.addUpdateOrRemovePoint(ID,c);
 
-				c.sphereRadii[1]  = 3.0f;
-				c.sphereColors[1] = 3;
-				c.sphereCentres[3] = xCentre + xStep*(x-2.0f) +2.0f;
-				c.sphereCentres[4] = yCentre + yStep*(y-2.0f);
-				c.sphereCentres[5] = zCentre + 1.0f;
-
-				scene.cellsData.put(c.ID, c);
-				scene.UpdateCellSphereNodes(c);
+				ID++;                   //2nd element of this cell
+				c.centre[0] = xCentre + xStep*(x-2.0f) +2.0f;
+				c.centre[1] = yCentre + yStep*(y-2.0f);
+				c.centre[2] = zCentre + 1.0f;
+				c.radius  = 3.0f;
+				c.color = 3;
+				scene.addUpdateOrRemovePoint(ID,c);
 			}
 		}
 	}

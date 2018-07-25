@@ -7,7 +7,7 @@ import graphics.scenery.Material.CullingMode;
 
 import java.util.Map;
 import java.util.HashMap;
-import de.mpicbg.ulman.simviewer.agents.Cell;
+import java.util.Iterator;
 
 /**
  * Adapted from TexturedCubeJavaExample.java from the scenery project,
@@ -46,6 +46,9 @@ public class DisplayScene extends SceneryBase implements Runnable
 			m.setAmbient(  new GLVector(1.0f, 1.0f, 1.0f) );
 			m.setSpecular( new GLVector(1.0f, 1.0f, 1.0f) );
 		}
+
+		//sync expected_* constants with current state of visibility flags
+		UpdateMasking();
 	}
 
 	/** 3D position of the scene, to position well the lights and camera */
@@ -244,7 +247,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 	private boolean    axesShown = false;
 
 	public
-	void ToggleDisplayAxes()
+	boolean ToggleDisplayAxes()
 	{
 		//first run, init the data
 		if (axesData == null)
@@ -281,6 +284,8 @@ public class DisplayScene extends SceneryBase implements Runnable
 
 		//toggle the flag
 		axesShown ^= true;
+
+		return axesShown;
 	}
 	//----------------------------------------------------------------------------
 
@@ -289,7 +294,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 	private boolean borderShown = false;
 
 	public
-	void ToggleDisplaySceneBorder()
+	boolean ToggleDisplaySceneBorder()
 	{
 		//first run, init the data
 		if (borderData == null)
@@ -349,66 +354,181 @@ public class DisplayScene extends SceneryBase implements Runnable
 
 		//toggle the flag
 		borderShown ^= true;
+
+		return borderShown;
 	}
 	//----------------------------------------------------------------------------
 
 
-	/** these guys will be displayed on the display */
-	public Map<Integer,Cell> cellsData  = new HashMap<Integer,Cell>();
+	/** these points are registered with the display, but not necessarily always visible */
+	private final Map<Integer,Node>  pointNodes = new HashMap<>();
+	/** these lines are registered with the display, but not necessarily always visible */
+	private final Map<Integer,Line>   lineNodes = new HashMap<>();
+	/** these vectors are registered with the display, but not necessarily always visible */
+	private final Map<Integer,Node> vectorNodes = new HashMap<>();
 
-	/** signals we want to have cells (spheres) displayed (even if cellsData is initially empty) */
-	private boolean cellsShown = true;
 
-	/** signals we want to have cell forces (vectors) displayed */
-	private boolean vectorsShown = false;
+	public
+	void addUpdateOrRemovePoint(final int ID,final myPoint p)
+	{
+		//attempt to retrieve node of this ID
+		Node n = pointNodes.get(ID);
+
+		//negative color is an agreed signal to remove the point
+		//also, get rid of a point whose radius is "impossible"
+		if (p.color < 0 || p.radius < 0.0f)
+		{
+			if (n != null)
+			{
+				scene.removeChild(n);
+				pointNodes.remove(ID);
+			}
+			return;
+		}
+
+		//shall we create a new point?
+		if (n == null)
+		{
+			//new point: adding
+			n = new Sphere(1.0f, 12);
+			pointNodes.put(ID,n);
+			scene.addChild(n);
+			showOrHideMe(ID,n);
+		}
+
+		//now update the point with the current data
+		n.setPosition(new GLVector(p.centre[0],p.centre[1],p.centre[2]));
+		n.setScale(new GLVector(p.radius,3));
+		n.setMaterial(materials[p.color % materials.length]);
+	}
+
+
+	public
+	void addUpdateOrRemoveLine(final int ID,final myLine l)
+	{
+		//attempt to retrieve node of this ID
+		Line n = lineNodes.get(ID);
+
+		//negative color is an agreed signal to remove the line
+		if (l.color < 0)
+		{
+			if (n != null)
+			{
+				scene.removeChild(n);
+				lineNodes.remove(ID);
+			}
+			return;
+		}
+
+		//shall we create a new line?
+		if (n == null)
+		{
+			//new line: adding
+			n = new Line(4);
+			n.setEdgeWidth(0.02f);
+			lineNodes.put(ID,n);
+			scene.addChild(n);
+			showOrHideMe(ID,n);
+		}
+
+		//now update the line with the current data
+		n.clearPoints();
+		n.addPoint(new GLVector(l.posA[0],l.posA[1],l.posA[2]));
+		n.addPoint(new GLVector(l.posB[0],l.posB[1],l.posB[2]));
+
+		//add two mandatory fake points that are never displayed
+		n.addPoint(new GLVector(0.f,3));
+		n.addPoint(new GLVector(0.f,3));
+
+		n.setMaterial(materials[l.color % materials.length]);
+		//no setScale(), no setPosition()
+	}
+
+
+	public
+	void addUpdateOrRemoveVector(final int ID,final myVector v)
+	{
+		//attempt to retrieve node of this ID
+		Node n = vectorNodes.get(ID);
+
+		//vectors are never updated, they are always created again and again,
+		//so remove whatever we have for now under this ID
+		if (n != null)
+		{
+			scene.removeChild(n);
+			vectorNodes.remove(ID);
+		}
+
+		//negative color is an agreed signal to remove the vector,
+		//which here means not to create a new one
+		if (v.color < 0) return;
+
+		//new vector: creating
+		n = CreateVector(new GLVector(v.vector[0],
+		                              v.vector[1],
+		                              v.vector[2]));
+
+		//update (position and scale)...
+		n.setPosition(new GLVector(v.base[0],v.base[1],v.base[2]));
+		n.setScale(new GLVector(vectorsStretch,3));
+
+		//update (material -- color)...
+		final Material m = materials[v.color % materials.length];
+		n.runRecursive(nn -> nn.setMaterial(m));
+
+		//register the new vector into the system...
+		vectorNodes.put(ID,n);
+		scene.addChild(n);
+		showOrHideMe(ID,n);
+	}
+
+
+	public
+	void RemoveCells()
+	{
+		//NB: HashMap may be modified while being swept through only via iterator
+		//    (and iterator must remove the elements actually)
+		Iterator<Integer> i = pointNodes.keySet().iterator();
+		int ID;
+
+		while (i.hasNext())
+		{
+			ID = i.next();
+			if ((ID & MASK_CELLID) > 0)
+			{
+				scene.removeChild(pointNodes.get(ID));
+				i.remove();
+			}
+		}
+
+		i = lineNodes.keySet().iterator();
+		while (i.hasNext())
+		{
+			ID = i.next();
+			if ((ID & MASK_CELLID) > 0)
+			{
+				scene.removeChild(lineNodes.get(ID));
+				i.remove();
+			}
+		}
+
+		i = vectorNodes.keySet().iterator();
+		while (i.hasNext())
+		{
+			ID = i.next();
+			if ((ID & MASK_CELLID) > 0)
+			{
+				scene.removeChild(vectorNodes.get(ID));
+				i.remove();
+			}
+		}
+	}
+	//----------------------------------------------------------------------------
+
 
 	/** cell forces are typically small in magnitude compared to the cell size,
 	    this defines the current magnification applied when displaying the force vectors */
 	private float vectorsStretch = 1.f;
-
-	public
-	void ToggleDisplayCells()
-	{
-		//add-or-remove from the scene
-		if (cellsShown)
-			cellsData.values().forEach( c ->
-				{ for (final Node n : c.sphereNodes) if (n != null) scene.removeChild(n); } );
-			//NB: Cell might not have spheres defined yet (while vectors exist which justifies the existence of this object),
-			//    hence we better test for their existence
-		else
-			cellsData.values().forEach( c ->
-				{ for (final Node n : c.sphereNodes) if (n != null) scene.addChild(n); } );
-
-		//toggle the flag
-		cellsShown ^= true;
-	}
-
-	public
-	void ToggleDisplayVectors()
-	{
-		//add-or-remove from the scene
-		if (vectorsShown)
-		{
-			cellsData.values().forEach( c ->
-				{ for (final Node n : c.forceNodes) if (n != null) scene.removeChild(n); } );
-			//NB: Cell might not have vector defined yet (while spheres exist which justifies the existence of this object),
-			//    hence we better test for their existence
-
-			for (Material m : materials)
-				m.setCullingMode(CullingMode.None);
-		}
-		else
-		{
-			cellsData.values().forEach( c ->
-				{ for (final Node n : c.forceNodes) if (n != null) scene.addChild(n); } );
-
-			for (Material m : materials)
-				m.setCullingMode(CullingMode.Front);
-		}
-
-		//toggle the flag
-		vectorsShown ^= true;
-	}
 
 	float getVectorsStretch()
 	{ return vectorsStretch; }
@@ -420,135 +540,189 @@ public class DisplayScene extends SceneryBase implements Runnable
 
 		//...and rescale all vectors presently existing in the system
 		final GLVector scaleVec = new GLVector(vectorsStretch,3);
-		cellsData.values().forEach( c ->
-			{ for (final Node n : c.forceNodes) if (n != null) n.setScale(scaleVec); } );
+		vectorNodes.values().forEach( n -> n.setScale(scaleVec) );
 	}
 
 
-	/** only removes the cells from the scene, but keeps
-	    displaying them (despite none exists afterwards) */
-	public
-	void RemoveCells()
+	/** corresponds to one element that simulator's DrawPoint() can send */
+	public class myPoint
 	{
-		for (Cell c : cellsData.values().toArray(new Cell[0])) RemoveCell(c);
+		float[] centre = new float[3];
+		float radius;
+		int color;
+	}
 
-		//NB: just to make sure... should be empty by now
-		if (cellsData.isEmpty() == false)
-			throw new RuntimeException("RemoveCells() failed to empty the cell array.");
+	/** corresponds to one element that simulator's DrawLine() can send */
+	public class myLine
+	{
+		float[] posA = new float[3];
+		float[] posB = new float[3];
+		int color;
+	}
+
+	/** corresponds to one element that simulator's DrawVector() can send */
+	public class myVector
+	{
+		float[] base   = new float[3];
+		float[] vector = new float[3];
+		int color;
+	}
+	//----------------------------------------------------------------------------
+
+
+	/** signals if we want to have cells (spheres) displayed (even if cellsData is initially empty) */
+	private boolean cellGeomShown = true;
+
+	/** signals if we want to have cell lines displayed */
+	private boolean cellLinesShown = false;
+
+	/** signals if we want to have cell forces (vectors) displayed */
+	private boolean cellVectorsShown = false;
+
+	/** signals if we want to have cell "debugging" elements displayed */
+	private boolean cellDebugShown = false;
+
+	/** signals if we want to have general purpose "debugging" elements displayed */
+	private boolean generalDebugShown = false;
+
+
+	public
+	boolean ToggleDisplayCellGeom()
+	{
+		//toggle the flag
+		cellGeomShown ^= true;
+
+		//sync expected_* constants with current state of visibility flags
+		//apply the new setting on the points
+		UpdateMaskingAndApply(pointNodes);
+
+		return cellGeomShown;
 	}
 
 	public
-	void RemoveCell(final int ID)
+	boolean ToggleDisplayCellLines()
 	{
-		RemoveCell(cellsData.get(ID));
+		cellLinesShown ^= true;
+		UpdateMaskingAndApply(lineNodes);
+		return cellLinesShown;
 	}
 
 	public
-	void RemoveCell(final Cell c)
+	boolean ToggleDisplayCellVectors()
 	{
-		if (c == null) return;
+		cellVectorsShown ^= true;
+		UpdateMaskingAndApply(vectorNodes);
+		return cellVectorsShown;
+	}
 
-		//if cells are displayed, remove it first from the scene
-		if (cellsShown)
+	public
+	boolean ToggleDisplayCellDebug()
+	{
+		cellDebugShown ^= true;
+		//"debug" objects might be present in any shape primitive
+		UpdateMaskingAndApply(pointNodes);
+		UpdateMaskingAndApply(lineNodes);
+		UpdateMaskingAndApply(vectorNodes);
+		return cellDebugShown;
+	}
+
+	public
+	boolean ToggleDisplayGeneralDebug()
+	{
+		generalDebugShown ^= true;
+		//"debug" objects might be present in any shape primitive
+		UpdateMaskingAndApply(pointNodes);
+		UpdateMaskingAndApply(lineNodes);
+		UpdateMaskingAndApply(vectorNodes);
+		return generalDebugShown;
+	}
+
+
+	public
+	void EnableFrontFaceCulling()
+	{
+		for (Material m : materials)
+			m.setCullingMode(CullingMode.Front);
+	}
+
+	public
+	void DisableFrontFaceCulling()
+	{
+		for (Material m : materials)
+			m.setCullingMode(CullingMode.None);
+	}
+	//----------------------------------------------------------------------------
+
+
+	//ID space: 64 bits -> 5 sectors of 12,12,12,12,14 bits each, 14 bits = 16384
+	//
+	//lowest 0. sector: 4096 elements that make up geometry/shape of ONE cell
+	//       1. sector: 4096 lines that outline whatever (debug) of ONE cell
+	//       2. sector: 4096 (force) vectors of ONE cell
+	//       3. sector: 4096 elements for debugging of ONE cell
+	//       4. sector: 14 bits of "identification" of ONE single cell
+	//
+	//note: 2^48 general purpose elements is available when 4th sector equals 0
+
+	//constants to "read out" respective information
+	static private final int MASK_SHAPE  = ((1 << 12)-1);
+	static private final int MASK_LINES  = ((1 << 24)-1) ^MASK_SHAPE;
+	static private final int MASK_FORCES = ((1 << 36)-1) ^MASK_SHAPE ^MASK_LINES;
+	static private final int MASK_DEBUG  = ((1 << 48)-1) ^MASK_SHAPE ^MASK_LINES ^MASK_FORCES;
+	static private final int MASK_CELLID = ((1 << 62)-1) ^MASK_SHAPE ^MASK_LINES ^MASK_FORCES ^MASK_DEBUG;
+
+	//"blocking" constants
+	private int expected_SHAPE  = 0;
+	private int expected_LINES  = 0;
+	private int expected_FORCES = 0;
+	private int expected_DEBUG  = 0;
+
+	/** just synchronizes the "blocking" constants to the flags, e.g., this.cellGeomShown */
+	private
+	void UpdateMasking()
+	{
+		expected_SHAPE  = cellGeomShown    == true ? MASK_SHAPE  : 0;
+		expected_LINES  = cellLinesShown   == true ? MASK_LINES  : 0;
+		expected_FORCES = cellVectorsShown == true ? MASK_FORCES : 0;
+		expected_DEBUG  = cellDebugShown   == true ? MASK_DEBUG  : 0;
+	}
+
+	/** synchronizes constants via UpdateMasking() and applies the new setting
+	    on the given list of objects */
+	private
+	void UpdateMaskingAndApply(final Map<Integer,?> list)
+	{
+		UpdateMasking();
+
+		//apply the new setting on the list
+		for (Integer ID : list.keySet())
+			showOrHideMe(ID,(Node)list.get(ID));
+	}
+
+
+	/** given the current display preferences, the visibility of
+	    the object 'n' with ID is adjusted, the decided state is
+	    indicated in the return value */
+	private
+	boolean showOrHideMe(final int ID, final Node n)
+	{
+		boolean vis = false;
+		if ((ID & MASK_CELLID) == 0)
 		{
-			for (Node n : c.sphereNodes)
-			if (n != null)
-				scene.removeChild(n);
+			//the ID does not belong to any cell
+			vis = generalDebugShown;
+		}
+		else
+		{
+			//ID belongs to some cell, check the result
+			vis = ((ID & MASK_SHAPE  & expected_SHAPE )
+			    |  (ID & MASK_LINES  & expected_LINES )
+			    |  (ID & MASK_FORCES & expected_FORCES)
+			    |  (ID & MASK_DEBUG  & expected_DEBUG )) > 0 ? true : false;
 		}
 
-		//also remove the vector Nodes from the scene, possibly
-		if (vectorsShown)
-		{
-			for (Node n : c.forceNodes)
-			if (n != null)
-				scene.removeChild(n);
-		}
-
-		cellsData.remove(c.ID);
-	}
-
-	/** this one updates, or injects new, cell shape object(s) into the scene */
-	public
-	void UpdateCellSphereNodes(final Cell c)
-	{
-		//update the sphere Nodes (regardless of the actual value of the radius:
-		//once Cell exists, all elements of its ...Nodes[] must not be null
-		for (int i=0; i < c.sphereRadii.length; ++i)
-		{
-			//negative radius is an agreed signal to remove the cell
-			if (c.sphereRadii[i] < 0.0f)
-			{
-				//System.out.println("Removing ID "+c.ID);
-				RemoveCell(c);
-				return;
-			}
-
-// ------------ DEBUGING ------------
-try {
-			if (c.sphereNodes[i] == null)
-			{
-				//create and enable a new display element (Node)
-				c.sphereNodes[i] = new Sphere(1.0f, 12);
-				if (cellsShown) scene.addChild(c.sphereNodes[i]);
-			}
-}
-catch ( NullPointerException e )
-{
-	//this comes up from time to time, why?
-	//from the complains it seems that either scene == null,
-	//or c.sphereNodes[i] == null
-
-	//hence, a bit of debug...
-	System.out.println("Cell: c="+c);
-	System.out.println("i="+i+", radii.length="+c.sphereRadii.length);
-	for (int qq=0; qq < c.sphereNodes.length; ++qq)
-		System.out.println("nodes["+qq+"]="+c.sphereNodes[qq]);
-	System.out.println("scene="+scene);
-
-	//pass it further down.... (to stop)
-	throw e;
-}
-// ------------ DEBUGING ------------
-
-			//update...
-			c.sphereNodes[i].setScale(new GLVector(c.sphereRadii[i],3));
-			c.sphereNodes[i].setPosition(new GLVector(c.sphereCentres[3*i+0],
-			                                          c.sphereCentres[3*i+1],
-			                                          c.sphereCentres[3*i+2]));
-			c.sphereNodes[i].setMaterial(materials[c.sphereColors[i] % materials.length]);
-		}
-	}
-
-	/** this one updates, or injects new, cell force vectors' object(s) into the scene */
-	public
-	void UpdateCellVectorNodes(final Cell c)
-	{
-		//update the vector Nodes
-		//once Cell exists, all elements of its ...Nodes[] must not be null
-		for (int i=0; i < c.forceColors.length; ++i)
-		{
-			//remove the old vector from the scene (if displayed and there was one)
-			if (vectorsShown && c.forceNodes[i] != null)
-				scene.removeChild(c.forceNodes[i]);
-
-			//create and enable (down below) a new display element (Node)
-			//NB: for Line elements, one could consider clearPoints() and updating them,
-			//    but that's cumbersome (matching IDs, removing, updating...)
-			c.forceNodes[i] = CreateVector(new GLVector(c.forceVectors[3*i+0],
-			                                            c.forceVectors[3*i+1],
-			                                            c.forceVectors[3*i+2]));
-			//update (position and scale)...
-			c.forceNodes[i].setPosition(new GLVector(c.forceBases[3*i+0],
-			                                         c.forceBases[3*i+1],
-			                                         c.forceBases[3*i+2]));
-			c.forceNodes[i].setScale(new GLVector(vectorsStretch,3));
-
-			//update (material -- color)...
-			final Material m = materials[c.forceColors[i] % materials.length];
-			c.forceNodes[i].runRecursive(nn -> nn.setMaterial(m));
-
-			if (vectorsShown) scene.addChild(c.forceNodes[i]);
-		}
+		if (n != null) n.setVisible(vis);
+		return vis;
 	}
 	//----------------------------------------------------------------------------
 
@@ -649,6 +823,7 @@ catch ( NullPointerException e )
 		return l;
 	}
 
+
 	/** Creates a vector node, that needs to be setMaterial'ed(), setPosition'ed(), and
 	    addChild'ed(), as a line with a pyramid as a "3D arrow".
 	    The base of the arrow head is a square with diagonals. */
@@ -712,6 +887,7 @@ catch ( NullPointerException e )
 
 		return l;
 	}
+
 
 	/** Creates a vector node, that needs to be setMaterial'ed(), setPosition'ed(), and
 	    addChild'ed(), as a line with a fancy cone as a "3D arrow".
