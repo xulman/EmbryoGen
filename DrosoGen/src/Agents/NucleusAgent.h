@@ -16,6 +16,10 @@ public:
 		  geometryAlias(shape),
 		  futureGeometry(shape)
 	{
+		//update AABBs
+		geometryAlias.Geometry::setAABB();
+		futureGeometry.Geometry::setAABB();
+
 		curPhase = G1Phase;
 
 		DEBUG_REPORT("Nucleus with ID=" << ID << " was just created");

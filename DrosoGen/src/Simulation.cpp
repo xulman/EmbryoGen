@@ -123,10 +123,7 @@ void Simulation::initializeAgents_aFew(void)
 
 	//now convert the actual shape into the shape geometry
 	MaskImg m(Img,MaskImg::DistanceModel::GradIN_ZeroOUT);
-	m.Geometry::setAABB();
-
 	//m.saveDistImg("GradIN_ZeroOUT.tif");
-	DEBUG_REPORT("AABB: " << m.AABB.minCorner << " -> " << m.AABB.maxCorner);
 
 	//finally, create the simulation agent to register this shape
 	AbstractAgent* ag = new ShapeHinter(ID++,m,currTime,incrTime);
