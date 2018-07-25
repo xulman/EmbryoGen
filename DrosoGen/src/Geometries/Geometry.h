@@ -3,6 +3,7 @@
 
 #include <list>
 #include "../util/Vector3d.h"
+#include "../DisplayUnits/DisplayUnit.h"
 
 /** accuracy of the geometry representation, choose float or double */
 #define FLOAT float
@@ -54,6 +55,113 @@ public:
 		FLOAT dz = M > m ? M-m : 0; //min dist along z-axis
 
 		return (dx*dx + dy*dy + dz*dz);
+	}
+
+
+	/** Uses AxisAlignedBoundingBox::drawBox() to render this bounding box. */
+	int drawIt(const int ID, const int color, DisplayUnit& du)
+	{
+		return drawBox(ID,color, minCorner,maxCorner, du);
+	}
+
+	/** Renders given bounding box into the given DisplayUnit 'du'
+	    under the given 'ID' with the given 'color'. Multiple graphics
+	    elements are required, so a couple of consecutive IDs are used
+	    starting from the given 'ID'. Returned value tells how many
+	    elements were finally used. */
+	int drawBox(const int ID, const int color,
+	            const Vector3d<FLOAT> &minC,
+	            const Vector3d<FLOAT> &maxC,
+	            DisplayUnit& du)
+	{
+		//horizontal lines
+		du.DrawLine( ID+0,
+		  minC,
+		  Vector3d<float>(maxC.x,
+		                  minC.y,
+		                  minC.z),color );
+
+		du.DrawLine( ID+1,
+		  Vector3d<float>(minC.x,
+		                  maxC.y,
+		                  minC.z),
+		  Vector3d<float>(maxC.x,
+		                  maxC.y,
+		                  minC.z),color );
+
+		du.DrawLine( ID+2,
+		  Vector3d<float>(minC.x,
+		                  minC.y,
+		                  maxC.z),
+		  Vector3d<float>(maxC.x,
+		                  minC.y,
+		                  maxC.z),color );
+
+		du.DrawLine( ID+3,
+		  Vector3d<float>(minC.x,
+		                  maxC.y,
+		                  maxC.z),
+		  maxC,color );
+
+		//vertical lines
+		du.DrawLine( ID+4,
+		  minC,
+		  Vector3d<float>(minC.x,
+		                  maxC.y,
+		                  minC.z),color );
+
+		du.DrawLine( ID+5,
+		  Vector3d<float>(maxC.x,
+		                  minC.y,
+		                  minC.z),
+		  Vector3d<float>(maxC.x,
+		                  maxC.y,
+		                  minC.z),color );
+
+		du.DrawLine( ID+6,
+		  Vector3d<float>(minC.x,
+		                  minC.y,
+		                  maxC.z),
+		  Vector3d<float>(minC.x,
+		                  maxC.y,
+		                  maxC.z),color );
+
+		du.DrawLine( ID+7,
+		  Vector3d<float>(maxC.x,
+		                  minC.y,
+		                  maxC.z),
+		  maxC,color );
+
+		//"axial" lines
+		du.DrawLine( ID+8,
+		  minC,
+		  Vector3d<float>(minC.x,
+		                  minC.y,
+		                  maxC.z),color );
+
+		du.DrawLine( ID+9,
+		  Vector3d<float>(maxC.x,
+		                  minC.y,
+		                  minC.z),
+		  Vector3d<float>(maxC.x,
+		                  minC.y,
+		                  maxC.z),color );
+
+		du.DrawLine( ID+10,
+		  Vector3d<float>(minC.x,
+		                  maxC.y,
+		                  minC.z),
+		  Vector3d<float>(minC.x,
+		                  maxC.y,
+		                  maxC.z),color );
+
+		du.DrawLine( ID+11,
+		  Vector3d<float>(maxC.x,
+		                  maxC.y,
+		                  minC.z),
+		  maxC,color );
+
+		return 12;
 	}
 };
 
