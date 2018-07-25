@@ -67,9 +67,6 @@ public class CommandScene implements Runnable
 			System.out.println("c - Toggles display of the cells (cell spheres)");
 			System.out.println("f - Toggles display of the forces (cell vectors)");
 			System.out.println("v,V - Decreases/Increases the vector display stretch");
-
-			System.out.println("r,R - decreases/increases radius of all cells by 0.2");
-			System.out.println("x,X - moves left/right x-position of all cells by 0.2");
 			break;
 
 		case 'A':
@@ -106,42 +103,6 @@ public class CommandScene implements Runnable
 			scene.setVectorsStretch(1.25f * scene.getVectorsStretch());
 			System.out.println("new vector stretch: "+scene.getVectorsStretch());
 			break;
-
-		/*
-		case 'r':
-			for (Cell c : scene.cellsData.values())
-			{
-				for (int i=0; i < c.sphereRadii.length; ++i)
-					c.sphereRadii[i] -= 0.2f;
-				scene.UpdateCellSphereNodes(c);
-			}
-			break;
-		case 'R':
-			for (Cell c : scene.cellsData.values())
-			{
-				for (int i=0; i < c.sphereRadii.length; ++i)
-					c.sphereRadii[i] += 0.2f;
-				scene.UpdateCellSphereNodes(c);
-			}
-			break;
-
-		case 'x':
-			for (Cell c : scene.cellsData.values())
-			{
-				for (int i=0; i < c.sphereRadii.length; ++i)
-					c.sphereCentres[3*i +0] -= 0.2f;
-				scene.UpdateCellSphereNodes(c);
-			}
-			break;
-		case 'X':
-			for (Cell c : scene.cellsData.values())
-			{
-				for (int i=0; i < c.sphereRadii.length; ++i)
-					c.sphereCentres[3*i +0] += 0.2f;
-				scene.UpdateCellSphereNodes(c);
-			}
-			break;
-		*/
 
 		case 'q':
 			scene.stop();
