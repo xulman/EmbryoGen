@@ -86,7 +86,7 @@ private:
 	void updateGeometry(void) override
 	{
 		//since we're not changing ShadowAgent::geometry (and consequently
-		//not this.geometryAlias), we don't need to update this.futureGeometry 
+		//not this.geometryAlias), we don't need to update this.futureGeometry
 	}
 
 	// ------------- rendering -------------
@@ -94,140 +94,13 @@ private:
 	void drawMask(DisplayUnit& du) override
 	{
 		//draw bounding box of the GradIN region of the MaskImg
-		//horizontal
-		du.DrawLine( (ID << 17) +1,
-		  futureGeometry.AABB.minCorner,
-		  Vector3d<float>(futureGeometry.AABB.maxCorner.x,
-		                  futureGeometry.AABB.minCorner.y,
-		                  futureGeometry.AABB.minCorner.z),1 );
-
-		du.DrawLine( (ID << 17) +2,
-		  Vector3d<float>(futureGeometry.AABB.minCorner.x,
-		                  futureGeometry.AABB.maxCorner.y,
-		                  futureGeometry.AABB.minCorner.z),
-		  Vector3d<float>(futureGeometry.AABB.maxCorner.x,
-		                  futureGeometry.AABB.maxCorner.y,
-		                  futureGeometry.AABB.minCorner.z),1 );
-
-		du.DrawLine( (ID << 17) +3,
-		  Vector3d<float>(futureGeometry.AABB.minCorner.x,
-		                  futureGeometry.AABB.minCorner.y,
-		                  futureGeometry.AABB.maxCorner.z),
-		  Vector3d<float>(futureGeometry.AABB.maxCorner.x,
-		                  futureGeometry.AABB.minCorner.y,
-		                  futureGeometry.AABB.maxCorner.z),1 );
-
-		du.DrawLine( (ID << 17) +4,
-		  Vector3d<float>(futureGeometry.AABB.minCorner.x,
-		                  futureGeometry.AABB.maxCorner.y,
-		                  futureGeometry.AABB.maxCorner.z),
-		  Vector3d<float>(futureGeometry.AABB.maxCorner.x,
-		                  futureGeometry.AABB.maxCorner.y,
-		                  futureGeometry.AABB.maxCorner.z),1 );
-
-		//vertical
-		du.DrawLine( (ID << 17) +5,
-		  Vector3d<float>(futureGeometry.AABB.minCorner.x,
-		                  futureGeometry.AABB.minCorner.y,
-		                  futureGeometry.AABB.minCorner.z),
-		  Vector3d<float>(futureGeometry.AABB.minCorner.x,
-		                  futureGeometry.AABB.maxCorner.y,
-		                  futureGeometry.AABB.minCorner.z),1 );
-
-		du.DrawLine( (ID << 17) +6,
-		  Vector3d<float>(futureGeometry.AABB.maxCorner.x,
-		                  futureGeometry.AABB.minCorner.y,
-		                  futureGeometry.AABB.minCorner.z),
-		  Vector3d<float>(futureGeometry.AABB.maxCorner.x,
-		                  futureGeometry.AABB.maxCorner.y,
-		                  futureGeometry.AABB.minCorner.z),1 );
-
-		du.DrawLine( (ID << 17) +7,
-		  Vector3d<float>(futureGeometry.AABB.minCorner.x,
-		                  futureGeometry.AABB.minCorner.y,
-		                  futureGeometry.AABB.maxCorner.z),
-		  Vector3d<float>(futureGeometry.AABB.minCorner.x,
-		                  futureGeometry.AABB.maxCorner.y,
-		                  futureGeometry.AABB.maxCorner.z),1 );
-
-		du.DrawLine( (ID << 17) +8,
-		  Vector3d<float>(futureGeometry.AABB.maxCorner.x,
-		                  futureGeometry.AABB.minCorner.y,
-		                  futureGeometry.AABB.maxCorner.z),
-		  Vector3d<float>(futureGeometry.AABB.maxCorner.x,
-		                  futureGeometry.AABB.maxCorner.y,
-		                  futureGeometry.AABB.maxCorner.z),1 );
-
+		int ID = this->ID << 17;
+		ID += futureGeometry.AABB.drawIt(ID,1, du);
 
 		//draw bounding box of the complete MaskImg, as a debug element
-		const Vector3d<FLOAT>& imgOffset = futureGeometry.getDistImgOff();
-		const Vector3d<FLOAT>& imgFarEnd = futureGeometry.getDistImgFarEnd();
-
-		//horizontal
-		du.DrawLine( ((ID*2+1) << 16) +1,
-		  Vector3d<float>(imgOffset.x,
-		                  imgOffset.y,
-		                  imgOffset.z),
-		  Vector3d<float>(imgFarEnd.x,
-		                  imgOffset.y,
-		                  imgOffset.z),4 );
-
-		du.DrawLine( ((ID*2+1) << 16) +2,
-		  Vector3d<float>(imgOffset.x,
-		                  imgFarEnd.y,
-		                  imgOffset.z),
-		  Vector3d<float>(imgFarEnd.x,
-		                  imgFarEnd.y,
-		                  imgOffset.z),4 );
-
-		du.DrawLine( ((ID*2+1) << 16) +3,
-		  Vector3d<float>(imgOffset.x,
-		                  imgOffset.y,
-		                  imgFarEnd.z),
-		  Vector3d<float>(imgFarEnd.x,
-		                  imgOffset.y,
-		                  imgFarEnd.z),4 );
-
-		du.DrawLine( ((ID*2+1) << 16) +4,
-		  Vector3d<float>(imgOffset.x,
-		                  imgFarEnd.y,
-		                  imgFarEnd.z),
-		  Vector3d<float>(imgFarEnd.x,
-		                  imgFarEnd.y,
-		                  imgFarEnd.z),4 );
-
-		//vertical
-		du.DrawLine( ((ID*2+1) << 16) +5,
-		  Vector3d<float>(imgOffset.x,
-		                  imgOffset.y,
-		                  imgOffset.z),
-		  Vector3d<float>(imgOffset.x,
-		                  imgFarEnd.y,
-		                  imgOffset.z),4 );
-
-		du.DrawLine( ((ID*2+1) << 16) +6,
-		  Vector3d<float>(imgFarEnd.x,
-		                  imgOffset.y,
-		                  imgOffset.z),
-		  Vector3d<float>(imgFarEnd.x,
-		                  imgFarEnd.y,
-		                  imgOffset.z),4 );
-
-		du.DrawLine( ((ID*2+1) << 16) +7,
-		  Vector3d<float>(imgOffset.x,
-		                  imgOffset.y,
-		                  imgFarEnd.z),
-		  Vector3d<float>(imgOffset.x,
-		                  imgFarEnd.y,
-		                  imgFarEnd.z),4 );
-
-		du.DrawLine( ((ID*2+1) << 16) +8,
-		  Vector3d<float>(imgFarEnd.x,
-		                  imgOffset.y,
-		                  imgFarEnd.z),
-		  Vector3d<float>(imgFarEnd.x,
-		                  imgFarEnd.y,
-		                  imgFarEnd.z),4 );
+		ID |= 1 << 16; //enable debug bit
+		futureGeometry.AABB.drawBox(ID,4,
+		  futureGeometry.getDistImgOff(),futureGeometry.getDistImgFarEnd(), du);
 
 /*
 		if (ID == 1 || ID == 3)

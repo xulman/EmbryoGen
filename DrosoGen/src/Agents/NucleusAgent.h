@@ -104,18 +104,28 @@ private:
 
 	void drawMask(DisplayUnit& du) override
 	{
+		const int color = curPhase < 3? 2:3;
+		int ID = this->ID << 17;
+
+		//draw spheres
 		int i=0;
 		while (i < futureGeometry.noOfSpheres && futureGeometry.radii[i] > 0.f)
 		{
-			du.DrawPoint((ID << 17) + i,futureGeometry.centres[i],futureGeometry.radii[i],(curPhase < 3? 2:3));
+			du.DrawPoint(ID +i,futureGeometry.centres[i],futureGeometry.radii[i],color);
 			++i;
 		}
 
+		//draw debug bounding box
+		ID |= 1 << 16; //enable debug bit
+		futureGeometry.AABB.drawIt(ID,color,du);
+
+		//draw (debug) vectors
 		if (ID == 1 || ID == 3)
 		{
 			int cnt=1;
 			for (auto& p : proximityPairs)
-				du.DrawVector((ID << 17) +cnt++, p.localPos, p.otherPos-p.localPos);
+				du.DrawVector(ID +cnt++, p.localPos, p.otherPos-p.localPos);
+				//du.DrawLine(ID +cnt++, p.localPos, p.otherPos);
 		}
 	}
 };
