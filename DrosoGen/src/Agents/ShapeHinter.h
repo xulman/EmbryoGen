@@ -96,7 +96,6 @@ private:
 	}
 
 	// ------------- rendering -------------
-
 	void drawMask(DisplayUnit& du) override
 	{
 		//draw bounding box of the GradIN region of the MaskImg

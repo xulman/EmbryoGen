@@ -106,7 +106,6 @@ private:
 	}
 
 	// ------------- rendering -------------
-
 	void drawMask(DisplayUnit& du) override
 	{
 		const int color = curPhase < 3? 2:3;
@@ -116,7 +115,7 @@ private:
 		int i=0;
 		while (i < futureGeometry.noOfSpheres && futureGeometry.radii[i] > 0.f)
 		{
-			du.DrawPoint(ID +i,futureGeometry.centres[i],futureGeometry.radii[i],color);
+			du.DrawPoint(ID++,futureGeometry.centres[i],futureGeometry.radii[i],color);
 			++i;
 		}
 
