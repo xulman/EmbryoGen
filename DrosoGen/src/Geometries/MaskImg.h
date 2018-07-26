@@ -289,7 +289,12 @@ public:
 			AABB.reset();
 
 			//micrometer [X,Y,Z] coordinates of pixels at [x,y,z]
-			float X,Y,Z;
+			FLOAT X,Y,Z;
+
+			//micrometer size of one voxel
+			const FLOAT dx=1.0f / distImgRes.x;
+			const FLOAT dy=1.0f / distImgRes.y;
+			const FLOAT dz=1.0f / distImgRes.z;
 
 			const float* f = distImg.GetFirstVoxelAddr();
 			for (size_t z = 0; z < distImg.GetSizeZ(); ++z)
@@ -299,19 +304,19 @@ public:
 				if (*f < 0)
 				{
 					//get micrometers coordinate
-					X = x/distImgRes.x + distImgOff.x;
-					Y = y/distImgRes.y + distImgOff.y;
-					Z = z/distImgRes.z + distImgOff.z;
+					X = (FLOAT)x/distImgRes.x + distImgOff.x;
+					Y = (FLOAT)y/distImgRes.y + distImgOff.y;
+					Z = (FLOAT)z/distImgRes.z + distImgOff.z;
 
 					//update the AABB
 					AABB.minCorner.x = std::min(AABB.minCorner.x, X);
-					AABB.maxCorner.x = std::max(AABB.maxCorner.x, X+distImgRes.x);
+					AABB.maxCorner.x = std::max(AABB.maxCorner.x, X+dx);
 
 					AABB.minCorner.y = std::min(AABB.minCorner.y, Y);
-					AABB.maxCorner.y = std::max(AABB.maxCorner.y, Y+distImgRes.y);
+					AABB.maxCorner.y = std::max(AABB.maxCorner.y, Y+dy);
 
 					AABB.minCorner.z = std::min(AABB.minCorner.z, Z);
-					AABB.maxCorner.z = std::max(AABB.maxCorner.z, Z+distImgRes.z);
+					AABB.maxCorner.z = std::max(AABB.maxCorner.z, Z+dz);
 				}
 				++f;
 			}
@@ -322,11 +327,7 @@ public:
 			//(GradIN_GradOUT model), or outside the shape (ZeroIN_GradOUT model),
 			//the AABB is therefore the whole image
 			AABB.minCorner = distImgOff;
-
-			AABB.maxCorner.x = distImg.GetSizeX() / distImgRes.x; //size in micrometers
-			AABB.maxCorner.y = distImg.GetSizeY() / distImgRes.y;
-			AABB.maxCorner.z = distImg.GetSizeZ() / distImgRes.z;
-			AABB.maxCorner  += distImgOff;
+			AABB.maxCorner = distImgFarEnd;
 		}
 	}
 
