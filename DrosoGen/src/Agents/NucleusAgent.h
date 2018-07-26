@@ -139,7 +139,7 @@ private:
 					//debugging
 					int color = (int)p.distance -998893; // in { 4,  5 , 6}
 					float radius = (int)p.distance == 998897 ? 1.1f : 1.0f;
-					radius *= 0.4f;
+					radius *= 1.43f;
 					du.DrawPoint(ID | (1 << 16), p.localPos, radius,color);
 				}
 				++ID;
