@@ -173,10 +173,11 @@ public:
 		for (curPos.y = minSweepPX.y; curPos.y < maxSweepPX.y; curPos.y++)
 		for (curPos.x = minSweepPX.x; curPos.x < maxSweepPX.x; curPos.x++)
 		{
-			//we are now visiting voxels where some sphere can be seen
-			minSweep.x = (FLOAT)curPos.x / distImgRes.x;
-			minSweep.y = (FLOAT)curPos.y / distImgRes.y;
-			minSweep.z = (FLOAT)curPos.z / distImgRes.z;
+			//we are now visiting voxels where some sphere can be seen,
+			//get micron coordinate of the current voxel's centre
+			minSweep.x = ((FLOAT)curPos.x +0.5f) / distImgRes.x;
+			minSweep.y = ((FLOAT)curPos.y +0.5f) / distImgRes.y;
+			minSweep.z = ((FLOAT)curPos.z +0.5f) / distImgRes.z;
 			minSweep += distImgOff;
 
 			//check the current voxel against all spheres
@@ -249,11 +250,11 @@ public:
 			grad.elemMult(distImgRes);               //account for anisotropy [1/px -> 1/um]
 			if (grad.len2() > 0) grad /= grad.len(); //normalize if not zero vector already
 
-			//determine the exact point on the sphere surface
+			//determine the exact point on the sphere surface, use again the voxel's centre
 			Vector3d<FLOAT> exactSurfPoint;
-			exactSurfPoint.x = (FLOAT)hints[i].x / distImgRes.x; //coordinate within in the image, in microns
-			exactSurfPoint.y = (FLOAT)hints[i].y / distImgRes.y;
-			exactSurfPoint.z = (FLOAT)hints[i].z / distImgRes.z;
+			exactSurfPoint.x = ((FLOAT)hints[i].x +0.5f) / distImgRes.x; //coordinate within in the image, in microns
+			exactSurfPoint.y = ((FLOAT)hints[i].y +0.5f) / distImgRes.y;
+			exactSurfPoint.z = ((FLOAT)hints[i].z +0.5f) / distImgRes.z;
 			exactSurfPoint += distImgOff;  //now real world coordinate of the pixel's centre
 			exactSurfPoint -= centresO[i]; //now vector from sphere's centre
 			exactSurfPoint *= radiiO[i] / exactSurfPoint.len(); //stretch the vector
