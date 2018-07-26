@@ -155,7 +155,8 @@ public:
 
 		//a "universal" (and inaccurate) half "thickness" of spheres' surfaces
 		//for detection of voxels that coincide with such volumes
-		const FLOAT halfPXdiagonal = distImgRes.len() / 2.0f;
+		const FLOAT halfPXdiagonal
+			= Vector3d<FLOAT>(1.0f/distImgRes.x,1.0f/distImgRes.y,1.0f/distImgRes.z).len() / 2.0f;
 
 		//shortcuts to the otherGeometry's spheres
 		const Vector3d<FLOAT>* const centresO = otherSpheres->getCentres();
