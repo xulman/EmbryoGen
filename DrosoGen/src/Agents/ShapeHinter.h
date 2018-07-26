@@ -71,7 +71,7 @@ private:
 		std::list<const ShadowAgent*> l;
 		Officer->getNearbyAgents(this,ignoreDistance,l);
 
-		DEBUG_REPORT("Found " << l.size() << " nearby agents");
+		DEBUG_REPORT("Hinter: Found " << l.size() << " nearby agents");
 
 		//those on the list are ShadowAgents who are potentially close enough
 		//to interact with me and these I need to inspect closely
@@ -80,6 +80,7 @@ private:
 			geometry.getDistance((*sa)->getGeometry(),proximityPairs);
 
 		//now, postprocess the proximityPairs
+		DEBUG_REPORT("Hinter: Found " << proximityPairs.size() << " proximity pairs");
 	}
 
 	void adjustGeometryByExtForces(void) override
