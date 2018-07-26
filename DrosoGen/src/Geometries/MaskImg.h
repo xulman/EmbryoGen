@@ -131,9 +131,11 @@ public:
 		Vector3d<FLOAT> minSweep(otherSpheres->AABB.minCorner),
 		                maxSweep(otherSpheres->AABB.maxCorner);
 
-		//update the sweeping box
-		minSweep.elemMax(distImgOff);  //in mu
-		maxSweep.elemMin(distImgFarEnd);
+		//update the sweeping box with this AABB
+		//(as only this AABB wraps around interesting information in the mask image,
+		// the image might be larger (especially in the GradIN_ZeroOUT model))
+		minSweep.elemMax(AABB.minCorner); //in mu
+		maxSweep.elemMin(AABB.maxCorner);
 
 		//convert to pixel distances
 		minSweep -= distImgOff;
@@ -141,6 +143,9 @@ public:
 
 		minSweep.elemMult(distImgRes); //in px
 		maxSweep.elemMult(distImgRes);
+
+		minSweep.elemMax(Vector3d<FLOAT>(0)); //in px (to avoid underflow later with size_t)
+		maxSweep.elemMax(Vector3d<FLOAT>(0));
 
 		//the sweeping box in pixels, in coordinates of this distImg
 		Vector3d<size_t>
@@ -241,8 +246,8 @@ public:
 				grad.z -= defValue, span--;
 			grad.z *= 3-span; //missing /2.0
 
-			grad.elemMult(distImgRes); //account for anisotropy
-			grad /= grad.len2();       //normalize
+			grad.elemMult(distImgRes);               //account for anisotropy [1/px -> 1/um]
+			if (grad.len2() > 0) grad /= grad.len(); //normalize if not zero vector already
 
 			//determine the exact point on the sphere surface
 			Vector3d<FLOAT> exactSurfPoint;
