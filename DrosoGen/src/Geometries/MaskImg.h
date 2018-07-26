@@ -141,11 +141,16 @@ public:
 		Vector3d<FLOAT> minSweep(otherSpheres->AABB.minCorner),
 		                maxSweep(otherSpheres->AABB.maxCorner);
 
+		DEBUG_REPORT("sweepBox A: " << minSweep       << " -> " << maxSweep       << " microns");
+		DEBUG_REPORT("sweepBox B: " << AABB.minCorner << " -> " << AABB.maxCorner << " microns");
+
 		//update the sweeping box with this AABB
 		//(as only this AABB wraps around interesting information in the mask image,
 		// the image might be larger (especially in the GradIN_ZeroOUT model))
 		minSweep.elemMax(AABB.minCorner); //in mu
 		maxSweep.elemMin(AABB.maxCorner);
+
+		DEBUG_REPORT("sweepBox: " << minSweep << " -> " << maxSweep << " microns");
 
 		//convert to pixel distances
 		minSweep -= distImgOff;
@@ -156,6 +161,8 @@ public:
 
 		minSweep.elemMax(Vector3d<FLOAT>(0)); //in px (to avoid underflow later with size_t)
 		maxSweep.elemMax(Vector3d<FLOAT>(0));
+
+		DEBUG_REPORT("sweepBox: " << minSweep << " -> " << maxSweep << " pixels");
 
 		//the sweeping box in pixels, in coordinates of this distImg
 		Vector3d<size_t>
@@ -168,6 +175,9 @@ public:
 		Vector3d<FLOAT> vecPXhd2(0.5f/distImgRes.x,0.5f/distImgRes.y,0.5f/distImgRes.z);
 		const FLOAT     lenPXhd = vecPXhd2.len();
 		vecPXhd2.elemMult(vecPXhd2); //make it squared
+
+		DEBUG_REPORT("sweepBox: " << minSweepPX << " -> " << maxSweepPX << " PiXels");
+		DEBUG_REPORT("sweepBox: will enter main cycle: " << (minSweepPX.x < maxSweepPX.x && minSweepPX.y < maxSweepPX.y && minSweepPX.z < maxSweepPX.z));
 
 		//shortcuts to the otherGeometry's spheres
 		const Vector3d<FLOAT>* const centresO = otherSpheres->getCentres();
@@ -192,6 +202,10 @@ public:
 			minSweep.z = ((FLOAT)curPos.z +0.5f) / distImgRes.z;
 			minSweep += distImgOff;
 
+			//REMOVE ME, DEBUG
+			//create "a special" ProximityPair for debug
+			l.push_back( ProximityPair(minSweep,minSweep,998899) );
+
 			//check the current voxel against all spheres
 			for (int i = 0; i < io; ++i)
 			{
@@ -215,6 +229,10 @@ public:
 						//hooray, a voxel whose volume is intersecting with i-th sphere's surface
 						//let's inspect the distImg at this position
 						const FLOAT dist = distImg.GetVoxel(curPos.x,curPos.y,curPos.z);
+
+						//REMOVE ME, DEBUG
+						//mark this ProximityPair to be ever more special :)
+						l.back().distance = 998898;
 
 						if (dist < distances[i])
 						{
@@ -284,6 +302,11 @@ public:
 			exactSurfPoint.y = ((FLOAT)hints[i].y +0.5f) / distImgRes.y;
 			exactSurfPoint.z = ((FLOAT)hints[i].z +0.5f) / distImgRes.z;
 			exactSurfPoint += distImgOff;  //now real world coordinate of the pixel's centre
+
+			//REMOVE ME, DEBUG
+			//create "a special" ProximityPair for debug
+			l.push_back( ProximityPair(exactSurfPoint,exactSurfPoint,998897) );
+
 			exactSurfPoint -= centresO[i]; //now vector from sphere's centre
 			exactSurfPoint *= radiiO[i] / exactSurfPoint.len(); //stretch the vector
 			exactSurfPoint += centresO[i]; //now point on the surface...

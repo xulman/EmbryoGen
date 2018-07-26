@@ -80,7 +80,11 @@ private:
 		//to interact with me and these I need to inspect closely
 		proximityPairs.clear();
 		for (auto sa = l.begin(); sa != l.end(); ++sa)
-			geometry.getDistance((*sa)->getGeometry(),proximityPairs);
+		{
+			DEBUG_REPORT("BBtype: " << (*sa)->getGeometry().shapeForm);
+			if ((*sa)->getGeometry().shapeForm == 0)
+				geometry.getDistance((*sa)->getGeometry(),proximityPairs);
+		}
 
 		//now, postprocess the proximityPairs
 		DEBUG_REPORT("ID " << ID << ": Found " << proximityPairs.size() << " proximity pairs");
@@ -119,18 +123,32 @@ private:
 			++i;
 		}
 
+		//draw (not debug) vectors
+		//if (this->ID == 1 || this->ID == 3)
+		{
+			for (auto& p : proximityPairs)
+			{
+				if (p.distance < 990000)
+				{
+					//normal distance measured
+					du.DrawVector(ID, p.localPos, p.otherPos-p.localPos);
+					//du.DrawLine(ID, p.localPos, p.otherPos);
+				}
+				else
+				{
+					//debugging
+					int color = (int)p.distance -998893; // in { 4,  5 , 6}
+					float radius = (int)p.distance == 998897 ? 1.1f : 1.0f;
+					radius *= 0.4f;
+					du.DrawPoint(ID | (1 << 16), p.localPos, radius,color);
+				}
+				++ID;
+			}
+		}
+
 		//draw debug bounding box
 		ID |= 1 << 16; //enable debug bit
 		futureGeometry.AABB.drawIt(ID,color,du);
-
-		//draw (debug) vectors
-		if (ID == 1 || ID == 3)
-		{
-			int cnt=1;
-			for (auto& p : proximityPairs)
-				du.DrawVector(ID +cnt++, p.localPos, p.otherPos-p.localPos);
-				//du.DrawLine(ID +cnt++, p.localPos, p.otherPos);
-		}
 	}
 };
 #endif

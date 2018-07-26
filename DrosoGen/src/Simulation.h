@@ -15,9 +15,6 @@
 #include "DisplayUnits/SceneryBufferedDisplayUnit.h"
 #include "DisplayUnits/BroadcasterDisplayUnit.h"
 
-//TESTING
-#include "Geometries/MaskImg.h"
-
 /**
  * This class contains all simulation agents, scene and simulation
  * parameters, and takes care of the iterations of the simulation.
@@ -122,11 +119,11 @@ public:
 		//init display/export units,
 		//and make them persistent (to survive after this method is finished)
 		//static VoidDisplayUnit vDU;
-		static ConsoleDisplayUnit cDU;
-		//static SceneryBufferedDisplayUnit sDU("localhost:8765");
+		//static ConsoleDisplayUnit cDU;
+		static SceneryBufferedDisplayUnit sDU("localhost:8765");
 
 		//displayUnit.RegisterUnit(cDU);
-		//displayUnit.RegisterUnit(sDU);
+		displayUnit.RegisterUnit(sDU);
 	}
 
 
@@ -140,30 +137,6 @@ public:
 		//initializeAgents();
 		initializeAgents_aFew();
 		REPORT("--------------- " << currTime << " (" << agents.size() << " agents) ---------------");
-
-		//TESTING
-		i3d::Image3d<i3d::GRAY8> Img;
-		Img.MakeRoom(200,200,200);
-		Img.SetResolution(i3d::Resolution(1.0f,1.0f,1.0f));
-		for (size_t z=30; z < 100; ++z)
-		for (size_t y=30; y < 100; ++y)
-		for (size_t x=30; x < 100; ++x)
-			Img.SetVoxel(x,y,z,20);
-
-		MaskImg ma(Img,MaskImg::DistanceModel::GradIN_ZeroOUT);
-		ma.saveDistImg("GradIN_ZeroOUT.tif");
-		ma.Geometry::setAABB();
-		REPORT("AABB: " << ma.AABB.minCorner << " -> " << ma.AABB.maxCorner);
-
-		MaskImg mb(Img,MaskImg::DistanceModel::ZeroIN_GradOUT);
-		mb.saveDistImg("ZeroIN_GradOUT.tif");
-		mb.Geometry::setAABB();
-		REPORT("AABB: " << mb.AABB.minCorner << " -> " << mb.AABB.maxCorner);
-
-		MaskImg mc(Img,MaskImg::DistanceModel::GradIN_GradOUT);
-		mc.saveDistImg("GradIN_GradOUT.tif");
-		mc.Geometry::setAABB();
-		REPORT("AABB: " << mc.AABB.minCorner << " -> " << mc.AABB.maxCorner);
 
 		renderNextFrame();
 	}

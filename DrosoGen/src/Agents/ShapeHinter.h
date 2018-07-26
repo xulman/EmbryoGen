@@ -77,7 +77,10 @@ private:
 		//to interact with me and these I need to inspect closely
 		proximityPairs.clear();
 		for (auto sa = l.begin(); sa != l.end(); ++sa)
+		{
+			DEBUG_REPORT("BBtype: " << (*sa)->getGeometry().shapeForm);
 			geometry.getDistance((*sa)->getGeometry(),proximityPairs);
+		}
 
 		//now, postprocess the proximityPairs
 		DEBUG_REPORT("Hinter: Found " << proximityPairs.size() << " proximity pairs");
@@ -102,20 +105,33 @@ private:
 		int ID = this->ID << 17;
 		ID += futureGeometry.AABB.drawIt(ID,1, du);
 
+		//draw tested proximity pairs (that were calculated just for debug)
+		//if (this->ID == 1 || this->ID == 3)
+		{
+			for (auto& p : proximityPairs)
+			{
+				if (p.distance < 990000)
+				{
+					//normal distance measured
+					du.DrawVector(ID, p.localPos, p.otherPos-p.localPos);
+					//du.DrawLine(ID, p.localPos, p.otherPos);
+				}
+				else
+				{
+					//debugging
+					int color = (int)p.distance -998893; // in { 4,  5 , 6}
+					float radius = (int)p.distance == 998897 ? 1.1f : 1.0f;
+					radius *= 0.4f;
+					du.DrawPoint(ID | (1 << 16), p.localPos, radius,color);
+				}
+				++ID;
+			}
+		}
+
 		//draw bounding box of the complete MaskImg, as a debug element
 		ID |= 1 << 16; //enable debug bit
 		futureGeometry.AABB.drawBox(ID,4,
-		  futureGeometry.getDistImgOff(),futureGeometry.getDistImgFarEnd(), du);
-
-/*
-		if (ID == 1 || ID == 3)
-		{
-			int cnt=1;
-			for (auto& p : proximityPairs)
-				//du.DrawVector((ID << 17) +cnt++, p.localPos, p.otherPos-p.localPos);
-				du.DrawLine((ID << 17) +cnt++, p.localPos, p.otherPos);
-		}
-*/
+			futureGeometry.getDistImgOff(),futureGeometry.getDistImgFarEnd(), du);
 	}
 };
 #endif
