@@ -796,7 +796,15 @@ public class DisplayScene extends SceneryBase implements Runnable
 
 		//vector base is perpendicular to the input vector v
 		GLVector base = new GLVector(-v.y(), v.x(), 0.0f);
-		base.timesAssign(new GLVector(V/base.magnitude(),3));
+		float baseLen = base.magnitude();
+
+		if (baseLen == 0.f)
+		{
+			//v must be parallel to the z-axis, draw another perpendicular base
+			base = new GLVector(0.0f, 1.0f, 0.0f);
+			baseLen = 1.0f;
+		}
+		base.timesAssign(new GLVector(V/baseLen,3));
 
 		l.addPoint(v.times(0.8f).plus(base));
 		l.addPoint(v.times(0.8f).minus(base));
@@ -848,7 +856,15 @@ public class DisplayScene extends SceneryBase implements Runnable
 
 		//vector base is perpendicular to the input vector v
 		GLVector base = new GLVector(-v.y(), v.x(), 0.0f);
-		base.timesAssign(new GLVector(V/base.magnitude(),3));
+		float baseLen = base.magnitude();
+
+		if (baseLen == 0.f)
+		{
+			//v must be parallel to the z-axis, draw another perpendicular base
+			base = new GLVector(0.0f, 1.0f, 0.0f);
+			baseLen = 1.0f;
+		}
+		base.timesAssign(new GLVector(V/baseLen,3));
 
 		GLVector a,b,c,d;
 		a = v.times(0.8f).plus(base);
