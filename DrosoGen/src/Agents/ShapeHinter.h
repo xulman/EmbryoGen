@@ -76,12 +76,13 @@ private:
 		//those on the list are ShadowAgents who are potentially close enough
 		//to interact with me and these I need to inspect closely
 		proximityPairs.clear();
+/*
 		for (auto sa = l.begin(); sa != l.end(); ++sa)
 		{
 			DEBUG_REPORT("BBtype: " << (*sa)->getGeometry().shapeForm);
 			geometry.getDistance((*sa)->getGeometry(),proximityPairs);
 		}
-
+*/
 		//now, postprocess the proximityPairs
 		DEBUG_REPORT("Hinter: Found " << proximityPairs.size() << " proximity pairs");
 	}

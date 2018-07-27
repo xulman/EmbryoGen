@@ -82,7 +82,6 @@ private:
 		for (auto sa = l.begin(); sa != l.end(); ++sa)
 		{
 			DEBUG_REPORT("BBtype: " << (*sa)->getGeometry().shapeForm);
-			if ((*sa)->getGeometry().shapeForm == 0)
 				geometry.getDistance((*sa)->getGeometry(),proximityPairs);
 		}
 
@@ -138,10 +137,11 @@ private:
 				else
 				{
 					//debugging
-					int color = (int)p.distance -998893; // in { 4,  5 , 6}
+					int color = (int)p.distance -998893; // in { 3,4,5,6 }
 					float radius = (int)p.distance == 998897 ? 1.1f : 1.0f;
+					      radius = (int)p.distance == 998896 ? 0.2f : radius;
 					radius *= 1.43f;
-					int nID = (int)p.distance == 998897 ? ID | (1 << 16) : gID++;
+					int nID = (int)p.distance <= 998897 ? ID | (1 << 16) : gID++;
 					du.DrawPoint(nID, p.localPos, radius,color);
 				}
 				++ID;

@@ -313,6 +313,10 @@ public:
 			exactSurfPoint *= radiiO[i] / exactSurfPoint.len(); //stretch the vector
 			exactSurfPoint += centresO[i]; //now point on the surface...
 
+			//REMOVE ME, DEBUG
+			//create "a special" ProximityPair for debug where surface has been calculated
+			l.push_back( ProximityPair(exactSurfPoint,exactSurfPoint,998896) );
+
 			//NB: a copy is of the ProximityPair 'p' is created while pushing...
 			l.push_back( ProximityPair(exactSurfPoint+grad,exactSurfPoint,
 			  distances[i],NULL,(void*)distImg.GetVoxelAddr(curPos.x,curPos.y,curPos.z)) );
