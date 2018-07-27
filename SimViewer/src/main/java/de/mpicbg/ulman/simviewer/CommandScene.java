@@ -63,7 +63,7 @@ public class CommandScene implements Runnable
 			System.out.println("H - Toggles on/off of camera-attached lights");
 
 			System.out.println("F - Adds some cells to have something to display");
-			System.out.println("D - Deletes all cells (even if not displayed)");
+			System.out.println("D - Deletes all objects (even if not displayed)");
 			System.out.println("c - Toggles display of the cell geometry (spheres)");
 			System.out.println("l - Toggles display of the cell lines");
 			System.out.println("f - Toggles display of the cell vectors (forces)");
@@ -91,8 +91,8 @@ public class CommandScene implements Runnable
 			System.out.println("Fake cells added");
 			break;
 		case 'D':
-			scene.RemoveCells();
-			System.out.println("All cells removed (incl. their lines and vectors)");
+			scene.RemoveAllObjects();
+			System.out.println("All objects removed (incl. lines and vectors)");
 			break;
 
 		case 'c':

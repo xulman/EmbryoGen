@@ -481,43 +481,30 @@ public class DisplayScene extends SceneryBase implements Runnable
 
 
 	public
-	void RemoveCells()
+	void RemoveAllObjects()
 	{
 		//NB: HashMap may be modified while being swept through only via iterator
 		//    (and iterator must remove the elements actually)
 		Iterator<Integer> i = pointNodes.keySet().iterator();
-		int ID;
 
 		while (i.hasNext())
 		{
-			ID = i.next();
-			if ((ID & MASK_CELLID) > 0)
-			{
-				scene.removeChild(pointNodes.get(ID));
-				i.remove();
-			}
+			scene.removeChild(pointNodes.get(i.next()));
+			i.remove();
 		}
 
 		i = lineNodes.keySet().iterator();
 		while (i.hasNext())
 		{
-			ID = i.next();
-			if ((ID & MASK_CELLID) > 0)
-			{
-				scene.removeChild(lineNodes.get(ID));
-				i.remove();
-			}
+			scene.removeChild(lineNodes.get(i.next()));
+			i.remove();
 		}
 
 		i = vectorNodes.keySet().iterator();
 		while (i.hasNext())
 		{
-			ID = i.next();
-			if ((ID & MASK_CELLID) > 0)
-			{
-				scene.removeChild(vectorNodes.get(ID));
-				i.remove();
-			}
+			scene.removeChild(vectorNodes.get(i.next()));
+			i.remove();
 		}
 	}
 	//----------------------------------------------------------------------------
