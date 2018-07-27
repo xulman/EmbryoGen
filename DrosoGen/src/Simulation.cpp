@@ -96,7 +96,7 @@ void Simulation::initializeAgents_aFew(void)
 
 
 	//shadow hinter geometry (micron size and resolution)
-	Vector3d<float> size(2.5f*radius,2.5f*radius,0.5f*radius);
+	Vector3d<float> size(2.9f*radius,2.2f*radius,0.5f*radius);
 	const float xRes = 0.35f; //px/um
 	const float yRes = 0.35f;
 	const float zRes = 0.35f;
@@ -116,13 +116,13 @@ void Simulation::initializeAgents_aFew(void)
 
 	//fill the actual shape
 	for (size_t z=(size_t)(0.1*Img.GetSizeZ()); z <= (size_t)(0.9*Img.GetSizeZ()); ++z)
-	for (size_t y=(size_t)(0.1*Img.GetSizeY()); y <= (size_t)(0.9*Img.GetSizeY()); ++y)
+	for (size_t y=(size_t)(0.2*Img.GetSizeY()); y <= (size_t)(0.8*Img.GetSizeY()); ++y)
 	for (size_t x=(size_t)(0.1*Img.GetSizeX()); x <= (size_t)(0.9*Img.GetSizeX()); ++x)
 		Img.SetVoxel(x,y,z,20);
 	Img.SaveImage("GradIN_ZeroOUT__original.tif");
 
 	//now convert the actual shape into the shape geometry
-	MaskImg m(Img,MaskImg::DistanceModel::GradIN_ZeroOUT);
+	MaskImg m(Img,MaskImg::DistanceModel::GradIN_GradOUT);
 	m.saveDistImg("GradIN_ZeroOUT.tif");
 
 	//finally, create the simulation agent to register this shape
