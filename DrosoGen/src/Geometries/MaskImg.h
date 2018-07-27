@@ -292,6 +292,8 @@ public:
 			grad.z *= 3-span; //missing /2.0
 
 			grad.elemMult(distImgRes);               //account for anisotropy [1/px -> 1/um]
+			DEBUG_REPORT("grad: " << grad << " @ voxel: " << hints[i] << ", distance: " << distances[i]);
+
 			if (grad.len2() > 0) grad /= grad.len(); //normalize if not zero vector already
 			grad *= -distances[i];                   //extend to the distance (might flip grad!)
 			//NB: grad now points always away towards the collision surface
