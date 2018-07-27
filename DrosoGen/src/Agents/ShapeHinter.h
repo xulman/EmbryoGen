@@ -105,6 +105,7 @@ private:
 		int ID = this->ID << 17;
 		ID += futureGeometry.AABB.drawIt(ID,1, du);
 
+		int gID = this->ID << 10;
 		//draw tested proximity pairs (that were calculated just for debug)
 		//if (this->ID == 1 || this->ID == 3)
 		{
@@ -113,8 +114,8 @@ private:
 				if (p.distance < 990000)
 				{
 					//normal distance measured
-					du.DrawVector(ID, p.localPos, p.otherPos-p.localPos);
-					//du.DrawLine(ID, p.localPos, p.otherPos);
+					du.DrawVector(ID, p.localPos, p.otherPos-p.localPos,1);
+					//du.DrawLine(ID, p.localPos, p.otherPos,1);
 				}
 				else
 				{
@@ -122,7 +123,8 @@ private:
 					int color = (int)p.distance -998893; // in { 4,  5 , 6}
 					float radius = (int)p.distance == 998897 ? 1.1f : 1.0f;
 					radius *= 1.43f;
-					du.DrawPoint(ID | (1 << 16), p.localPos, radius,color);
+					int nID = (int)p.distance == 998897 ? ID | (1 << 16) : gID++;
+					du.DrawPoint(nID, p.localPos, radius,color);
 				}
 				++ID;
 			}

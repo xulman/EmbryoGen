@@ -49,7 +49,7 @@ private:
 	// ------------- externals geometry -------------
 	/** limiting distance beyond which I consider no interaction possible
 	    with other nuclei */
-	float ignoreDistance = 85.f;
+	float ignoreDistance = 20.f;
 
 	/** locations of possible interaction with nearby nuclei */
 	std::list<ProximityPair> proximityPairs;
@@ -123,6 +123,7 @@ private:
 			++i;
 		}
 
+		int gID = this->ID << 10;
 		//draw (not debug) vectors
 		//if (this->ID == 1 || this->ID == 3)
 		{
@@ -140,7 +141,8 @@ private:
 					int color = (int)p.distance -998893; // in { 4,  5 , 6}
 					float radius = (int)p.distance == 998897 ? 1.1f : 1.0f;
 					radius *= 1.43f;
-					du.DrawPoint(ID | (1 << 16), p.localPos, radius,color);
+					int nID = (int)p.distance == 998897 ? ID | (1 << 16) : gID++;
+					du.DrawPoint(nID, p.localPos, radius,color);
 				}
 				++ID;
 			}
