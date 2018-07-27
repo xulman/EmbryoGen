@@ -109,8 +109,18 @@ public:
 
 	/** Specialized implementation of getDistance() for MaskImg & Spheres geometries.
 	    Rasterizes the 'other' spheres into the 'local' MaskImg and finds min distance
-		 for every other sphere. These nearest surface distances and corresponding
-		 ProximityPairs are added to the output list l. */
+	    for every other sphere. These nearest surface distances and corresponding
+	    ProximityPairs are added to the output list l.
+
+	    If a Sphere is calculating distance to a MaskImg, the ProximityPair "points"
+	    (the vector from ProximityPair::localPos to ProximityPair::otherPos) from Sphere's
+	    surface in the direction parallel to the gradient (determined at 'localPos' in
+	    the MaskImg::distImg) towards a surface of the MaskImg. The surface, at 'otherPos',
+	    is not necessarily accurate as it is estimated from the distance and (local!)
+	    gradient only. The length of such a "vector" is the same as a distance to the surface
+	    found at 'localPos' in the 'distImg'. If a MaskImg is calculating distance to a Sphere,
+	    the opposite "vector" is created and placed such that the tip of this "vector" points
+	    at Sphere's surface. In other words, the tip becomes the base and vice versa. */
 	void getDistanceToSpheres(const class Spheres* otherSpheres,
 	                          std::list<ProximityPair>& l) const
 	{
@@ -250,6 +260,8 @@ public:
 
 			grad.elemMult(distImgRes);               //account for anisotropy [1/px -> 1/um]
 			if (grad.len2() > 0) grad /= grad.len(); //normalize if not zero vector already
+			grad *= -distances[i];                   //extend to the distance (might flip grad!)
+			//NB: grad now points always away towards the collision surface
 
 			//determine the exact point on the sphere surface, use again the voxel's centre
 			Vector3d<FLOAT> exactSurfPoint;
@@ -262,7 +274,7 @@ public:
 			exactSurfPoint += centresO[i]; //now point on the surface...
 
 			//NB: a copy is of the ProximityPair 'p' is created while pushing...
-			l.push_back( ProximityPair(exactSurfPoint-grad,exactSurfPoint,
+			l.push_back( ProximityPair(exactSurfPoint+grad,exactSurfPoint,
 			  distances[i],NULL,(void*)distImg.GetVoxelAddr(curPos.x,curPos.y,curPos.z)) );
 		}
 
