@@ -202,10 +202,6 @@ public:
 			minSweep.z = ((FLOAT)curPos.z +0.5f) / distImgRes.z;
 			minSweep += distImgOff;
 
-			//REMOVE ME, DEBUG
-			//create "a special" ProximityPair for debug
-			l.push_back( ProximityPair(minSweep,minSweep,998899) );
-
 			//check the current voxel against all spheres
 			for (int i = 0; i < io; ++i)
 			{
@@ -216,6 +212,10 @@ public:
 				{
 					//found a voxel _nearby_ i-th sphere's true surface,
 					//is there really an intersection?
+
+					//REMOVE ME, DEBUG
+					//create "a special" ProximityPair for debug
+					l.push_back( ProximityPair(minSweep,minSweep,998899) );
 
 					//a vector pointing from voxel's centre to the nearest sphere surface
 					maxSweep *= radiiO[i]/maxSweep.len() -1.0f;
