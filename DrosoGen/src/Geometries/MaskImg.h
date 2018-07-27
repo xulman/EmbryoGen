@@ -163,10 +163,11 @@ public:
 		  maxSweepPX( (size_t) std::ceil(maxSweep.x),(size_t) std::ceil(maxSweep.y),(size_t) std::ceil(maxSweep.z) );
 		Vector3d<size_t> curPos;
 
-		//a "universal" (and inaccurate) half "thickness" of spheres' surfaces
-		//for detection of voxels that coincide with such volumes
-		const FLOAT halfPXdiagonal
-			= Vector3d<FLOAT>(1.0f/distImgRes.x,1.0f/distImgRes.y,1.0f/distImgRes.z).len() / 2.0f;
+		//(squared) voxel's volume half-diagonal vector and its length
+		//(for detection of voxels that coincide with sphere's surface)
+		Vector3d<FLOAT> vecPXhd2(0.5f/distImgRes.x,0.5f/distImgRes.y,0.5f/distImgRes.z);
+		const FLOAT     lenPXhd = vecPXhd2.len();
+		vecPXhd2.elemMult(vecPXhd2); //make it squared
 
 		//shortcuts to the otherGeometry's spheres
 		const Vector3d<FLOAT>* const centresO = otherSpheres->getCentres();
@@ -196,16 +197,30 @@ public:
 			{
 				maxSweep  = minSweep;
 				maxSweep -= centresO[i];
-				if (std::abs(maxSweep.len() - radiiO[i]) < halfPXdiagonal)
+				//if sphere's surface would be 2*lenPXhd thick, would the voxel's center be in?
+				if (std::abs(maxSweep.len() - radiiO[i]) < lenPXhd)
 				{
-					//hooray, a voxel (nearby) i-th sphere's surface was found,
-					//let's inspect the distImg at this position
-					const FLOAT dist = distImg.GetVoxel(curPos.x,curPos.y,curPos.z);
+					//found a voxel _nearby_ i-th sphere's true surface,
+					//is there really an intersection?
 
-					if (dist < distances[i])
+					//a vector pointing from voxel's centre to the nearest sphere surface
+					maxSweep *= radiiO[i]/maxSweep.len() -1.0f;
+					//NB: maxSweep *= (radiiO[i] - maxSweep.len()) / maxSweep.len()
+
+					//max (squared; only to avoid using std::abs()) distance to the voxel's centre
+					//to see if maxSweep's tip is within this voxel
+					maxSweep.elemMult(maxSweep);
+					if (maxSweep.x <= vecPXhd2.x && maxSweep.y <= vecPXhd2.y && maxSweep.z <= vecPXhd2.z)
 					{
-						distances[i] = dist;
-						hints[i] = curPos;
+						//hooray, a voxel whose volume is intersecting with i-th sphere's surface
+						//let's inspect the distImg at this position
+						const FLOAT dist = distImg.GetVoxel(curPos.x,curPos.y,curPos.z);
+
+						if (dist < distances[i])
+						{
+							distances[i] = dist;
+							hints[i] = curPos;
+						}
 					}
 				}
 			} //over all foreign spheres
