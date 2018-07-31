@@ -91,7 +91,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 		float zCam = (sceneOffset[2] + 1.7f*sceneSize[2]) *DsFactor;
 		cam = new DetachedHeadCamera();
 		cam.setPosition( new GLVector(xCam,yCam,zCam) );
-		cam.perspectiveCamera(50.0f, getRenderer().getWindow().getWidth(), getRenderer().getWindow().getHeight(), 0.05f, 1000.0f);
+		cam.perspectiveCamera(50.0f, getRenderer().getWindow().getWidth(), getRenderer().getWindow().getHeight(), 10.0f*DsFactor, 100000.0f*DsFactor);
 		cam.setActive( true );
 		getScene().addChild(cam);
 
@@ -148,17 +148,17 @@ public class DisplayScene extends SceneryBase implements Runnable
 		final GLVector lightsColor = new GLVector(1.0f, 1.0f, 1.0f);
 		for (PointLight l : headLights)
 		{
-			l.setIntensity(20.0f);
+			l.setIntensity((450.0f*DsFactor)*(450.0f*DsFactor));
 			l.setEmissionColor(lightsColor);
 		}
 		for (PointLight l : fixedLights[0])
 		{
-			l.setIntensity(10.0f);
+			l.setIntensity((300.0f*DsFactor)*(300.0f*DsFactor));
 			l.setEmissionColor(lightsColor);
 		}
 		for (PointLight l : fixedLights[1])
 		{
-			l.setIntensity(10.0f);
+			l.setIntensity((300.0f*DsFactor)*(300.0f*DsFactor));
 			l.setEmissionColor(lightsColor);
 		}
 
