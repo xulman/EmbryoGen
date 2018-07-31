@@ -79,13 +79,13 @@ void Simulation::initializeAgents_aFew(void)
 		pos += sceneCentre;
 
 		Spheres s(4);
-		s.updateCentre(0,pos+Vector3d<float>(0,0,-9));
+		s.updateCentre(0,pos+Vector3d<float>(0,0,-17));
 		s.updateRadius(0,3.0f);
-		s.updateCentre(1,pos+Vector3d<float>(0,0,-3));
+		s.updateCentre(1,pos+Vector3d<float>(0,0,-7));
 		s.updateRadius(1,5.0f);
-		s.updateCentre(2,pos+Vector3d<float>(0,0,+3));
+		s.updateCentre(2,pos+Vector3d<float>(0,0,+7));
 		s.updateRadius(2,5.0f);
-		s.updateCentre(3,pos+Vector3d<float>(0,0,+9));
+		s.updateCentre(3,pos+Vector3d<float>(0,0,+17));
 		s.updateRadius(3,3.0f);
 
 		AbstractAgent* ag = new NucleusAgent(ID++,s,currTime,incrTime);
@@ -97,9 +97,9 @@ void Simulation::initializeAgents_aFew(void)
 
 	//shadow hinter geometry (micron size and resolution)
 	Vector3d<float> size(2.9f*radius,2.2f*radius,0.5f*radius);
-	const float xRes = 0.35f; //px/um
-	const float yRes = 0.35f;
-	const float zRes = 0.35f;
+	const float xRes = 0.8f; //px/um
+	const float yRes = 0.8f;
+	const float zRes = 0.8f;
 	DEBUG_REPORT("Shape hinter image size   [um]: " << size);
 
 	//allocate and init memory for the hinter representation

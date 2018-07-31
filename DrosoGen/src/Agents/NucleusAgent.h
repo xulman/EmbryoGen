@@ -140,7 +140,7 @@ private:
 					int color = (int)p.distance -998893; // in { 3,4,5,6 }
 					float radius = (int)p.distance == 998897 ? 1.1f : 1.0f;
 					      radius = (int)p.distance == 998896 ? 0.2f : radius;
-					radius *= 1.43f;
+					radius *= 0.625f;
 					int nID = (int)p.distance <= 998897 ? ID | (1 << 16) : gID++;
 					if ((int)p.distance == 998898) color += (long)p.otherHint % 2;
 					if ((int)p.distance != 998899)
