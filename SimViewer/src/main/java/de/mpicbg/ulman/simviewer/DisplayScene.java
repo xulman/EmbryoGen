@@ -558,10 +558,10 @@ public class DisplayScene extends SceneryBase implements Runnable
 	private boolean cellGeomShown = true;
 
 	/** signals if we want to have cell lines displayed */
-	private boolean cellLinesShown = false;
+	private boolean cellLinesShown = true;
 
 	/** signals if we want to have cell forces (vectors) displayed */
-	private boolean cellVectorsShown = false;
+	private boolean cellVectorsShown = true;
 
 	/** signals if we want to have cell "debugging" elements displayed */
 	private boolean cellDebugShown = false;
