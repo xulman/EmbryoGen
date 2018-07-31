@@ -3,6 +3,7 @@
 
 #include <list>
 #include "../util/Vector3d.h"
+#include "../DisplayUnits/DisplayUnit.h"
 
 /** accuracy of the geometry representation, choose float or double */
 #define FLOAT float
@@ -55,6 +56,113 @@ public:
 
 		return (dx*dx + dy*dy + dz*dz);
 	}
+
+
+	/** Uses AxisAlignedBoundingBox::drawBox() to render this bounding box. */
+	int drawIt(const int ID, const int color, DisplayUnit& du)
+	{
+		return drawBox(ID,color, minCorner,maxCorner, du);
+	}
+
+	/** Renders given bounding box into the given DisplayUnit 'du'
+	    under the given 'ID' with the given 'color'. Multiple graphics
+	    elements are required, so a couple of consecutive IDs are used
+	    starting from the given 'ID'. Returned value tells how many
+	    elements were finally used. */
+	int drawBox(const int ID, const int color,
+	            const Vector3d<FLOAT> &minC,
+	            const Vector3d<FLOAT> &maxC,
+	            DisplayUnit& du)
+	{
+		//horizontal lines
+		du.DrawLine( ID+0,
+		  minC,
+		  Vector3d<float>(maxC.x,
+		                  minC.y,
+		                  minC.z),color );
+
+		du.DrawLine( ID+1,
+		  Vector3d<float>(minC.x,
+		                  maxC.y,
+		                  minC.z),
+		  Vector3d<float>(maxC.x,
+		                  maxC.y,
+		                  minC.z),color );
+
+		du.DrawLine( ID+2,
+		  Vector3d<float>(minC.x,
+		                  minC.y,
+		                  maxC.z),
+		  Vector3d<float>(maxC.x,
+		                  minC.y,
+		                  maxC.z),color );
+
+		du.DrawLine( ID+3,
+		  Vector3d<float>(minC.x,
+		                  maxC.y,
+		                  maxC.z),
+		  maxC,color );
+
+		//vertical lines
+		du.DrawLine( ID+4,
+		  minC,
+		  Vector3d<float>(minC.x,
+		                  maxC.y,
+		                  minC.z),color );
+
+		du.DrawLine( ID+5,
+		  Vector3d<float>(maxC.x,
+		                  minC.y,
+		                  minC.z),
+		  Vector3d<float>(maxC.x,
+		                  maxC.y,
+		                  minC.z),color );
+
+		du.DrawLine( ID+6,
+		  Vector3d<float>(minC.x,
+		                  minC.y,
+		                  maxC.z),
+		  Vector3d<float>(minC.x,
+		                  maxC.y,
+		                  maxC.z),color );
+
+		du.DrawLine( ID+7,
+		  Vector3d<float>(maxC.x,
+		                  minC.y,
+		                  maxC.z),
+		  maxC,color );
+
+		//"axial" lines
+		du.DrawLine( ID+8,
+		  minC,
+		  Vector3d<float>(minC.x,
+		                  minC.y,
+		                  maxC.z),color );
+
+		du.DrawLine( ID+9,
+		  Vector3d<float>(maxC.x,
+		                  minC.y,
+		                  minC.z),
+		  Vector3d<float>(maxC.x,
+		                  minC.y,
+		                  maxC.z),color );
+
+		du.DrawLine( ID+10,
+		  Vector3d<float>(minC.x,
+		                  maxC.y,
+		                  minC.z),
+		  Vector3d<float>(minC.x,
+		                  maxC.y,
+		                  maxC.z),color );
+
+		du.DrawLine( ID+11,
+		  Vector3d<float>(maxC.x,
+		                  maxC.y,
+		                  minC.z),
+		  maxC,color );
+
+		return 12;
+	}
 };
 
 
@@ -63,7 +171,7 @@ public:
  * The geometry object on which getDistance() is called plays the role of 'local' and
  * the argument of the method plays the role of 'other' in the nomenclature of attribute
  * names. If the distance between the two points is negative, the points represent
- * a colliding pair.
+ * a colliding pair, and absolute value of the distance represents a "penetration depth".
  *
  * The structure can possibly hold 'helper data' that depend on form of the geometry that
  * is investigated during the getDistance(). This can be, e.g., a pointer on mesh vertex

@@ -1,17 +1,16 @@
-#ifndef NUCLEUSAGENT_H
-#define NUCLEUSAGENT_H
+#ifndef SHAPEHINTER_H
+#define SHAPEHINTER_H
 
 #include <list>
 #include "../util/report.h"
 #include "AbstractAgent.h"
-#include "CellCycle.h"
-#include "../Geometries/Spheres.h"
+#include "../Geometries/MaskImg.h"
 
-class NucleusAgent: public AbstractAgent
+class ShapeHinter: public AbstractAgent
 {
 public:
-	NucleusAgent(const int ID, const Spheres& shape,
-	             const float currTime, const float incrTime)
+	ShapeHinter(const int ID, const MaskImg& shape,
+	            const float currTime, const float incrTime)
 		: AbstractAgent(ID,geometryAlias,currTime,incrTime),
 		  geometryAlias(shape),
 		  futureGeometry(shape)
@@ -20,37 +19,34 @@ public:
 		geometryAlias.Geometry::setAABB();
 		futureGeometry.Geometry::setAABB();
 
-		curPhase = G1Phase;
-
-		DEBUG_REPORT("Nucleus with ID=" << ID << " was just created");
+		DEBUG_REPORT("EmbryoShell with ID=" << ID << " was just created");
+		DEBUG_REPORT("AABB: " << geometryAlias.AABB.minCorner << " -> " << geometryAlias.AABB.maxCorner);
 	}
 
-	~NucleusAgent(void)
+	~ShapeHinter(void)
 	{
-		DEBUG_REPORT("Nucleus with ID=" << ID << " was just deleted");
+		DEBUG_REPORT("EmbryoShell with ID=" << ID << " was just deleted");
 	}
 
 
 private:
 	// ------------- internals state -------------
-	CellCycleParams cellCycle;
-
-	/** currently exhibited cell phase */
-	ListOfPhases curPhase;
 
 	// ------------- internals geometry -------------
 	/** reference to my exposed geometry ShadowAgents::geometry */
-	Spheres geometryAlias;
+	MaskImg geometryAlias;
 
 	/** my internal representation of my geometry, which is exactly
 	    of the same form as my ShadowAgent::geometry, even the same noOfSpheres */
-	Spheres futureGeometry;
+	MaskImg futureGeometry;
 
 	// ------------- externals geometry -------------
+	//FOR DEBUG ONLY!
 	/** limiting distance beyond which I consider no interaction possible
 	    with other nuclei */
 	float ignoreDistance = 85.f;
 
+	//FOR DEBUG ONLY!
 	/** locations of possible interaction with nearby nuclei */
 	std::list<ProximityPair> proximityPairs;
 
@@ -69,12 +65,13 @@ private:
 
 	void collectExtForces(void) override
 	{
+		//FOR DEBUG ONLY!
 		//scheduler, please give me ShadowAgents that are not further than ignoreDistance
 		//(and the distance is evaluated based on distances of AABBs)
 		std::list<const ShadowAgent*> l;
 		Officer->getNearbyAgents(this,ignoreDistance,l);
 
-		DEBUG_REPORT("ID " << ID << ": Found " << l.size() << " nearby agents");
+		DEBUG_REPORT("Hinter: Found " << l.size() << " nearby agents");
 
 		//those on the list are ShadowAgents who are potentially close enough
 		//to interact with me and these I need to inspect closely
@@ -83,7 +80,7 @@ private:
 			geometry.getDistance((*sa)->getGeometry(),proximityPairs);
 
 		//now, postprocess the proximityPairs
-		DEBUG_REPORT("ID " << ID << ": Found " << proximityPairs.size() << " proximity pairs");
+		DEBUG_REPORT("Hinter: Found " << proximityPairs.size() << " proximity pairs");
 	}
 
 	void adjustGeometryByExtForces(void) override
@@ -91,46 +88,34 @@ private:
 		//update my futureGeometry
 	}
 
+	//futureGeometry -> geometryAlias
 	void updateGeometry(void) override
 	{
-		//promote my futureGeometry to my geometry, which happens
-		//to be overlaid/mapped-over with geometryAlias (see the constructor)
-		for (int i=0; i < geometryAlias.noOfSpheres; ++i)
-		{
-			geometryAlias.centres[i] = futureGeometry.centres[i];
-			geometryAlias.radii[i]   = futureGeometry.radii[i];
-		}
-
-		//update AABB
-		geometryAlias.Geometry::setAABB();
+		//since we're not changing ShadowAgent::geometry (and consequently
+		//not this.geometryAlias), we don't need to update this.futureGeometry
 	}
 
 	// ------------- rendering -------------
 	void drawMask(DisplayUnit& du) override
 	{
-		const int color = curPhase < 3? 2:3;
+		//draw bounding box of the GradIN region of the MaskImg
 		int ID = this->ID << 17;
+		ID += futureGeometry.AABB.drawIt(ID,1, du);
 
-		//draw spheres
-		int i=0;
-		while (i < futureGeometry.noOfSpheres && futureGeometry.radii[i] > 0.f)
-		{
-			du.DrawPoint(ID++,futureGeometry.centres[i],futureGeometry.radii[i],color);
-			++i;
-		}
-
-		//draw debug bounding box
+		//draw bounding box of the complete MaskImg, as a debug element
 		ID |= 1 << 16; //enable debug bit
-		futureGeometry.AABB.drawIt(ID,color,du);
+		futureGeometry.AABB.drawBox(ID,4,
+		  futureGeometry.getDistImgOff(),futureGeometry.getDistImgFarEnd(), du);
 
-		//draw (debug) vectors
+/*
 		if (ID == 1 || ID == 3)
 		{
 			int cnt=1;
 			for (auto& p : proximityPairs)
-				du.DrawVector(ID +cnt++, p.localPos, p.otherPos-p.localPos);
-				//du.DrawLine(ID +cnt++, p.localPos, p.otherPos);
+				//du.DrawVector((ID << 17) +cnt++, p.localPos, p.otherPos-p.localPos);
+				du.DrawLine((ID << 17) +cnt++, p.localPos, p.otherPos);
 		}
+*/
 	}
 };
 #endif

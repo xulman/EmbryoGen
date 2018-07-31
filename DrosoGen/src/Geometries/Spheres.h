@@ -51,6 +51,7 @@ public:
 	}
 
 
+	// ------------- distances -------------
 	/** calculate min surface distance between myself and some foreign agent */
 	void getDistance(const Geometry& otherGeometry,
 	                 std::list<ProximityPair>& l) const override
@@ -76,7 +77,12 @@ public:
 	/** Specialized implementation of getDistance() for Spheres-Spheres geometries.
 	    For every non-zero-radius 'local' sphere, there is an 'other' sphere found
 	    that has the nearest surface distance and corresponding ProximityPair is
-	    added to the output list l. */
+	    added to the output list l.
+
+	    Note that this may produce multiple 'local' spheres sharing the same
+	    'other' sphere in their ProximityPairs. This can happen, for example,
+	    when "T" configuration occurs or when large spheres-represented agent
+	    is nearby. The 'local' agent should take this into account. */
 	void getDistanceToSpheres(const Spheres* otherSpheres,
 	                          std::list<ProximityPair>& l) const
 	{
@@ -98,10 +104,6 @@ public:
 			{
 				//skip calculation for this sphere if it has no radius...
 				if (radiiO[io] == 0) continue;
-
-				//dist to centres //TODO: not sure: dc^2 - r1^2 - r2^2 =?= (dc -r1 -r2)^2
-				//FLOAT dist = (centres[im] - centresO[io]).len2();
-				//dist -= radii[im]*radii[im] + radiiO[io]*radiiO[io];
 
 				//dist between surfaces of the two spheres
 				FLOAT dist = (centres[im] - centresO[io]).len();
@@ -126,7 +128,7 @@ public:
 				//vector between the two centres
 				Vector3d<FLOAT> dp = centresO[bestI] - centres[im];
 
-				//the vector made 'radius' longer, and offets the 'centre' point
+				//the vector made 'radius' longer, and offsets the 'centre' point
 				p.localPos += (    +radii[im]/dp.len()) * dp;
 				p.otherPos += (-radiiO[bestI]/dp.len()) * dp;
 
@@ -137,6 +139,7 @@ public:
 	}
 
 
+	// ------------- AABB -------------
 	void setAABB(AxisAlignedBoundingBox& AABB) const override
 	{
 		AABB.reset();
