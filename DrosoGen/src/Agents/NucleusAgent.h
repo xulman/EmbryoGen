@@ -142,6 +142,7 @@ private:
 					      radius = (int)p.distance == 998896 ? 0.2f : radius;
 					radius *= 1.43f;
 					int nID = (int)p.distance <= 998897 ? ID | (1 << 16) : gID++;
+					if ((int)p.distance == 998898) color += (long)p.otherHint % 2;
 					if ((int)p.distance != 998899)
 					du.DrawPoint(nID, p.localPos, radius,color);
 				}

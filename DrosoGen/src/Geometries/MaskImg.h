@@ -233,6 +233,7 @@ public:
 						//REMOVE ME, DEBUG
 						//mark this ProximityPair to be ever more special :)
 						l.back().distance = 998898;
+						l.back().localHint = (void*)long(i);
 
 						if (dist < distances[i])
 						{
