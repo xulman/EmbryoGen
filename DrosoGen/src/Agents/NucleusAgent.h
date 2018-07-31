@@ -122,7 +122,7 @@ private:
 			++i;
 		}
 
-		int gID = this->ID << 10;
+		int gID = this->ID << 12;
 		//draw (not debug) vectors
 		//if (this->ID == 1 || this->ID == 3)
 		{
