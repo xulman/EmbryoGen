@@ -76,9 +76,11 @@ private:
 		//those on the list are ShadowAgents who are potentially close enough
 		//to interact with me and these I need to inspect closely
 		proximityPairs.clear();
+/*
 		for (auto sa = l.begin(); sa != l.end(); ++sa)
 			geometry.getDistance((*sa)->getGeometry(),proximityPairs);
 
+*/
 		//now, postprocess the proximityPairs
 		DEBUG_REPORT("Hinter: Found " << proximityPairs.size() << " proximity pairs");
 	}
@@ -99,23 +101,12 @@ private:
 	void drawMask(DisplayUnit& du) override
 	{
 		//draw bounding box of the GradIN region of the MaskImg
-		int ID = this->ID << 17;
-		ID += futureGeometry.AABB.drawIt(ID,1, du);
+		int dID = ID << 17;
+		dID += futureGeometry.AABB.drawIt(dID,1, du);
 
-		//draw bounding box of the complete MaskImg, as a debug element
-		ID |= 1 << 16; //enable debug bit
-		futureGeometry.AABB.drawBox(ID,4,
+		//draw bounding box of the complete MaskImg, as a global debug element
+		futureGeometry.AABB.drawBox(ID << 4,4,
 		  futureGeometry.getDistImgOff(),futureGeometry.getDistImgFarEnd(), du);
-
-/*
-		if (ID == 1 || ID == 3)
-		{
-			int cnt=1;
-			for (auto& p : proximityPairs)
-				//du.DrawVector((ID << 17) +cnt++, p.localPos, p.otherPos-p.localPos);
-				du.DrawLine((ID << 17) +cnt++, p.localPos, p.otherPos);
-		}
-*/
 	}
 };
 #endif
