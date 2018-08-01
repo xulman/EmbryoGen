@@ -339,6 +339,9 @@ public:
 	//TODO </can go into a "common" function>
 		Vector3d<size_t> curPos;
 
+		DEBUG_REPORT("sweepBox: " << minSweepPX << " -> " << maxSweepPX << " PiXels");
+		DEBUG_REPORT("sweepBox: will enter main cycle: " << (minSweepPX.x < maxSweepPX.x && minSweepPX.y < maxSweepPX.y && minSweepPX.z < maxSweepPX.z));
+
 		//shortcuts to the otherGeometry's distance image data
 		const i3d::Image3d<float>& otherDistImg = otherMaskImg->getDistImg();
 		const Vector3d<FLOAT>& otherDistImgRes = otherMaskImg->getDistImgRes();
@@ -350,9 +353,12 @@ public:
 		for (curPos.y = minSweepPX.y; curPos.y < maxSweepPX.y; curPos.y++)
 		for (curPos.x = minSweepPX.x; curPos.x < maxSweepPX.x; curPos.x++)
 		{
+			DEBUG_REPORT("testing voxel at " << curPos << " px, value=" << distImg.GetVoxel(curPos.x,curPos.y,curPos.z));
+
 			//skip this voxel if it is not "shape boundary" voxel, which means to...
 			//...test if voxel is zero-valued and...
 			if (distImg.GetVoxel(curPos.x,curPos.y,curPos.z) != 0.0f) continue;
+			DEBUG_REPORT("this voxel is zero valued");
 			//
 			//...if so, test if voxel has some non-zero neighbor
 			int neigsCnt = 0;
@@ -365,6 +371,7 @@ public:
 				            && distImg.GetVoxel((unsigned)neigPos.x,(unsigned)neigPos.y,(unsigned)neigPos.z) != 0.0f
 				         ? 100 : 1;
 			}
+			DEBUG_REPORT("this voxel has neigsCnt=" << neigsCnt);
 			if (neigsCnt < 100) continue; //no non-zero neighbor found, skip this voxel
 
 			//so, it is a "shape boundary" voxel,

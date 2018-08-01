@@ -119,11 +119,11 @@ public:
 		//init display/export units,
 		//and make them persistent (to survive after this method is finished)
 		//static VoidDisplayUnit vDU;
-		static ConsoleDisplayUnit cDU;
-		//static SceneryBufferedDisplayUnit sDU("localhost:8765");
+		//static ConsoleDisplayUnit cDU;
+		static SceneryBufferedDisplayUnit sDU("localhost:8765");
 
-		displayUnit.RegisterUnit(cDU);
-		//displayUnit.RegisterUnit(sDU);
+		//displayUnit.RegisterUnit(cDU);
+		displayUnit.RegisterUnit(sDU);
 	}
 
 
