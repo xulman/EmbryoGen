@@ -17,8 +17,8 @@ void Simulation::initializeAgents(void)
 	//longer axis x
 	//symmetric/short axes y,z
 
-	const float Xside  = (0.9f*sceneSize.x)/2.0f;
-	const float YZside = (0.9f*sceneSize.y)/2.0f;
+	const float Xside  = (0.90f*sceneSize.x)/2.0f;
+	const float YZside = (0.75f*sceneSize.y)/2.0f;
 
 	for (float z=-Xside; z <= +Xside; z += dx)
 	{
