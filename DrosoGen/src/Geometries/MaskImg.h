@@ -384,6 +384,11 @@ public:
 		return distImgFarEnd;
 	}
 
+	DistanceModel getDistImgModel(void) const
+	{
+		return model;
+	}
+
 
 	template <class MT>
 	void updateWithNewMask(const i3d::Image3d<MT>& _mask)
