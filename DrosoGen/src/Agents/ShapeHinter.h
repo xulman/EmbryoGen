@@ -152,7 +152,7 @@ private:
 
 #ifdef DEBUG
 			if (centre.x < 0 || centre.y < 0 || centre.z < 0
-			 || centre.x < distImg.GetSizeX() || centre.y < distImg.GetSizeY() || centre.z < distImg.GetSizeZ())
+			 || centre.x >= distImg.GetSizeX() || centre.y >= distImg.GetSizeY() || centre.z >= distImg.GetSizeZ())
 				REPORT(ID << " gives counter-voxel " << centre << " outside of the distImg");
 #endif
 
