@@ -98,9 +98,9 @@ void Simulation::initializeAgents_aFew(void)
 	//shadow hinter #1 (left-up)
 	//shadow hinter geometry (micron size and resolution)
 	Vector3d<float> size(1.5f*radius,2.2f*radius,1.5f*radius);
-	const float xRes = 0.8f; //px/um
-	const float yRes = 0.8f;
-	const float zRes = 0.8f;
+	const float xRes = 1.0f; //px/um
+	const float yRes = 1.0f;
+	const float zRes = 1.0f;
 	DEBUG_REPORT("Shape hinter image size   [um]: " << size);
 
 	//allocate and init memory for the hinter representation
