@@ -55,6 +55,65 @@ public:
 		maxCorner   += minCorner;
 	}
 
+	/** exports this AABB as a "sweeping" box that is given
+	    with the output 'minSweep' and 'maxSweep' corners and
+	    that is appropriate for (that is, intersected with)
+	    the given 'img'
+
+	    sweep as x=minSweep; while (x < maxSweep)...,
+	    note the '<' (and not '<=') stop criterion */
+	template <typename T>
+	void exportInPixelCoords(const i3d::Image3d<T>& img,
+	                         Vector3d<size_t>& minSweep,
+	                         Vector3d<size_t>& maxSweep) const
+	{
+		//minCorner's offset within the world coordinate system
+		Vector3d<FLOAT> p(minCorner);
+
+		//offset within the image in microns
+		p.x -= img.GetOffset().x; //in mu
+		p.y -= img.GetOffset().y;
+		p.z -= img.GetOffset().z;
+
+		//offset within the image in pixels
+		p.x *= img.GetResolution().GetRes().x; //in px
+		p.y *= img.GetResolution().GetRes().y;
+		p.z *= img.GetResolution().GetRes().z;
+
+		//to avoid underflow when converting to unsigned integer
+		p.elemMax(Vector3d<FLOAT>(0));
+
+		//round to integer px coordinate (already intersect with image coordinate)
+		//NB: round() essentially considers whether voxel's centre falls into the AABB:
+		//    if AABB boundary falls into [q.0; q.5), the voxel's centre (q.5) is in the AABB,
+		//    so the 'q' voxel should be swept through
+		minSweep.x = (size_t)std::round(p.x);
+		minSweep.y = (size_t)std::round(p.y);
+		minSweep.z = (size_t)std::round(p.z);
+
+		//
+		//maxCorner's offset within the world coordinate system
+		p = maxCorner;
+
+		//offset within the image in microns
+		p.x -= img.GetOffset().x; //in mu
+		p.y -= img.GetOffset().y;
+		p.z -= img.GetOffset().z;
+
+		//offset within the image in pixels
+		p.x *= img.GetResolution().GetRes().x; //in px
+		p.y *= img.GetResolution().GetRes().y;
+		p.z *= img.GetResolution().GetRes().z;
+
+		//to avoid underflow when converting to unsigned integer
+		p.elemMax(Vector3d<FLOAT>(0));
+
+		//round to integer px coordinate & intersect with image coordinate
+		maxSweep.x = std::min( img.GetSizeX(),(size_t)std::round(p.x) );
+		maxSweep.y = std::min( img.GetSizeY(),(size_t)std::round(p.y) );
+		maxSweep.z = std::min( img.GetSizeZ(),(size_t)std::round(p.z) );
+	}
+
 
 	/** resets AABB (make it ready for someone to start filling it) */
 	void inline reset(void)
