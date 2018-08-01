@@ -95,8 +95,9 @@ void Simulation::initializeAgents_aFew(void)
 	}
 
 
+	//shadow hinter #1 (left-up)
 	//shadow hinter geometry (micron size and resolution)
-	Vector3d<float> size(2.9f*radius,2.2f*radius,1.5f*radius);
+	Vector3d<float> size(1.5f*radius,2.2f*radius,1.5f*radius);
 	const float xRes = 0.8f; //px/um
 	const float yRes = 0.8f;
 	const float zRes = 0.8f;
@@ -109,6 +110,8 @@ void Simulation::initializeAgents_aFew(void)
 
 	//metadata...
 	size *= -0.5f;
+	size.x *= 2.0f * 0.85f;
+	size.y -= 30.0f;
 	size += sceneCentre;
 	Img.SetOffset(     i3d::Offset(size.x,size.y,size.z) );
 	Img.SetResolution( i3d::Resolution(xRes,yRes,zRes) );
@@ -122,11 +125,46 @@ void Simulation::initializeAgents_aFew(void)
 	//Img.SaveImage("GradIN_ZeroOUT__original.tif");
 
 	//now convert the actual shape into the shape geometry
-	MaskImg m(Img,MaskImg::DistanceModel::GradIN_ZeroOUT);
-	//m.saveDistImg("GradIN_ZeroOUT.tif");
+	MaskImg mA(Img,MaskImg::DistanceModel::GradIN_ZeroOUT);
+	//mA.saveDistImg("GradIN_ZeroOUT_A.tif");
 
 	//finally, create the simulation agent to register this shape
-	AbstractAgent* ag = new ShapeHinter(ID++,m,currTime,incrTime);
-	ag->setOfficer(this);
-	agents.push_back(ag);
+	AbstractAgent* agA = new ShapeHinter(ID++,mA,currTime,incrTime);
+	agA->setOfficer(this);
+	agents.push_back(agA);
+
+
+	//shadow hinter #2 (right-down)
+	//shadow hinter geometry (micron size and resolution)
+	size = Vector3d<float>(1.5f*radius,2.2f*radius,1.5f*radius);
+	DEBUG_REPORT("Shape hinter image size   [um]: " << size);
+
+	//allocate and init memory for the hinter representation
+	Img.MakeRoom((size_t)(size.x*xRes),(size_t)(size.y*yRes),(size_t)(size.z*zRes));
+	Img.GetVoxelData() = 0;
+
+	//metadata...
+	size *= -0.5f;
+	size.x *= 2.0f * 0.15f;
+	size.y += 30.0f;
+	size += sceneCentre;
+	Img.SetOffset(     i3d::Offset(size.x,size.y,size.z) );
+	Img.SetResolution( i3d::Resolution(xRes,yRes,zRes) );
+	DEBUG_REPORT("Shape hinter image offset [um]: " << size);
+
+	//fill the actual shape
+	for (size_t z=(size_t)(0.1*Img.GetSizeZ()); z <= (size_t)(0.9*Img.GetSizeZ()); ++z)
+	for (size_t y=(size_t)(0.2*Img.GetSizeY()); y <= (size_t)(0.8*Img.GetSizeY()); ++y)
+	for (size_t x=(size_t)(0.1*Img.GetSizeX()); x <= (size_t)(0.9*Img.GetSizeX()); ++x)
+		Img.SetVoxel(x,y,z,20);
+	//Img.SaveImage("GradIN_ZeroOUT__original.tif");
+
+	//now convert the actual shape into the shape geometry
+	MaskImg mB(Img,MaskImg::DistanceModel::GradIN_ZeroOUT);
+	//mB.saveDistImg("GradIN_ZeroOUT_B.tif");
+
+	//finally, create the simulation agent to register this shape
+	AbstractAgent* agB = new ShapeHinter(ID++,mB,currTime,incrTime);
+	agB->setOfficer(this);
+	agents.push_back(agB);
 }
