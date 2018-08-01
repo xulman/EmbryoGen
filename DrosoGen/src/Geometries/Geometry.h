@@ -2,6 +2,7 @@
 #define GEOMETRY_H
 
 #include <list>
+#include <i3d/image3d.h>
 #include "../util/Vector3d.h"
 #include "../DisplayUnits/DisplayUnit.h"
 
@@ -27,6 +28,31 @@ public:
 	AxisAlignedBoundingBox(void)
 	{
 		reset();
+	}
+
+	/** construct a copy of the given 'aabb' */
+	AxisAlignedBoundingBox(const AxisAlignedBoundingBox& aabb)
+	{
+		minCorner = aabb.minCorner;
+		maxCorner = aabb.maxCorner;
+	}
+
+	/** construct an AABB that represents the entire 'img'*/
+	template <typename T>
+	AxisAlignedBoundingBox(const i3d::Image3d<T>& img)
+	{
+		minCorner.x = img.GetOffset().x; //in mu
+		minCorner.y = img.GetOffset().y;
+		minCorner.z = img.GetOffset().z;
+
+		maxCorner.x = (FLOAT)img.GetSizeX(); //in px
+		maxCorner.y = (FLOAT)img.GetSizeY();
+		maxCorner.z = (FLOAT)img.GetSizeZ();
+
+		maxCorner.x /= img.GetResolution().GetRes().x; //in mu
+		maxCorner.y /= img.GetResolution().GetRes().y;
+		maxCorner.z /= img.GetResolution().GetRes().z;
+		maxCorner   += minCorner;
 	}
 
 
