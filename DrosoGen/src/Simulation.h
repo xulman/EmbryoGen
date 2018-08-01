@@ -282,6 +282,7 @@ private:
 
 		//save the image
 		sprintf(fn,"mask%03d.tif",frameCnt++);
+		REPORT("Saving " << fn << ", hold on...");
 		//img.SaveImage(fn);
 
 		//wait for key...
