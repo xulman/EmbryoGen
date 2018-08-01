@@ -31,7 +31,8 @@ void Simulation::initializeAgents(void)
 			const float ang = float(i)/float(howManyToPlace);
 
 			//the wished position relative to [0,0,0] centre
-			Vector3d<float> pos(z,radius * cosf(ang*6.28f),radius * sinf(ang*6.28f));
+			Vector3d<float> axis(0,cosf(ang*6.28f),sinf(ang*6.28f));
+			Vector3d<float> pos(z,radius * axis.y,radius * axis.z);
 
 			//position is shifted to the scene centre
 			pos.x += sceneSize.x/2.0f;
@@ -45,7 +46,13 @@ void Simulation::initializeAgents(void)
 
 			Spheres s(4);
 			s.updateCentre(0,pos);
-			s.updateRadius(0,4.0f);
+			s.updateRadius(0,3.0f);
+			s.updateCentre(1,pos +6.0f*axis);
+			s.updateRadius(1,5.0f);
+			s.updateCentre(2,pos +12.0f*axis);
+			s.updateRadius(2,5.0f);
+			s.updateCentre(3,pos +18.0f*axis);
+			s.updateRadius(3,3.0f);
 
 			AbstractAgent* ag = new NucleusAgent(ID++,s,currTime,incrTime);
 			ag->setOfficer(this);
