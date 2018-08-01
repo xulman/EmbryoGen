@@ -50,7 +50,7 @@ private:
 	// ------------- externals geometry -------------
 	/** limiting distance beyond which I consider no interaction possible
 	    with other nuclei */
-	float ignoreDistance = 85.f;
+	float ignoreDistance = 10.0f;
 
 	/** locations of possible interaction with nearby nuclei */
 	std::list<ProximityPair> proximityPairs_toNuclei;
@@ -119,6 +119,9 @@ private:
 	// ------------- rendering -------------
 	void drawMask(DisplayUnit& du) override
 	{
+		if (ID % 10 != 0) //show only for every 10th cell
+			return;
+
 		const int color = curPhase < 3? 2:3;
 		int dID = ID << 17;
 
@@ -130,7 +133,6 @@ private:
 		}
 
 		//draw (debug) vectors
-		if ((ID % 3) == 1) //only for some cells
 		{
 			dID |= 1 << 16; //enable debug bit
 			for (auto& p : proximityPairs_toNuclei)
