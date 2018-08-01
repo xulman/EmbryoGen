@@ -23,7 +23,7 @@ void Simulation::initializeAgents(void)
 	for (float z=-Xside; z <= +Xside; z += dx)
 	{
 		//radius at this z position
-		const float radius = YZside * sinf(acosf(fabsf(z)/Xside));
+		const float radius = YZside * std::sin(std::acos(std::abs(z)/Xside));
 
 		const int howManyToPlace = (int)ceil(6.28f*radius / dx);
 		for (int i=0; i < howManyToPlace; ++i)
@@ -31,7 +31,7 @@ void Simulation::initializeAgents(void)
 			const float ang = float(i)/float(howManyToPlace);
 
 			//the wished position relative to [0,0,0] centre
-			Vector3d<float> axis(0,cosf(ang*6.28f),sinf(ang*6.28f));
+			Vector3d<float> axis(0,std::cos(ang*6.28f),std::sin(ang*6.28f));
 			Vector3d<float> pos(z,radius * axis.y,radius * axis.z);
 
 			//position is shifted to the scene centre
@@ -91,7 +91,7 @@ void Simulation::initializeAgents_aFew(void)
 		const float ang = float(i)/float(howManyToPlace);
 
 		//the wished position relative to [0,0,0] centre
-		Vector3d<float> pos(radius * cosf(ang*6.28f),radius * sinf(ang*6.28f),0.0f);
+		Vector3d<float> pos(radius * std::cos(ang*6.28f),radius * std::sin(ang*6.28f),0.0f);
 
 		//position is shifted to the scene centre, accounting for scene offset
 		pos += sceneCentre;
