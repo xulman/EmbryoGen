@@ -71,7 +71,7 @@ private:
 		std::list<const ShadowAgent*> l;
 		Officer->getNearbyAgents(this,ignoreDistance,l);
 
-		DEBUG_REPORT("Hinter: Found " << l.size() << " nearby agents");
+		DEBUG_REPORT("Hinter ID " << ID << ": Found " << l.size() << " nearby agents");
 
 		//those on the list are ShadowAgents who are potentially close enough
 		//to interact with me and these I need to inspect closely
@@ -82,7 +82,7 @@ private:
 
 */
 		//now, postprocess the proximityPairs
-		DEBUG_REPORT("Hinter: Found " << proximityPairs.size() << " proximity pairs");
+		DEBUG_REPORT("Hinter ID " << ID << ": Found " << proximityPairs.size() << " proximity pairs");
 	}
 
 	void adjustGeometryByExtForces(void) override
@@ -104,7 +104,15 @@ private:
 		int dID = ID << 17;
 		dID += futureGeometry.AABB.drawIt(dID,1, du);
 
-		//draw bounding box of the complete MaskImg, as a global debug element
+		//draw (debug) vectors
+		if (ID == 7) //only for some hinters
+		{
+			dID |= 1 << 16; //enable debug bit
+			for (auto& p : proximityPairs)
+				du.DrawLine(dID++, p.localPos, p.otherPos);
+		}
+
+		//draw global debug bounding box of the complete MaskImg
 		futureGeometry.AABB.drawBox(ID << 4,4,
 		  futureGeometry.getDistImgOff(),futureGeometry.getDistImgFarEnd(), du);
 	}
