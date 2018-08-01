@@ -99,8 +99,7 @@ public:
 			REPORT("this.MaskImg vs Mesh is not implemented yet!");
 			break;
 		case ListOfShapeForms::MaskImg:
-			REPORT("this.MaskImg vs MaskImg is not implemented yet!");
-			//getDistanceToMaskImg((MaskImg*)&otherGeometry,l);
+			getDistanceToMaskImg((MaskImg*)&otherGeometry,l);
 			break;
 		default:
 			throw new std::runtime_error("Geometry::getDistance(): Not supported combination of shape representations.");
@@ -158,7 +157,7 @@ public:
 		maxSweep.elemMax(Vector3d<FLOAT>(0));
 
 		//the sweeping box in pixels, in coordinates of this distImg
-		Vector3d<size_t>
+		const Vector3d<size_t>
 		  minSweepPX( (size_t)std::floor(minSweep.x),(size_t)std::floor(minSweep.y),(size_t)std::floor(minSweep.z) ),
 		  maxSweepPX( (size_t) std::ceil(maxSweep.x),(size_t) std::ceil(maxSweep.y),(size_t) std::ceil(maxSweep.z) );
 		Vector3d<size_t> curPos;
@@ -290,7 +289,7 @@ public:
 			exactSurfPoint *= radiiO[i] / exactSurfPoint.len(); //stretch the vector
 			exactSurfPoint += centresO[i]; //now point on the surface...
 
-			//NB: a copy is of the ProximityPair 'p' is created while pushing...
+			//NB: a copy is of the ProximityPair is created while pushing...
 			l.push_back( ProximityPair(exactSurfPoint+grad,exactSurfPoint,
 			  distances[i],NULL,(void*)distImg.GetVoxelAddr(curPos.x,curPos.y,curPos.z)) );
 		}
@@ -299,15 +298,151 @@ public:
 		delete[] hints;
 	}
 
+
 	/** Specialized implementation of getDistance() for MaskImg-MaskImg geometries. */
-	/*
 	void getDistanceToMaskImg(const MaskImg* otherMaskImg,
 	                          std::list<ProximityPair>& l) const
 	{
+		//da plan: determine bounding box that represents intersection
+		//of this and the other MaskImg; sweep the local distImg within
+		//this bounding box, detect local "shape boundary" voxels and consider
+		//real-world coordinates of their centres; project the coordinates
+		//into the other distImg and determine relevant voxel (that contains
+		//given coordinate) and read out the distance (to see how the given
+		//local voxel is deep inside or far outside from the other shape)
+
+	//TODO <can go into a "common" function>
+		//sweeping box in micrometers, initiated to match the other bounding box
+		Vector3d<FLOAT> minSweep(otherMaskImg->AABB.minCorner),
+		                maxSweep(otherMaskImg->AABB.maxCorner);
+
+		//update the sweeping box with this AABB
+		//(as only this AABB wraps around interesting information in the mask image,
+		// the image might be larger (especially in the GradIN_ZeroOUT model))
+		minSweep.elemMax(AABB.minCorner); //in mu
+		maxSweep.elemMin(AABB.maxCorner);
+
+		//convert to pixel distances
+		minSweep -= distImgOff;
+		maxSweep -= distImgOff;
+
+		minSweep.elemMult(distImgRes); //in px
+		maxSweep.elemMult(distImgRes);
+
+		minSweep.elemMax(Vector3d<FLOAT>(0)); //in px (to avoid underflow later with size_t)
+		maxSweep.elemMax(Vector3d<FLOAT>(0));
+
+		//the sweeping box in pixels, in coordinates of this distImg
+		const Vector3d<size_t>
+		  minSweepPX( (size_t)std::floor(minSweep.x),(size_t)std::floor(minSweep.y),(size_t)std::floor(minSweep.z) ),
+		  maxSweepPX( (size_t) std::ceil(maxSweep.x),(size_t) std::ceil(maxSweep.y),(size_t) std::ceil(maxSweep.z) );
+	//TODO </can go into a "common" function>
+		Vector3d<size_t> curPos;
+
+		//shortcuts to the otherGeometry's distance image data
+		const i3d::Image3d<float>& otherDistImg = otherMaskImg->getDistImg();
+		const Vector3d<FLOAT>& otherDistImgRes = otherMaskImg->getDistImgRes();
+		const Vector3d<FLOAT>& otherDistImgOff = otherMaskImg->getDistImgOff();
+		const Vector3d<FLOAT>& otherDistImgFarEnd = otherMaskImg->getDistImgFarEnd();
+
+		//finally, sweep and check intersection with the other surface
+		for (curPos.z = minSweepPX.z; curPos.z < maxSweepPX.z; curPos.z++)
+		for (curPos.y = minSweepPX.y; curPos.y < maxSweepPX.y; curPos.y++)
+		for (curPos.x = minSweepPX.x; curPos.x < maxSweepPX.x; curPos.x++)
+		{
+			//skip this voxel if it is not "shape boundary" voxel, which means to...
+			//...test if voxel is zero-valued and...
+			if (distImg.GetVoxel(curPos.x,curPos.y,curPos.z) != 0.0f) continue;
+			//
+			//...if so, test if voxel has some non-zero neighbor
+			int neigsCnt = 0;
+			Vector3d<int> neigPos((int)curPos.x,(int)curPos.y,(int)curPos.z);
+
+			while (neigsCnt < 26)
+			{
+				neigPos  += neigOffsets[neigsCnt];
+				neigsCnt +=    distImg.Include(neigPos.x,neigPos.y,neigPos.z)
+				            && distImg.GetVoxel((unsigned)neigPos.x,(unsigned)neigPos.y,(unsigned)neigPos.z) != 0.0f
+				         ? 100 : 1;
+			}
+			if (neigsCnt < 100) continue; //no non-zero neighbor found, skip this voxel
+
+			//so, it is a "shape boundary" voxel,
+			//get micron coordinate of the current voxel's centre
+			minSweep.x = ((FLOAT)curPos.x +0.5f) / distImgRes.x;
+			minSweep.y = ((FLOAT)curPos.y +0.5f) / distImgRes.y;
+			minSweep.z = ((FLOAT)curPos.z +0.5f) / distImgRes.z;
+			minSweep += distImgOff;
+
+			//if this voxel falls outside the other image mask, we skip its investigation
+			if (minSweep.x < otherDistImgOff.x || minSweep.x >= otherDistImgFarEnd.x
+			 || minSweep.y < otherDistImgOff.y || minSweep.y >= otherDistImgFarEnd.y
+			 || minSweep.z < otherDistImgOff.z || minSweep.z >= otherDistImgFarEnd.z) continue;
+
+			//get voxel coordinate in the other mask
+			maxSweep = minSweep;
+			maxSweep -= otherDistImgOff;
+			maxSweep.elemMult(otherDistImgRes);
+			//NB: in theory, down-rounded maxSweep gives coordinate that for sure fits inside the otherDistImg
+
+#ifdef DEBUG
+			if (!otherDistImg.Include((int)maxSweep.x,(int)maxSweep.y,(int)maxSweep.z))
+					REPORT("Centre of voxel " << curPos << " px translates into " << minSweep
+					       << " um, and does not fit inside otherDistImg!");
+#endif
+
+			//distance to the other geometry's boundary
+			const FLOAT dist = otherDistImg.GetVoxel((size_t)maxSweep.x,(size_t)maxSweep.y,(size_t)maxSweep.z);
+
+			//now, determine gradient in the other image so that we (only) guess the direction
+			//towards the other geometry's real boundary
+			Vector3d<FLOAT> grad(1.0f,0.0f,0.0f); //TODO proper calculation, also from a helper function
+			DEBUG_REPORT("grad: " << grad << " @ voxel: " << maxSweep << ", distance: " << dist);
+
+			if (grad.len2() > 0) grad /= grad.len(); //normalize if not zero vector already
+			grad *= -dist;                           //extend to the distance (might flip grad!)
+			//NB: grad now points always away towards the collision surface
+
+			//NB: a copy is of the ProximityPair is created while pushing...
+			l.push_back( ProximityPair(minSweep,minSweep+grad, dist,
+			  (void*)distImg.GetVoxelAddr(curPos.x,curPos.y,curPos.z),
+			  (void*)otherDistImg.GetVoxelAddr((size_t)maxSweep.x,(size_t)maxSweep.y,(size_t)maxSweep.z)) );
+		}
 	}
-	*/
+
+private:
+	const Vector3d<int> neigOffsets[26] = { Vector3d<int>(-1,-1,-1), //z-1 plane, y-1 line
+	                                        Vector3d<int>( 1, 0, 0),
+	                                        Vector3d<int>( 1, 0, 0),
+	                                        Vector3d<int>(-2, 1, 0), //z-1 plane, y line
+	                                        Vector3d<int>( 1, 0, 0),
+	                                        Vector3d<int>( 1, 0, 0),
+	                                        Vector3d<int>(-2, 1, 0), //z-1 plane, y+1 line
+	                                        Vector3d<int>( 1, 0, 0),
+	                                        Vector3d<int>( 1, 0, 0),
+
+	                                        Vector3d<int>(-2,-2, 1), //z plane, y-1 line
+	                                        Vector3d<int>( 1, 0, 0),
+	                                        Vector3d<int>( 1, 0, 0),
+	                                        Vector3d<int>(-2, 1, 0), //z plane, y line
+	                                        Vector3d<int>( 2, 0, 0),
+	                                        Vector3d<int>(-2, 1, 0), //z plane, y+1 line
+	                                        Vector3d<int>( 1, 0, 0),
+	                                        Vector3d<int>( 1, 0, 0),
+
+	                                        Vector3d<int>(-2,-2, 1), //z+1 plane, y-1 line
+	                                        Vector3d<int>( 1, 0, 0),
+	                                        Vector3d<int>( 1, 0, 0),
+	                                        Vector3d<int>(-2, 1, 0), //z+1 plane, y line
+	                                        Vector3d<int>( 1, 0, 0),
+	                                        Vector3d<int>( 1, 0, 0),
+	                                        Vector3d<int>(-2, 1, 0), //z+1 plane, y+1 line
+	                                        Vector3d<int>( 1, 0, 0),
+	                                        Vector3d<int>( 1, 0, 0)
+	                                      };
 
 
+public:
 	// ------------- AABB -------------
 	/** construct AABB from the the mask image considering
 	    only non-zero valued voxels, and considering mask's
