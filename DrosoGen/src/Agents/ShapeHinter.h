@@ -44,7 +44,7 @@ private:
 	//FOR DEBUG ONLY!
 	/** limiting distance beyond which I consider no interaction possible
 	    with other nuclei */
-	float ignoreDistance = 85.f;
+	float ignoreDistance = 10.f;
 
 	//FOR DEBUG ONLY!
 	/** locations of possible interaction with nearby nuclei */
@@ -164,8 +164,15 @@ private:
 			const float dist = distImg.GetVoxel(centrePX.x,centrePX.y,centrePX.z);
 
 			if (dist < 0 || (dist == 0 && model == MaskImg::DistanceModel::ZeroIN_GradOUT))
+			{
+#ifdef DEBUG
+				i3d::GRAY16 val = img.GetVoxel(curPos.x,curPos.y,curPos.z);
+				if (val > 0 && val != (i3d::GRAY16)ID)
+					REPORT(ID << " overwrites mask at " << curPos);
+#endif
 				img.SetVoxel(curPos.x,curPos.y,curPos.z, (i3d::GRAY16)ID);
 				//NB: should dilate by 1px for model == GradIN_ZeroOUT
+			}
 		}
 	}
 };
