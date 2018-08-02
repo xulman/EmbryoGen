@@ -101,9 +101,55 @@ private:
 	    array must match the length of the spheres in the 'futureGeometry' */
 	Vector3d<FLOAT>* const finalForces;
 
+	/** essentially creates a new version (next iteration) of 'futureGeometry' given
+	    the current content of the 'forces'; note that, in this particular agent type,
+	    the 'geometryAlias' is kept synchronized with the 'futureGeometry' so they seem
+	    to be interchangeable, but in general setting the 'futureGeometry' might be more
+	    rich representation of the current geometry that is regularly "exported" via updateGeometry()
+	    and for which the list of ProximityPairs was built during collectExtForces() */
+	void adjustGeometryByForces(void)
+	{
+		//reset the array with final forces
+		for (int i=0; i < futureGeometry.noOfSpheres; ++i) finalForces[i] = 0;
+
+		//collect all forces acting on every sphere to have one overall force per sphere
+		for (const auto& f : forces) finalForces[f.hint] += f;
+
+		//now, translation is a result of forces:
+		for (int i=0; i < futureGeometry.noOfSpheres; ++i)
+		{
+			//F=ma -> a=F/m  (volume of a sphere should be taken into account)
+			//assumes m=1.0
+
+			//v=at
+			velocities[i] += (FLOAT)incrTime * finalForces[i];
+
+			//|trajectory|=vt
+			futureGeometry.centres[i] += (FLOAT)incrTime * velocities[i];
+		}
+
+		//all forces processed...
+		forces.clear();
+	}
+
 	// ------------- to implement one round of simulation -------------
 	void advanceAndBuildIntForces(const float) override
 	{
+		//check bending of the spheres (how much their position deviates from a line),
+		//check also the distances, and create, if necessary, another forces on the list
+		/*
+		//TODO anti-bending
+		Vector3d<FLOAT> refAxis(futureGeometry.centres[2]);
+		refAxis -= futureGeometry.centres[1];
+
+		ftype_s2s
+		*/
+
+		//create forces that "are product of my will"
+		forces.push_back( ForceVector3d<FLOAT>(1.0f,0.0f,0.0f, geometryAlias.centres[1], ftype_drive) );
+		forces.back().hint = 1;
+		forces.push_back( ForceVector3d<FLOAT>(1.0f,0.0f,0.0f, geometryAlias.centres[2], ftype_drive) );
+		forces.back().hint = 2;
 
 		//increase the local time of the agent
 		currTime += incrTime;
@@ -111,7 +157,7 @@ private:
 
 	void adjustGeometryByIntForces(void) override
 	{
-		//update my futureGeometry
+		adjustGeometryByForces();
 	}
 
 	void collectExtForces(void) override
@@ -138,11 +184,19 @@ private:
 		//now, postprocess the proximityPairs
 		DEBUG_REPORT("ID " << ID << ": Found " << proximityPairs_toNuclei.size() << " proximity pairs to nuclei");
 		DEBUG_REPORT("ID " << ID << ": Found " << proximityPairs_toYolk.size()   << " proximity pairs to yolk");
+
+		//TODO: ftype_friction as a function of current velocity of spheres
+
+		//convert proximityPairs_toNuclei -> forces! according to TRAgen rules
+		//TODO: ftype_repulsive, ftype_body, ftype_slide
+
+		//convert proximityPairs_toYolk -> forces!
+		//TODO: ftype_hinter
 	}
 
 	void adjustGeometryByExtForces(void) override
 	{
-		//update my futureGeometry
+		adjustGeometryByForces();
 	}
 
 	void updateGeometry(void) override
