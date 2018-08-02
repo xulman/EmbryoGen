@@ -2,10 +2,22 @@
 #define NUCLEUSAGENT_H
 
 #include <list>
+#include <vector>
 #include "../util/report.h"
 #include "AbstractAgent.h"
 #include "CellCycle.h"
 #include "../Geometries/Spheres.h"
+
+static ForceName ftype_s2s = "sphere-sphere";       //internal forces
+static ForceName ftype_drive = "desired movement";
+static ForceName ftype_friction = "friction";
+
+static ForceName ftype_repulsive = "repulsive";     //due to external events with nuclei
+static ForceName ftype_body = "no overlap (body)";
+static ForceName ftype_slide = "no sliding";
+
+static ForceName ftype_hinter = "sphere-hinter";    //due to external events with shape hinters
+
 
 class NucleusAgent: public AbstractAgent
 {
@@ -21,6 +33,7 @@ public:
 		//update AABBs
 		geometryAlias.Geometry::setAABB();
 		futureGeometry.Geometry::setAABB();
+		forces.reserve(30); //NB: 4*7 "up-rounded"
 
 		curPhase = G1Phase;
 
@@ -62,6 +75,9 @@ private:
 	std::list<ProximityPair> proximityPairs_toYolk;
 
 	// ------------- forces & movement -------------
+	/** all forces that are in present acting on this agent */
+	std::vector< ForceVector3d<FLOAT> > forces;
+
 	/** an array of velocities vectors of the spheres, the length of this array
 	    must match the length of the spheres that are exposed to the outer world */
 	Vector3d<FLOAT>* const velocities;
