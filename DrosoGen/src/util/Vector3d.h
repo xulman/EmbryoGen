@@ -181,44 +181,50 @@ template <typename T>
 class ForceVector3d : public Vector3d<T>
 {
 public:
+	/** position where this force is acting
+	    (where it is anchored; where is the base of the force vector) */
+	Vector3d<T> base;
+
 	/** type of the force (only to find out how to report it) */
 	ForceName type;
 
 	/** default constructor... */
-	ForceVector3d(void) : Vector3d<T>(), type(unknownForceType) {}
+	ForceVector3d(void) : Vector3d<T>(), base(), type(unknownForceType) {}
 
 	/** init constructor... */
-	ForceVector3d(const T xx,const T yy,const T zz,const ForceName tt) :
-			Vector3d<T>(xx,yy,zz), type(tt) {}
+	ForceVector3d(const T xx,const T yy,const T zz,
+	              const Vector3d<T>& _base, const ForceName _type)
+		: Vector3d<T>(xx,yy,zz), base(_base), type(_type) {}
 
 	/** init constructor... */
-	ForceVector3d(const T xyz,const ForceName tt) :
-			Vector3d<T>(xyz), type(tt) {}
+	ForceVector3d(const T xyz,
+	              const Vector3d<T>& _base, const ForceName _type)
+		: Vector3d<T>(xyz), base(_base), type(_type) {}
 
 	/** init constructor... */
-	ForceVector3d(const Vector3d<T>& v,const ForceName tt) :
-			Vector3d<T>(v), type(tt) {}
+	ForceVector3d(const Vector3d<T>& v,
+	              const Vector3d<T>& _base, const ForceName _type)
+		: Vector3d<T>(v), base(_base), type(_type) {}
 
 	/** copy constructor... */
 	ForceVector3d(const ForceVector3d<T>& vec) : Vector3d<T>(vec.x,vec.y,vec.z)
 	{
+		this->base=vec.base;
 		this->type=vec.type;
 	}
 
 	ForceVector3d<T>& operator=(const Vector3d<T>& vec)
 	{
-		this->x=vec.x;
-		this->y=vec.y;
-		this->z=vec.z;
+		*this = vec;
+		this->base = vec.base;
 		this->type = vec.type;
 		return( *this );
 	}
 
 	ForceVector3d<T>& operator=(const T scalar)
 	{
-		this->x=scalar;
-		this->y=scalar;
-		this->z=scalar;
+		*this = scalar;
+		this->base = 0;
 		this->type = unknownForceType;
 		return( *this );
 	}
