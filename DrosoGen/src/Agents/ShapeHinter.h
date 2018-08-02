@@ -9,9 +9,10 @@
 class ShapeHinter: public AbstractAgent
 {
 public:
-	ShapeHinter(const int ID, const MaskImg& shape,
+	ShapeHinter(const int ID, const std::string& type,
+	            const MaskImg& shape,
 	            const float currTime, const float incrTime)
-		: AbstractAgent(ID,geometryAlias,currTime,incrTime),
+		: AbstractAgent(ID,type, geometryAlias, currTime,incrTime),
 		  geometryAlias(shape),
 		  futureGeometry(shape)
 	{

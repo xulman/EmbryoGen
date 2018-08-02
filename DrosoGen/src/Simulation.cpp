@@ -54,7 +54,7 @@ void Simulation::initializeAgents(void)
 			s.updateCentre(3,pos +18.0f*axis);
 			s.updateRadius(3,3.0f);
 
-			AbstractAgent* ag = new NucleusAgent(ID++,s,currTime,incrTime);
+			AbstractAgent* ag = new NucleusAgent(ID++,"nucleus",s,currTime,incrTime);
 			ag->setOfficer(this);
 			agents.push_back(ag);
 			tracks.startNewTrack(ag->ID,frameCnt);
@@ -67,7 +67,7 @@ void Simulation::initializeAgents(void)
 	//m.saveDistImg("GradIN_ZeroOUT.tif");
 
 	//finally, create the simulation agent to register this shape
-	AbstractAgent* ag = new ShapeHinter(ID++,m,currTime,incrTime);
+	AbstractAgent* ag = new ShapeHinter(ID++,"yolk",m,currTime,incrTime);
 	ag->setOfficer(this);
 	agents.push_back(ag);
 
@@ -106,7 +106,7 @@ void Simulation::initializeAgents_aFew(void)
 		s.updateCentre(3,pos+Vector3d<float>(0,0,+9));
 		s.updateRadius(3,3.0f);
 
-		AbstractAgent* ag = new NucleusAgent(ID++,s,currTime,incrTime);
+		AbstractAgent* ag = new NucleusAgent(ID++,"nucleus",s,currTime,incrTime);
 		ag->setOfficer(this);
 		agents.push_back(ag);
 		tracks.startNewTrack(ag->ID,frameCnt);
@@ -144,7 +144,7 @@ void Simulation::initializeAgents_aFew(void)
 	//m.saveDistImg("GradIN_ZeroOUT.tif");
 
 	//finally, create the simulation agent to register this shape
-	AbstractAgent* ag = new ShapeHinter(ID++,m,currTime,incrTime);
+	AbstractAgent* ag = new ShapeHinter(ID++,"yolk",m,currTime,incrTime);
 	ag->setOfficer(this);
 	agents.push_back(ag);
 }

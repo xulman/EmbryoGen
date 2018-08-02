@@ -10,9 +10,10 @@
 class NucleusAgent: public AbstractAgent
 {
 public:
-	NucleusAgent(const int ID, const Spheres& shape,
+	NucleusAgent(const int ID, const std::string& type,
+	             const Spheres& shape,
 	             const float currTime, const float incrTime)
-		: AbstractAgent(ID,geometryAlias,currTime,incrTime),
+		: AbstractAgent(ID,type, geometryAlias, currTime,incrTime),
 		  geometryAlias(shape),
 		  futureGeometry(shape)
 	{

@@ -23,7 +23,8 @@ protected:
 	/** Construct the object (which is an agent shape and position representation)
 	    by giving it a concrete implementation of Geometry, e.g. Mesh or Spheres object.
 	    The reference to this object is kept and used, i.e. no new object is created. */
-	ShadowAgent(Geometry& geom) : geometry(geom) {};
+	ShadowAgent(Geometry& geom, const std::string& type)
+		: geometry(geom), agentType(type) {};
 
 	/** The geometry of an agent that is exposed to the world.
 	    It might be a light-weight version of the agent's exact geometry.
@@ -32,6 +33,13 @@ protected:
 	Geometry& geometry;
 
 public:
+	/** The type designation of this agent (that is represented with this->geometry).
+	    Simulation agents may decide to "pay attention to"/smell/interact with only
+	    certain types of agents and this attribute is a way to identify/distinguish
+	    between various types. The type identifier can be arbitrary, there is no nomenclature
+	    nor format (technically) enforced. */
+	const std::string agentType;
+
 	/** returns read-only reference to the agent's (axis aligned) bounding box */
 	const AxisAlignedBoundingBox& getAABB(void) const
 	{
@@ -77,9 +85,10 @@ protected:
 	/** Define a new agent in the simulation by giving its ID, its current
 	    geometry (which get's 'forwarded' to the ShadowAgent), and
 	    current global time as well as global time increment. */
-	AbstractAgent(const int _ID, Geometry& geometryContainer,
+	AbstractAgent(const int _ID, const std::string& _type,
+	              Geometry& geometryContainer,
 	              const float _currTime, const float _incrTime)
-		: ShadowAgent(geometryContainer),
+		: ShadowAgent(geometryContainer,_type),
 		  currTime(_currTime), incrTime(_incrTime),
 		  ID(_ID) {};
 
