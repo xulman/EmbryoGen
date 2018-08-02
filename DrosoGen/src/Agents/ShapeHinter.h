@@ -42,14 +42,6 @@ private:
 	MaskImg futureGeometry;
 
 	// ------------- externals geometry -------------
-	//FOR DEBUG ONLY!
-	/** limiting distance beyond which I consider no interaction possible
-	    with other nuclei */
-	float ignoreDistance = 10.f;
-
-	//FOR DEBUG ONLY!
-	/** locations of possible interaction with nearby nuclei */
-	std::list<ProximityPair> proximityPairs;
 
 	// ------------- to implement one round of simulation -------------
 	void advanceAndBuildIntForces(const float) override
@@ -66,24 +58,7 @@ private:
 
 	void collectExtForces(void) override
 	{
-		//FOR DEBUG ONLY!
-		//scheduler, please give me ShadowAgents that are not further than ignoreDistance
-		//(and the distance is evaluated based on distances of AABBs)
-		std::list<const ShadowAgent*> l;
-		Officer->getNearbyAgents(this,ignoreDistance,l);
-
-		DEBUG_REPORT("Hinter: Found " << l.size() << " nearby agents");
-
-		//those on the list are ShadowAgents who are potentially close enough
-		//to interact with me and these I need to inspect closely
-		proximityPairs.clear();
-/*
-		for (auto sa = l.begin(); sa != l.end(); ++sa)
-			geometry.getDistance((*sa)->getGeometry(),proximityPairs);
-
-*/
-		//now, postprocess the proximityPairs
-		DEBUG_REPORT("Hinter: Found " << proximityPairs.size() << " proximity pairs");
+		//hinter is not responding to its surrounding
 	}
 
 	void adjustGeometryByExtForces(void) override

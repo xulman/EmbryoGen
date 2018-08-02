@@ -274,7 +274,7 @@ private:
 		for (; c != agents.end(); c++)
 		{
 			(*c)->drawMask(displayUnit);
-			(*c)->drawMask(img);
+			//(*c)->drawMask(img);
 		}
 
 		//render the current frame
