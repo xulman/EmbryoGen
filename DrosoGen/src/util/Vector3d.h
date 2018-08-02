@@ -4,27 +4,27 @@
 #include <iostream>
 #include <cmath>
 
-///simply a 3D vector...
+/** simply a 3D vector... */
 template <typename T>
 class Vector3d
 {
 public:
-	///the vector data
+	/** the vector data */
 	T x,y,z;
 
-	///default constructor...
+	/** default constructor... */
 	Vector3d(void) :
 		x(0), y(0), z(0) {}
 
-	///init constructor...
+	/** init constructor... */
 	Vector3d(const T xx,const T yy,const T zz) :
 		x(xx), y(yy), z(zz) {}
 
-	///init constructor...
+	/** init constructor... */
 	Vector3d(const T xyz) :
 		x(xyz), y(xyz), z(xyz) {}
 
-	///copy constructor...
+	/** copy constructor... */
 	Vector3d(const Vector3d<T>& vec)
 	{
 		this->x=vec.x;
@@ -123,7 +123,7 @@ public:
 	}
 };
 
-///reports vector as a position coordinate
+/** reports vector as a position coordinate */
 template <typename T>
 std::ostream& operator<<(std::ostream& s,const Vector3d<T>& v)
 {
@@ -131,8 +131,8 @@ std::ostream& operator<<(std::ostream& s,const Vector3d<T>& v)
 	return s;
 }
 
+/** function for dot product of two vectors */
 /* uncomment once needed... to prevent from -Wunused-function warnings
-///function for dot product of two vectors
 static
 float dotProduct(const Vector3d<float>& u, const Vector3d<float>& v)
 {
@@ -169,37 +169,37 @@ Vector3d<T> operator*(const T scal, const Vector3d<T>& vec)
 // ----------------------------------------------------------------------------
 
 
-///current (lightweight) representation of the force name
+/** current (lightweight) representation of the force name */
 typedef const char* ForceName;
 
 /** a placeholder for ForceName type of "unknown force",
     to prevent of allocating it over and over again */
 static ForceName unknownForceType = "unknown force";
 
-///essentially a "named" 3D vector
+/** essentially a "named" 3D vector */
 template <typename T>
 class ForceVector3d : public Vector3d<T>
 {
 public:
-	///type of the force (only to find out how to report it)
+	/** type of the force (only to find out how to report it) */
 	ForceName type;
 
-	///default constructor...
+	/** default constructor... */
 	ForceVector3d(void) : Vector3d<T>(), type(unknownForceType) {}
 
-	///init constructor...
+	/** init constructor... */
 	ForceVector3d(const T xx,const T yy,const T zz,const ForceName tt) :
 			Vector3d<T>(xx,yy,zz), type(tt) {}
 
-	///init constructor...
+	/** init constructor... */
 	ForceVector3d(const T xyz,const ForceName tt) :
 			Vector3d<T>(xyz), type(tt) {}
 
-	///init constructor...
+	/** init constructor... */
 	ForceVector3d(const Vector3d<T>& v,const ForceName tt) :
 			Vector3d<T>(v), type(tt) {}
 
-	///copy constructor...
+	/** copy constructor... */
 	ForceVector3d(const ForceVector3d<T>& vec) : Vector3d<T>(vec.x,vec.y,vec.z)
 	{
 		this->type=vec.type;
