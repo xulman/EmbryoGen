@@ -185,6 +185,10 @@ public:
 	    (where it is anchored; where is the base of the force vector) */
 	Vector3d<T> base;
 
+	/** aux optional information about the force, often used to index
+	    the anchor (ForceVector3d::base) of this force */
+	long hint;
+
 	/** type of the force (only to find out how to report it) */
 	ForceName type;
 
