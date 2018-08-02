@@ -161,10 +161,10 @@ public:
 				(*c)->advanceAndBuildIntForces(futureTime);
 				(*c)->adjustGeometryByIntForces();
 
-				#ifdef DEBUG
+#ifdef DEBUG
 				if ((*c)->getLocalTime() < futureTime)
 					throw new std::runtime_error("Simulation::execute(): Agent is not synchronized.");
-				#endif
+#endif
 			}
 
 			//propagate current internal geometries to the exported ones... (can run in parallel)

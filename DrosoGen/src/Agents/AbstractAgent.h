@@ -189,7 +189,7 @@ public:
 	/** Should render the current detailed shape, i.e. the futureGeometry, into
 	    the DisplayUnit; may use this->ID or its state somehow for colors.
 
-	    It is was not expected to render the content of this->geometry as this
+	    It is not expected to render the content of this->geometry as this
 	    one might be less accurate -- the this->geometry is designed for assessing
 	    mutual distances between all neighboring cells and should be a good trade-off
 	    between sparse (fast to examine) representation and rich (accurate distances)
