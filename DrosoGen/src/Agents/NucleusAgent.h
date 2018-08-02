@@ -86,7 +86,7 @@ private:
 		proximityPairs_toYolk.clear();
 		for (auto sa = l.begin(); sa != l.end(); ++sa)
 		{
-			if ((*sa)->agentType[0] == 'n')
+			if ( ((*sa)->getAgentType())[0] == 'n' )
 				geometry.getDistance((*sa)->getGeometry(),proximityPairs_toNuclei);
 			else
 				geometry.getDistance((*sa)->getGeometry(),proximityPairs_toYolk);

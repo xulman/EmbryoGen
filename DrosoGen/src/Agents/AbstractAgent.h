@@ -32,14 +32,19 @@ protected:
 	    distances between agents. See also the discussion AbstractAgent::drawMask(). */
 	Geometry& geometry;
 
-public:
 	/** The type designation of this agent (that is represented with this->geometry).
 	    Simulation agents may decide to "pay attention to"/smell/interact with only
 	    certain types of agents and this attribute is a way to identify/distinguish
 	    between various types. The type identifier can be arbitrary, there is no nomenclature
-	    nor format (technically) enforced. */
-	const std::string agentType;
+	    nor format (technically) enforced.
 
+	    Notice that the type can be changed (e.g. when cell goes for Apoptosis, in which case
+	    it might want to be registered in the system for a while (to simulate its dissolution)
+	    while (by changing its designation) to "communicate" other agents its new "state" and
+	    to allow them act accordingly). */
+	std::string agentType;
+
+public:
 	/** returns read-only reference to the agent's (axis aligned) bounding box */
 	const AxisAlignedBoundingBox& getAABB(void) const
 	{
@@ -50,6 +55,12 @@ public:
 	const Geometry& getGeometry(void) const
 	{
 		return geometry;
+	}
+
+	/** returns read-only reference on agent's designation */
+	const std::string& getAgentType(void) const
+	{
+		return agentType;
 	}
 };
 
