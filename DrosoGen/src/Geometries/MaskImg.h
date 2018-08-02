@@ -138,30 +138,17 @@ public:
 		//the sphere's radius from the length of the thought vector
 
 		//sweeping box in micrometers, initiated to match spheres' bounding box
-		Vector3d<FLOAT> minSweep(otherSpheres->AABB.minCorner),
-		                maxSweep(otherSpheres->AABB.maxCorner);
+		AxisAlignedBoundingBox sweepBox(otherSpheres->AABB);
 
-		//update the sweeping box with this AABB
+		//intersect the sweeping box with this AABB
 		//(as only this AABB wraps around interesting information in the mask image,
 		// the image might be larger (especially in the GradIN_ZeroOUT model))
-		minSweep.elemMax(AABB.minCorner); //in mu
-		maxSweep.elemMin(AABB.maxCorner);
-
-		//convert to pixel distances
-		minSweep -= distImgOff;
-		maxSweep -= distImgOff;
-
-		minSweep.elemMult(distImgRes); //in px
-		maxSweep.elemMult(distImgRes);
-
-		minSweep.elemMax(Vector3d<FLOAT>(0)); //in px (to avoid underflow later with size_t)
-		maxSweep.elemMax(Vector3d<FLOAT>(0));
+		sweepBox.minCorner.elemMax(AABB.minCorner); //in mu
+		sweepBox.maxCorner.elemMin(AABB.maxCorner);
 
 		//the sweeping box in pixels, in coordinates of this distImg
-		Vector3d<size_t>
-		  minSweepPX( (size_t)std::floor(minSweep.x),(size_t)std::floor(minSweep.y),(size_t)std::floor(minSweep.z) ),
-		  maxSweepPX( (size_t) std::ceil(maxSweep.x),(size_t) std::ceil(maxSweep.y),(size_t) std::ceil(maxSweep.z) );
-		Vector3d<size_t> curPos;
+		Vector3d<size_t> curPos, minSweepPX,maxSweepPX;
+		sweepBox.exportInPixelCoords(distImg, minSweepPX,maxSweepPX);
 
 		//(squared) voxel's volume half-diagonal vector and its length
 		//(for detection of voxels that coincide with sphere's surface)
@@ -180,6 +167,9 @@ public:
 		//...and where it was observed
 		Vector3d<size_t>* hints = new Vector3d<size_t>[io];
 
+		//aux position vectors: current voxel's centre and somewhat sphere's surface point
+		Vector3d<FLOAT> centre, surfPoint;
+
 		//finally, sweep and check intersection with spheres' surfaces
 		for (curPos.z = minSweepPX.z; curPos.z < maxSweepPX.z; curPos.z++)
 		for (curPos.y = minSweepPX.y; curPos.y < maxSweepPX.y; curPos.y++)
@@ -187,30 +177,30 @@ public:
 		{
 			//we are now visiting voxels where some sphere can be seen,
 			//get micron coordinate of the current voxel's centre
-			minSweep.x = ((FLOAT)curPos.x +0.5f) / distImgRes.x;
-			minSweep.y = ((FLOAT)curPos.y +0.5f) / distImgRes.y;
-			minSweep.z = ((FLOAT)curPos.z +0.5f) / distImgRes.z;
-			minSweep += distImgOff;
+			centre.x = ((FLOAT)curPos.x +0.5f) / distImgRes.x;
+			centre.y = ((FLOAT)curPos.y +0.5f) / distImgRes.y;
+			centre.z = ((FLOAT)curPos.z +0.5f) / distImgRes.z;
+			centre += distImgOff;
 
 			//check the current voxel against all spheres
 			for (int i = 0; i < io; ++i)
 			{
-				maxSweep  = minSweep;
-				maxSweep -= centresO[i];
+				surfPoint  = centre;
+				surfPoint -= centresO[i];
 				//if sphere's surface would be 2*lenPXhd thick, would the voxel's center be in?
-				if (std::abs(maxSweep.len() - radiiO[i]) < lenPXhd)
+				if (std::abs(surfPoint.len() - radiiO[i]) < lenPXhd)
 				{
 					//found a voxel _nearby_ i-th sphere's true surface,
 					//is there really an intersection?
 
 					//a vector pointing from voxel's centre to the nearest sphere surface
-					maxSweep *= radiiO[i]/maxSweep.len() -1.0f;
-					//NB: maxSweep *= (radiiO[i] - maxSweep.len()) / maxSweep.len()
+					surfPoint *= radiiO[i]/surfPoint.len() -1.0f;
+					//NB: surfPoint *= (radiiO[i] - surfPoint.len()) / surfPoint.len()
 
 					//max (squared; only to avoid using std::abs()) distance to the voxel's centre
-					//to see if maxSweep's tip is within this voxel
-					maxSweep.elemMult(maxSweep);
-					if (maxSweep.x <= vecPXhd2.x && maxSweep.y <= vecPXhd2.y && maxSweep.z <= vecPXhd2.z)
+					//to see if surfPoint's tip is within this voxel
+					surfPoint.elemMult(surfPoint);
+					if (surfPoint.x <= vecPXhd2.x && surfPoint.y <= vecPXhd2.y && surfPoint.z <= vecPXhd2.z)
 					{
 						//hooray, a voxel whose volume is intersecting with i-th sphere's surface
 						//let's inspect the distImg at this position
@@ -281,17 +271,16 @@ public:
 			//NB: grad now points always away towards the collision surface
 
 			//determine the exact point on the sphere surface, use again the voxel's centre
-			Vector3d<FLOAT> exactSurfPoint;
-			exactSurfPoint.x = ((FLOAT)hints[i].x +0.5f) / distImgRes.x; //coordinate within in the image, in microns
-			exactSurfPoint.y = ((FLOAT)hints[i].y +0.5f) / distImgRes.y;
-			exactSurfPoint.z = ((FLOAT)hints[i].z +0.5f) / distImgRes.z;
-			exactSurfPoint += distImgOff;  //now real world coordinate of the pixel's centre
-			exactSurfPoint -= centresO[i]; //now vector from sphere's centre
-			exactSurfPoint *= radiiO[i] / exactSurfPoint.len(); //stretch the vector
-			exactSurfPoint += centresO[i]; //now point on the surface...
+			surfPoint.x = ((FLOAT)hints[i].x +0.5f) / distImgRes.x; //coordinate within in the image, in microns
+			surfPoint.y = ((FLOAT)hints[i].y +0.5f) / distImgRes.y;
+			surfPoint.z = ((FLOAT)hints[i].z +0.5f) / distImgRes.z;
+			surfPoint += distImgOff;  //now real world coordinate of the pixel's centre
+			surfPoint -= centresO[i]; //now vector from sphere's centre
+			surfPoint *= radiiO[i] / surfPoint.len(); //stretch the vector
+			surfPoint += centresO[i]; //now point on the surface...
 
 			//NB: a copy is of the ProximityPair 'p' is created while pushing...
-			l.push_back( ProximityPair(exactSurfPoint+grad,exactSurfPoint,
+			l.push_back( ProximityPair(surfPoint+grad,surfPoint,
 			  distances[i],NULL,(void*)distImg.GetVoxelAddr(curPos.x,curPos.y,curPos.z)) );
 		}
 
