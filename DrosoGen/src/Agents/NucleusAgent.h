@@ -15,7 +15,8 @@ public:
 	             const float currTime, const float incrTime)
 		: AbstractAgent(ID,type, geometryAlias, currTime,incrTime),
 		  geometryAlias(shape),
-		  futureGeometry(shape)
+		  futureGeometry(shape),
+		  velocities(new Vector3d<FLOAT>[shape.noOfSpheres])
 	{
 		//update AABBs
 		geometryAlias.Geometry::setAABB();
@@ -28,6 +29,8 @@ public:
 
 	~NucleusAgent(void)
 	{
+		delete[] velocities;
+
 		DEBUG_REPORT("Nucleus with ID=" << ID << " was just deleted");
 	}
 
@@ -57,6 +60,22 @@ private:
 
 	/** locations of possible interaction with nearby yolk */
 	std::list<ProximityPair> proximityPairs_toYolk;
+
+	// ------------- forces & movement -------------
+	/** an array of velocities vectors of the spheres, the length of this array
+	    must match the length of the spheres that are exposed to the outer world */
+	Vector3d<FLOAT>* const velocities;
+
+public:
+	const Vector3d<FLOAT>& getVelocityOfSphere(const int index)
+	{
+#ifdef DEBUG
+		if (index >= geometryAlias.noOfSpheres)
+			throw new std::runtime_error("NucleusAgent::getVelocityOfSphere(): requested sphere index out of bound.");
+#endif
+
+		return velocities[index];
+	}
 
 	// ------------- to implement one round of simulation -------------
 	void advanceAndBuildIntForces(const float) override
