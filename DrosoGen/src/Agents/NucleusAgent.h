@@ -28,7 +28,10 @@ public:
 		: AbstractAgent(ID,type, geometryAlias, currTime,incrTime),
 		  geometryAlias(shape),
 		  futureGeometry(shape),
-		  velocities(new Vector3d<FLOAT>[shape.noOfSpheres])
+		  velocities(new Vector3d<FLOAT>[2*shape.noOfSpheres]),
+		  //NB: relies on the fact that geometryAlias.noOfSpheres == futureGeometry.noOfSpheres
+		  //NB: velocities[] and finalForces[] together form one buffer (cache friendlier)
+		  finalForces(velocities+shape.noOfSpheres)
 	{
 		//update AABBs
 		geometryAlias.Geometry::setAABB();
@@ -42,7 +45,7 @@ public:
 
 	~NucleusAgent(void)
 	{
-		delete[] velocities;
+		delete[] velocities; //NB: deletes also finalForces[], see above
 
 		DEBUG_REPORT("Nucleus with ID=" << ID << " was just deleted");
 	}
@@ -92,6 +95,11 @@ public:
 
 		return velocities[index];
 	}
+
+private:
+	/** an aux array of final forces calculated for every sphere, the length of this
+	    array must match the length of the spheres in the 'futureGeometry' */
+	Vector3d<FLOAT>* const finalForces;
 
 	// ------------- to implement one round of simulation -------------
 	void advanceAndBuildIntForces(const float) override
