@@ -276,19 +276,19 @@ struct ProximityPair
 	FLOAT distance;
 
 	/** pointer on hinting data of the 'local' point */
-	void* localHint;
+	long localHint;
 	/** pointer on hinting data of the 'other' point */
-	void* otherHint;
+	long otherHint;
 
 	/** convenience constructor for just two colliding points */
 	ProximityPair(const Vector3d<FLOAT>& l, const Vector3d<FLOAT>& o,
 	              const FLOAT dist)
-		: localPos(l), otherPos(o), distance(dist), localHint(NULL), otherHint(NULL) {};
+		: localPos(l), otherPos(o), distance(dist), localHint(0), otherHint(0) {};
 
 	/** convenience constructor for points with hints */
 	ProximityPair(const Vector3d<FLOAT>& l, const Vector3d<FLOAT>& o,
 	              const FLOAT dist,
-	              void* lh, void* oh)
+	              const long lh, const long oh)
 		: localPos(l), otherPos(o), distance(dist), localHint(lh), otherHint(oh) {};
 
 	/** swap the notion of 'local' and 'other' */
@@ -298,7 +298,7 @@ struct ProximityPair
 		localPos = otherPos;
 		otherPos = tmpV;
 
-		void* tmpH = localHint;
+		long tmpH = localHint;
 		localHint = otherHint;
 		otherHint = tmpH;
 	}

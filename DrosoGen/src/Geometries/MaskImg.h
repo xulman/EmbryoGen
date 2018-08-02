@@ -279,9 +279,11 @@ public:
 			surfPoint *= radiiO[i] / surfPoint.len(); //stretch the vector
 			surfPoint += centresO[i]; //now point on the surface...
 
-			//NB: a copy is of the ProximityPair 'p' is created while pushing...
+			//this is from MaskImg perspective (local = MaskImg, other = Sphere),
+			//it reports index of the relevant foreign sphere
 			l.push_back( ProximityPair(surfPoint+grad,surfPoint,
-			  distances[i],NULL,(void*)distImg.GetVoxelAddr(curPos.x,curPos.y,curPos.z)) );
+			  distances[i], (signed)distImg.GetIndex(curPos.x,curPos.y,curPos.z),i) );
+			//NB: a copy is of the ProximityPair 'p' is created while pushing...
 		}
 
 		delete[] distances;

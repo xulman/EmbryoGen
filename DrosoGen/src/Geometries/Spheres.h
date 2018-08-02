@@ -121,9 +121,8 @@ public:
 			if (bestI > -1)
 			{
 				//we have now a shortest distance between 'im' and 'bestI',
-				//create output ProximityPairs
-				ProximityPair p(centres[im],centresO[bestI], bestDist,
-									 (void*)(centres+im),(void*)(centresO+bestI));
+				//create output ProximityPairs (and note indices of the incident spheres)
+				ProximityPair p(centres[im],centresO[bestI], bestDist, im,bestI);
 
 				//vector between the two centres
 				Vector3d<FLOAT> dp = centresO[bestI] - centres[im];
