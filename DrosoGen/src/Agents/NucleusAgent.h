@@ -53,7 +53,10 @@ private:
 	float ignoreDistance = 85.f;
 
 	/** locations of possible interaction with nearby nuclei */
-	std::list<ProximityPair> proximityPairs;
+	std::list<ProximityPair> proximityPairs_toNuclei;
+
+	/** locations of possible interaction with nearby yolk */
+	std::list<ProximityPair> proximityPairs_toYolk;
 
 	// ------------- to implement one round of simulation -------------
 	void advanceAndBuildIntForces(const float) override
@@ -79,12 +82,19 @@ private:
 
 		//those on the list are ShadowAgents who are potentially close enough
 		//to interact with me and these I need to inspect closely
-		proximityPairs.clear();
+		proximityPairs_toNuclei.clear();
+		proximityPairs_toYolk.clear();
 		for (auto sa = l.begin(); sa != l.end(); ++sa)
-			geometry.getDistance((*sa)->getGeometry(),proximityPairs);
+		{
+			if ((*sa)->agentType[0] == 'n')
+				geometry.getDistance((*sa)->getGeometry(),proximityPairs_toNuclei);
+			else
+				geometry.getDistance((*sa)->getGeometry(),proximityPairs_toYolk);
+		}
 
 		//now, postprocess the proximityPairs
-		DEBUG_REPORT("ID " << ID << ": Found " << proximityPairs.size() << " proximity pairs");
+		DEBUG_REPORT("ID " << ID << ": Found " << proximityPairs_toNuclei.size() << " proximity pairs to nuclei");
+		DEBUG_REPORT("ID " << ID << ": Found " << proximityPairs_toYolk.size()   << " proximity pairs to yolk");
 	}
 
 	void adjustGeometryByExtForces(void) override
@@ -123,8 +133,10 @@ private:
 		if ((ID % 3) == 1) //only for some cells
 		{
 			dID |= 1 << 16; //enable debug bit
-			for (auto& p : proximityPairs)
+			for (auto& p : proximityPairs_toNuclei)
 				du.DrawLine(dID++, p.localPos, p.otherPos);
+			for (auto& p : proximityPairs_toYolk)
+				du.DrawLine(dID++, p.localPos, p.otherPos,1);
 		}
 
 		//draw global debug bounding box
