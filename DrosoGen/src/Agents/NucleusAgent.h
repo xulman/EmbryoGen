@@ -128,6 +128,9 @@ private:
 			futureGeometry.centres[i] += (FLOAT)incrTime * velocities[i];
 		}
 
+		//update AABB to the new geometry
+		futureGeometry.Geometry::setAABB();
+
 		//all forces processed...
 		forces.clear();
 	}
