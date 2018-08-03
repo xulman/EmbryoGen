@@ -82,15 +82,20 @@ public class NetworkScene implements Runnable
 	private
 	void processMsg(final String msg)
 	{
-		if (msg.startsWith("v1 points")) processPoints(msg);
-		else
-		if (msg.startsWith("v1 lines")) processLines(msg);
-		else
-		if (msg.startsWith("v1 vectors")) processVectors(msg);
-		else
-		if (msg.startsWith("v1 triangles")) processTriangles(msg);
-		else
-			System.out.println("Don't understand this msg: "+msg);
+		try {
+			if (msg.startsWith("v1 points")) processPoints(msg);
+			else
+			if (msg.startsWith("v1 lines")) processLines(msg);
+			else
+			if (msg.startsWith("v1 vectors")) processVectors(msg);
+			else
+			if (msg.startsWith("v1 triangles")) processTriangles(msg);
+			else
+				System.out.println("Don't understand this msg: "+msg);
+		}
+		catch (java.util.InputMismatchException e) {
+			System.out.println("Parsing error: " + e.getMessage());
+		}
 	}
 
 	private
