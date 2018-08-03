@@ -210,25 +210,46 @@ public:
 	              const Vector3d<T>& _base, const ForceName _type)
 		: Vector3d<T>(v), base(_base), type(_type) {}
 
+	/** init constructor with explicit hint... */
+	ForceVector3d(const Vector3d<T>& v,
+	              const Vector3d<T>& _base, const long _hint, const ForceName _type)
+		: Vector3d<T>(v), base(_base), hint(_hint), type(_type) {}
+
 	/** copy constructor... */
-	ForceVector3d(const ForceVector3d<T>& vec) : Vector3d<T>(vec.x,vec.y,vec.z)
+	ForceVector3d(const ForceVector3d<T>& vec) : Vector3d<T>(vec)
 	{
-		this->base=vec.base;
-		this->type=vec.type;
+		this->base = vec.base;
+		this->hint = vec.hint;
+		this->type = vec.type;
+	}
+
+	ForceVector3d<T>& operator=(const ForceVector3d<T>& vec)
+	{
+		this->x    = vec.x;
+		this->y    = vec.y;
+		this->z    = vec.z;
+		this->base = vec.base;
+		this->hint = vec.hint;
+		this->type = vec.type;
+		return( *this );
 	}
 
 	ForceVector3d<T>& operator=(const Vector3d<T>& vec)
 	{
-		*this = vec;
-		this->base = vec.base;
-		this->type = vec.type;
+		this->x    = vec.x;
+		this->y    = vec.y;
+		this->z    = vec.z;
+		this->base = 0;
+		this->hint = 0;
+		this->type = unknownForceType;
 		return( *this );
 	}
 
 	ForceVector3d<T>& operator=(const T scalar)
 	{
-		*this = scalar;
+		this->x = this->y = this->z = scalar;
 		this->base = 0;
+		this->hint = 0;
 		this->type = unknownForceType;
 		return( *this );
 	}
