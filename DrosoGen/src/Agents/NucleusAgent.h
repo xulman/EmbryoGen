@@ -8,20 +8,23 @@
 #include "CellCycle.h"
 #include "../Geometries/Spheres.h"
 
-static ForceName ftype_s2s = "sphere-sphere";       //internal forces
-static ForceName ftype_drive = "desired movement";
-static ForceName ftype_friction = "friction";
+static ForceName ftype_s2s       = "sphere-sphere";     //internal forces
+static ForceName ftype_drive     = "desired movement";
+static ForceName ftype_friction  = "friction";
 
-static ForceName ftype_repulsive = "repulsive";     //due to external events with nuclei
-static ForceName ftype_body = "no overlap (body)";
-static ForceName ftype_slide = "no sliding";
+static ForceName ftype_repulsive = "repulsive";         //due to external events with nuclei
+static ForceName ftype_body      = "no overlap (body)";
+static ForceName ftype_slide     = "no sliding";
 
-static ForceName ftype_hinter = "sphere-hinter";    //due to external events with shape hinters
+static ForceName ftype_hinter    = "sphere-hinter";     //due to external events with shape hinters
 
 static FLOAT fstrength_body_scale     = (FLOAT)0.4;     // [N/um]
 static FLOAT fstrength_overlap_detach = (FLOAT)0.1;     // [N]
 static FLOAT fstrength_overlap_scale  = (FLOAT)0.2;     // [N/um]
 static FLOAT fstrength_rep_decay      = (FLOAT)0.6;     // [1/m]
+
+static FLOAT fstrength_drive_velocity = (FLOAT)3.0;     // [um/min]
+static FLOAT fstrength_timePersist    = (FLOAT)5.0;     // [min]
 
 
 class NucleusAgent: public AbstractAgent
@@ -42,7 +45,11 @@ public:
 		//update AABBs
 		geometryAlias.Geometry::setAABB();
 		futureGeometry.Geometry::setAABB();
-		forces.reserve(30); //NB: 4*7 "up-rounded"
+
+		//estimate of number of forces (per simulation round):
+		//10(all s2s) + 4(spheres)*2(drive&friction) + 10(neigs)*4(spheres)*4("outer" forces),
+		//and "up-rounded"...
+		forces.reserve(200);
 
 		//init centreDistances based on the initial geometry
 		//(silently assuming that there are 4 spheres TODO)
@@ -235,6 +242,9 @@ private:
 			forces.push_back( ForceVector3d<FLOAT>(sOff[3], futureGeometry.centres[2],2, ftype_s2s) );
 		}
 
+		//TRAgen paper, eq (2): Fdesired = weight * drivingForceMagnitude
+		const FLOAT drivingForceMagnitude = fstrength_drive_velocity/fstrength_timePersist;
+		Vector3d<FLOAT> drivingDirection(1.0f,0.0f,0.0f);
 
 		//create forces that "are product of my will"
 		forces.push_back( ForceVector3d<FLOAT>(1.0f,0.0f,0.0f, geometryAlias.centres[1], ftype_drive) );
@@ -276,7 +286,17 @@ private:
 		DEBUG_REPORT("ID " << ID << ": Found " << proximityPairs_toNuclei.size() << " proximity pairs to nuclei");
 		DEBUG_REPORT("ID " << ID << ": Found " << proximityPairs_toYolk.size()   << " proximity pairs to yolk");
 
-		//TODO: ftype_friction as a function of current velocity of spheres
+		//TRAgen, eq. (3)
+		//damping force (aka friction due to the environment)
+		for (int i=0; i < futureGeometry.noOfSpheres; ++i)
+		{
+			forces.push_back( ForceVector3d<FLOAT>(
+				(-weights[i]/fstrength_timePersist)*velocities[i],
+				futureGeometry.centres[i],i, ftype_friction ) );
+
+			//DEBUG REMOVE
+			forcesForDisplay.push_back( forces.back() );
+		}
 
 		//TRAgen, eq. (4)
 		//TRAgen, eq. (5)
