@@ -264,7 +264,7 @@ public:
 			grad.z *= 3-span; //missing /2.0
 
 			grad.elemMult(distImgRes);               //account for anisotropy [1/px -> 1/um]
-			DEBUG_REPORT("grad: " << grad << " @ voxel: " << hints[i] << ", distance: " << distances[i]);
+			//DEBUG_REPORT("grad: " << grad << " @ voxel: " << hints[i] << ", distance: " << distances[i]);
 
 			grad.changeToUnitOrZero();               //normalize if not zero vector already
 			grad *= -distances[i];                   //extend to the distance (might flip grad!)

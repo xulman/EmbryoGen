@@ -289,7 +289,7 @@ private:
 		std::list<const ShadowAgent*> nearbyAgents;
 		Officer->getNearbyAgents(this,ignoreDistance, nearbyAgents);
 
-		DEBUG_REPORT("ID " << ID << ": Found " << nearbyAgents.size() << " nearby agents");
+		//DEBUG_REPORT("ID " << ID << ": Found " << nearbyAgents.size() << " nearby agents");
 
 		//those on the list are ShadowAgents who are potentially close enough
 		//to interact with me and these I need to inspect closely
@@ -305,8 +305,8 @@ private:
 
 		//now, postprocess the proximityPairs, that is, to
 		//convert proximityPairs_toNuclei to forces according to TRAgen rules
-		DEBUG_REPORT("ID " << ID << ": Found " << proximityPairs_toNuclei.size() << " proximity pairs to nuclei");
-		DEBUG_REPORT("ID " << ID << ": Found " << proximityPairs_toYolk.size()   << " proximity pairs to yolk");
+		//DEBUG_REPORT("ID " << ID << ": Found " << proximityPairs_toNuclei.size() << " proximity pairs to nuclei");
+		//DEBUG_REPORT("ID " << ID << ": Found " << proximityPairs_toYolk.size()   << " proximity pairs to yolk");
 
 		Vector3d<FLOAT> f,g; //tmp vectors
 		for (const auto& pp : proximityPairs_toNuclei)
@@ -421,7 +421,7 @@ private:
 	// ------------- rendering -------------
 	void drawMask(DisplayUnit& du) override
 	{
-		if (ID % 10 != 0) //show only for every 10th cell
+		if (ID % 50 != 0) //show only for every 50th cell
 			return;
 
 		const int color = curPhase < 3? 2:3;
@@ -437,10 +437,18 @@ private:
 		//draw (debug) vectors
 		{
 			dID |= 1 << 16; //enable debug bit
+			/*
 			for (auto& p : proximityPairs_toNuclei)
 				du.DrawLine(dID++, p.localPos, p.otherPos);
 			for (auto& p : proximityPairs_toYolk)
 				du.DrawLine(dID++, p.localPos, p.otherPos,1);
+			*/
+			Vector3d<FLOAT> sOff[4];
+			getCurrentOffVectorsForCentres(sOff);
+			du.DrawVector(dID++, futureGeometry.centres[0],sOff[0], 1);
+			du.DrawVector(dID++, futureGeometry.centres[1],sOff[1], 1);
+			du.DrawVector(dID++, futureGeometry.centres[2],sOff[2], 1);
+			du.DrawVector(dID++, futureGeometry.centres[3],sOff[3], 1);
 		}
 
 		//draw global debug bounding box
