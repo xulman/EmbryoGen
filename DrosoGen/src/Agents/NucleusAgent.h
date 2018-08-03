@@ -199,52 +199,42 @@ private:
 		{
 			//properly scaled force acting on the 1st sphere: body_scale * len()
 			sOff[0] *= fstrength_body_scale;
-			forces.push_back( ForceVector3d<FLOAT>(sOff[0], futureGeometry.centres[0], ftype_s2s) );
-			forces.back().hint = 0;
+			forces.push_back( ForceVector3d<FLOAT>(sOff[0], futureGeometry.centres[0],0, ftype_s2s) );
 
 			sOff[0] *= -1.0;
-			forces.push_back( ForceVector3d<FLOAT>(sOff[0], futureGeometry.centres[1], ftype_s2s) );
-			forces.back().hint = 1;
+			forces.push_back( ForceVector3d<FLOAT>(sOff[0], futureGeometry.centres[1],1, ftype_s2s) );
 		}
 
 		if (sOff[1].len2() > keepCalmDistanceSq)
 		{
 			//properly scaled force acting on the 2nd sphere: body_scale * len()
 			sOff[1] *= fstrength_body_scale;
-			forces.push_back( ForceVector3d<FLOAT>(sOff[1], futureGeometry.centres[1], ftype_s2s) );
-			forces.back().hint = 1;
+			forces.push_back( ForceVector3d<FLOAT>(sOff[1], futureGeometry.centres[1],1, ftype_s2s) );
 
 			sOff[1] *= -0.5;
-			forces.push_back( ForceVector3d<FLOAT>(sOff[1], futureGeometry.centres[0], ftype_s2s) );
-			forces.back().hint = 0;
-			forces.push_back( ForceVector3d<FLOAT>(sOff[1], futureGeometry.centres[2], ftype_s2s) );
-			forces.back().hint = 2;
+			forces.push_back( ForceVector3d<FLOAT>(sOff[1], futureGeometry.centres[0],0, ftype_s2s) );
+			forces.push_back( ForceVector3d<FLOAT>(sOff[1], futureGeometry.centres[2],2, ftype_s2s) );
 		}
 
 		if (sOff[2].len2() > keepCalmDistanceSq)
 		{
 			//properly scaled force acting on the 2nd sphere: body_scale * len()
 			sOff[2] *= fstrength_body_scale;
-			forces.push_back( ForceVector3d<FLOAT>(sOff[2], futureGeometry.centres[2], ftype_s2s) );
-			forces.back().hint = 2;
+			forces.push_back( ForceVector3d<FLOAT>(sOff[2], futureGeometry.centres[2],2, ftype_s2s) );
 
 			sOff[2] *= -0.5;
-			forces.push_back( ForceVector3d<FLOAT>(sOff[2], futureGeometry.centres[1], ftype_s2s) );
-			forces.back().hint = 1;
-			forces.push_back( ForceVector3d<FLOAT>(sOff[2], futureGeometry.centres[3], ftype_s2s) );
-			forces.back().hint = 3;
+			forces.push_back( ForceVector3d<FLOAT>(sOff[2], futureGeometry.centres[1],1, ftype_s2s) );
+			forces.push_back( ForceVector3d<FLOAT>(sOff[2], futureGeometry.centres[3],3, ftype_s2s) );
 		}
 
 		if (sOff[3].len2() > keepCalmDistanceSq)
 		{
 			//properly scaled force acting on the 1st sphere: body_scale * len()
 			sOff[3] *= fstrength_body_scale;
-			forces.push_back( ForceVector3d<FLOAT>(sOff[3], futureGeometry.centres[3], ftype_s2s) );
-			forces.back().hint = 3;
+			forces.push_back( ForceVector3d<FLOAT>(sOff[3], futureGeometry.centres[3],3, ftype_s2s) );
 
 			sOff[3] *= -1.0;
-			forces.push_back( ForceVector3d<FLOAT>(sOff[3], futureGeometry.centres[2], ftype_s2s) );
-			forces.back().hint = 2;
+			forces.push_back( ForceVector3d<FLOAT>(sOff[3], futureGeometry.centres[2],2, ftype_s2s) );
 		}
 
 
