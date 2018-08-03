@@ -293,9 +293,6 @@ private:
 			forces.push_back( ForceVector3d<FLOAT>(
 				(-weights[i]/fstrength_timePersist)*velocities[i],
 				futureGeometry.centres[i],i, ftype_friction ) );
-
-			//DEBUG REMOVE
-			forcesForDisplay.push_back( forces.back() );
 		}
 
 		//TRAgen, eq. (4)
