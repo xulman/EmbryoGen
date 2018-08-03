@@ -38,6 +38,12 @@ public:
 		futureGeometry.Geometry::setAABB();
 		forces.reserve(30); //NB: 4*7 "up-rounded"
 
+		//init centreDistances based on the initial geometry
+		//(silently assuming that there are 4 spheres TODO)
+		centreDistance[0] = (geometryAlias.centres[1] - geometryAlias.centres[0]).len();
+		centreDistance[1] = (geometryAlias.centres[2] - geometryAlias.centres[1]).len();
+		centreDistance[2] = (geometryAlias.centres[3] - geometryAlias.centres[2]).len();
+
 		curPhase = G1Phase;
 
 		DEBUG_REPORT("Nucleus with ID=" << ID << " was just created");
@@ -65,6 +71,10 @@ private:
 	/** my internal representation of my geometry, which is exactly
 	    of the same form as my ShadowAgent::geometry, even the same noOfSpheres */
 	Spheres futureGeometry;
+
+	/** canonical distance between the four cell centres that this agent
+	    should maintain during geometry changes during the simulation */
+	float centreDistance[3];
 
 	// ------------- externals geometry -------------
 	/** limiting distance beyond which I consider no interaction possible
@@ -138,15 +148,41 @@ private:
 	// ------------- to implement one round of simulation -------------
 	void advanceAndBuildIntForces(const float) override
 	{
-		//check bending of the spheres (how much their position deviates from a line),
-		//check also the distances, and create, if necessary, another forces on the list
-		/*
-		//TODO anti-bending
+		//check bending of the spheres (how much their position deviates from a line,
+		//includes also checking the distance), and add, if necessary, another
+		//forces to the list
+		//
+		//the centre point
+		Vector3d<FLOAT> refCentre(futureGeometry.centres[1]);
+		refCentre += futureGeometry.centres[2];
+		refCentre *= 0.5;
+
+		//the axis/orientation between 2nd and 3rd sphere
 		Vector3d<FLOAT> refAxis(futureGeometry.centres[2]);
 		refAxis -= futureGeometry.centres[1];
 
-		ftype_s2s
-		*/
+		//make it half-of-the-expected-distance long
+		refAxis *= 0.5f*centreDistance[1] / refAxis.len();
+
+		//calculate how much are the 2nd and 3rd spheres off their expected positions
+		Vector3d<FLOAT> s2Off(refCentre), s3Off(refCentre);
+		s2Off -= refAxis; //the expected position
+		s3Off += refAxis;
+
+		s2Off -= futureGeometry.centres[1]; //the difference vector
+		s3Off -= futureGeometry.centres[2];
+
+		//calculate how much is the 1st sphere off its expected position
+		Vector3d<FLOAT> s1Off(refCentre);
+		s1Off -= (centreDistance[0]/(0.5f*centreDistance[1]) +1) * refAxis;
+		s1Off -= futureGeometry.centres[0]; //the difference vector
+
+		//calculate how much is the 4th sphere off its expected position
+		Vector3d<FLOAT> s4Off(refCentre);
+		s4Off += (centreDistance[2]/(0.5f*centreDistance[1]) +1) * refAxis;
+		s4Off -= futureGeometry.centres[3]; //the difference vector
+
+
 
 		//create forces that "are product of my will"
 		forces.push_back( ForceVector3d<FLOAT>(1.0f,0.0f,0.0f, geometryAlias.centres[1], ftype_drive) );
