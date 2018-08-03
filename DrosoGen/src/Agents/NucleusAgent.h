@@ -18,6 +18,11 @@ static ForceName ftype_slide = "no sliding";
 
 static ForceName ftype_hinter = "sphere-hinter";    //due to external events with shape hinters
 
+static FLOAT fstrength_body_scale     = (FLOAT)0.4;     // [N/um]
+static FLOAT fstrength_overlap_detach = (FLOAT)0.1;     // [N]
+static FLOAT fstrength_overlap_scale  = (FLOAT)0.2;     // [N/um]
+static FLOAT fstrength_rep_decay      = (FLOAT)0.6;     // [1/m]
+
 
 class NucleusAgent: public AbstractAgent
 {
@@ -188,8 +193,59 @@ private:
 		Vector3d<FLOAT> sOff[4];
 		getCurrentOffVectorsForCentres(sOff);
 
+		const FLOAT keepCalmDistanceSq = (FLOAT)0.01; // 0.01 = 0.1^2
 
+		if (sOff[0].len2() > keepCalmDistanceSq)
+		{
+			//properly scaled force acting on the 1st sphere: body_scale * len()
+			sOff[0] *= fstrength_body_scale;
+			forces.push_back( ForceVector3d<FLOAT>(sOff[0], futureGeometry.centres[0], ftype_s2s) );
+			forces.back().hint = 0;
 
+			sOff[0] *= -1.0;
+			forces.push_back( ForceVector3d<FLOAT>(sOff[0], futureGeometry.centres[1], ftype_s2s) );
+			forces.back().hint = 1;
+		}
+
+		if (sOff[1].len2() > keepCalmDistanceSq)
+		{
+			//properly scaled force acting on the 2nd sphere: body_scale * len()
+			sOff[1] *= fstrength_body_scale;
+			forces.push_back( ForceVector3d<FLOAT>(sOff[1], futureGeometry.centres[1], ftype_s2s) );
+			forces.back().hint = 1;
+
+			sOff[1] *= -0.5;
+			forces.push_back( ForceVector3d<FLOAT>(sOff[1], futureGeometry.centres[0], ftype_s2s) );
+			forces.back().hint = 0;
+			forces.push_back( ForceVector3d<FLOAT>(sOff[1], futureGeometry.centres[2], ftype_s2s) );
+			forces.back().hint = 2;
+		}
+
+		if (sOff[2].len2() > keepCalmDistanceSq)
+		{
+			//properly scaled force acting on the 2nd sphere: body_scale * len()
+			sOff[2] *= fstrength_body_scale;
+			forces.push_back( ForceVector3d<FLOAT>(sOff[2], futureGeometry.centres[2], ftype_s2s) );
+			forces.back().hint = 2;
+
+			sOff[2] *= -0.5;
+			forces.push_back( ForceVector3d<FLOAT>(sOff[2], futureGeometry.centres[1], ftype_s2s) );
+			forces.back().hint = 1;
+			forces.push_back( ForceVector3d<FLOAT>(sOff[2], futureGeometry.centres[3], ftype_s2s) );
+			forces.back().hint = 3;
+		}
+
+		if (sOff[3].len2() > keepCalmDistanceSq)
+		{
+			//properly scaled force acting on the 1st sphere: body_scale * len()
+			sOff[3] *= fstrength_body_scale;
+			forces.push_back( ForceVector3d<FLOAT>(sOff[3], futureGeometry.centres[3], ftype_s2s) );
+			forces.back().hint = 3;
+
+			sOff[3] *= -1.0;
+			forces.push_back( ForceVector3d<FLOAT>(sOff[3], futureGeometry.centres[2], ftype_s2s) );
+			forces.back().hint = 2;
+		}
 
 
 		//create forces that "are product of my will"
@@ -248,8 +304,8 @@ private:
 
 	void updateGeometry(void) override
 	{
-		//promote my futureGeometry to my geometry, which happens
-		//to be overlaid/mapped-over with geometryAlias (see the constructor)
+		//promote my NucleusAgent::futureGeometry to my ShadowAgent::geometry, which happens
+		//to be overlaid/mapped-over with NucleusAgent::geometryAlias (see the constructor)
 		for (int i=0; i < geometryAlias.noOfSpheres; ++i)
 		{
 			geometryAlias.centres[i] = futureGeometry.centres[i];
