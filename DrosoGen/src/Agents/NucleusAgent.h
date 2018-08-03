@@ -76,6 +76,40 @@ private:
 	    should maintain during geometry changes during the simulation */
 	float centreDistance[3];
 
+	void getCurrentOffVectorsForCentres(Vector3d<FLOAT> offs[4])
+	{
+		//the centre point
+		Vector3d<FLOAT> refCentre(futureGeometry.centres[1]);
+		refCentre += futureGeometry.centres[2];
+		refCentre *= 0.5;
+
+		//the axis/orientation between 2nd and 3rd sphere
+		Vector3d<FLOAT> refAxis(futureGeometry.centres[2]);
+		refAxis -= futureGeometry.centres[1];
+
+		//make it half-of-the-expected-distance long
+		refAxis *= 0.5f*centreDistance[1] / refAxis.len();
+
+		//calculate how much are the 2nd and 3rd spheres off their expected positions
+		offs[1]  = refCentre;
+		offs[1] -= refAxis; //the expected position
+		offs[1] -= futureGeometry.centres[1]; //the difference vector
+
+		offs[2]  = refCentre;
+		offs[2] += refAxis;
+		offs[2] -= futureGeometry.centres[2];
+
+		//calculate how much is the 1st sphere off its expected position
+		offs[0]  = refCentre;
+		offs[0] -= (centreDistance[0]/(0.5f*centreDistance[1]) +1.0f) * refAxis;
+		offs[0] -= futureGeometry.centres[0];
+
+		//calculate how much is the 4th sphere off its expected position
+		offs[3]  = refCentre;
+		offs[3] += (centreDistance[2]/(0.5f*centreDistance[1]) +1.0f) * refAxis;
+		offs[3] -= futureGeometry.centres[3];
+	}
+
 	// ------------- externals geometry -------------
 	/** limiting distance beyond which I consider no interaction possible
 	    with other nuclei */
@@ -151,36 +185,10 @@ private:
 		//check bending of the spheres (how much their position deviates from a line,
 		//includes also checking the distance), and add, if necessary, another
 		//forces to the list
-		//
-		//the centre point
-		Vector3d<FLOAT> refCentre(futureGeometry.centres[1]);
-		refCentre += futureGeometry.centres[2];
-		refCentre *= 0.5;
+		Vector3d<FLOAT> sOff[4];
+		getCurrentOffVectorsForCentres(sOff);
 
-		//the axis/orientation between 2nd and 3rd sphere
-		Vector3d<FLOAT> refAxis(futureGeometry.centres[2]);
-		refAxis -= futureGeometry.centres[1];
 
-		//make it half-of-the-expected-distance long
-		refAxis *= 0.5f*centreDistance[1] / refAxis.len();
-
-		//calculate how much are the 2nd and 3rd spheres off their expected positions
-		Vector3d<FLOAT> s2Off(refCentre), s3Off(refCentre);
-		s2Off -= refAxis; //the expected position
-		s3Off += refAxis;
-
-		s2Off -= futureGeometry.centres[1]; //the difference vector
-		s3Off -= futureGeometry.centres[2];
-
-		//calculate how much is the 1st sphere off its expected position
-		Vector3d<FLOAT> s1Off(refCentre);
-		s1Off -= (centreDistance[0]/(0.5f*centreDistance[1]) +1) * refAxis;
-		s1Off -= futureGeometry.centres[0]; //the difference vector
-
-		//calculate how much is the 4th sphere off its expected position
-		Vector3d<FLOAT> s4Off(refCentre);
-		s4Off += (centreDistance[2]/(0.5f*centreDistance[1]) +1) * refAxis;
-		s4Off -= futureGeometry.centres[3]; //the difference vector
 
 
 
