@@ -242,15 +242,19 @@ private:
 			forces.push_back( ForceVector3d<FLOAT>(sOff[3], futureGeometry.centres[2],2, ftype_s2s) );
 		}
 
+		/*
 		//TRAgen paper, eq (2): Fdesired = weight * drivingForceMagnitude
 		const FLOAT drivingForceMagnitude = fstrength_drive_velocity/fstrength_timePersist;
 		Vector3d<FLOAT> drivingDirection(1.0f,0.0f,0.0f);
 
 		//create forces that "are product of my will"
-		forces.push_back( ForceVector3d<FLOAT>(1.0f,0.0f,0.0f, geometryAlias.centres[1], ftype_drive) );
-		forces.back().hint = 1;
-		forces.push_back( ForceVector3d<FLOAT>(1.0f,0.0f,0.0f, geometryAlias.centres[2], ftype_drive) );
-		forces.back().hint = 2;
+		forces.push_back( ForceVector3d<FLOAT>(
+			(weights[1]*drivingForceMagnitude/drivingDirection.len()) * drivingDirection,
+			futureGeometry.centres[1],1, ftype_drive ) );
+		forces.push_back( ForceVector3d<FLOAT>(
+			(weights[2]*drivingForceMagnitude/drivingDirection.len()) * drivingDirection,
+			futureGeometry.centres[2],2, ftype_drive ) );
+		*/
 
 		//increase the local time of the agent
 		currTime += incrTime;
