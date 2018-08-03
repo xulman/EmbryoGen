@@ -33,10 +33,11 @@ public:
 		: AbstractAgent(ID,type, geometryAlias, currTime,incrTime),
 		  geometryAlias(shape),
 		  futureGeometry(shape),
-		  velocities(new Vector3d<FLOAT>[2*shape.noOfSpheres]),
+		  accels(new Vector3d<FLOAT>[2*shape.noOfSpheres]),
 		  //NB: relies on the fact that geometryAlias.noOfSpheres == futureGeometry.noOfSpheres
-		  //NB: velocities[] and finalForces[] together form one buffer (cache friendlier)
-		  finalForces(velocities+shape.noOfSpheres)
+		  //NB: accels[] and velocities[] together form one buffer (cache friendlier)
+		  velocities(accels+shape.noOfSpheres),
+		  weights(new FLOAT[shape.noOfSpheres])
 	{
 		//update AABBs
 		geometryAlias.Geometry::setAABB();
@@ -48,6 +49,7 @@ public:
 		centreDistance[0] = (geometryAlias.centres[1] - geometryAlias.centres[0]).len();
 		centreDistance[1] = (geometryAlias.centres[2] - geometryAlias.centres[1]).len();
 		centreDistance[2] = (geometryAlias.centres[3] - geometryAlias.centres[2]).len();
+		weights[0] = weights[1] = weights[2] = weights[3] = (FLOAT)1.0;
 
 		curPhase = G1Phase;
 
@@ -56,7 +58,8 @@ public:
 
 	~NucleusAgent(void)
 	{
-		delete[] velocities; //NB: deletes also finalForces[], see above
+		delete[] accels; //NB: deletes also velocities[], see above
+		delete[] weights;
 
 		DEBUG_REPORT("Nucleus with ID=" << ID << " was just deleted");
 	}
@@ -126,29 +129,21 @@ private:
 	/** locations of possible interaction with nearby yolk */
 	std::list<ProximityPair> proximityPairs_toYolk;
 
-	// ------------- forces & movement -------------
+	// ------------- forces & movement (physics) -------------
 	/** all forces that are in present acting on this agent */
 	std::vector< ForceVector3d<FLOAT> > forces;
 
-	/** an array of velocities vectors of the spheres, the length of this array
-	    must match the length of the spheres that are exposed to the outer world */
+	/** an aux array of acceleration vectors calculated for every sphere, the length
+	    of this array must match the length of the spheres in the 'futureGeometry' */
+	Vector3d<FLOAT>* const accels;
+
+	/** an array of velocities vectors of the spheres, the length of this array must match
+	    the length of the spheres that are exposed (geometryAlias) to the outer world */
 	Vector3d<FLOAT>* const velocities;
 
-public:
-	const Vector3d<FLOAT>& getVelocityOfSphere(const int index)
-	{
-#ifdef DEBUG
-		if (index >= geometryAlias.noOfSpheres)
-			throw new std::runtime_error("NucleusAgent::getVelocityOfSphere(): requested sphere index out of bound.");
-#endif
-
-		return velocities[index];
-	}
-
-private:
-	/** an aux array of final forces calculated for every sphere, the length of this
-	    array must match the length of the spheres in the 'futureGeometry' */
-	Vector3d<FLOAT>* const finalForces;
+	/** an aux array of weights of the spheres, the length of this array must match
+	    the length of the spheres in the 'futureGeometry' */
+	FLOAT* const weights;
 
 	/** essentially creates a new version (next iteration) of 'futureGeometry' given
 	    the current content of the 'forces'; note that, in this particular agent type,
@@ -158,22 +153,24 @@ private:
 	    and for which the list of ProximityPairs was built during collectExtForces() */
 	void adjustGeometryByForces(void)
 	{
-		//reset the array with final forces
-		for (int i=0; i < futureGeometry.noOfSpheres; ++i) finalForces[i] = 0;
+		//TRAgen paper, eq (1):
+		//reset the array with final forces (which will become accelerations soon)
+		for (int i=0; i < futureGeometry.noOfSpheres; ++i) accels[i] = 0;
 
 		//collect all forces acting on every sphere to have one overall force per sphere
-		for (const auto& f : forces) finalForces[f.hint] += f;
+		for (const auto& f : forces) accels[f.hint] += f;
 
 		//now, translation is a result of forces:
 		for (int i=0; i < futureGeometry.noOfSpheres; ++i)
 		{
-			//F=ma -> a=F/m  (volume of a sphere should be taken into account)
-			//assumes m=1.0
+			//calculate accelerations: F=ma -> a=F/m
+			//TODO: volume of a sphere should be taken into account
+			accels[i] /= weights[i];
 
-			//v=at
-			velocities[i] += (FLOAT)incrTime * finalForces[i];
+			//velocities: v=at
+			velocities[i] += (FLOAT)incrTime * accels[i];
 
-			//|trajectory|=vt
+			//displacement: |trajectory|=vt
 			futureGeometry.centres[i] += (FLOAT)incrTime * velocities[i];
 		}
 
@@ -193,6 +190,7 @@ private:
 		Vector3d<FLOAT> sOff[4];
 		getCurrentOffVectorsForCentres(sOff);
 
+		//tolerated mis-position (no "adjustment" s2s forces are created within this radius)
 		const FLOAT keepCalmDistanceSq = (FLOAT)0.01; // 0.01 = 0.1^2
 
 		if (sOff[0].len2() > keepCalmDistanceSq)
@@ -280,9 +278,13 @@ private:
 
 		//TODO: ftype_friction as a function of current velocity of spheres
 
+		//TRAgen, eq. (4)
+		//TRAgen, eq. (5)
+		//TRAgen, eq. (6)
 		//convert proximityPairs_toNuclei -> forces! according to TRAgen rules
 		//TODO: ftype_repulsive, ftype_body, ftype_slide
 
+		//non-TRAgen new force, will however follow TRAgen, eq. (2) -- desired/driving regime
 		//convert proximityPairs_toYolk -> forces!
 		//TODO: ftype_hinter
 	}
@@ -306,6 +308,18 @@ private:
 		geometryAlias.Geometry::setAABB();
 	}
 
+public:
+	const Vector3d<FLOAT>& getVelocityOfSphere(const int index)
+	{
+#ifdef DEBUG
+		if (index >= geometryAlias.noOfSpheres)
+			throw new std::runtime_error("NucleusAgent::getVelocityOfSphere(): requested sphere index out of bound.");
+#endif
+
+		return velocities[index];
+	}
+
+private:
 	// ------------- rendering -------------
 	void drawMask(DisplayUnit& du) override
 	{
