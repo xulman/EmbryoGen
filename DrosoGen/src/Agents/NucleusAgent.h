@@ -18,13 +18,15 @@ static ForceName ftype_slide     = "no sliding";
 
 static ForceName ftype_hinter    = "sphere-hinter";     //due to external events with shape hinters
 
-static FLOAT fstrength_body_scale     = (FLOAT)0.4;     // [N/um]
-static FLOAT fstrength_overlap_detach = (FLOAT)0.1;     // [N]
-static FLOAT fstrength_overlap_scale  = (FLOAT)0.2;     // [N/um]
-static FLOAT fstrength_rep_decay      = (FLOAT)0.6;     // [1/m]
+static FLOAT fstrength_body_scale     = (FLOAT)0.4;     // [N/um]      TRAgen: N/A
+static FLOAT fstrength_overlap_scale  = (FLOAT)0.2;     // [N/um]      TRAgen: k
+static FLOAT fstrength_overlap_level  = (FLOAT)0.1;     // [N]         TRAgen: A
+static FLOAT fstrength_overlap_depth  = (FLOAT)0.5;     // [um]        TRAgen: delta_o (do)
+static FLOAT fstrength_rep_scale      = (FLOAT)0.6;     // [1/um]      TRAgen: B
+static FLOAT fstrength_slide_scale    = (FLOAT)0.3;     // [N min/um]  TRAgen: Kappa
 
-static FLOAT fstrength_drive_velocity = (FLOAT)3.0;     // [um/min]
-static FLOAT fstrength_timePersist    = (FLOAT)5.0;     // [min]
+static FLOAT fstrength_drive_velocity = (FLOAT)3.0;     // [um/min]    TRAgen: v^d(t)
+static FLOAT fstrength_timePersist    = (FLOAT)5.0;     // [min]       TRAgen: Tau_p
 
 
 class NucleusAgent: public AbstractAgent
@@ -270,7 +272,7 @@ private:
 	{
 		//damping force (aka friction due to the environment,
 		//an ext. force that is independent of other agents)
-		//TRAgen, eq. (3)
+		//TRAgen paper, eq. (3)
 		for (int i=0; i < futureGeometry.noOfSpheres; ++i)
 		{
 			forces.push_back( ForceVector3d<FLOAT>(
@@ -297,7 +299,8 @@ private:
 				geometry.getDistance((*sa)->getGeometry(),proximityPairs_toYolk);
 		}
 
-		//now, postprocess the proximityPairs
+		//now, postprocess the proximityPairs, that is, to
+		//convert proximityPairs_toNuclei to forces according to TRAgen rules
 		DEBUG_REPORT("ID " << ID << ": Found " << proximityPairs_toNuclei.size() << " proximity pairs to nuclei");
 		DEBUG_REPORT("ID " << ID << ": Found " << proximityPairs_toYolk.size()   << " proximity pairs to yolk");
 
@@ -307,7 +310,7 @@ private:
 		//convert proximityPairs_toNuclei -> forces! according to TRAgen rules
 		//TODO: ftype_repulsive, ftype_body, ftype_slide
 
-		//non-TRAgen new force, will however follow TRAgen, eq. (2) -- desired/driving regime
+		//non-TRAgen new force, will however follow TRAgen paper, eq. (2) -- desired/driving regime
 		//convert proximityPairs_toYolk -> forces!
 		//TODO: ftype_hinter
 	}
