@@ -345,6 +345,32 @@ public:
 	void getDistance(const Geometry& otherGeometry,
 	                 std::list<ProximityPair>& l) const =0;
 
+	/** Calculate and determine proximity and collision pairs, if any,
+	    between myself and some other agent. To facilitate construction
+	    of a (scaled) ForceVector<FLOAT> from the proximity pair, a caller
+	    may supply its own callerHint data. This data will be stored in
+	    ProximityPair::callerHint only in the newly added ProximityPairs.
+	    The discovered ProximityPairs are added to the current list l. */
+	void getDistance(const Geometry& otherGeometry,
+	                 std::list<ProximityPair>& l,
+	                 void* const callerHint) const
+	{
+		//remember the length of the input list
+		size_t itemsOnTheList = l.size();
+
+		//call the original implementation (that is without callerHint)
+		getDistance(otherGeometry,l);
+
+		//scan the newly added items and supply them with the callerHint
+		std::list<ProximityPair>::iterator ll = l.end();
+		while (itemsOnTheList < l.size())
+		{
+			--ll;
+			ll->callerHint = callerHint;
+			++itemsOnTheList;
+		}
+	}
+
 protected:
 	/** Helper routine to complement getDistance() with the symmetric cases.
 	    For example, to provide measurement between Mesh and Spheres when
