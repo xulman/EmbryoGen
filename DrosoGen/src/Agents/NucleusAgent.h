@@ -280,19 +280,19 @@ private:
 
 		//scheduler, please give me ShadowAgents that are not further than ignoreDistance
 		//(and the distance is evaluated based on distances of AABBs)
-		std::list<const ShadowAgent*> l;
-		Officer->getNearbyAgents(this,ignoreDistance,l);
+		std::list<const ShadowAgent*> nearbyAgents;
+		Officer->getNearbyAgents(this,ignoreDistance, nearbyAgents);
 
-		DEBUG_REPORT("ID " << ID << ": Found " << l.size() << " nearby agents");
+		DEBUG_REPORT("ID " << ID << ": Found " << nearbyAgents.size() << " nearby agents");
 
 		//those on the list are ShadowAgents who are potentially close enough
 		//to interact with me and these I need to inspect closely
 		proximityPairs_toNuclei.clear();
 		proximityPairs_toYolk.clear();
-		for (auto sa = l.begin(); sa != l.end(); ++sa)
+		for (auto sa = nearbyAgents.begin(); sa != nearbyAgents.end(); ++sa)
 		{
 			if ( ((*sa)->getAgentType())[0] == 'n' )
-				geometry.getDistance((*sa)->getGeometry(),proximityPairs_toNuclei);
+				geometry.getDistance((*sa)->getGeometry(),proximityPairs_toNuclei, (void*)*sa);
 			else
 				geometry.getDistance((*sa)->getGeometry(),proximityPairs_toYolk);
 		}
