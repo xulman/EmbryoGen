@@ -304,11 +304,67 @@ private:
 		DEBUG_REPORT("ID " << ID << ": Found " << proximityPairs_toNuclei.size() << " proximity pairs to nuclei");
 		DEBUG_REPORT("ID " << ID << ": Found " << proximityPairs_toYolk.size()   << " proximity pairs to yolk");
 
-		//TRAgen, eq. (4)
-		//TRAgen, eq. (5)
-		//TRAgen, eq. (6)
-		//convert proximityPairs_toNuclei -> forces! according to TRAgen rules
-		//TODO: ftype_repulsive, ftype_body, ftype_slide
+		Vector3d<FLOAT> f,g; //tmp vectors
+		for (const auto& pp : proximityPairs_toNuclei)
+		{
+			if (pp.distance > 0)
+			{
+				//no collision
+				if (pp.distance < 3.0)
+				{
+					//distance not too far, repulsion makes sense here
+					//
+					//unit force vector (in the direction "away from each other")
+					f  = pp.localPos;
+					f -= pp.otherPos;
+					f /= f.len();
+
+					//TRAgen paper, eq. (4)
+					forces.push_back( ForceVector3d<FLOAT>(
+						(fstrength_overlap_level * std::exp(-pp.distance / fstrength_rep_scale)) * f,
+						futureGeometry.centres[pp.localHint],pp.localHint, ftype_repulsive ) );
+				}
+			}
+			else
+			{
+				//collision
+
+				//body force
+				//
+				//unit force vector (in the direction "away from each other")
+				f  = pp.localPos;
+				f -= pp.otherPos;
+				f /= f.len();
+
+				FLOAT fScale = fstrength_overlap_level;
+				if (-pp.distance > fstrength_overlap_depth)
+				{
+					//in the non-calm response zone (where force increases with the penetration depth)
+					fScale += fstrength_overlap_scale * (-pp.distance - fstrength_overlap_depth);
+				}
+
+				//TRAgen paper, eq. (5)
+				forces.push_back( ForceVector3d<FLOAT>( fScale * f,
+					futureGeometry.centres[pp.localHint],pp.localHint, ftype_body ) );
+
+				//sliding force
+				//
+				//difference of velocities
+				f  = ((const NucleusAgent*)pp.callerHint)->getVelocityOfSphere(pp.otherHint);
+				f -= velocities[pp.localHint];
+
+				//subtract from it the component that is parallel to this proximity pair
+				g  = pp.localPos;
+				g -= pp.otherPos;     //g is now the proximity pair vector
+				g /= g.len();
+				g *= dotProduct(f,g); //g is now the projection of f onto g
+				f -= g;               //f is now without the proximity pair component
+
+				//TRAgen paper, eq. (6)
+				forces.push_back( ForceVector3d<FLOAT>( f,
+					futureGeometry.centres[pp.localHint],pp.localHint, ftype_slide ) );
+			}
+		}
 
 		//non-TRAgen new force, will however follow TRAgen paper, eq. (2) -- desired/driving regime
 		//convert proximityPairs_toYolk -> forces!
@@ -335,7 +391,7 @@ private:
 	}
 
 public:
-	const Vector3d<FLOAT>& getVelocityOfSphere(const int index)
+	const Vector3d<FLOAT>& getVelocityOfSphere(const long index) const
 	{
 #ifdef DEBUG
 		if (index >= geometryAlias.noOfSpheres)
