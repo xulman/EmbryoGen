@@ -275,21 +275,25 @@ struct ProximityPair
 	    of two nearest points between the two geometries. */
 	FLOAT distance;
 
-	/** pointer on hinting data of the 'local' point */
+	/** hinting data about the 'local' point */
 	long localHint;
-	/** pointer on hinting data of the 'other' point */
+	/** hinting data about the 'other' point */
 	long otherHint;
+
+	/** Extra data that a caller/user may want to associate with this pair.
+	    The caller must take care of this pointer when this pair is destructed. */
+	void* callerHint;
 
 	/** convenience constructor for just two colliding points */
 	ProximityPair(const Vector3d<FLOAT>& l, const Vector3d<FLOAT>& o,
 	              const FLOAT dist)
-		: localPos(l), otherPos(o), distance(dist), localHint(0), otherHint(0) {};
+		: localPos(l), otherPos(o), distance(dist), localHint(0), otherHint(0), callerHint(NULL) {};
 
 	/** convenience constructor for points with hints */
 	ProximityPair(const Vector3d<FLOAT>& l, const Vector3d<FLOAT>& o,
 	              const FLOAT dist,
 	              const long lh, const long oh)
-		: localPos(l), otherPos(o), distance(dist), localHint(lh), otherHint(oh) {};
+		: localPos(l), otherPos(o), distance(dist), localHint(lh), otherHint(oh), callerHint(NULL) {};
 
 	/** swap the notion of 'local' and 'other' */
 	void swap(void)
