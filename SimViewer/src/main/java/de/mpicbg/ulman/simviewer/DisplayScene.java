@@ -68,7 +68,9 @@ public class DisplayScene extends SceneryBase implements Runnable
 	public
 	void init()
 	{
-		setRenderer( Renderer.createRenderer(getHub(), getApplicationName(), getScene(), getWindowWidth(), getWindowHeight()));
+		final Renderer r = Renderer.createRenderer(getHub(), getApplicationName(), getScene(), getWindowWidth(), getWindowHeight());
+		r.setPushMode(true);
+		setRenderer(r);
 		getHub().add(SceneryElement.Renderer, getRenderer());
 
 		//the overall down scaling of the displayed objects such that moving around
