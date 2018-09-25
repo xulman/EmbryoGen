@@ -242,6 +242,7 @@ private:
 			forces.push_back( ForceVector3d<FLOAT>(sOff[3], futureGeometry.centres[2],2, ftype_s2s) );
 		}
 
+		//add forces on the list that represent how and where the nucleus would like to move
 		/*
 		//TRAgen paper, eq (2): Fdesired = weight * drivingForceMagnitude
 		const FLOAT drivingForceMagnitude = fstrength_drive_velocity/fstrength_timePersist;
@@ -267,6 +268,16 @@ private:
 
 	void collectExtForces(void) override
 	{
+		//damping force (aka friction due to the environment,
+		//an ext. force that is independent of other agents)
+		//TRAgen, eq. (3)
+		for (int i=0; i < futureGeometry.noOfSpheres; ++i)
+		{
+			forces.push_back( ForceVector3d<FLOAT>(
+				(-weights[i]/fstrength_timePersist)*velocities[i],
+				futureGeometry.centres[i],i, ftype_friction ) );
+		}
+
 		//scheduler, please give me ShadowAgents that are not further than ignoreDistance
 		//(and the distance is evaluated based on distances of AABBs)
 		std::list<const ShadowAgent*> l;
@@ -289,15 +300,6 @@ private:
 		//now, postprocess the proximityPairs
 		DEBUG_REPORT("ID " << ID << ": Found " << proximityPairs_toNuclei.size() << " proximity pairs to nuclei");
 		DEBUG_REPORT("ID " << ID << ": Found " << proximityPairs_toYolk.size()   << " proximity pairs to yolk");
-
-		//TRAgen, eq. (3)
-		//damping force (aka friction due to the environment)
-		for (int i=0; i < futureGeometry.noOfSpheres; ++i)
-		{
-			forces.push_back( ForceVector3d<FLOAT>(
-				(-weights[i]/fstrength_timePersist)*velocities[i],
-				futureGeometry.centres[i],i, ftype_friction ) );
-		}
 
 		//TRAgen, eq. (4)
 		//TRAgen, eq. (5)
