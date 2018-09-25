@@ -132,13 +132,11 @@ std::ostream& operator<<(std::ostream& s,const Vector3d<T>& v)
 }
 
 /** function for dot product of two vectors */
-/* uncomment once needed... to prevent from -Wunused-function warnings
-static
-float dotProduct(const Vector3d<float>& u, const Vector3d<float>& v)
+template <typename T>
+T dotProduct(const Vector3d<T>& u, const Vector3d<T>& v)
 {
 	return u.x*v.x+u.y*v.y;
 }
-*/
 
 /** calculates addition of two vectors: vecA + vecB */
 template <typename T>
