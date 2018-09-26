@@ -126,7 +126,7 @@ public:
 
 				//vector between the two centres
 				Vector3d<FLOAT> dp = centresO[bestIo] - centres[im];
-				dp /= dp.len();
+				dp.changeToUnitOrZero();
 
 				//the vector made 'radius' longer, and offsets the 'centre' point
 				p.localPos +=      +radii[im] * dp;

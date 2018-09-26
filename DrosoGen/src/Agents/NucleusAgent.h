@@ -321,7 +321,7 @@ private:
 					//unit force vector (in the direction "away from the other buddy")
 					f  = pp.localPos;
 					f -= pp.otherPos;
-					f /= f.len();
+					f.changeToUnitOrZero();
 
 					//TRAgen paper, eq. (4)
 					forces.push_back( ForceVector3d<FLOAT>(
@@ -338,7 +338,7 @@ private:
 				//unit force vector (in the direction "away from the other buddy")
 				f  = pp.localPos;
 				f -= pp.otherPos;
-				f /= f.len();
+				f.changeToUnitOrZero();
 
 				FLOAT fScale = fstrength_overlap_level;
 				if (-pp.distance > fstrength_overlap_depth)
@@ -374,7 +374,7 @@ private:
 			//unit force vector (in the direction "towards the shape hinter")
 			f  = pp.otherPos;
 			f -= pp.localPos;
-			f /= f.len();
+			f.changeToUnitOrZero();
 
 			forces.push_back( ForceVector3d<FLOAT>(
 				(2*fstrength_overlap_level * std::min(pp.distance*pp.distance * fstrength_hinter_scale,(FLOAT)1)) * f,
