@@ -26,9 +26,6 @@ static FLOAT fstrength_rep_scale      = (FLOAT)0.6;     // [1/um]      TRAgen: B
 static FLOAT fstrength_slide_scale    = (FLOAT)0.3;     // [N min/um]  TRAgen: Kappa
 static FLOAT fstrength_hinter_scale   = (FLOAT)0.25;    // [1/um^2]
 
-static FLOAT fstrength_drive_velocity = (FLOAT)3.0;     // [um/min]    TRAgen: v^d(t)
-static FLOAT fstrength_timePersist    = (FLOAT)5.0;     // [min]       TRAgen: Tau_p
-
 
 class NucleusAgent: public AbstractAgent
 {
@@ -53,6 +50,8 @@ public:
 		//10(all s2s) + 4(spheres)*2(drive&friction) + 10(neigs)*4(spheres)*4("outer" forces),
 		//and "up-rounded"...
 		forces.reserve(200);
+		velocity_CurrentlyDesired = 0; //no own movement desired yet
+		velocity_PersistenceTime  = (FLOAT)5.0;
 
 		//init centreDistances based on the initial geometry
 		//(silently assuming that there are 4 spheres TODO)
@@ -81,6 +80,15 @@ private:
 
 	/** currently exhibited cell phase */
 	ListOfPhases curPhase;
+
+	/** motion: desired current velocity [um/min] */
+	Vector3d<FLOAT> velocity_CurrentlyDesired;
+
+	/** motion: adaptation time, that is, how fast the desired velocity
+	    should be reached (from zero movement); this param is in
+	    the original literature termed as persistence time and so
+	    we keep to that term [min] */
+	FLOAT velocity_PersistenceTime;
 
 	// ------------- internals geometry -------------
 	/** reference to my exposed geometry ShadowAgents::geometry */
@@ -246,19 +254,14 @@ private:
 		}
 
 		//add forces on the list that represent how and where the nucleus would like to move
-		/*
 		//TRAgen paper, eq (2): Fdesired = weight * drivingForceMagnitude
-		const FLOAT drivingForceMagnitude = fstrength_drive_velocity/fstrength_timePersist;
-		Vector3d<FLOAT> drivingDirection(1.0f,0.0f,0.0f);
-
-		//create forces that "are product of my will"
-		forces.push_back( ForceVector3d<FLOAT>(
-			(weights[1]*drivingForceMagnitude/drivingDirection.len()) * drivingDirection,
-			futureGeometry.centres[1],1, ftype_drive ) );
-		forces.push_back( ForceVector3d<FLOAT>(
-			(weights[2]*drivingForceMagnitude/drivingDirection.len()) * drivingDirection,
-			futureGeometry.centres[2],2, ftype_drive ) );
-		*/
+		//NB: the forces will act rigidly on the full nucleus
+		for (int i=0; i < futureGeometry.noOfSpheres; ++i)
+		{
+			forces.push_back( ForceVector3d<FLOAT>(
+				(weights[i]/velocity_PersistenceTime) * velocity_CurrentlyDesired,
+				futureGeometry.centres[i],i, ftype_drive ) );
+		}
 
 		//increase the local time of the agent
 		currTime += incrTime;
@@ -277,7 +280,7 @@ private:
 		for (int i=0; i < futureGeometry.noOfSpheres; ++i)
 		{
 			forces.push_back( ForceVector3d<FLOAT>(
-				(-weights[i]/fstrength_timePersist)*velocities[i],
+				(-weights[i]/velocity_PersistenceTime)*velocities[i],
 				futureGeometry.centres[i],i, ftype_friction ) );
 		}
 
