@@ -370,6 +370,7 @@ private:
 		//non-TRAgen new force, driven by the offset distance from the position expected by the shape hinter,
 		//it converts proximityPairs_toYolk to forces
 		for (const auto& pp : proximityPairs_toYolk)
+		if (pp.localHint == 0) //consider pair related only to the first sphere of a nucleus
 		{
 			//unit force vector (in the direction "towards the shape hinter")
 			f  = pp.otherPos;
