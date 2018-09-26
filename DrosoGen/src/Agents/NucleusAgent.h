@@ -291,12 +291,12 @@ private:
 		//to interact with me and these I need to inspect closely
 		proximityPairs_toNuclei.clear();
 		proximityPairs_toYolk.clear();
-		for (auto sa = nearbyAgents.begin(); sa != nearbyAgents.end(); ++sa)
+		for (const auto sa : nearbyAgents)
 		{
-			if ( ((*sa)->getAgentType())[0] == 'n' )
-				geometry.getDistance((*sa)->getGeometry(),proximityPairs_toNuclei, (void*)*sa);
+			if ( (sa->getAgentType())[0] == 'n' )
+				geometry.getDistance(sa->getGeometry(),proximityPairs_toNuclei, (void*)&sa);
 			else
-				geometry.getDistance((*sa)->getGeometry(),proximityPairs_toYolk);
+				geometry.getDistance(sa->getGeometry(),proximityPairs_toYolk);
 		}
 
 		//now, postprocess the proximityPairs, that is, to
