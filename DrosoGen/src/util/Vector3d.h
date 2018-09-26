@@ -121,6 +121,19 @@ public:
 		y /= v.y;
 		z /= v.z;
 	}
+
+	void changeToUnitOrZero(void)
+	{
+		T l = this->len2();
+		if (l > 0)
+		{
+			l = std::sqrt(l);
+			x /= l;
+			y /= l;
+			z /= l;
+		}
+		//or l == 0 which means x == y == z == 0
+	}
 };
 
 /** reports vector as a position coordinate */
