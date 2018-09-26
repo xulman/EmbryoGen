@@ -24,6 +24,7 @@ static FLOAT fstrength_overlap_level  = (FLOAT)0.1;     // [N]         TRAgen: A
 static FLOAT fstrength_overlap_depth  = (FLOAT)0.5;     // [um]        TRAgen: delta_o (do)
 static FLOAT fstrength_rep_scale      = (FLOAT)0.6;     // [1/um]      TRAgen: B
 static FLOAT fstrength_slide_scale    = (FLOAT)0.3;     // [N min/um]  TRAgen: Kappa
+static FLOAT fstrength_hinter_scale   = (FLOAT)0.25;    // [1/um^2]
 
 static FLOAT fstrength_drive_velocity = (FLOAT)3.0;     // [um/min]    TRAgen: v^d(t)
 static FLOAT fstrength_timePersist    = (FLOAT)5.0;     // [min]       TRAgen: Tau_p
@@ -363,9 +364,19 @@ private:
 			}
 		}
 
-		//non-TRAgen new force, will however follow TRAgen paper, eq. (2) -- desired/driving regime
-		//convert proximityPairs_toYolk -> forces!
-		//TODO: ftype_hinter
+		//non-TRAgen new force, driven by the offset distance from the position expected by the shape hinter,
+		//it converts proximityPairs_toYolk to forces
+		for (const auto& pp : proximityPairs_toYolk)
+		{
+			//unit force vector (in the direction "towards the shape hinter")
+			f  = pp.otherPos;
+			f -= pp.localPos;
+			f /= f.len();
+
+			forces.push_back( ForceVector3d<FLOAT>(
+				(2*fstrength_overlap_level * std::min(pp.distance*pp.distance * fstrength_hinter_scale,(FLOAT)1)) * f,
+				futureGeometry.centres[pp.localHint],pp.localHint, ftype_hinter ) );
+		}
 	}
 
 	void adjustGeometryByExtForces(void) override
