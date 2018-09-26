@@ -310,6 +310,9 @@ public class DisplayScene extends SceneryBase implements Runnable
 			final GLVector sxlylz = new GLVector(sceneOffset[0]             , sceneOffset[1]+sceneSize[1], sceneOffset[2]+sceneSize[2]);
 			final GLVector lxlylz = new GLVector(sceneOffset[0]+sceneSize[0], sceneOffset[1]+sceneSize[1], sceneOffset[2]+sceneSize[2]);
 
+			//first of the two mandatory surrounding fake points that are never displayed
+			for (Line l : borderData) l.addPoint(sxsysz);
+
 			//C-shape around the front face (one edge missing)
 			borderData[0].addPoint(lxlysz);
 			borderData[0].addPoint(sxlysz);
@@ -340,7 +343,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 
 			for (Line l : borderData)
 			{
-				l.addPoint(sxsysz);
+				//second of the two mandatory surrounding fake points that are never displayed
 				l.addPoint(sxsysz);
 				l.setEdgeWidth(0.02f);
 			}
@@ -432,12 +435,11 @@ public class DisplayScene extends SceneryBase implements Runnable
 
 		//now update the line with the current data
 		n.clearPoints();
+		n.addPoint(new GLVector(0.f,3));
 		n.addPoint(new GLVector(l.posA[0],l.posA[1],l.posA[2]));
 		n.addPoint(new GLVector(l.posB[0],l.posB[1],l.posB[2]));
-
-		//add two mandatory fake points that are never displayed
 		n.addPoint(new GLVector(0.f,3));
-		n.addPoint(new GLVector(0.f,3));
+		//NB: surrounded by two mandatory fake points that are never displayed
 
 		n.setMaterial(materials[l.color % materials.length]);
 		//no setScale(), no setPosition()
@@ -775,6 +777,9 @@ public class DisplayScene extends SceneryBase implements Runnable
 		to the former one; altogehter 7 segments drawn sequentially
 		*/
 
+		//first of the two mandatory surrounding fake points that are never displayed
+		l.addPoint(v);
+
 		//the main "vertical" segment of the vector
 		l.addPoint(new GLVector(0.f,3));
 		l.addPoint(v);
@@ -807,8 +812,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 		l.addPoint(v.times(0.8f).minus(base));
 		l.addPoint(v);
 
-		//add two mandatory fake points that are never displayed
-		l.addPoint(v);
+		//second of the two mandatory surrounding fake points that are never displayed
 		l.addPoint(v);
 
 		return l;
@@ -834,6 +838,9 @@ public class DisplayScene extends SceneryBase implements Runnable
 		then 3 segments to build a triangle and then another triangle perpendicular
 		to the former one; altogehter 7 segments drawn sequentially
 		*/
+
+		//first of the two mandatory surrounding fake points that are never displayed
+		l.addPoint(v);
 
 		//the main "vertical" segment of the vector
 		l.addPoint(new GLVector(0.f,3));
@@ -880,8 +887,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 		//finish the 2nd triangle
 		l.addPoint(v);
 
-		//add two mandatory fake points that are never displayed
-		l.addPoint(v);
+		//second of the two mandatory surrounding fake points that are never displayed
 		l.addPoint(v);
 
 		return l;
@@ -912,10 +918,14 @@ public class DisplayScene extends SceneryBase implements Runnable
 		with a cone sitting on top of it
 		*/
 
+		//first of the two mandatory surrounding fake points that are never displayed
+		l.addPoint(v);
+
 		//the main "vertical" segment of the vector
 		l.addPoint(new GLVector(0.f,3));
 		l.addPoint(v.times(0.95f));
-		l.addPoint(v);
+
+		//second of the two mandatory surrounding fake points that are never displayed
 		l.addPoint(v);
 
 		//the cone
