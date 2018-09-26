@@ -263,6 +263,20 @@ private:
 				futureGeometry.centres[i],i, ftype_drive ) );
 		}
 
+		//---------- DEBUG REMOVE ----------
+		//create additional forces acting on the middle two spheres only
+		const Vector3d<FLOAT> extraDrivingVelocity(1.0f,0.0f,0.0f);
+		forces.push_back( ForceVector3d<FLOAT>(
+			(weights[1]/velocity_PersistenceTime) * extraDrivingVelocity,
+			futureGeometry.centres[1],1, ftype_drive ) );
+		forces.push_back( ForceVector3d<FLOAT>(
+			(weights[2]/velocity_PersistenceTime) * extraDrivingVelocity,
+			futureGeometry.centres[2],2, ftype_drive ) );
+
+		//export forces for display:
+		forcesForDisplay = forces;
+		//---------- DEBUG REMOVE ----------
+
 		//increase the local time of the agent
 		currTime += incrTime;
 	}
@@ -385,6 +399,12 @@ private:
 				(2*fstrength_overlap_level * std::min(pp.distance*pp.distance * fstrength_hinter_scale,(FLOAT)1)) * f,
 				futureGeometry.centres[pp.localHint],pp.localHint, ftype_hinter ) );
 		}
+
+		//---------- DEBUG REMOVE ----------
+		//append forces to forcesForDisplay
+		for (const auto& f : forces)
+			forcesForDisplay.push_back(f);
+		//---------- DEBUG REMOVE ----------
 	}
 
 	void adjustGeometryByExtForces(void) override
@@ -419,10 +439,11 @@ public:
 
 private:
 	// ------------- rendering -------------
+	std::vector< ForceVector3d<FLOAT> > forcesForDisplay; //DEBUG REMOVEME
 	void drawMask(DisplayUnit& du) override
 	{
-		if (ID % 50 != 0) //show only for every 50th cell
-			return;
+		//show only for every 50th cell
+		if (ID % 20 != 0) return;
 
 		const int color = curPhase < 3? 2:3;
 		int dID = ID << 17;
@@ -445,10 +466,25 @@ private:
 			*/
 			Vector3d<FLOAT> sOff[4];
 			getCurrentOffVectorsForCentres(sOff);
-			du.DrawVector(dID++, futureGeometry.centres[0],sOff[0], 1);
-			du.DrawVector(dID++, futureGeometry.centres[1],sOff[1], 1);
-			du.DrawVector(dID++, futureGeometry.centres[2],sOff[2], 1);
-			du.DrawVector(dID++, futureGeometry.centres[3],sOff[3], 1);
+			du.DrawLine(dID++, futureGeometry.centres[0],futureGeometry.centres[0]+sOff[0], 1); //red color
+			du.DrawLine(dID++, futureGeometry.centres[1],futureGeometry.centres[1]+sOff[1], 1);
+			du.DrawLine(dID++, futureGeometry.centres[2],futureGeometry.centres[2]+sOff[2], 1);
+			du.DrawLine(dID++, futureGeometry.centres[3],futureGeometry.centres[3]+sOff[3], 1);
+
+			for (const auto& f : forcesForDisplay)
+			{
+				int color = 2; //default color: green
+				if      (f.type == ftype_s2s)      color = 4; //cyan
+				else if (f.type == ftype_drive)    color = 5; //magenta
+				else if (f.type == ftype_friction) color = 6; //yellow
+				du.DrawVector(dID++, f.base,f, color);
+			}
+
+			for (int i=0; i < futureGeometry.noOfSpheres; ++i)
+			{
+				du.DrawVector(dID++, futureGeometry.centres[i],velocities[i], 0); //white color
+				REPORT(ID << " #" << i << ": velocity=" << velocities[i] << "  ||=" << velocities[i].len());
+			}
 		}
 
 		//draw global debug bounding box
