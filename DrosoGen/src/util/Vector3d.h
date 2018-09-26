@@ -252,4 +252,13 @@ public:
 		return( *this );
 	}
 };
+
+/** reports force as a force type, force vector and position coordinate */
+template <typename T>
+std::ostream& operator<<(std::ostream& s,const ForceVector3d<T>& f)
+{
+	s << f.type << ": (" << f.x << "," << f.y << "," << f.z
+	  << ") @ [" << f.base.x << "," << f.base.y << "," << f.base.z << "]";
+	return s;
+}
 #endif
