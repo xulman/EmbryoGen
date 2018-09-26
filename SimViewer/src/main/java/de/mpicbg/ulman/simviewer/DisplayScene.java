@@ -79,7 +79,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 		//non-scaled coordinates -- so we hook everything underneath the fake object
 		//that is downscaled (and consequently all is downscaled too) but defined with
 		//at original scale (with original coordinates and distances)
-		final float DsFactor = 0.01f;
+		final float DsFactor = 0.1f;
 
 		//introduce an invisible "fake" object
 		scene = new Box(new GLVector(0.0f,3));
@@ -427,7 +427,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 		{
 			//new line: adding
 			n = new Line(4);
-			n.setEdgeWidth(0.02f);
+			n.setEdgeWidth(0.3f);
 			lineNodes.put(ID,n);
 			scene.addChild(n);
 			showOrHideMe(ID,n,cellLinesShown);
@@ -763,7 +763,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 	Line CreateVector(final GLVector v)
 	{
 		final Line l = new Line(10);
-		l.setEdgeWidth(0.02f);
+		l.setEdgeWidth(0.1f);
 
 		/*
 		  /|\
@@ -825,7 +825,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 	Line CreateVector_Pyramid(final GLVector v)
 	{
 		final Line l = new Line(14);
-		l.setEdgeWidth(0.02f);
+		l.setEdgeWidth(0.1f);
 
 		/*
 		  /|\
@@ -905,7 +905,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 	Node CreateVector_Cone(final GLVector v)
 	{
 		final Line l = new Line(4);
-		l.setEdgeWidth(0.02f);
+		l.setEdgeWidth(0.1f);
 
 		/* .
 		  / \
