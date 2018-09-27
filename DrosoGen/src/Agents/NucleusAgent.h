@@ -206,8 +206,17 @@ private:
 	}
 
 	// ------------- to implement one round of simulation -------------
+	int incrCnt = 0;
 	void advanceAndBuildIntForces(const float) override
 	{
+		//adjust the shape at first
+		if (incrCnt < 30)
+		{
+			for (int i=0; i < futureGeometry.noOfSpheres; ++i) futureGeometry.radii[i] += 0.1f;
+			for (int i=1; i < futureGeometry.noOfSpheres; ++i) centreDistance[i-1]     += 0.1f;
+			++incrCnt;
+		}
+
 		//check bending of the spheres (how much their position deviates from a line,
 		//includes also checking the distance), and add, if necessary, another
 		//forces to the list
@@ -270,15 +279,6 @@ private:
 		}
 
 		//---------- DEBUG REMOVE ----------
-		//create additional forces acting on the middle two spheres only
-		const Vector3d<FLOAT> extraDrivingVelocity(1.0f,0.0f,0.0f);
-		forces.push_back( ForceVector3d<FLOAT>(
-			(weights[1]/velocity_PersistenceTime) * extraDrivingVelocity,
-			futureGeometry.centres[1],1, ftype_drive ) );
-		forces.push_back( ForceVector3d<FLOAT>(
-			(weights[2]/velocity_PersistenceTime) * extraDrivingVelocity,
-			futureGeometry.centres[2],2, ftype_drive ) );
-
 		//export forces for display:
 		forcesForDisplay = forces;
 		//---------- DEBUG REMOVE ----------
