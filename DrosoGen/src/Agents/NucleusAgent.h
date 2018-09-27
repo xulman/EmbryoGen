@@ -298,7 +298,7 @@ private:
 		for (const auto sa : nearbyAgents)
 		{
 			if ( (sa->getAgentType())[0] == 'n' )
-				geometry.getDistance(sa->getGeometry(),proximityPairs_toNuclei, (void*)&sa);
+				geometry.getDistance(sa->getGeometry(),proximityPairs_toNuclei, (void*)sa);
 			else
 				geometry.getDistance(sa->getGeometry(),proximityPairs_toYolk);
 		}
@@ -331,13 +331,16 @@ private:
 			}
 			else
 			{
-				//collision
+				//collision, pp.distance <= 0
+				//NB: in collision, the other surface is within local volume, so
+				//    the vector local->other actually points in the opposite direction!
+				//    (as local surface further away than other surface from local centre)
 
 				//body force
 				//
 				//unit force vector (in the direction "away from the other buddy")
-				f  = pp.localPos;
-				f -= pp.otherPos;
+				f  = pp.otherPos;
+				f -= pp.localPos;
 				f.changeToUnitOrZero();
 
 				FLOAT fScale = fstrength_overlap_level;
@@ -359,7 +362,8 @@ private:
 
 				//subtract from it the component that is parallel to this proximity pair
 				f *= dotProduct(f,g); //f is now the projection of g onto f
-				g -= f;               //g is now the difference of velocities without the proximity pair component
+				g -= f;               //g is now the difference of velocities without the component
+				                      //that is parallel with the proximity pair
 
 				//TRAgen paper, eq. (6)
 				forces.push_back( ForceVector3d<FLOAT>( g,
