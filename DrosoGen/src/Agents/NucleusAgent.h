@@ -298,7 +298,7 @@ private:
 		for (const auto sa : nearbyAgents)
 		{
 			if ( (sa->getAgentType())[0] == 'n' )
-				geometry.getDistance(sa->getGeometry(),proximityPairs_toNuclei, (void*)sa);
+				geometry.getDistance(sa->getGeometry(),proximityPairs_toNuclei, (void*)((const NucleusAgent*)sa));
 			else
 				geometry.getDistance(sa->getGeometry(),proximityPairs_toYolk);
 		}
