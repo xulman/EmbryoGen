@@ -136,11 +136,11 @@ public:
 	}
 };
 
-/** reports vector as a position coordinate */
+/** reports vector (with parentheses) */
 template <typename T>
 std::ostream& operator<<(std::ostream& s,const Vector3d<T>& v)
 {
-	s << "[" << v.x << "," << v.y << "," << v.z << "]";
+	s << "(" << v.x << "," << v.y << "," << v.z << ")";
 	return s;
 }
 
@@ -176,6 +176,30 @@ Vector3d<T> operator*(const T scal, const Vector3d<T>& vec)
 	Vector3d<T> res(vec);
 	res *= scal;
 	return (res);
+}
+// ----------------------------------------------------------------------------
+
+/** a dedicated type just to differentiate formally vector from coordinate,
+    and is used mainly in conjunction with operator<<
+
+    Alternatively, one could design this class to hold a reference on Vector3d<>
+    to avoid duplication (copying) of the vector but then one would loose the
+    ability to use the (math) operations already defined for Vector3d<>. */
+template <typename T>
+class Coord3d : public Vector3d<T>
+{
+public:
+	/** a copy constructor to "convert" pure vector into a coordinate */
+	Coord3d(const Vector3d<T>& vec)
+		: Vector3d<T>(vec) {}
+};
+
+/** reports position coordinate (with square brackets) */
+template <typename T>
+std::ostream& operator<<(std::ostream& s,const Coord3d<T>& v)
+{
+	s << "[" << v.x << "," << v.y << "," << v.z << "]";
+	return s;
 }
 // ----------------------------------------------------------------------------
 
