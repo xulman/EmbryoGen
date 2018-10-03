@@ -70,7 +70,7 @@ public:
 		delete[] accels; //NB: deletes also velocities[], see above
 		delete[] weights;
 
-		DEBUG_REPORT("Nucleus with ID=" << ID << " was just deleted");
+		//DEBUG_REPORT("Nucleus with ID=" << ID << " was just deleted");
 	}
 
 
@@ -182,7 +182,7 @@ private:
 		//if ((ID > 307 && ID < 316) || (ID > 344 && ID < 353))
 		//show only for the 2x2 segment of nuclei
 		if ((ID > 307 && ID < 310) || (ID > 344 && ID < 347))
-			for (const auto& f : forces) DEBUG_REPORT(ID << ": force " << f << " ||=" << f.len());
+			for (const auto& f : forces) DEBUG_REPORT(ID << ": ||=" << f.len() << "\tforce " << f);
 
 		//now, translation is a result of forces:
 		for (int i=0; i < futureGeometry.noOfSpheres; ++i)
