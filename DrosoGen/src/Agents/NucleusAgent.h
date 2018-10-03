@@ -536,7 +536,10 @@ private:
 		}
 
 		//global debug
-		int gdID = ID << 6;
+		int gdID = 1000;
+		if (ID == 309) gdID = 2000;
+		else if (ID == 345) gdID = 3000;
+		else if (ID == 346) gdID = 4000;
 		//blue lines with proximity pairs to nuclei
 		for (const auto& p : proximityPairs_toNuclei)
 			du.DrawLine(gdID++, p.localPos,p.otherPos, p.distance > 0 ? 3 : 1);
