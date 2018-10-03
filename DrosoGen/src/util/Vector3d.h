@@ -148,7 +148,7 @@ std::ostream& operator<<(std::ostream& s,const Vector3d<T>& v)
 template <typename T>
 T dotProduct(const Vector3d<T>& u, const Vector3d<T>& v)
 {
-	return u.x*v.x+u.y*v.y;
+	return (u.x*v.x + u.y*v.y + u.z*v.z);
 }
 
 /** calculates addition of two vectors: vecA + vecB */
