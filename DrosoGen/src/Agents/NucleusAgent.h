@@ -30,10 +30,10 @@ static FLOAT fstrength_hinter_scale   = (FLOAT)0.25;    // [1/um^2]
 class NucleusAgent: public AbstractAgent
 {
 public:
-	NucleusAgent(const int ID, const std::string& type,
+	NucleusAgent(const int _ID, const std::string& _type,
 	             const Spheres& shape,
-	             const float currTime, const float incrTime)
-		: AbstractAgent(ID,type, geometryAlias, currTime,incrTime),
+	             const float _currTime, const float _incrTime)
+		: AbstractAgent(_ID,_type, geometryAlias, _currTime,_incrTime),
 		  geometryAlias(shape),
 		  futureGeometry(shape),
 		  accels(new Vector3d<FLOAT>[2*shape.noOfSpheres]),
@@ -62,7 +62,7 @@ public:
 
 		curPhase = G1Phase;
 
-		DEBUG_REPORT("Nucleus with ID=" << ID << " was just created");
+		//DEBUG_REPORT("Nucleus with ID=" << ID << " was just created");
 	}
 
 	~NucleusAgent(void)
