@@ -182,7 +182,7 @@ private:
 		//if ((ID > 307 && ID < 316) || (ID > 344 && ID < 353))
 		//show only for the 2x2 segment of nuclei
 		if ((ID > 307 && ID < 310) || (ID > 344 && ID < 347))
-			for (const auto& f : forces) DEBUG_REPORT(ID << ": force " << f);
+			for (const auto& f : forces) DEBUG_REPORT(ID << ": force " << f << " ||=" << f.len());
 
 		//now, translation is a result of forces:
 		for (int i=0; i < futureGeometry.noOfSpheres; ++i)
@@ -309,7 +309,9 @@ private:
 		std::list<const ShadowAgent*> nearbyAgents;
 		Officer->getNearbyAgents(this,ignoreDistance, nearbyAgents);
 
-		//DEBUG_REPORT("ID " << ID << ": Found " << nearbyAgents.size() << " nearby agents");
+		//DEBUG REMOVEME
+		if ((ID > 307 && ID < 310) || (ID > 344 && ID < 347))
+			DEBUG_REPORT("ID " << ID << ": Found " << nearbyAgents.size() << " nearby agents");
 
 		//those on the list are ShadowAgents who are potentially close enough
 		//to interact with me and these I need to inspect closely
@@ -323,11 +325,15 @@ private:
 				geometry.getDistance(sa->getGeometry(),proximityPairs_toYolk);
 		}
 
+		//DEBUG REMOVEME
+		if ((ID > 307 && ID < 310) || (ID > 344 && ID < 347))
+		{
+			DEBUG_REPORT("ID " << ID << ": Found " << proximityPairs_toNuclei.size() << " proximity pairs to nuclei");
+			DEBUG_REPORT("ID " << ID << ": Found " << proximityPairs_toYolk.size()   << " proximity pairs to yolk");
+		}
+
 		//now, postprocess the proximityPairs, that is, to
 		//convert proximityPairs_toNuclei to forces according to TRAgen rules
-		//DEBUG_REPORT("ID " << ID << ": Found " << proximityPairs_toNuclei.size() << " proximity pairs to nuclei");
-		//DEBUG_REPORT("ID " << ID << ": Found " << proximityPairs_toYolk.size()   << " proximity pairs to yolk");
-
 		Vector3d<FLOAT> f,g; //tmp vectors
 		for (const auto& pp : proximityPairs_toNuclei)
 		{
@@ -374,16 +380,28 @@ private:
 				forces.push_back( ForceVector3d<FLOAT>( fScale * f,
 					futureGeometry.centres[pp.localHint],pp.localHint, ftype_body ) );
 
+				//DEBUG REMOVEME
+				if ((ID > 307 && ID < 310) || (ID > 344 && ID < 347))
+					DEBUG_REPORT(ID << ": body  pp.distance=" << pp.distance << " |force|=" << fScale*f.len());
+
 				//sliding force
 				//
 				//difference of velocities
 				g  = ((const NucleusAgent*)pp.callerHint)->getVelocityOfSphere(pp.otherHint);
 				g -= velocities[pp.localHint];
 
+				//DEBUG REMOVEME
+				if ((ID > 307 && ID < 310) || (ID > 344 && ID < 347))
+					DEBUG_REPORT(ID << ": slide oID=" << ((const NucleusAgent*)pp.callerHint)->ID << " |velocityDiff|=" << g.len());
+
 				//subtract from it the component that is parallel to this proximity pair
 				f *= dotProduct(f,g); //f is now the projection of g onto f
 				g -= f;               //g is now the difference of velocities without the component
 				                      //that is parallel with the proximity pair
+
+				//DEBUG REMOVEME
+				if ((ID > 307 && ID < 310) || (ID > 344 && ID < 347))
+					DEBUG_REPORT(ID << ": slide pp.distance=" << pp.distance << " |f|=" << f.len() << " |g|=" << g.len());
 
 				//TRAgen paper, eq. (6)
 				forces.push_back( ForceVector3d<FLOAT>( g,
