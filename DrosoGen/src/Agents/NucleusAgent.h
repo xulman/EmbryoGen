@@ -178,6 +178,12 @@ private:
 		//collect all forces acting on every sphere to have one overall force per sphere
 		for (const auto& f : forces) accels[f.hint] += f;
 
+		//show only for the 2x8 segment of nuclei
+		//if ((ID > 307 && ID < 316) || (ID > 344 && ID < 353))
+		//show only for the 2x2 segment of nuclei
+		if ((ID > 307 && ID < 310) || (ID > 344 && ID < 347))
+			for (const auto& f : forces) DEBUG_REPORT(ID << ": force " << f);
+
 		//now, translation is a result of forces:
 		for (int i=0; i < futureGeometry.noOfSpheres; ++i)
 		{
@@ -442,9 +448,6 @@ private:
 	std::vector< ForceVector3d<FLOAT> > forcesForDisplay; //DEBUG REMOVEME
 	void drawMask(DisplayUnit& du) override
 	{
-		//show only for every 20th cell
-		if (ID % 20 != 0) return;
-
 		const int color = curPhase < 3? 2:3;
 		int dID = ID << 17;
 
@@ -454,6 +457,11 @@ private:
 			if (futureGeometry.radii[i] > 0.f)
 				du.DrawPoint(dID++,futureGeometry.centres[i],futureGeometry.radii[i],color);
 		}
+
+		//render only for the 2x8 segment of nuclei
+		//if (!(ID > 307 && ID < 316) && !(ID > 344 && ID < 353)) return;
+		//render only for the 2x2 segment of nuclei
+		if (!(ID > 307 && ID < 310) && !(ID > 344 && ID < 347)) return;
 
 		//draw (debug) vectors
 		{
