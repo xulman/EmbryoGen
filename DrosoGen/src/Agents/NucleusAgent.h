@@ -476,6 +476,19 @@ private:
 				du.DrawPoint(dID++,futureGeometry.centres[i],futureGeometry.radii[i],color);
 		}
 
+		//global debug, cyan and magenta AABBs
+		int gdID = 5000 + 20*ID;
+		//if (ID > 307 && ID < 345 && ( (((ID-271)%37) < 4) || (((ID-271)%37) > 34) ))
+		if (ID > 269 && ID < 456 && ( (((ID-197)%37) < 4) || (((ID-197)%37) > 34) || ID == 275 ))
+			gdID += futureGeometry.AABB.drawIt(gdID,ID&1 ? 4:5,du);
+		/*
+		if (ID > 232 && ID < 234)
+		{
+			REPORT("E " << ID);
+			gdID += futureGeometry.AABB.drawIt(gdID,ID&1 ? 4:5,du);
+		}
+		*/
+
 		//render only for the 2x8 segment of nuclei
 		//if (!(ID > 307 && ID < 316) && !(ID > 344 && ID < 353)) return;
 		//render only for the 2x2 segment of nuclei
@@ -536,7 +549,7 @@ private:
 		}
 
 		//global debug
-		int gdID = 1000;
+		gdID = 1000;
 		if (ID == 309) gdID = 2000;
 		else if (ID == 345) gdID = 3000;
 		else if (ID == 346) gdID = 4000;
