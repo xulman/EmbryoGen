@@ -442,7 +442,7 @@ private:
 	std::vector< ForceVector3d<FLOAT> > forcesForDisplay; //DEBUG REMOVEME
 	void drawMask(DisplayUnit& du) override
 	{
-		//show only for every 50th cell
+		//show only for every 20th cell
 		if (ID % 20 != 0) return;
 
 		const int color = curPhase < 3? 2:3;
@@ -458,37 +458,62 @@ private:
 		//draw (debug) vectors
 		{
 			dID |= 1 << 16; //enable debug bit
-			/*
-			for (auto& p : proximityPairs_toNuclei)
-				du.DrawLine(dID++, p.localPos, p.otherPos);
-			for (auto& p : proximityPairs_toYolk)
-				du.DrawLine(dID++, p.localPos, p.otherPos,1);
-			*/
+
+			//cell centres connection "line" (green):
+			du.DrawLine(dID++, futureGeometry.centres[0],futureGeometry.centres[1], color);
+			du.DrawLine(dID++, futureGeometry.centres[1],futureGeometry.centres[2], color);
+			du.DrawLine(dID++, futureGeometry.centres[2],futureGeometry.centres[3], color);
+
+			//neighbors:
+			//white lines with proximity pairs to yolk (shape hinter)
+			for (const auto& p : proximityPairs_toYolk)
+				du.DrawLine(dID++, p.localPos, p.otherPos,0);
+
+			//shape deviations:
+			//red lines to show deviations from the expected geometry
 			Vector3d<FLOAT> sOff[4];
 			getCurrentOffVectorsForCentres(sOff);
 			du.DrawLine(dID++, futureGeometry.centres[0],futureGeometry.centres[0]+sOff[0], 1); //red color
 			du.DrawLine(dID++, futureGeometry.centres[1],futureGeometry.centres[1]+sOff[1], 1);
 			du.DrawLine(dID++, futureGeometry.centres[2],futureGeometry.centres[2]+sOff[2], 1);
 			du.DrawLine(dID++, futureGeometry.centres[3],futureGeometry.centres[3]+sOff[3], 1);
+			//
+			//du.DrawVector(dID++, futureGeometry.centres[0],sOff[0], 1); //red color
+			//du.DrawVector(dID++, futureGeometry.centres[1],sOff[1], 1);
+			//du.DrawVector(dID++, futureGeometry.centres[2],sOff[2], 1);
+			//du.DrawVector(dID++, futureGeometry.centres[3],sOff[3], 1);
 
+			//forces:
 			for (const auto& f : forcesForDisplay)
 			{
-				int color = 2; //default color: green
-				if      (f.type == ftype_s2s)      color = 4; //cyan
-				else if (f.type == ftype_drive)    color = 5; //magenta
-				else if (f.type == ftype_friction) color = 6; //yellow
-				du.DrawVector(dID++, f.base,f, color);
+				int color = 2; //default color: green (for shape hinter)
+				//if      (f.type == ftype_s2s)      color = 4; //cyan
+				//else if (f.type == ftype_drive)    color = 5; //magenta
+				//else if (f.type == ftype_friction) color = 6; //yellow
+				if      (f.type == ftype_body)      color = 4; //cyan
+				else if (f.type == ftype_repulsive) color = 5; //magenta
+				else if (f.type == ftype_slide)     color = 6; //yellow
+				else if (f.type != ftype_hinter)    color = -1; //don't draw
+				if (color > 0) du.DrawVector(dID++, f.base,f, color);
 			}
 
+			//velocities:
+			/*
 			for (int i=0; i < futureGeometry.noOfSpheres; ++i)
-			{
 				du.DrawVector(dID++, futureGeometry.centres[i],velocities[i], 0); //white color
-				REPORT(ID << " #" << i << ": velocity=" << velocities[i] << "  ||=" << velocities[i].len());
-			}
+			*/
+			REPORT(ID << ": velocity[1]=" << velocities[1]
+			          << "  |0|=" << velocities[0].len()
+			          << ", |1|=" << velocities[1].len()
+			          << ", |2|=" << velocities[2].len()
+			          << ", |3|=" << velocities[3].len());
 		}
 
-		//draw global debug bounding box
-		futureGeometry.AABB.drawIt(ID << 4,color,du);
+		//global debug
+		int gdID = ID << 6;
+		//blue lines with proximity pairs to nuclei
+		for (const auto& p : proximityPairs_toNuclei)
+			du.DrawLine(gdID++, p.localPos,p.otherPos, p.distance > 0 ? 3 : 1);
 	}
 
 	void drawMask(i3d::Image3d<i3d::GRAY16>& img) override
