@@ -34,6 +34,7 @@ public:
 	             const Spheres& shape,
 	             const float _currTime, const float _incrTime)
 		: AbstractAgent(_ID,_type, geometryAlias, _currTime,_incrTime),
+		  initialSphere0Coord(shape.centres[0]),
 		  geometryAlias(shape),
 		  futureGeometry(shape),
 		  accels(new Vector3d<FLOAT>[2*shape.noOfSpheres]),
@@ -63,14 +64,18 @@ public:
 		curPhase = G1Phase;
 
 		//DEBUG_REPORT("Nucleus with ID=" << ID << " was just created");
+
 	}
+
+	//DEBUG REMOVEME
+	Coord3d<FLOAT> initialSphere0Coord;
 
 	~NucleusAgent(void)
 	{
 		delete[] accels; //NB: deletes also velocities[], see above
 		delete[] weights;
 
-		DEBUG_REPORT("Nucleus with ID=" << ID << " was just deleted");
+		//DEBUG_REPORT("Nucleus with ID=" << ID << " was just deleted");
 	}
 
 
@@ -494,6 +499,9 @@ private:
 			//white lines with proximity pairs to yolk (shape hinter)
 			for (const auto& p : proximityPairs_toYolk)
 				du.DrawLine(dID++, p.localPos, p.otherPos,0);
+
+			//white vector towards the initial position of the 1st sphere
+			du.DrawVector(dID++, futureGeometry.centres[0],initialSphere0Coord-futureGeometry.centres[0], 0);
 
 			//shape deviations:
 			//red lines to show deviations from the expected geometry
