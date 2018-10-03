@@ -239,7 +239,14 @@ public:
 	{
 		//cache fromSA's bounding box
 		const AxisAlignedBoundingBox& fromAABB = fromSA->getAABB();
-		const float maxDist2 = maxDist*maxDist;
+		float maxDist2 = maxDist*maxDist;
+
+		bool doReport = false;
+		if (maxDist == 10.1f)
+		{
+			maxDist2 = 100.f;
+			doReport = true;
+		}
 
 		//examine all agents
 		std::list<AbstractAgent*>::const_iterator c=agents.begin();
@@ -249,8 +256,19 @@ public:
 			if (*c == fromSA) continue;
 
 			//close enough?
-			if (fromAABB.minDistance((*c)->getAABB()) < maxDist2)
-				l.push_back(*c);
+			//if (fromAABB.minDistance((*c)->getAABB()) < maxDist2)
+			//	l.push_back(*c);
+			float dist2 = fromAABB.minDistance((*c)->getAABB());
+			if (dist2 < 1.44f*maxDist2)
+			{
+				if (dist2 < maxDist2)
+					l.push_back(*c);
+				//else
+				//{
+					if (doReport)
+						DEBUG_REPORT("nearby adept: " << (*c)->ID << " at distance " << std::sqrt(dist2));
+				//}
+			}
 		}
 	}
 

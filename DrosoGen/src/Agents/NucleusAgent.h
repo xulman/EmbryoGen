@@ -307,7 +307,10 @@ private:
 		//scheduler, please give me ShadowAgents that are not further than ignoreDistance
 		//(and the distance is evaluated based on distances of AABBs)
 		std::list<const ShadowAgent*> nearbyAgents;
-		Officer->getNearbyAgents(this,ignoreDistance, nearbyAgents);
+		if ((ID > 307 && ID < 310) || (ID > 344 && ID < 347))
+			Officer->getNearbyAgents(this,10.1f, nearbyAgents);
+		else
+			Officer->getNearbyAgents(this,ignoreDistance, nearbyAgents);
 
 		//DEBUG REMOVEME
 		if ((ID > 307 && ID < 310) || (ID > 344 && ID < 347))
