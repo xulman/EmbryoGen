@@ -524,10 +524,6 @@ private:
 			}
 
 			//velocities:
-			/*
-			for (int i=0; i < futureGeometry.noOfSpheres; ++i)
-				du.DrawVector(dID++, futureGeometry.centres[i],velocities[i], 0); //white color
-			*/
 			REPORT(ID << ": velocity[1]=" << velocities[1]
 			          << "  |0|=" << velocities[0].len()
 			          << ", |1|=" << velocities[1].len()
@@ -536,13 +532,51 @@ private:
 		}
 
 		//global debug
-		int gdID = 1000;
+		Vector3d<FLOAT> indicatorPos(futureGeometry.centres[3]);
+		indicatorPos -= futureGeometry.centres[2];
+		indicatorPos.changeToUnitOrZero();
+		indicatorPos *= 2.0f;
+		indicatorPos += futureGeometry.centres[3];
+
+		int gdID = 0;
+		//small spheres to encode the four nuclei
+		if (ID == 308)
+		{ //in red
+			gdID = 10;
+			du.DrawPoint(gdID++, indicatorPos,1.5f, 1);
+		}
+		else
+		if (ID == 309)
+		{ //in green
+			gdID = 20;
+			du.DrawPoint(gdID++, indicatorPos,1.5f, 2);
+		}
+		else
+		if (ID == 345)
+		{ //in blue
+			gdID = 30;
+			du.DrawPoint(gdID++, indicatorPos,1.5f, 3);
+		}
+		else
+		if (ID == 346)
+		{ //in yellow
+			gdID = 40;
+			du.DrawPoint(gdID++, indicatorPos,1.5f, 6);
+		}
+
+		//velocities:
+		for (int i=0; i < futureGeometry.noOfSpheres; ++i)
+			du.DrawVector(gdID++, futureGeometry.centres[i],velocities[i], 0); //white color
+
+
+		/*
 		if (ID == 309) gdID = 2000;
 		else if (ID == 345) gdID = 3000;
 		else if (ID == 346) gdID = 4000;
 		//blue lines with proximity pairs to nuclei
 		for (const auto& p : proximityPairs_toNuclei)
 			du.DrawLine(gdID++, p.localPos,p.otherPos, p.distance > 0 ? 3 : 1);
+		*/
 	}
 
 	void drawMask(i3d::Image3d<i3d::GRAY16>& img) override
