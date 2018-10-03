@@ -187,7 +187,7 @@ typedef const char* ForceName;
     to prevent of allocating it over and over again */
 static ForceName unknownForceType = "unknown force";
 
-/** essentially a "named" 3D vector */
+/** essentially a "named" and "postioned" 3D vector */
 template <typename T>
 class ForceVector3d : public Vector3d<T>
 {
@@ -209,17 +209,17 @@ public:
 	/** init constructor... */
 	ForceVector3d(const T xx,const T yy,const T zz,
 	              const Vector3d<T>& _base, const ForceName _type)
-		: Vector3d<T>(xx,yy,zz), base(_base), type(_type) {}
+		: Vector3d<T>(xx,yy,zz), base(_base), hint(0), type(_type) {}
 
 	/** init constructor... */
 	ForceVector3d(const T xyz,
 	              const Vector3d<T>& _base, const ForceName _type)
-		: Vector3d<T>(xyz), base(_base), type(_type) {}
+		: Vector3d<T>(xyz), base(_base), hint(0), type(_type) {}
 
 	/** init constructor... */
 	ForceVector3d(const Vector3d<T>& v,
 	              const Vector3d<T>& _base, const ForceName _type)
-		: Vector3d<T>(v), base(_base), type(_type) {}
+		: Vector3d<T>(v), base(_base), hint(0), type(_type) {}
 
 	/** init constructor with explicit hint... */
 	ForceVector3d(const Vector3d<T>& v,
@@ -227,7 +227,8 @@ public:
 		: Vector3d<T>(v), base(_base), hint(_hint), type(_type) {}
 
 	/** copy constructor... */
-	ForceVector3d(const ForceVector3d<T>& vec) : Vector3d<T>(vec)
+	ForceVector3d(const ForceVector3d<T>& vec)
+		: Vector3d<T>(vec)
 	{
 		this->base = vec.base;
 		this->hint = vec.hint;
