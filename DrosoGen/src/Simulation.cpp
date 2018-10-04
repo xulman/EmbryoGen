@@ -54,10 +54,14 @@ void Simulation::initializeAgents(void)
 			s.updateCentre(3,pos +18.0f*axis);
 			s.updateRadius(3,3.0f);
 
-			AbstractAgent* ag = new NucleusAgent(ID++,"nucleus",s,currTime,incrTime);
+			AbstractAgent* ag = new NucleusAgent(ID,"nucleus",s,currTime,incrTime);
 			ag->setOfficer(this);
-			agents.push_back(ag);
-			tracks.startNewTrack(ag->ID,frameCnt);
+			if ((ID > 307 && ID < 310) || (ID > 344 && ID < 347))
+			{
+				agents.push_back(ag);
+				tracks.startNewTrack(ag->ID,frameCnt);
+			}
+			++ID;
 		}
 	}
 
