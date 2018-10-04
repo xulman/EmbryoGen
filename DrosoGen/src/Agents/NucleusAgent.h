@@ -51,6 +51,7 @@ public:
 		//and "up-rounded"...
 		forces.reserve(200);
 		velocity_CurrentlyDesired = 0; //no own movement desired yet
+		velocity_CurrentlyDesired.y = 0.6f;
 		velocity_PersistenceTime  = (FLOAT)5.0;
 
 		//init centreDistances based on the initial geometry
@@ -210,10 +211,17 @@ private:
 	void advanceAndBuildIntForces(const float) override
 	{
 		//adjust the shape at first
-		if (incrCnt < 30)
+		if (incrCnt < 600)
 		{
-			for (int i=0; i < futureGeometry.noOfSpheres; ++i) futureGeometry.radii[i] += 0.1f;
-			for (int i=1; i < futureGeometry.noOfSpheres; ++i) centreDistance[i-1]     += 0.1f;
+			//if (ID == 308 || ID == 309)
+			//	for (int i=0; i < futureGeometry.noOfSpheres; ++i) futureGeometry.centres[i].x += 4.0f;
+
+			//for (int i=0; i < futureGeometry.noOfSpheres; ++i) futureGeometry.radii[i] += 0.1f;
+			//for (int i=1; i < futureGeometry.noOfSpheres; ++i) centreDistance[i-1]     += 0.1f;
+
+			//if (incrCnt == 89)
+			//	velocity_CurrentlyDesired.y = 0.0f;
+
 			++incrCnt;
 		}
 
@@ -339,6 +347,10 @@ private:
 		{
 			if (pp.distance > 0)
 			{
+				//DEBUG REMOVEME
+				//if ((ID > 307 && ID < 310) || (ID > 344 && ID < 347))
+				//	DEBUG_REPORT(ID << ": repulsive  pp.distance=" << pp.distance);
+
 				//no collision
 				if (pp.distance < 3.0) //TODO: replace 3.0 with some function of fstrength_rep_scale
 				{
@@ -419,6 +431,7 @@ private:
 			f -= pp.localPos;
 			f.changeToUnitOrZero();
 
+			DEBUG_REPORT(ID << ": hinter pp.distance=" << pp.distance);
 
 			//the get-back-to-hinter force
 			f *= 2*fstrength_overlap_level * std::min(pp.distance*pp.distance * fstrength_hinter_scale,(FLOAT)1);
@@ -501,8 +514,9 @@ private:
 			du.DrawLine(dID++, futureGeometry.centres[2],futureGeometry.centres[3], color);
 
 			//neighbors:
-			//white lines with proximity pairs to yolk (shape hinter)
+			//white lines (only for two inner spheres) with proximity pairs to yolk (shape hinter)
 			for (const auto& p : proximityPairs_toYolk)
+			if (p.localHint < 2)
 				du.DrawLine(dID++, p.localPos, p.otherPos,0);
 
 			//shape deviations:
@@ -527,7 +541,7 @@ private:
 				//else if (f.type == ftype_drive)    color = 5; //magenta
 				//else if (f.type == ftype_friction) color = 6; //yellow
 				if      (f.type == ftype_body)      color = 4; //cyan
-				else if (f.type == ftype_repulsive) color = 5; //magenta
+				else if (f.type == ftype_repulsive || f.type == ftype_drive) color = 5; //magenta
 				else if (f.type == ftype_slide)     color = 6; //yellow
 				else if (f.type != ftype_hinter)    color = -1; //don't draw
 				if (color > 0) du.DrawVector(dID++, f.base,f, color);
