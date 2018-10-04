@@ -381,9 +381,19 @@ private:
 			f -= pp.localPos;
 			f.changeToUnitOrZero();
 
-			forces.push_back( ForceVector3d<FLOAT>(
-				(2*fstrength_overlap_level * std::min(pp.distance*pp.distance * fstrength_hinter_scale,(FLOAT)1)) * f,
-				futureGeometry.centres[pp.localHint],pp.localHint, ftype_hinter ) );
+
+			//the get-back-to-hinter force
+			f *= 2*fstrength_overlap_level * std::min(pp.distance*pp.distance * fstrength_hinter_scale,(FLOAT)1);
+
+			//apply the same force to all spheres
+			forces.push_back( ForceVector3d<FLOAT>( f,
+				futureGeometry.centres[0],0, ftype_hinter ) );
+			forces.push_back( ForceVector3d<FLOAT>( f,
+				futureGeometry.centres[1],1, ftype_hinter ) );
+			forces.push_back( ForceVector3d<FLOAT>( f,
+				futureGeometry.centres[2],2, ftype_hinter ) );
+			forces.push_back( ForceVector3d<FLOAT>( f,
+				futureGeometry.centres[3],3, ftype_hinter ) );
 		}
 	}
 
