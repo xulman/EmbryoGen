@@ -528,6 +528,19 @@ private:
 				du.DrawPoint(dID++,futureGeometry.centres[i],futureGeometry.radii[i],color);
 		}
 
+		//velocities -- global debug
+		int gdID = ID*20 +50;
+		//for (int i=0; i < futureGeometry.noOfSpheres; ++i)
+		{
+			int i=0;
+			du.DrawVector(gdID++, futureGeometry.centres[i],velocities[i], 0); //white color
+		}
+
+		//red lines with overlapping proximity pairs to nuclei
+		for (const auto& p : proximityPairs_toNuclei)
+		if (p.distance < 0)
+			du.DrawLine(gdID++, p.localPos,p.otherPos, 1);
+
 		//render only for the 2x8 segment of nuclei
 		//if (!(ID > 307 && ID < 316) && !(ID > 344 && ID < 353)) return;
 		//render only for the 2x2 segment of nuclei
@@ -573,6 +586,7 @@ private:
 				if      (f.type == ftype_body)      color = 4; //cyan
 				else if (f.type == ftype_repulsive || f.type == ftype_drive) color = 5; //magenta
 				else if (f.type == ftype_slide)     color = 6; //yellow
+				else if (f.type == ftype_friction)  color = 3; //blue
 				else if (f.type != ftype_hinter)    color = -1; //don't draw
 				if (color > 0) du.DrawVector(dID++, f.base,f, color);
 			}
@@ -592,7 +606,6 @@ private:
 		indicatorPos *= 2.0f;
 		indicatorPos += futureGeometry.centres[3];
 
-		int gdID = 0;
 		//small spheres to encode the four nuclei
 		if (ID == 308)
 		{ //in red
@@ -617,20 +630,6 @@ private:
 			gdID = 40;
 			du.DrawPoint(gdID++, indicatorPos,1.5f, 6);
 		}
-
-		//velocities:
-		for (int i=0; i < futureGeometry.noOfSpheres; ++i)
-			du.DrawVector(gdID++, futureGeometry.centres[i],velocities[i], 0); //white color
-
-
-		/*
-		if (ID == 309) gdID = 2000;
-		else if (ID == 345) gdID = 3000;
-		else if (ID == 346) gdID = 4000;
-		//blue lines with proximity pairs to nuclei
-		for (const auto& p : proximityPairs_toNuclei)
-			du.DrawLine(gdID++, p.localPos,p.otherPos, p.distance > 0 ? 3 : 1);
-		*/
 	}
 
 	void drawMask(i3d::Image3d<i3d::GRAY16>& img) override
