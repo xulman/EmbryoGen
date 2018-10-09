@@ -51,7 +51,6 @@ public:
 		//and "up-rounded"...
 		forces.reserve(200);
 		velocity_CurrentlyDesired = 0; //no own movement desired yet
-		velocity_CurrentlyDesired.y = 0.6f;
 		velocity_PersistenceTime  = (FLOAT)5.0;
 
 		//init centreDistances based on the initial geometry
@@ -211,16 +210,38 @@ private:
 	void advanceAndBuildIntForces(const float) override
 	{
 		//adjust the shape at first
-		if (incrCnt < 600)
+		if (incrCnt < 60)
 		{
-			//if (ID == 308 || ID == 309)
-			//	for (int i=0; i < futureGeometry.noOfSpheres; ++i) futureGeometry.centres[i].x += 4.0f;
+			//"grow factor"
+			const FLOAT dR = 0.05f;   //radius
+			const FLOAT dD = 2*dR;    //diameter
 
-			//for (int i=0; i < futureGeometry.noOfSpheres; ++i) futureGeometry.radii[i] += 0.1f;
-			//for (int i=1; i < futureGeometry.noOfSpheres; ++i) centreDistance[i-1]     += 0.1f;
+			//make the nuclei fatter by 'dD' um in diameter
+			for (int i=0; i < futureGeometry.noOfSpheres; ++i) futureGeometry.radii[i] += dR;
+			for (int i=1; i < futureGeometry.noOfSpheres; ++i) centreDistance[i-1]     += dD;
 
-			//if (incrCnt == 89)
-			//	velocity_CurrentlyDesired.y = 0.0f;
+			//offset the centres as well
+			Vector3d<FLOAT> dispL1,dispL2;
+
+			dispL1  = futureGeometry.centres[2];
+			dispL1 -= futureGeometry.centres[1];
+			dispL2  = futureGeometry.centres[3];
+			dispL2 -= futureGeometry.centres[2];
+			dispL1 *= dR / dispL1.len();
+			dispL2 *= dD / dispL2.len();
+
+			futureGeometry.centres[2] += dispL1;
+			futureGeometry.centres[3] += dispL1;
+			futureGeometry.centres[3] += dispL2;
+
+			dispL1 *= -1.0f;
+			dispL2  = futureGeometry.centres[0];
+			dispL2 -= futureGeometry.centres[1];
+			dispL2 *= dD / dispL2.len();
+
+			futureGeometry.centres[1] += dispL1;
+			futureGeometry.centres[0] += dispL1;
+			futureGeometry.centres[0] += dispL2;
 
 			++incrCnt;
 		}
