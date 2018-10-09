@@ -514,10 +514,11 @@ private:
 			du.DrawLine(dID++, futureGeometry.centres[2],futureGeometry.centres[3], color);
 
 			//neighbors:
-			//white lines (only for two inner spheres) with proximity pairs to yolk (shape hinter)
+			//white line for the most inner spheres, yellow for second most inner
+			//both showing proximity pairs to yolk (shape hinter)
 			for (const auto& p : proximityPairs_toYolk)
 			if (p.localHint < 2)
-				du.DrawLine(dID++, p.localPos, p.otherPos,0);
+				du.DrawLine(dID++, p.localPos, p.otherPos, (int)(p.localHint*6));
 
 			//shape deviations:
 			//red lines to show deviations from the expected geometry
