@@ -51,7 +51,7 @@ public:
 		//and "up-rounded"...
 		forces.reserve(200);
 		velocity_CurrentlyDesired = 0; //no own movement desired yet
-		velocity_PersistenceTime  = (FLOAT)5.0;
+		velocity_PersistenceTime  = (FLOAT)2.0;
 
 		//init centreDistances based on the initial geometry
 		//(silently assuming that there are 4 spheres TODO)
