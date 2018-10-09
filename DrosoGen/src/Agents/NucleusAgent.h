@@ -182,7 +182,13 @@ private:
 		//if ((ID > 307 && ID < 316) || (ID > 344 && ID < 353))
 		//show only for the 2x2 segment of nuclei
 		if ((ID > 307 && ID < 310) || (ID > 344 && ID < 347))
+		{
 			for (const auto& f : forces) DEBUG_REPORT(ID << ": ||=" << f.len() << "\tforce " << f);
+			DEBUG_REPORT(ID << ": final forces  |0|=" << accels[0].len()
+			                              << ", |1|=" << accels[1].len()
+			                              << ", |2|=" << accels[2].len()
+			                              << ", |3|=" << accels[3].len());
+		}
 
 		//now, translation is a result of forces:
 		for (int i=0; i < futureGeometry.noOfSpheres; ++i)
@@ -452,7 +458,9 @@ private:
 			f -= pp.localPos;
 			f.changeToUnitOrZero();
 
-			DEBUG_REPORT(ID << ": hinter pp.distance=" << pp.distance);
+			//DEBUG REMOVEME
+			if ((ID > 307 && ID < 310) || (ID > 344 && ID < 347))
+				DEBUG_REPORT(ID << ": hinter pp.distance=" << pp.distance);
 
 			//the get-back-to-hinter force
 			f *= 2*fstrength_overlap_level * std::min(pp.distance*pp.distance * fstrength_hinter_scale,(FLOAT)1);
