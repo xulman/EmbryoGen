@@ -370,6 +370,9 @@ private:
 				// "surface friction coeff" | velocity->force, the same as for ftype_drive
 				forces.push_back( ForceVector3d<FLOAT>( g,
 					futureGeometry.centres[pp.localHint],pp.localHint, ftype_slide ) );
+#ifdef DEBUG
+				Officer->reportOverlap(-pp.distance);
+#endif
 			}
 		}
 
