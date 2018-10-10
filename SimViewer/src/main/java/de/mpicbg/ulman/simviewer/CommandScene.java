@@ -160,18 +160,22 @@ public class CommandScene implements Runnable
 			{
 				ID = (x+10*y +1) << 17; //cell ID
 				ID++;                   //1st element of this cell
-				c.centre[0] = xCentre + xStep*(x-2.0f) -2.0f;
-				c.centre[1] = yCentre + yStep*(y-2.0f);
-				c.centre[2] = zCentre - 1.0f;
-				c.radius  = 3.0f;
+				c.centre.set(0, xCentre + xStep*(x-2.0f) -2.0f);
+				c.centre.set(1, yCentre + yStep*(y-2.0f));
+				c.centre.set(2, zCentre - 1.0f);
+				c.radius.set(0, 3.0f);
+				c.radius.set(1, 3.0f);
+				c.radius.set(2, 3.0f);
 				c.color = 2;
 				scene.addUpdateOrRemovePoint(ID,c);
 
 				ID++;                   //2nd element of this cell
-				c.centre[0] = xCentre + xStep*(x-2.0f) +2.0f;
-				c.centre[1] = yCentre + yStep*(y-2.0f);
-				c.centre[2] = zCentre + 1.0f;
-				c.radius  = 3.0f;
+				c.centre.set(0, xCentre + xStep*(x-2.0f) +2.0f);
+				c.centre.set(1, yCentre + yStep*(y-2.0f));
+				c.centre.set(2, zCentre + 1.0f);
+				c.radius.set(0, 3.0f);
+				c.radius.set(1, 3.0f);
+				c.radius.set(2, 3.0f);
 				c.color = 3;
 				scene.addUpdateOrRemovePoint(ID,c);
 			}
