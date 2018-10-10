@@ -189,6 +189,13 @@ public:
 				(*c)->updateGeometry();
 			}
 
+			//overlap reports:
+			DEBUG_REPORT("max overlap: " << overlapMax
+			        << ", avg overlap: " << (overlapSubmissionsCounter > 0 ? overlapAvg/float(overlapSubmissionsCounter) : 0.f)
+			        << ", cnt of overlaps: " << overlapSubmissionsCounter);
+			overlapMax = overlapAvg = 0.f;
+			overlapSubmissionsCounter = 0;
+
 			// move to the next simulation time point
 			currTime += incrTime;
 			REPORT("--------------- " << currTime << " (" << agents.size() << " agents) ---------------");
@@ -254,6 +261,25 @@ public:
 		}
 	}
 
+	// --------------------------------------------------
+
+private:
+	float overlapMax = 0.f;
+	float overlapAvg = 0.f;
+	int   overlapSubmissionsCounter = 0;
+
+public:
+	void reportOverlap(const float dist)
+	{
+		//new max overlap?
+		if (dist > overlapMax) overlapMax = dist;
+
+		//stats for calculating the average
+		overlapAvg += dist;
+		++overlapSubmissionsCounter;
+	}
+
+	// --------------------------------------------------
 
 private:
 	/** Just initializes all agents: positions, weights, etc.,

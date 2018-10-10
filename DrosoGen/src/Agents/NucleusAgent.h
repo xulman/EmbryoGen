@@ -445,6 +445,8 @@ private:
 				//TRAgen paper, eq. (6)
 				forces.push_back( ForceVector3d<FLOAT>( g,
 					futureGeometry.centres[pp.localHint],pp.localHint, ftype_slide ) );
+
+				Officer->reportOverlap(-pp.distance);
 			}
 		}
 
