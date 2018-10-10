@@ -61,6 +61,7 @@ public class CommandScene implements Runnable
 			System.out.println("B - Toggles display of the scene border");
 			System.out.println("L - Toggles between front/back/both/none ramp lights");
 			System.out.println("H - Toggles on/off of camera-attached lights");
+			System.out.println("r,R - Asks Scenery to re-render only-update-signalling/all objects");
 
 			System.out.println("F - Adds some cells to have something to display");
 			System.out.println("D - Deletes all objects (even if not displayed)");
@@ -128,6 +129,15 @@ public class CommandScene implements Runnable
 		case 'M':
 			scene.EnableFrontFaceCulling();
 			System.out.println("Front faces NOT displayed");
+			break;
+
+		case 'r':
+			scene.scene.updateWorld(true, false);
+			System.out.println("Scenery refreshed (only those that flag 'update needed')");
+			break;
+		case 'R':
+			scene.scene.updateWorld(true, true);
+			System.out.println("Scenery refreshed (forcily everyone)");
 			break;
 
 		case 'q':
