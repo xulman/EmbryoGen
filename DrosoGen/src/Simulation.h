@@ -317,6 +317,32 @@ private:
 
 		if (fn[0] == 'q')
 			throw new std::runtime_error("Simulation::renderNextFrame(): User requested exit.");
+
+		while (fn[0] == 'i')
+		{
+			//inspection command is followed by cell sub-command and agent ID(s)
+			std::cin >> fn[0];
+			bool state = (fn[0] == 'e' || fn[0] == 'o' || fn[0] == '1');
+
+			int id;
+			std::cin >> id;
+
+			if (std::cin.good())
+			{
+				REPORT("inspection " << (state ? "enabled" : "disabled") << " for ID = " << id);
+				for (auto c : agents)
+					if (c->ID == id) c->setInspectionMode(state);
+
+				//try to read next character
+				std::cin >> fn[0];
+			}
+			else
+			{
+				REPORT("unrecognized command")
+				fn[0]='X';          //prevent from entering this loop again
+				std::cin.clear();   //prevent from giving up reading
+			}
+		}
 	}
 };
 #endif
