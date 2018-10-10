@@ -686,8 +686,8 @@ public class DisplayScene extends SceneryBase implements Runnable
 		boolean vis = false;
 		if ((ID & MASK_CELLID) == 0)
 		{
-			//the ID does not belong to any cell
-			vis = generalDebugShown;
+			//the ID does not belong to any cell, still the (filtering) flags apply
+			vis = displayFlag == true ? generalDebugShown : displayFlag;
 		}
 		else
 		{
