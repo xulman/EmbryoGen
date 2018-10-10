@@ -132,12 +132,14 @@ public class NetworkScene implements Runnable
 
 			//now read and save coordinates
 			int d=0;
-			for (; d < D && d < 3; ++d) p.centre[d] = s.nextFloat();
+			for (; d < D && d < 3; ++d) p.centre.set(d, s.nextFloat());
 			//read possibly remaining coordinates (for which we have no room to store them)
 			for (; d < D; ++d) s.nextFloat();
 			//NB: all points in the same message (in this function call) are of the same dimensionality
 
-			p.radius = s.nextFloat();
+			p.radius.set(0, s.nextFloat());
+			p.radius.set(1, p.radius.x());
+			p.radius.set(2, p.radius.x());
 			p.color  = s.nextInt();
 
 			scene.addUpdateOrRemovePoint(ID,p);
@@ -180,13 +182,13 @@ public class NetworkScene implements Runnable
 
 			//now read the first in the pair and save coordinates
 			int d=0;
-			for (; d < D && d < 3; ++d) l.posA[d] = s.nextFloat();
+			for (; d < D && d < 3; ++d) l.posA.set(d, s.nextFloat());
 			//read possibly remaining coordinates (for which we have no room to store them)
 			for (; d < D; ++d) s.nextFloat();
 
 			//now read the second in the pair and save sizes
 			d=0;
-			for (; d < D && d < 3; ++d) l.posB[d] = s.nextFloat();
+			for (; d < D && d < 3; ++d) l.posB.set(d, s.nextFloat());
 			//read possibly remaining coordinates (for which we have no room to store them)
 			for (; d < D; ++d) s.nextFloat();
 
@@ -232,13 +234,13 @@ public class NetworkScene implements Runnable
 
 			//now read the first in the pair and save coordinates
 			int d=0;
-			for (; d < D && d < 3; ++d) v.base[d] = s.nextFloat();
+			for (; d < D && d < 3; ++d) v.base.set(d, s.nextFloat());
 			//read possibly remaining coordinates (for which we have no room to store them)
 			for (; d < D; ++d) s.nextFloat();
 
 			//now read the second in the pair and save sizes
 			d=0;
-			for (; d < D && d < 3; ++d) v.vector[d] = s.nextFloat();
+			for (; d < D && d < 3; ++d) v.vector.set(d, s.nextFloat());
 			//read possibly remaining coordinates (for which we have no room to store them)
 			for (; d < D; ++d) s.nextFloat();
 
