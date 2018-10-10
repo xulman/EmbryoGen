@@ -393,6 +393,8 @@ public class DisplayScene extends SceneryBase implements Runnable
 		{
 			//new point: adding
 			n = new myPoint( new Sphere(1.0f, 12) );
+			n.node.setPosition(n.centre);
+			n.node.setScale(n.radius);
 
 			pointNodes.put(ID,n);
 			scene.addChild(n.node);
@@ -401,9 +403,8 @@ public class DisplayScene extends SceneryBase implements Runnable
 
 		//now update the point with the current data
 		n.update(p);
-		n.node.setPosition(n.centre);
-		n.node.setScale(n.radius);
 		n.node.setMaterial(materials[n.color % materials.length]);
+		n.node.setNeedsUpdate(true);
 	}
 
 
@@ -430,6 +431,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 			//new line: adding
 			n = new myLine( new Line(4) );
 			n.node.setEdgeWidth(0.3f);
+			//no setPosition(), no setScale()
 
 			lineNodes.put(ID,n);
 			scene.addChild(n.node);
@@ -440,13 +442,11 @@ public class DisplayScene extends SceneryBase implements Runnable
 		n.update(l);
 		n.node.clearPoints();
 		n.node.addPoint(zeroGLvec);
-		n.node.addPoint(l.posA);
-		n.node.addPoint(l.posB);
+		n.node.addPoint(n.posA);
+		n.node.addPoint(n.posB);
 		n.node.addPoint(zeroGLvec);
 		//NB: surrounded by two mandatory fake points that are never displayed
-
 		n.node.setMaterial(materials[n.color % materials.length]);
-		//no setScale(), no setPosition()
 	}
 
 
@@ -473,6 +473,8 @@ public class DisplayScene extends SceneryBase implements Runnable
 			//new vector: adding
 			n = new myVector( new Line(10) );  //adopted from CreateVector()
 			n.node.setEdgeWidth(0.1f);         //adopted from CreateVector()
+			n.node.setPosition(n.base);
+			n.node.setScale(vectorsStretchGLvec);
 
 			vectorNodes.put(ID,n);
 			scene.addChild(n.node);
@@ -482,9 +484,8 @@ public class DisplayScene extends SceneryBase implements Runnable
 		//now update the vector with the current data
 		n.update(v);
 		UpdateVector(n.node,n.vector);
-		n.node.setPosition(n.base);
-		n.node.setScale(vectorsStretchGLvec);
 		n.node.setMaterial(materials[n.color % materials.length]);
+		n.node.setNeedsUpdate(true);
 	}
 
 
