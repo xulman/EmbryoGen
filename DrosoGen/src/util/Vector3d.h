@@ -4,27 +4,27 @@
 #include <iostream>
 #include <cmath>
 
-///simply a 3D vector...
+/** simply a 3D vector... */
 template <typename T>
 class Vector3d
 {
 public:
-	///the vector data
+	/** the vector data */
 	T x,y,z;
 
-	///default constructor...
+	/** default constructor... */
 	Vector3d(void) :
 		x(0), y(0), z(0) {}
 
-	///init constructor...
+	/** init constructor... */
 	Vector3d(const T xx,const T yy,const T zz) :
 		x(xx), y(yy), z(zz) {}
 
-	///init constructor...
+	/** init constructor... */
 	Vector3d(const T xyz) :
 		x(xyz), y(xyz), z(xyz) {}
 
-	///copy constructor...
+	/** copy constructor... */
 	Vector3d(const Vector3d<T>& vec)
 	{
 		this->x=vec.x;
@@ -121,24 +121,35 @@ public:
 		y /= v.y;
 		z /= v.z;
 	}
+
+	void changeToUnitOrZero(void)
+	{
+		T l = this->len2();
+		if (l > 0)
+		{
+			l = std::sqrt(l);
+			x /= l;
+			y /= l;
+			z /= l;
+		}
+		//or l == 0 which means x == y == z == 0
+	}
 };
 
-///reports vector as a position coordinate
+/** reports vector (with parentheses) */
 template <typename T>
 std::ostream& operator<<(std::ostream& s,const Vector3d<T>& v)
 {
-	s << "[" << v.x << "," << v.y << "," << v.z << "]";
+	s << "(" << v.x << "," << v.y << "," << v.z << ")";
 	return s;
 }
 
-/* uncomment once needed... to prevent from -Wunused-function warnings
-///function for dot product of two vectors
-static
-float dotProduct(const Vector3d<float>& u, const Vector3d<float>& v)
+/** function for dot product of two vectors */
+template <typename T>
+T dotProduct(const Vector3d<T>& u, const Vector3d<T>& v)
 {
-	return u.x*v.x+u.y*v.y;
+	return (u.x*v.x + u.y*v.y + u.z*v.z);
 }
-*/
 
 /** calculates addition of two vectors: vecA + vecB */
 template <typename T>
@@ -168,59 +179,124 @@ Vector3d<T> operator*(const T scal, const Vector3d<T>& vec)
 }
 // ----------------------------------------------------------------------------
 
+/** a dedicated type just to differentiate formally vector from coordinate,
+    and is used mainly in conjunction with operator<<
 
-///current (lightweight) representation of the force name
+    Alternatively, one could design this class to hold a reference on Vector3d<>
+    to avoid duplication (copying) of the vector but then one would loose the
+    ability to use the (math) operations already defined for Vector3d<>. */
+template <typename T>
+class Coord3d : public Vector3d<T>
+{
+public:
+	/** a copy constructor to "convert" pure vector into a coordinate */
+	Coord3d(const Vector3d<T>& vec)
+		: Vector3d<T>(vec) {}
+};
+
+/** reports position coordinate (with square brackets) */
+template <typename T>
+std::ostream& operator<<(std::ostream& s,const Coord3d<T>& v)
+{
+	s << "[" << v.x << "," << v.y << "," << v.z << "]";
+	return s;
+}
+// ----------------------------------------------------------------------------
+
+
+/** current (lightweight) representation of the force name */
 typedef const char* ForceName;
 
 /** a placeholder for ForceName type of "unknown force",
     to prevent of allocating it over and over again */
 static ForceName unknownForceType = "unknown force";
 
-///essentially a "named" 3D vector
+/** essentially a "named" and "postioned" 3D vector */
 template <typename T>
 class ForceVector3d : public Vector3d<T>
 {
 public:
-	///type of the force (only to find out how to report it)
+	/** position where this force is acting
+	    (where it is anchored; where is the base of the force vector) */
+	Vector3d<T> base;
+
+	/** aux optional information about the force, often used to index
+	    the anchor (ForceVector3d::base) of this force */
+	long hint;
+
+	/** type of the force (only to find out how to report it) */
 	ForceName type;
 
-	///default constructor...
-	ForceVector3d(void) : Vector3d<T>(), type(unknownForceType) {}
+	/** default constructor... */
+	ForceVector3d(void) : Vector3d<T>(), base(), type(unknownForceType) {}
 
-	///init constructor...
-	ForceVector3d(const T xx,const T yy,const T zz,const ForceName tt) :
-			Vector3d<T>(xx,yy,zz), type(tt) {}
+	/** init constructor... */
+	ForceVector3d(const T xx,const T yy,const T zz,
+	              const Vector3d<T>& _base, const ForceName _type)
+		: Vector3d<T>(xx,yy,zz), base(_base), hint(0), type(_type) {}
 
-	///init constructor...
-	ForceVector3d(const T xyz,const ForceName tt) :
-			Vector3d<T>(xyz), type(tt) {}
+	/** init constructor... */
+	ForceVector3d(const T xyz,
+	              const Vector3d<T>& _base, const ForceName _type)
+		: Vector3d<T>(xyz), base(_base), hint(0), type(_type) {}
 
-	///init constructor...
-	ForceVector3d(const Vector3d<T>& v,const ForceName tt) :
-			Vector3d<T>(v), type(tt) {}
+	/** init constructor... */
+	ForceVector3d(const Vector3d<T>& v,
+	              const Vector3d<T>& _base, const ForceName _type)
+		: Vector3d<T>(v), base(_base), hint(0), type(_type) {}
 
-	///copy constructor...
-	ForceVector3d(const ForceVector3d<T>& vec) : Vector3d<T>(vec.x,vec.y,vec.z)
+	/** init constructor with explicit hint... */
+	ForceVector3d(const Vector3d<T>& v,
+	              const Vector3d<T>& _base, const long _hint, const ForceName _type)
+		: Vector3d<T>(v), base(_base), hint(_hint), type(_type) {}
+
+	/** copy constructor... */
+	ForceVector3d(const ForceVector3d<T>& vec)
+		: Vector3d<T>(vec)
 	{
-		this->type=vec.type;
+		this->base = vec.base;
+		this->hint = vec.hint;
+		this->type = vec.type;
+	}
+
+	ForceVector3d<T>& operator=(const ForceVector3d<T>& vec)
+	{
+		this->x    = vec.x;
+		this->y    = vec.y;
+		this->z    = vec.z;
+		this->base = vec.base;
+		this->hint = vec.hint;
+		this->type = vec.type;
+		return( *this );
 	}
 
 	ForceVector3d<T>& operator=(const Vector3d<T>& vec)
 	{
-		this->x=vec.x;
-		this->y=vec.y;
-		this->z=vec.z;
-		this->type = vec.type;
+		this->x    = vec.x;
+		this->y    = vec.y;
+		this->z    = vec.z;
+		this->base = 0;
+		this->hint = 0;
+		this->type = unknownForceType;
 		return( *this );
 	}
 
 	ForceVector3d<T>& operator=(const T scalar)
 	{
-		this->x=scalar;
-		this->y=scalar;
-		this->z=scalar;
+		this->x = this->y = this->z = scalar;
+		this->base = 0;
+		this->hint = 0;
 		this->type = unknownForceType;
 		return( *this );
 	}
 };
+
+/** reports force as a force type, force vector and position coordinate */
+template <typename T>
+std::ostream& operator<<(std::ostream& s,const ForceVector3d<T>& f)
+{
+	s << f.type << ": (" << f.x << "," << f.y << "," << f.z
+	  << ") @ [" << f.base.x << "," << f.base.y << "," << f.base.z << "]";
+	return s;
+}
 #endif

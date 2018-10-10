@@ -97,7 +97,7 @@ public:
 			if (radii[im] == 0) continue;
 
 			//nearest other sphere discovered so far
-			int bestI = -1;
+			int bestIo = -1;
 			FLOAT bestDist = TOOFAR;
 
 			for (int io = 0; io < otherSpheres->getNoOfSpheres(); ++io)
@@ -113,24 +113,24 @@ public:
 				if (dist < bestDist)
 				{
 					bestDist = dist;
-					bestI    = io;
+					bestIo   = io;
 				}
 			}
 
 			//just in case otherSpheres->getNoOfSpheres() is 0...
-			if (bestI > -1)
+			if (bestIo > -1)
 			{
-				//we have now a shortest distance between 'im' and 'bestI',
-				//create output ProximityPairs
-				ProximityPair p(centres[im],centresO[bestI], bestDist,
-									 (void*)(centres+im),(void*)(centresO+bestI));
+				//we have now a shortest distance between 'im' and 'bestIo',
+				//create output ProximityPairs (and note indices of the incident spheres)
+				ProximityPair p(centres[im],centresO[bestIo], bestDist, im,bestIo);
 
 				//vector between the two centres
-				Vector3d<FLOAT> dp = centresO[bestI] - centres[im];
+				Vector3d<FLOAT> dp = centresO[bestIo] - centres[im];
+				dp.changeToUnitOrZero();
 
 				//the vector made 'radius' longer, and offsets the 'centre' point
-				p.localPos += (    +radii[im]/dp.len()) * dp;
-				p.otherPos += (-radiiO[bestI]/dp.len()) * dp;
+				p.localPos +=      +radii[im] * dp;
+				p.otherPos += -radiiO[bestIo] * dp;
 
 				//NB: a copy is of the ProximityPair 'p' is created while pushing...
 				l.push_back(p);

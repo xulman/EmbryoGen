@@ -275,21 +275,25 @@ struct ProximityPair
 	    of two nearest points between the two geometries. */
 	FLOAT distance;
 
-	/** pointer on hinting data of the 'local' point */
-	void* localHint;
-	/** pointer on hinting data of the 'other' point */
-	void* otherHint;
+	/** hinting data about the 'local' point */
+	long localHint;
+	/** hinting data about the 'other' point */
+	long otherHint;
+
+	/** Extra data that a caller/user may want to associate with this pair.
+	    The caller must take care of this pointer when this pair is destructed. */
+	void* callerHint;
 
 	/** convenience constructor for just two colliding points */
 	ProximityPair(const Vector3d<FLOAT>& l, const Vector3d<FLOAT>& o,
 	              const FLOAT dist)
-		: localPos(l), otherPos(o), distance(dist), localHint(NULL), otherHint(NULL) {};
+		: localPos(l), otherPos(o), distance(dist), localHint(0), otherHint(0), callerHint(NULL) {};
 
 	/** convenience constructor for points with hints */
 	ProximityPair(const Vector3d<FLOAT>& l, const Vector3d<FLOAT>& o,
 	              const FLOAT dist,
-	              void* lh, void* oh)
-		: localPos(l), otherPos(o), distance(dist), localHint(lh), otherHint(oh) {};
+	              const long lh, const long oh)
+		: localPos(l), otherPos(o), distance(dist), localHint(lh), otherHint(oh), callerHint(NULL) {};
 
 	/** swap the notion of 'local' and 'other' */
 	void swap(void)
@@ -298,7 +302,7 @@ struct ProximityPair
 		localPos = otherPos;
 		otherPos = tmpV;
 
-		void* tmpH = localHint;
+		long tmpH = localHint;
 		localHint = otherHint;
 		otherHint = tmpH;
 	}
@@ -340,6 +344,32 @@ public:
 	virtual
 	void getDistance(const Geometry& otherGeometry,
 	                 std::list<ProximityPair>& l) const =0;
+
+	/** Calculate and determine proximity and collision pairs, if any,
+	    between myself and some other agent. To facilitate construction
+	    of a (scaled) ForceVector<FLOAT> from the proximity pair, a caller
+	    may supply its own callerHint data. This data will be stored in
+	    ProximityPair::callerHint only in the newly added ProximityPairs.
+	    The discovered ProximityPairs are added to the current list l. */
+	void getDistance(const Geometry& otherGeometry,
+	                 std::list<ProximityPair>& l,
+	                 void* const callerHint) const
+	{
+		//remember the length of the input list
+		size_t itemsOnTheList = l.size();
+
+		//call the original implementation (that is without callerHint)
+		getDistance(otherGeometry,l);
+
+		//scan the newly added items and supply them with the callerHint
+		std::list<ProximityPair>::iterator ll = l.end();
+		while (itemsOnTheList < l.size())
+		{
+			--ll;
+			ll->callerHint = callerHint;
+			++itemsOnTheList;
+		}
+	}
 
 protected:
 	/** Helper routine to complement getDistance() with the symmetric cases.

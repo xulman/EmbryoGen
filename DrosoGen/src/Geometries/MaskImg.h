@@ -266,7 +266,7 @@ public:
 			grad.elemMult(distImgRes);               //account for anisotropy [1/px -> 1/um]
 			DEBUG_REPORT("grad: " << grad << " @ voxel: " << hints[i] << ", distance: " << distances[i]);
 
-			if (grad.len2() > 0) grad /= grad.len(); //normalize if not zero vector already
+			grad.changeToUnitOrZero();               //normalize if not zero vector already
 			grad *= -distances[i];                   //extend to the distance (might flip grad!)
 			//NB: grad now points always away towards the collision surface
 
@@ -279,9 +279,11 @@ public:
 			surfPoint *= radiiO[i] / surfPoint.len(); //stretch the vector
 			surfPoint += centresO[i]; //now point on the surface...
 
-			//NB: a copy is of the ProximityPair 'p' is created while pushing...
+			//this is from MaskImg perspective (local = MaskImg, other = Sphere),
+			//it reports index of the relevant foreign sphere
 			l.push_back( ProximityPair(surfPoint+grad,surfPoint,
-			  distances[i],NULL,(void*)distImg.GetVoxelAddr(curPos.x,curPos.y,curPos.z)) );
+			  distances[i], (signed)distImg.GetIndex(curPos.x,curPos.y,curPos.z),i) );
+			//NB: a copy is of the ProximityPair 'p' is created while pushing...
 		}
 
 		delete[] distances;
