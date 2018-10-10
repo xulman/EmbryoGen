@@ -23,7 +23,7 @@ static FLOAT fstrength_overlap_scale  = (FLOAT)0.2;     // [N/um]      TRAgen: k
 static FLOAT fstrength_overlap_level  = (FLOAT)0.1;     // [N]         TRAgen: A
 static FLOAT fstrength_overlap_depth  = (FLOAT)0.5;     // [um]        TRAgen: delta_o (do)
 static FLOAT fstrength_rep_scale      = (FLOAT)0.6;     // [1/um]      TRAgen: B
-static FLOAT fstrength_slide_scale    = (FLOAT)0.3;     // [N min/um]  TRAgen: Kappa
+static FLOAT fstrength_slide_scale    = (FLOAT)1.0;     // unitless
 static FLOAT fstrength_hinter_scale   = (FLOAT)0.25;    // [1/um^2]
 
 
@@ -442,7 +442,9 @@ private:
 				if ((ID > 307 && ID < 310) || (ID > 344 && ID < 347))
 					DEBUG_REPORT(ID << ": slide pp.distance=" << pp.distance << " |f|=" << f.len() << " |g|=" << g.len());
 
-				//TRAgen paper, eq. (6)
+				//TRAgen paper, somewhat eq. (6)
+				g *= fstrength_slide_scale * weights[pp.localHint]/velocity_PersistenceTime;
+				// "surface friction coeff" | velocity->force, the same as for ftype_drive
 				forces.push_back( ForceVector3d<FLOAT>( g,
 					futureGeometry.centres[pp.localHint],pp.localHint, ftype_slide ) );
 
