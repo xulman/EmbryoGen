@@ -1,6 +1,8 @@
 #ifndef SIMULATION_H
 #define SIMULATION_H
 
+#include <chrono>
+#include <thread>
 #include <list>
 #include <i3d/image3d.h>
 
@@ -342,6 +344,14 @@ private:
 				fn[0]='X';          //prevent from entering this loop again
 				std::cin.clear();   //prevent from giving up reading
 			}
+		}
+
+		//if std::cin is closed permanently, wait here a couple of milliseconds
+		//to prevent zeroMQ from flooding the Scenery
+		if (std::cin.eof())
+		{
+			REPORT("waiting 500 ms to give Scenery some breath out time")
+			std::this_thread::sleep_for((std::chrono::milliseconds)500);
 		}
 	}
 };
