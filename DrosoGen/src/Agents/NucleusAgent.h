@@ -70,7 +70,7 @@ public:
 		delete[] accels; //NB: deletes also velocities[], see above
 		delete[] weights;
 
-		DEBUG_REPORT("Nucleus with ID=" << ID << " was just deleted");
+		//DEBUG_REPORT("Nucleus with ID=" << ID << " was just deleted");
 	}
 
 
@@ -178,6 +178,16 @@ private:
 		//collect all forces acting on every sphere to have one overall force per sphere
 		for (const auto& f : forces) accels[f.hint] += f;
 
+#ifdef DEBUG
+		if (inspectionMode)
+		{
+			for (const auto& f : forces) REPORT(ID << ": ||=" << f.len() << "\tforce " << f);
+			REPORT(ID << ": final forces  |0|=" << accels[0].len()
+			                        << ", |1|=" << accels[1].len()
+			                        << ", |2|=" << accels[2].len()
+			                        << ", |3|=" << accels[3].len());
+		}
+#endif
 		//now, translation is a result of forces:
 		for (int i=0; i < futureGeometry.noOfSpheres; ++i)
 		{
@@ -263,6 +273,10 @@ private:
 				futureGeometry.centres[i],i, ftype_drive ) );
 		}
 
+#ifdef DEBUG
+		//export forces for display:
+		forcesForDisplay = forces;
+#endif
 		//increase the local time of the agent
 		currTime += incrTime;
 	}
@@ -289,8 +303,10 @@ private:
 		std::list<const ShadowAgent*> nearbyAgents;
 		Officer->getNearbyAgents(this,ignoreDistance, nearbyAgents);
 
-		DEBUG_REPORT("ID " << ID << ": Found " << nearbyAgents.size() << " nearby agents");
-
+#ifdef DEBUG
+		if (inspectionMode)
+			REPORT("ID " << ID << ": Found " << nearbyAgents.size() << " nearby agents");
+#endif
 		//those on the list are ShadowAgents who are potentially close enough
 		//to interact with me and these I need to inspect closely
 		proximityPairs_toNuclei.clear();
@@ -303,16 +319,24 @@ private:
 				geometry.getDistance(sa->getGeometry(),proximityPairs_toYolk);
 		}
 
+#ifdef DEBUG
+		if (inspectionMode)
+		{
+			DEBUG_REPORT("ID " << ID << ": Found " << proximityPairs_toNuclei.size() << " proximity pairs to nuclei");
+			DEBUG_REPORT("ID " << ID << ": Found " << proximityPairs_toYolk.size()   << " proximity pairs to yolk");
+		}
+#endif
 		//now, postprocess the proximityPairs, that is, to
 		//convert proximityPairs_toNuclei to forces according to TRAgen rules
-		DEBUG_REPORT("ID " << ID << ": Found " << proximityPairs_toNuclei.size() << " proximity pairs to nuclei");
-		DEBUG_REPORT("ID " << ID << ": Found " << proximityPairs_toYolk.size()   << " proximity pairs to yolk");
-
 		Vector3d<FLOAT> f,g; //tmp vectors
 		for (const auto& pp : proximityPairs_toNuclei)
 		{
 			if (pp.distance > 0)
 			{
+#ifdef DEBUG
+				if (inspectionMode)
+					REPORT(ID << ": repulsive  pp.distance=" << pp.distance);
+#endif
 				//no collision
 				if (pp.distance < 3.0) //TODO: replace 3.0 with some function of fstrength_rep_scale
 				{
@@ -354,12 +378,20 @@ private:
 				forces.push_back( ForceVector3d<FLOAT>( fScale * f,
 					futureGeometry.centres[pp.localHint],pp.localHint, ftype_body ) );
 
+#ifdef DEBUG
+				if (inspectionMode)
+					REPORT(ID << ": body  pp.distance=" << pp.distance << " |force|=" << fScale*f.len());
+#endif
 				//sliding force
 				//
 				//difference of velocities
 				g  = ((const NucleusAgent*)pp.callerHint)->getVelocityOfSphere(pp.otherHint);
 				g -= velocities[pp.localHint];
 
+#ifdef DEBUG
+				if (inspectionMode)
+					REPORT(ID << ": slide oID=" << ((const NucleusAgent*)pp.callerHint)->ID << " |velocityDiff|=" << g.len());
+#endif
 				//subtract from it the component that is parallel to this proximity pair
 				f *= dotProduct(f,g); //f is now the projection of g onto f
 				g -= f;               //g is now the difference of velocities without the component
@@ -386,7 +418,10 @@ private:
 			f -= pp.localPos;
 			f.changeToUnitOrZero();
 
-
+#ifdef DEBUG
+			if (inspectionMode)
+				REPORT(ID << ": hinter pp.distance=" << pp.distance);
+#endif
 			//the get-back-to-hinter force
 			f *= 2*fstrength_overlap_level * std::min(pp.distance*pp.distance * fstrength_hinter_scale,(FLOAT)1);
 
@@ -400,6 +435,12 @@ private:
 			forces.push_back( ForceVector3d<FLOAT>( f,
 				futureGeometry.centres[3],3, ftype_hinter ) );
 		}
+
+#ifdef DEBUG
+		//append forces to forcesForDisplay
+		for (const auto& f : forces)
+			forcesForDisplay.push_back(f);
+#endif
 	}
 
 	void adjustGeometryByExtForces(void) override
@@ -434,11 +475,12 @@ public:
 
 private:
 	// ------------- rendering -------------
+#ifdef DEBUG
+	std::vector< ForceVector3d<FLOAT> > forcesForDisplay;
+#endif
+
 	void drawMask(DisplayUnit& du) override
 	{
-		if (ID % 10 != 0) //show only for every 10th cell
-			return;
-
 		const int color = curPhase < 3? 2:3;
 		int dID = ID << 17;
 
@@ -449,17 +491,81 @@ private:
 				du.DrawPoint(dID++,futureGeometry.centres[i],futureGeometry.radii[i],color);
 		}
 
-		//draw (debug) vectors
+		//velocities -- global debug
+		int gdID = ID*20 +5000;
+		//for (int i=0; i < futureGeometry.noOfSpheres; ++i)
 		{
-			dID |= 1 << 16; //enable debug bit
-			for (auto& p : proximityPairs_toNuclei)
-				du.DrawLine(dID++, p.localPos, p.otherPos);
-			for (auto& p : proximityPairs_toYolk)
-				du.DrawLine(dID++, p.localPos, p.otherPos,1);
+			int i=0;
+			du.DrawVector(gdID++, futureGeometry.centres[i],velocities[i], 0); //white color
 		}
 
-		//draw global debug bounding box
-		futureGeometry.AABB.drawIt(ID << 4,color,du);
+		//red lines with overlapping proximity pairs to nuclei
+		for (const auto& p : proximityPairs_toNuclei)
+		if (p.distance < 0)
+			du.DrawLine(gdID++, p.localPos,p.otherPos, 1);
+
+		//render only if under inspection
+		if (!inspectionMode) return;
+
+		//draw debug stuff
+		{
+			dID |= 1 << 16; //enable debug bit
+
+			//cell centres connection "line" (green):
+			du.DrawLine(dID++, futureGeometry.centres[0],futureGeometry.centres[1], color);
+			du.DrawLine(dID++, futureGeometry.centres[1],futureGeometry.centres[2], color);
+			du.DrawLine(dID++, futureGeometry.centres[2],futureGeometry.centres[3], color);
+
+			//neighbors:
+			//white line for the most inner spheres, yellow for second most inner
+			//both showing proximity pairs to yolk (shape hinter)
+			for (const auto& p : proximityPairs_toYolk)
+			if (p.localHint < 2)
+				du.DrawLine(dID++, p.localPos, p.otherPos, (int)(p.localHint*6));
+
+			//shape deviations:
+			//red lines to show deviations from the expected geometry
+			Vector3d<FLOAT> sOff[4];
+			getCurrentOffVectorsForCentres(sOff);
+			du.DrawLine(dID++, futureGeometry.centres[0],futureGeometry.centres[0]+sOff[0], 1); //red color
+			du.DrawLine(dID++, futureGeometry.centres[1],futureGeometry.centres[1]+sOff[1], 1);
+			du.DrawLine(dID++, futureGeometry.centres[2],futureGeometry.centres[2]+sOff[2], 1);
+			du.DrawLine(dID++, futureGeometry.centres[3],futureGeometry.centres[3]+sOff[3], 1);
+
+#ifdef DEBUG
+			//forces:
+			for (const auto& f : forcesForDisplay)
+			{
+				int color = 2; //default color: green (for shape hinter)
+				//if      (f.type == ftype_s2s)      color = 4; //cyan
+				//else if (f.type == ftype_drive)    color = 5; //magenta
+				//else if (f.type == ftype_friction) color = 6; //yellow
+				if      (f.type == ftype_body)      color = 4; //cyan
+				else if (f.type == ftype_repulsive || f.type == ftype_drive) color = 5; //magenta
+				else if (f.type == ftype_slide)     color = 6; //yellow
+				else if (f.type == ftype_friction)  color = 3; //blue
+				else if (f.type != ftype_hinter)    color = -1; //don't draw
+				if (color > 0) du.DrawVector(dID++, f.base,f, color);
+			}
+#endif
+			//velocities:
+			REPORT(ID << ": velocity[1]=" << velocities[1]
+			          << "  |0|=" << velocities[0].len()
+			          << ", |1|=" << velocities[1].len()
+			          << ", |2|=" << velocities[2].len()
+			          << ", |3|=" << velocities[3].len());
+		}
+
+		//global debug
+		Vector3d<FLOAT> indicatorPos(futureGeometry.centres[3]);
+		indicatorPos -= futureGeometry.centres[2];
+		indicatorPos.changeToUnitOrZero();
+		indicatorPos *= 2.0f;
+		indicatorPos += futureGeometry.centres[3];
+
+		//small sphere (in blue) to encode the four nuclei
+		gdID = ID*5;
+		du.DrawPoint(gdID++, indicatorPos,1.5f, 3);
 	}
 
 	void drawMask(i3d::Image3d<i3d::GRAY16>& img) override
