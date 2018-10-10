@@ -367,7 +367,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 	/** these lines are registered with the display, but not necessarily always visible */
 	private final Map<Integer,Line>   lineNodes = new HashMap<>();
 	/** these vectors are registered with the display, but not necessarily always visible */
-	private final Map<Integer,Node> vectorNodes = new HashMap<>();
+	private final Map<Integer,Line> vectorNodes = new HashMap<>();
 
 
 	public
@@ -450,37 +450,35 @@ public class DisplayScene extends SceneryBase implements Runnable
 	void addUpdateOrRemoveVector(final int ID,final myVector v)
 	{
 		//attempt to retrieve node of this ID
-		Node n = vectorNodes.get(ID);
+		Line n = vectorNodes.get(ID);
 
-		//vectors are never updated, they are always created again and again,
-		//so remove whatever we have for now under this ID
-		if (n != null)
+		//negative color is an agreed signal to remove the vector
+		if (v.color < 0)
 		{
-			scene.removeChild(n);
-			vectorNodes.remove(ID);
+			if (n != null)
+			{
+				scene.removeChild(n);
+				vectorNodes.remove(ID);
+			}
+			return;
 		}
 
-		//negative color is an agreed signal to remove the vector,
-		//which here means not to create a new one
-		if (v.color < 0) return;
+		//shall we create a new vector?
+		if (n == null)
+		{
+			//new vector: adding
+			n = new Line(10);       //from CreateVector()
+			n.setEdgeWidth(0.1f);   //from CreateVector()
+			vectorNodes.put(ID,n);
+			scene.addChild(n);
+			showOrHideMe(ID,n,cellVectorsShown);
+		}
 
-		//new vector: creating
-		n = CreateVector(new GLVector(v.vector[0],
-		                              v.vector[1],
-		                              v.vector[2]));
-
-		//update (position and scale)...
+		//now update the vector with the current data
+		UpdateVector(n,new GLVector(v.vector[0],v.vector[1],v.vector[2]));
 		n.setPosition(new GLVector(v.base[0],v.base[1],v.base[2]));
-		n.setScale(new GLVector(vectorsStretch,3));
-
-		//update (material -- color)...
-		final Material m = materials[v.color % materials.length];
-		n.runRecursive(nn -> nn.setMaterial(m));
-
-		//register the new vector into the system...
-		vectorNodes.put(ID,n);
-		scene.addChild(n);
-		showOrHideMe(ID,n,cellVectorsShown);
+		n.setScale(vectorsStretchGLvec);
+		n.setMaterial(materials[v.color % materials.length]);
 	}
 
 
@@ -517,6 +515,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 	/** cell forces are typically small in magnitude compared to the cell size,
 	    this defines the current magnification applied when displaying the force vectors */
 	private float vectorsStretch = 1.f;
+	private GLVector vectorsStretchGLvec = new GLVector(vectorsStretch,3);
 
 	float getVectorsStretch()
 	{ return vectorsStretch; }
@@ -525,10 +524,10 @@ public class DisplayScene extends SceneryBase implements Runnable
 	{
 		//update the stretch factor...
 		vectorsStretch = vs;
+		vectorsStretchGLvec = new GLVector(vectorsStretch,3);
 
 		//...and rescale all vectors presently existing in the system
-		final GLVector scaleVec = new GLVector(vectorsStretch,3);
-		vectorNodes.values().forEach( n -> n.setScale(scaleVec) );
+		vectorNodes.values().forEach( n -> n.setScale(vectorsStretchGLvec) );
 	}
 
 
@@ -686,8 +685,8 @@ public class DisplayScene extends SceneryBase implements Runnable
 		boolean vis = false;
 		if ((ID & MASK_CELLID) == 0)
 		{
-			//the ID does not belong to any cell
-			vis = generalDebugShown;
+			//the ID does not belong to any cell, still the (filtering) flags apply
+			vis = displayFlag == true ? generalDebugShown : displayFlag;
 		}
 		else
 		{
@@ -758,12 +757,21 @@ public class DisplayScene extends SceneryBase implements Runnable
 
 
 	/** Creates a vector node, that needs to be setMaterial'ed(), setPosition'ed(), and
-	    addChild'ed(), as a line with two perpendicular triangles as a "3D arrow".
-	    The base of the arrow head is a cross. */
+	    addChild'ed(). The this.UpdateVector() is used to construct the vector. */
 	Line CreateVector(final GLVector v)
 	{
 		final Line l = new Line(10);
 		l.setEdgeWidth(0.1f);
+
+		UpdateVector(l,v);
+		return l;
+	}
+
+	/** (Re-)Constructs a vector as a line with two perpendicular triangles as a "3D arrow".
+	    The base of the arrow head is a cross. */
+	void UpdateVector(final Line l, final GLVector v)
+	{
+		l.clearPoints();
 
 		/*
 		  /|\
@@ -814,8 +822,6 @@ public class DisplayScene extends SceneryBase implements Runnable
 
 		//second of the two mandatory surrounding fake points that are never displayed
 		l.addPoint(v);
-
-		return l;
 	}
 
 
