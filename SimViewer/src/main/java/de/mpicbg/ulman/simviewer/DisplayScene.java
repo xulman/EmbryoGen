@@ -477,7 +477,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 		//now update the vector with the current data
 		UpdateVector(n,new GLVector(v.vector[0],v.vector[1],v.vector[2]));
 		n.setPosition(new GLVector(v.base[0],v.base[1],v.base[2]));
-		n.setScale(new GLVector(vectorsStretch,3));
+		n.setScale(vectorsStretchGLvec);
 		n.setMaterial(materials[v.color % materials.length]);
 	}
 
@@ -515,6 +515,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 	/** cell forces are typically small in magnitude compared to the cell size,
 	    this defines the current magnification applied when displaying the force vectors */
 	private float vectorsStretch = 1.f;
+	private GLVector vectorsStretchGLvec = new GLVector(vectorsStretch,3);
 
 	float getVectorsStretch()
 	{ return vectorsStretch; }
@@ -523,10 +524,10 @@ public class DisplayScene extends SceneryBase implements Runnable
 	{
 		//update the stretch factor...
 		vectorsStretch = vs;
+		vectorsStretchGLvec = new GLVector(vectorsStretch,3);
 
 		//...and rescale all vectors presently existing in the system
-		final GLVector scaleVec = new GLVector(vectorsStretch,3);
-		vectorNodes.values().forEach( n -> n.setScale(scaleVec) );
+		vectorNodes.values().forEach( n -> n.setScale(vectorsStretchGLvec) );
 	}
 
 
