@@ -59,19 +59,18 @@ public class CommandScene implements Runnable
 
 			System.out.println("A - Toggles display of the axes in the scene centre");
 			System.out.println("B - Toggles display of the scene border");
-			System.out.println("L - Toggles between front/back/both/none ramp lights");
+			System.out.println("I - Toggles between front/back/both/none ramp lights");
 			System.out.println("H - Toggles on/off of camera-attached lights");
 			System.out.println("r,R - Asks Scenery to re-render only-update-signalling/all objects");
 
-			System.out.println("F - Adds some cells to have something to display");
+			System.out.println("P - Adds some cells to have something to display");
 			System.out.println("D - Deletes all objects (even if not displayed)");
-			System.out.println("c - Toggles display of the cell geometry (spheres)");
-			System.out.println("l - Toggles display of the cell lines");
-			System.out.println("f - Toggles display of the cell vectors (forces)");
-			System.out.println("v,V - Decreases/Increases the vector display stretch");
-			System.out.println("g - Toggles display of the cell debug");
-			System.out.println("G - Toggles display of the general purpose debug");
+			System.out.println("c,C - Toggles display of the cell/general-debug spheres (shape)");
+			System.out.println("l,L - Toggles display of the cell/general-debug lines");
+			System.out.println("f,F - Toggles display of the cell/general-debug vectors (forces)");
+			System.out.println("g,G - Toggles display of the cell-debug/general-debug");
 			System.out.println("m,M - Disable/Enable culling of front faces (Display/Hide)");
+			System.out.println("v,V - Decreases/Increases the vector display stretch");
 			break;
 
 		case 'A':
@@ -80,14 +79,14 @@ public class CommandScene implements Runnable
 		case 'B':
 			System.out.println("Scene border displayed: "+scene.ToggleDisplaySceneBorder());
 			break;
-		case 'L':
+		case 'I':
 			System.out.println("Current ramp lights: "+scene.ToggleFixedLights());
 			break;
 		case 'H':
 			System.out.println("Current head lights: "+scene.ToggleHeadLights());
 			break;
 
-		case 'F':
+		case 'P':
 			CreateFakeCells();
 			System.out.println("Fake cells added");
 			break;
@@ -97,13 +96,23 @@ public class CommandScene implements Runnable
 			break;
 
 		case 'c':
-			System.out.println("Cell geometry displayed: "+scene.ToggleDisplayCellGeom());
+			System.out.println("Cell spheres displayed: "+scene.ToggleDisplayCellSpheres());
 			break;
 		case 'l':
 			System.out.println("Cell lines displayed: "+scene.ToggleDisplayCellLines());
 			break;
 		case 'f':
 			System.out.println("Cell vectors displayed: "+scene.ToggleDisplayCellVectors());
+			break;
+
+		case 'C':
+			System.out.println("General debug spheres displayed: "+scene.ToggleDisplayGeneralDebugSpheres());
+			break;
+		case 'L':
+			System.out.println("General debug lines displayed: "+scene.ToggleDisplayGeneralDebugLines());
+			break;
+		case 'F':
+			System.out.println("General debug vectors displayed: "+scene.ToggleDisplayGeneralDebugVectors());
 			break;
 
 		case 'v':

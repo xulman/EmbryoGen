@@ -398,7 +398,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 
 			pointNodes.put(ID,n);
 			scene.addChild(n.node);
-			showOrHideMe(ID,n.node,cellGeomShown);
+			showOrHideMe(ID,n.node,spheresShown);
 		}
 
 		//now update the point with the current data
@@ -435,7 +435,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 
 			lineNodes.put(ID,n);
 			scene.addChild(n.node);
-			showOrHideMe(ID,n.node,cellLinesShown);
+			showOrHideMe(ID,n.node,linesShown);
 		}
 
 		//now update the line with the current data
@@ -478,7 +478,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 
 			vectorNodes.put(ID,n);
 			scene.addChild(n.node);
-			showOrHideMe(ID,n.node,cellVectorsShown);
+			showOrHideMe(ID,n.node,vectorsShown);
 		}
 
 		//now update the vector with the current data
@@ -611,15 +611,21 @@ public class DisplayScene extends SceneryBase implements Runnable
 	}
 	//----------------------------------------------------------------------------
 
+	/** groups visibility conditions across modes for one displayed object, e.g. sphere */
+	private class elementVisibility
+	{
+		public boolean g_Mode = true;   //the cell debug mode, operated with 'g' key
+		public boolean G_Mode = true;   //the global purpose debug mode, operated with 'G'
+	}
 
 	/** signals if we want to have cells (spheres) displayed (even if cellsData is initially empty) */
-	private boolean cellGeomShown = true;
+	private elementVisibility spheresShown = new elementVisibility();
 
 	/** signals if we want to have cell lines displayed */
-	private boolean cellLinesShown = true;
+	private elementVisibility linesShown = new elementVisibility();
 
 	/** signals if we want to have cell forces (vectors) displayed */
-	private boolean cellVectorsShown = true;
+	private elementVisibility vectorsShown = new elementVisibility();
 
 	/** signals if we want to have cell "debugging" elements displayed */
 	private boolean cellDebugShown = false;
@@ -629,39 +635,39 @@ public class DisplayScene extends SceneryBase implements Runnable
 
 
 	public
-	boolean ToggleDisplayCellGeom()
+	boolean ToggleDisplayCellSpheres()
 	{
 		//toggle the flag
-		cellGeomShown ^= true;
+		spheresShown.g_Mode ^= true;
 
 		//sync expected_* constants with current state of visibility flags
 		//apply the new setting on the points
 		for (Integer ID : pointNodes.keySet())
-			showOrHideMe(ID,pointNodes.get(ID).node,cellGeomShown);
+			showOrHideMe(ID,pointNodes.get(ID).node,spheresShown);
 
-		return cellGeomShown;
+		return spheresShown.g_Mode;
 	}
 
 	public
 	boolean ToggleDisplayCellLines()
 	{
-		cellLinesShown ^= true;
+		linesShown.g_Mode ^= true;
 
 		for (Integer ID : lineNodes.keySet())
-			showOrHideMe(ID,lineNodes.get(ID).node,cellLinesShown);
+			showOrHideMe(ID,lineNodes.get(ID).node,linesShown);
 
-		return cellLinesShown;
+		return linesShown.g_Mode;
 	}
 
 	public
 	boolean ToggleDisplayCellVectors()
 	{
-		cellVectorsShown ^= true;
+		vectorsShown.g_Mode ^= true;
 
 		for (Integer ID : vectorNodes.keySet())
-			showOrHideMe(ID,vectorNodes.get(ID).node,cellVectorsShown);
+			showOrHideMe(ID,vectorNodes.get(ID).node,vectorsShown);
 
-		return cellVectorsShown;
+		return vectorsShown.g_Mode;
 	}
 
 	public
@@ -671,13 +677,50 @@ public class DisplayScene extends SceneryBase implements Runnable
 
 		//"debug" objects might be present in any shape primitive
 		for (Integer ID : pointNodes.keySet())
-			showOrHideMe(ID,pointNodes.get(ID).node,cellGeomShown);
+			showOrHideMe(ID,pointNodes.get(ID).node,spheresShown);
 		for (Integer ID : lineNodes.keySet())
-			showOrHideMe(ID,lineNodes.get(ID).node,cellLinesShown);
+			showOrHideMe(ID,lineNodes.get(ID).node,linesShown);
 		for (Integer ID : vectorNodes.keySet())
-			showOrHideMe(ID,vectorNodes.get(ID).node,cellVectorsShown);
+			showOrHideMe(ID,vectorNodes.get(ID).node,vectorsShown);
 
 		return cellDebugShown;
+	}
+
+
+	public
+	boolean ToggleDisplayGeneralDebugSpheres()
+	{
+		//toggle the flag
+		spheresShown.G_Mode ^= true;
+
+		//sync expected_* constants with current state of visibility flags
+		//apply the new setting on the points
+		for (Integer ID : pointNodes.keySet())
+			showOrHideMe(ID,pointNodes.get(ID).node,spheresShown);
+
+		return spheresShown.G_Mode;
+	}
+
+	public
+	boolean ToggleDisplayGeneralDebugLines()
+	{
+		linesShown.G_Mode ^= true;
+
+		for (Integer ID : lineNodes.keySet())
+			showOrHideMe(ID,lineNodes.get(ID).node,linesShown);
+
+		return linesShown.G_Mode;
+	}
+
+	public
+	boolean ToggleDisplayGeneralDebugVectors()
+	{
+		vectorsShown.G_Mode ^= true;
+
+		for (Integer ID : vectorNodes.keySet())
+			showOrHideMe(ID,vectorNodes.get(ID).node,vectorsShown);
+
+		return vectorsShown.G_Mode;
 	}
 
 	public
@@ -687,11 +730,11 @@ public class DisplayScene extends SceneryBase implements Runnable
 
 		//"debug" objects might be present in any shape primitive
 		for (Integer ID : pointNodes.keySet())
-			showOrHideMe(ID,pointNodes.get(ID).node,cellGeomShown);
+			showOrHideMe(ID,pointNodes.get(ID).node,spheresShown);
 		for (Integer ID : lineNodes.keySet())
-			showOrHideMe(ID,lineNodes.get(ID).node,cellLinesShown);
+			showOrHideMe(ID,lineNodes.get(ID).node,linesShown);
 		for (Integer ID : vectorNodes.keySet())
-			showOrHideMe(ID,vectorNodes.get(ID).node,cellVectorsShown);
+			showOrHideMe(ID,vectorNodes.get(ID).node,vectorsShown);
 
 		return generalDebugShown;
 	}
@@ -735,17 +778,18 @@ public class DisplayScene extends SceneryBase implements Runnable
 	    the visibility of the object 'n' with ID is adjusted,
 	    the decided state is indicated in the return value */
 	private
-	boolean showOrHideMe(final int ID, final Node n, final boolean displayFlag)
+	boolean showOrHideMe(final int ID, final Node n, final elementVisibility displayFlag)
 	{
 		boolean vis = false;
 		if ((ID & MASK_CELLID) == 0)
 		{
 			//the ID does not belong to any cell, still the (filtering) flags apply
-			vis = displayFlag == true ? generalDebugShown : displayFlag;
+			vis = displayFlag.G_Mode == true ? generalDebugShown : displayFlag.G_Mode;
 		}
 		else
 		{
-			vis = displayFlag == true && (ID & MASK_DEBUG) > 0 ? cellDebugShown : displayFlag;
+			vis = displayFlag.g_Mode == true && (ID & MASK_DEBUG) > 0 ?
+				cellDebugShown : displayFlag.g_Mode;
 
 			//NB: follows this table
 			// flag  MASK_DEBUG   cellDebugShown    result
