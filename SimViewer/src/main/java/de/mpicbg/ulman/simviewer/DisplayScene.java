@@ -363,26 +363,26 @@ public class DisplayScene extends SceneryBase implements Runnable
 
 
 	/** these points are registered with the display, but not necessarily always visible */
-	private final Map<Integer,Node>  pointNodes = new HashMap<>();
+	private final Map<Integer,myPoint>  pointNodes = new HashMap<>();
 	/** these lines are registered with the display, but not necessarily always visible */
-	private final Map<Integer,Line>   lineNodes = new HashMap<>();
+	private final Map<Integer,myLine>   lineNodes = new HashMap<>();
 	/** these vectors are registered with the display, but not necessarily always visible */
-	private final Map<Integer,Node> vectorNodes = new HashMap<>();
+	private final Map<Integer,myVector> vectorNodes = new HashMap<>();
 
 
 	public
 	void addUpdateOrRemovePoint(final int ID,final myPoint p)
 	{
 		//attempt to retrieve node of this ID
-		Node n = pointNodes.get(ID);
+		myPoint n = pointNodes.get(ID);
 
 		//negative color is an agreed signal to remove the point
 		//also, get rid of a point whose radius is "impossible"
-		if (p.color < 0 || p.radius < 0.0f)
+		if (p.color < 0 || p.radius.x() < 0.0f)
 		{
 			if (n != null)
 			{
-				scene.removeChild(n);
+				scene.removeChild(n.node);
 				pointNodes.remove(ID);
 			}
 			return;
@@ -392,16 +392,19 @@ public class DisplayScene extends SceneryBase implements Runnable
 		if (n == null)
 		{
 			//new point: adding
-			n = new Sphere(1.0f, 12);
+			n = new myPoint( new Sphere(1.0f, 12) );
+			n.node.setPosition(n.centre);
+			n.node.setScale(n.radius);
+
 			pointNodes.put(ID,n);
-			scene.addChild(n);
-			showOrHideMe(ID,n,cellGeomShown);
+			scene.addChild(n.node);
+			showOrHideMe(ID,n.node,cellGeomShown);
 		}
 
 		//now update the point with the current data
-		n.setPosition(new GLVector(p.centre[0],p.centre[1],p.centre[2]));
-		n.setScale(new GLVector(p.radius,3));
-		n.setMaterial(materials[p.color % materials.length]);
+		n.update(p);
+		n.node.setMaterial(materials[n.color % materials.length]);
+		n.node.setNeedsUpdate(true);
 	}
 
 
@@ -409,14 +412,14 @@ public class DisplayScene extends SceneryBase implements Runnable
 	void addUpdateOrRemoveLine(final int ID,final myLine l)
 	{
 		//attempt to retrieve node of this ID
-		Line n = lineNodes.get(ID);
+		myLine n = lineNodes.get(ID);
 
 		//negative color is an agreed signal to remove the line
 		if (l.color < 0)
 		{
 			if (n != null)
 			{
-				scene.removeChild(n);
+				scene.removeChild(n.node);
 				lineNodes.remove(ID);
 			}
 			return;
@@ -426,23 +429,24 @@ public class DisplayScene extends SceneryBase implements Runnable
 		if (n == null)
 		{
 			//new line: adding
-			n = new Line(4);
-			n.setEdgeWidth(0.3f);
+			n = new myLine( new Line(4) );
+			n.node.setEdgeWidth(0.3f);
+			//no setPosition(), no setScale()
+
 			lineNodes.put(ID,n);
-			scene.addChild(n);
-			showOrHideMe(ID,n,cellLinesShown);
+			scene.addChild(n.node);
+			showOrHideMe(ID,n.node,cellLinesShown);
 		}
 
 		//now update the line with the current data
-		n.clearPoints();
-		n.addPoint(new GLVector(0.f,3));
-		n.addPoint(new GLVector(l.posA[0],l.posA[1],l.posA[2]));
-		n.addPoint(new GLVector(l.posB[0],l.posB[1],l.posB[2]));
-		n.addPoint(new GLVector(0.f,3));
+		n.update(l);
+		n.node.clearPoints();
+		n.node.addPoint(zeroGLvec);
+		n.node.addPoint(n.posA);
+		n.node.addPoint(n.posB);
+		n.node.addPoint(zeroGLvec);
 		//NB: surrounded by two mandatory fake points that are never displayed
-
-		n.setMaterial(materials[l.color % materials.length]);
-		//no setScale(), no setPosition()
+		n.node.setMaterial(materials[n.color % materials.length]);
 	}
 
 
@@ -450,37 +454,38 @@ public class DisplayScene extends SceneryBase implements Runnable
 	void addUpdateOrRemoveVector(final int ID,final myVector v)
 	{
 		//attempt to retrieve node of this ID
-		Node n = vectorNodes.get(ID);
+		myVector n = vectorNodes.get(ID);
 
-		//vectors are never updated, they are always created again and again,
-		//so remove whatever we have for now under this ID
-		if (n != null)
+		//negative color is an agreed signal to remove the vector
+		if (v.color < 0)
 		{
-			scene.removeChild(n);
-			vectorNodes.remove(ID);
+			if (n != null)
+			{
+				scene.removeChild(n.node);
+				vectorNodes.remove(ID);
+			}
+			return;
 		}
 
-		//negative color is an agreed signal to remove the vector,
-		//which here means not to create a new one
-		if (v.color < 0) return;
+		//shall we create a new vector?
+		if (n == null)
+		{
+			//new vector: adding
+			n = new myVector( new Line(10) );  //adopted from CreateVector()
+			n.node.setEdgeWidth(0.1f);         //adopted from CreateVector()
+			n.node.setPosition(n.base);
+			n.node.setScale(vectorsStretchGLvec);
 
-		//new vector: creating
-		n = CreateVector(new GLVector(v.vector[0],
-		                              v.vector[1],
-		                              v.vector[2]));
+			vectorNodes.put(ID,n);
+			scene.addChild(n.node);
+			showOrHideMe(ID,n.node,cellVectorsShown);
+		}
 
-		//update (position and scale)...
-		n.setPosition(new GLVector(v.base[0],v.base[1],v.base[2]));
-		n.setScale(new GLVector(vectorsStretch,3));
-
-		//update (material -- color)...
-		final Material m = materials[v.color % materials.length];
-		n.runRecursive(nn -> nn.setMaterial(m));
-
-		//register the new vector into the system...
-		vectorNodes.put(ID,n);
-		scene.addChild(n);
-		showOrHideMe(ID,n,cellVectorsShown);
+		//now update the vector with the current data
+		n.update(v);
+		UpdateVector(n.node,n.vector);
+		n.node.setMaterial(materials[n.color % materials.length]);
+		n.node.setNeedsUpdate(true);
 	}
 
 
@@ -493,21 +498,21 @@ public class DisplayScene extends SceneryBase implements Runnable
 
 		while (i.hasNext())
 		{
-			scene.removeChild(pointNodes.get(i.next()));
+			scene.removeChild(pointNodes.get(i.next()).node);
 			i.remove();
 		}
 
 		i = lineNodes.keySet().iterator();
 		while (i.hasNext())
 		{
-			scene.removeChild(lineNodes.get(i.next()));
+			scene.removeChild(lineNodes.get(i.next()).node);
 			i.remove();
 		}
 
 		i = vectorNodes.keySet().iterator();
 		while (i.hasNext())
 		{
-			scene.removeChild(vectorNodes.get(i.next()));
+			scene.removeChild(vectorNodes.get(i.next()).node);
 			i.remove();
 		}
 	}
@@ -517,6 +522,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 	/** cell forces are typically small in magnitude compared to the cell size,
 	    this defines the current magnification applied when displaying the force vectors */
 	private float vectorsStretch = 1.f;
+	private GLVector vectorsStretchGLvec = new GLVector(vectorsStretch,3);
 
 	float getVectorsStretch()
 	{ return vectorsStretch; }
@@ -525,35 +531,83 @@ public class DisplayScene extends SceneryBase implements Runnable
 	{
 		//update the stretch factor...
 		vectorsStretch = vs;
+		vectorsStretchGLvec = new GLVector(vectorsStretch,3);
 
 		//...and rescale all vectors presently existing in the system
-		final GLVector scaleVec = new GLVector(vectorsStretch,3);
-		vectorNodes.values().forEach( n -> n.setScale(scaleVec) );
+		vectorNodes.values().forEach( n -> n.node.setScale(vectorsStretchGLvec) );
 	}
 
+
+	/** shortcut zero vector to prevent from coding "new GLVector(0.f,3)" where needed */
+	private final GLVector zeroGLvec = new GLVector(0.f,3);
 
 	/** corresponds to one element that simulator's DrawPoint() can send */
 	public class myPoint
 	{
-		float[] centre = new float[3];
-		float radius;
+		myPoint()             { node = null; }   //without connection to Scenery
+		myPoint(final Node n) { node = n; }      //  with  connection to Scenery
+
+		final Node node;
+		final GLVector centre = new GLVector(0.f,3);
+		final GLVector radius = new GLVector(0.f,3);
 		int color;
+
+		void update(final myPoint p)
+		{
+			centre.set(0, p.centre.x());
+			centre.set(1, p.centre.y());
+			centre.set(2, p.centre.z());
+			radius.set(0, p.radius.x());
+			radius.set(1, p.radius.y());
+			radius.set(2, p.radius.z());
+			color = p.color;
+		}
 	}
 
 	/** corresponds to one element that simulator's DrawLine() can send */
 	public class myLine
 	{
-		float[] posA = new float[3];
-		float[] posB = new float[3];
+		myLine()             { node = null; }
+		myLine(final Line l) { node = l; }
+
+		final Line node;
+		final GLVector posA = new GLVector(0.f,3);
+		final GLVector posB = new GLVector(0.f,3);
 		int color;
+
+		void update(final myLine l)
+		{
+			posA.set(0, l.posA.x());
+			posA.set(1, l.posA.y());
+			posA.set(2, l.posA.z());
+			posB.set(0, l.posB.x());
+			posB.set(1, l.posB.y());
+			posB.set(2, l.posB.z());
+			color = l.color;
+		}
 	}
 
 	/** corresponds to one element that simulator's DrawVector() can send */
 	public class myVector
 	{
-		float[] base   = new float[3];
-		float[] vector = new float[3];
+		myVector()             { node = null; }
+		myVector(final Line v) { node = v; }
+
+		final Line node;
+		final GLVector base   = new GLVector(0.f,3);
+		final GLVector vector = new GLVector(0.f,3);
 		int color;
+
+		void update(final myVector v)
+		{
+			base.set(0, v.base.x());
+			base.set(1, v.base.y());
+			base.set(2, v.base.z());
+			vector.set(0, v.vector.x());
+			vector.set(1, v.vector.y());
+			vector.set(2, v.vector.z());
+			color = v.color;
+		}
 	}
 	//----------------------------------------------------------------------------
 
@@ -583,7 +637,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 		//sync expected_* constants with current state of visibility flags
 		//apply the new setting on the points
 		for (Integer ID : pointNodes.keySet())
-			showOrHideMe(ID,pointNodes.get(ID),cellGeomShown);
+			showOrHideMe(ID,pointNodes.get(ID).node,cellGeomShown);
 
 		return cellGeomShown;
 	}
@@ -594,7 +648,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 		cellLinesShown ^= true;
 
 		for (Integer ID : lineNodes.keySet())
-			showOrHideMe(ID,lineNodes.get(ID),cellLinesShown);
+			showOrHideMe(ID,lineNodes.get(ID).node,cellLinesShown);
 
 		return cellLinesShown;
 	}
@@ -605,7 +659,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 		cellVectorsShown ^= true;
 
 		for (Integer ID : vectorNodes.keySet())
-			showOrHideMe(ID,vectorNodes.get(ID),cellVectorsShown);
+			showOrHideMe(ID,vectorNodes.get(ID).node,cellVectorsShown);
 
 		return cellVectorsShown;
 	}
@@ -617,11 +671,11 @@ public class DisplayScene extends SceneryBase implements Runnable
 
 		//"debug" objects might be present in any shape primitive
 		for (Integer ID : pointNodes.keySet())
-			showOrHideMe(ID,pointNodes.get(ID),cellGeomShown);
+			showOrHideMe(ID,pointNodes.get(ID).node,cellGeomShown);
 		for (Integer ID : lineNodes.keySet())
-			showOrHideMe(ID,lineNodes.get(ID),cellLinesShown);
+			showOrHideMe(ID,lineNodes.get(ID).node,cellLinesShown);
 		for (Integer ID : vectorNodes.keySet())
-			showOrHideMe(ID,vectorNodes.get(ID),cellVectorsShown);
+			showOrHideMe(ID,vectorNodes.get(ID).node,cellVectorsShown);
 
 		return cellDebugShown;
 	}
@@ -633,11 +687,11 @@ public class DisplayScene extends SceneryBase implements Runnable
 
 		//"debug" objects might be present in any shape primitive
 		for (Integer ID : pointNodes.keySet())
-			showOrHideMe(ID,pointNodes.get(ID),cellGeomShown);
+			showOrHideMe(ID,pointNodes.get(ID).node,cellGeomShown);
 		for (Integer ID : lineNodes.keySet())
-			showOrHideMe(ID,lineNodes.get(ID),cellLinesShown);
+			showOrHideMe(ID,lineNodes.get(ID).node,cellLinesShown);
 		for (Integer ID : vectorNodes.keySet())
-			showOrHideMe(ID,vectorNodes.get(ID),cellVectorsShown);
+			showOrHideMe(ID,vectorNodes.get(ID).node,cellVectorsShown);
 
 		return generalDebugShown;
 	}
@@ -686,8 +740,8 @@ public class DisplayScene extends SceneryBase implements Runnable
 		boolean vis = false;
 		if ((ID & MASK_CELLID) == 0)
 		{
-			//the ID does not belong to any cell
-			vis = generalDebugShown;
+			//the ID does not belong to any cell, still the (filtering) flags apply
+			vis = displayFlag == true ? generalDebugShown : displayFlag;
 		}
 		else
 		{
@@ -758,12 +812,21 @@ public class DisplayScene extends SceneryBase implements Runnable
 
 
 	/** Creates a vector node, that needs to be setMaterial'ed(), setPosition'ed(), and
-	    addChild'ed(), as a line with two perpendicular triangles as a "3D arrow".
-	    The base of the arrow head is a cross. */
+	    addChild'ed(). The this.UpdateVector() is used to construct the vector. */
 	Line CreateVector(final GLVector v)
 	{
 		final Line l = new Line(10);
 		l.setEdgeWidth(0.1f);
+
+		UpdateVector(l,v);
+		return l;
+	}
+
+	/** (Re-)Constructs a vector as a line with two perpendicular triangles as a "3D arrow".
+	    The base of the arrow head is a cross. */
+	void UpdateVector(final Line l, final GLVector v)
+	{
+		l.clearPoints();
 
 		/*
 		  /|\
@@ -778,10 +841,10 @@ public class DisplayScene extends SceneryBase implements Runnable
 		*/
 
 		//first of the two mandatory surrounding fake points that are never displayed
-		l.addPoint(v);
+		l.addPoint(zeroGLvec);
 
 		//the main "vertical" segment of the vector
-		l.addPoint(new GLVector(0.f,3));
+		l.addPoint(zeroGLvec);
 		l.addPoint(v);
 
 		//the first triangle:
@@ -814,8 +877,6 @@ public class DisplayScene extends SceneryBase implements Runnable
 
 		//second of the two mandatory surrounding fake points that are never displayed
 		l.addPoint(v);
-
-		return l;
 	}
 
 
