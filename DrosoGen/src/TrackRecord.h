@@ -2,6 +2,7 @@
 #define TRACKRECORD_H
 
 #include <map>
+#include <set>
 #include <fstream>
 #include "util/Vector3d.h"
 
@@ -17,9 +18,16 @@
 class TrackRecords: public std::map< float,std::map< int,Coord3d<float> > >
 {
 public:
+	/** a set of IDs of tracks that are recorded in this object,
+	    the synchronization between *this and this variable is, however,
+	    not enforced */
+	std::set<int> knownTracks;
+
 	/** adds to the current trajectories whatever it finds in the 'filename',
 	    the file should be a text file with white-space separated items,
-	    in this order, TIME X Y Z TRACK_ID */
+	    in this order, TIME X Y Z TRACK_ID
+
+	    the function also updates this->knownTracks */
 	void readFromFile(const char* filename)
 	{
 		std::ifstream f(filename);
@@ -50,6 +58,8 @@ public:
 				//store the record
 				auto& rr = (*this)[time];
 				rr[id] = Coord3d<float>(x,y,z);
+
+				knownTracks.insert(id);
 			}
 		}
 
