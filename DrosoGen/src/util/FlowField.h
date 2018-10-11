@@ -33,6 +33,7 @@
 #include <i3d/image3d.h>
 #include <i3d/vector3d.h>
 #include "report.h"
+#include "../DisplayUnits/DisplayUnit.h"
 
 /**
  * A wrapper for two or three images that should represent 2D or 3D vector
@@ -124,6 +125,43 @@ public:
 			return false;
 
 		return true;
+	}
+
+
+	/** Draws content of this FF using the given display unit,
+	    with the given color and with increasing ID starting from
+	    the one given. The last used ID+1 is returned. */
+	int DrawFF(DisplayUnit& du, int ID, const int color) const
+	{
+		//offset and resolution of the flow field images/containers
+		const Vector3d<float> off(x->GetOffset().x,x->GetOffset().y,x->GetOffset().z);
+		const Vector3d<float> res(x->GetResolution().GetRes().x,
+		                          x->GetResolution().GetRes().y,
+		                          x->GetResolution().GetRes().z);
+
+		//any position in microns, and some vector
+		Vector3d<float> pos,vec;
+
+		//sweep the FF, voxel by voxel
+		for (size_t Z=0; Z < x->GetSizeZ(); ++Z)
+		for (size_t Y=0; Y < x->GetSizeY(); ++Y)
+		for (size_t X=0; X < x->GetSizeX(); ++X)
+		{
+			//translate px coord into micron (real world) one
+			pos.x = X; pos.y = Y; pos.z = Z;
+			pos.elemDivBy(res);
+			pos += off;
+
+			vec.x = x->GetVoxel(X,Y,Z);
+			vec.y = y->GetVoxel(X,Y,Z);
+			vec.z = z->GetVoxel(X,Y,Z);
+
+			//display only non-zero vectors
+			if (vec.len2() > 0)
+				du.DrawVector(ID++,pos,vec,color);
+		}
+
+		return ID;
 	}
 };
 #endif
