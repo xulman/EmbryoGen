@@ -7,7 +7,7 @@
 #include <i3d/image3d.h>
 
 #include "util/report.h"
-#include "TrackRecord.h"
+#include "TrackRecord_CTC.h"
 #include "util/Vector3d.h"
 
 #include "Agents/AbstractAgent.h"
@@ -98,7 +98,7 @@ private:
 	std::list<AbstractAgent*> agents;
 
 	/** structure to hold durations of tracks and the mother-daughter relations */
-	TrackRecords tracks;
+	TrackRecords_CTC tracks;
 	bool tracksSaved = false;
 
 	// --------------------------------------------------

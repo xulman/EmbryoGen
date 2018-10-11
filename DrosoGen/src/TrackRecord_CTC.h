@@ -1,35 +1,35 @@
-#ifndef TRACKRECORD_H
-#define TRACKRECORD_H
+#ifndef TRACKRECORD_CTC_H
+#define TRACKRECORD_CTC_H
 
 #include <map>
 #include <fstream>
 
 /** A datatype for keeping records of tracks according
-    to the Cell Tracking Challenge format */
-struct TrackRecord
+    to the Cell Tracking Challenge (CTC) format */
+struct TrackRecord_CTC
 {
 	int ID;
 	int fromTimeStamp;
 	int toTimeStamp;
 	int parentID;
 
-	TrackRecord(int id, int from, int to, int pid):
+	TrackRecord_CTC(int id, int from, int to, int pid):
 		ID(id), fromTimeStamp(from), toTimeStamp(to), parentID(pid) {};
 
-	TrackRecord():
+	TrackRecord_CTC():
 		ID(0), fromTimeStamp(0), toTimeStamp(0), parentID(0) {};
 };
 
 
-/** A datatype to hold all tracks with a few convenience functions such
+/** A datatype to hold all CTC tracks with a few convenience functions such
     as startNewTrack() or exportAllToFile() */
-class TrackRecords: public std::map<int,TrackRecord>
+class TrackRecords_CTC: public std::map<int,TrackRecord_CTC>
 {
 public:
 	/** initiates a new track ID at time point frameNo */
 	void startNewTrack(const int ID, const int frameNo)
 	{
-		(*this)[ID] = TrackRecord(ID,frameNo,-1,0);
+		(*this)[ID] = TrackRecord_CTC(ID,frameNo,-1,0);
 	}
 
 	/** MoID mother got divided into DoAID and DoBID daughters
@@ -43,8 +43,8 @@ public:
 		(*this)[MoID].toTimeStamp = frameNo-1;
 
 		//start up two new daughter tracks
-		(*this)[DoAID] = TrackRecord(DoAID,frameNo,-1,MoID);
-		(*this)[DoBID] = TrackRecord(DoBID,frameNo,-1,MoID);
+		(*this)[DoAID] = TrackRecord_CTC(DoAID,frameNo,-1,MoID);
+		(*this)[DoBID] = TrackRecord_CTC(DoBID,frameNo,-1,MoID);
 	}
 
 	/** closes the track ID at time point frameNo */
@@ -56,7 +56,7 @@ public:
 	void exportAllToFile(const char* filename)
 	{
 		// write out the track record:
-		std::map<int,TrackRecord>::const_iterator itTr;
+		std::map<int,TrackRecord_CTC>::const_iterator itTr;
 		std::ofstream of(filename);
 
 		for (itTr = (*this).begin(); itTr != (*this).end(); itTr++)
