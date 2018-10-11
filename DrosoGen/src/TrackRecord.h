@@ -5,6 +5,7 @@
 #include <set>
 #include <fstream>
 #include "util/Vector3d.h"
+#include "DisplayUnits/DisplayUnit.h"
 
 /**
  * Reads, represents and supports with trajectories to, e.g., provide
@@ -161,6 +162,31 @@ public:
 		retCoord += w*laterT->second.at(track);
 
 		return true;
+	}
+
+
+	/** Scans over all tracks and displays displacement vectors between
+	    the given time span. The vectors are drawn using the display
+	    unit, with the given color and with increasing ID starting
+	    from the one given. The last used ID+1 is returned. */
+	int DrawFF(const float timeFrom, const float timeTo,
+	           DisplayUnit& du, int ID, const int color) const
+	{
+		//positions at a track at the given two times
+		Coord3d<float> A,B;
+
+		//iterates over all track IDs
+		for (const auto id : knownTracks)
+		{
+			if (getPositionAlongTrack(timeFrom,id,A) &&
+			    getPositionAlongTrack(timeTo,  id,B))
+			{
+				//managed to obtain both track positions
+				du.DrawVector(ID++,A,B-A,color);
+			}
+		}
+
+		return ID;
 	}
 };
 #endif
