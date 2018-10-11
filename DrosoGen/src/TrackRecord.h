@@ -69,7 +69,7 @@ public:
 
 	/** writes all trajectories back into a text 'filename' as white-space
 	    separated times, in this order, TIME X Y Z TRACK_ID */
-	void writeToFile(const char* filename)
+	void writeToFile(const char* filename) const
 	{
 		std::ofstream f(filename);
 		if (! f.is_open())
@@ -110,11 +110,12 @@ public:
 		}
 	}
 
+
 	/** interpolate (if necessary) coordinate along the 'track' at 'time',
 	    returns true (and valid 'retCoord') if that was possible, otherwise
 		 (if 'time' is outside the track's time span, for instance) returns false. */
 	bool getPositionAlongTrack(const float time, const int track,
-	                           Coord3d<float>& retCoord)
+	                           Coord3d<float>& retCoord) const
 	{
 		//iterate over all time points and determine two closest enclosing time points
 		auto earlierT = this->begin();
@@ -127,9 +128,7 @@ public:
 		if (earlierT->first == time && earlierT->second.find(track) != earlierT->second.end())
 		{
 			//track exists at exactly the queried time, return its coord
-			retCoord.x = earlierT->second[track].x;
-			retCoord.y = earlierT->second[track].y;
-			retCoord.z = earlierT->second[track].z;
+			retCoord = earlierT->second.at(track);
 			return true;
 		}
 
@@ -157,9 +156,9 @@ public:
 
 		//finally, compute weighted sum of the closest coords
 		const float w = (time - earlierT->first) / (laterT->first - earlierT->first);
-		retCoord = earlierT->second[track];
+		retCoord = earlierT->second.at(track);
 		retCoord *= 1.f-w;
-		retCoord += w*laterT->second[track];
+		retCoord += w*laterT->second.at(track);
 
 		return true;
 	}
