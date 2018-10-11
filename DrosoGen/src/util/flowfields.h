@@ -30,6 +30,7 @@
 #ifndef MITOGEN_TOOLBOX_FLOWFIELDS_H
 #define MITOGEN_TOOLBOX_FLOWFIELDS_H
 
+#include "FlowField.h"
 
 /**
  * \ingroup toolbox

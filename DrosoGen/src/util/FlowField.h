@@ -32,6 +32,7 @@
 
 #include <i3d/image3d.h>
 #include <i3d/vector3d.h>
+#include "report.h"
 
 /**
  * A wrapper for two or three images that should represent 2D or 3D vector
