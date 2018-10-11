@@ -108,7 +108,9 @@ public:
 	virtual
 	~AbstractAgent() {};
 
-	/** (re)sets the officer to which this agent belongs to */
+	// ------------- interaction from the Simulation class -------------
+	/** (re)sets the officer to which this agent belongs to, this is also
+	    a communaction handler back to the Simulation class */
 	void setOfficer(Simulation* _officer)
 	{
 		if (_officer == NULL)
@@ -117,8 +119,16 @@ public:
 		Officer = _officer;
 	}
 
+	/** Enables/disables the inspection mode of this agent. When enabled,
+	    the agent might be reporting and rendering "more verbosely". */
+	void setInspectionMode(const bool state)
+	{
+		inspectionMode = state;
+	}
+
 protected:
 	Simulation* Officer = NULL;
+	bool inspectionMode = false;
 
 	// ------------- local time -------------
 	/** agent's local time [min] */

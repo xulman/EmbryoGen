@@ -1,6 +1,8 @@
 #ifndef SIMULATION_H
 #define SIMULATION_H
 
+#include <chrono>
+#include <thread>
 #include <list>
 #include <i3d/image3d.h>
 
@@ -84,7 +86,7 @@ private:
 	const float incrTime = 0.1f;
 
 	/** at what global time should the simulation stop [min] */
-	const float stopTime = 1.2f;
+	const float stopTime = 200.2f;
 
 	/** export simulation status always after this amount of global time, [min]
 	    should be multiple of incrTime to obtain regular sampling */
@@ -317,6 +319,40 @@ private:
 
 		if (fn[0] == 'q')
 			throw new std::runtime_error("Simulation::renderNextFrame(): User requested exit.");
+
+		while (fn[0] == 'i')
+		{
+			//inspection command is followed by cell sub-command and agent ID(s)
+			std::cin >> fn[0];
+			bool state = (fn[0] == 'e' || fn[0] == 'o' || fn[0] == '1');
+
+			int id;
+			std::cin >> id;
+
+			if (std::cin.good())
+			{
+				REPORT("inspection " << (state ? "enabled" : "disabled") << " for ID = " << id);
+				for (auto c : agents)
+					if (c->ID == id) c->setInspectionMode(state);
+
+				//try to read next character
+				std::cin >> fn[0];
+			}
+			else
+			{
+				REPORT("unrecognized command")
+				fn[0]='X';          //prevent from entering this loop again
+				std::cin.clear();   //prevent from giving up reading
+			}
+		}
+
+		//if std::cin is closed permanently, wait here a couple of milliseconds
+		//to prevent zeroMQ from flooding the Scenery
+		if (std::cin.eof())
+		{
+			REPORT("waiting 500 ms to give Scenery some breath out time")
+			std::this_thread::sleep_for((std::chrono::milliseconds)500);
+		}
 	}
 };
 #endif
