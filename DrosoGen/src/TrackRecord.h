@@ -80,5 +80,78 @@ public:
 
 		f.close();
 	}
+
+
+	/** report displacement vector for a given 'track' between the two time points,
+	    or use 'defaultVec' if no such information is available in the records */
+	Vector3d<float> getDisplacement(const float timeFrom, const float timeTo,
+	                                const int track,
+	                                const Vector3d<float>& defaultVec) const
+	{
+		try
+		{
+			const Coord3d<float>& start = this->at(timeFrom).at(track);
+			const Coord3d<float>&  end  = this->at( timeTo ).at(track);
+			return (end-start);
+		}
+		catch (std::out_of_range)
+		{
+			return defaultVec;
+		}
+	}
+
+	/** interpolate (if necessary) coordinate along the 'track' at 'time',
+	    returns true (and valid 'retCoord') if that was possible, otherwise
+		 (if 'time' is outside the track's time span, for instance) returns false. */
+	bool getPositionAlongTrack(const float time, const int track,
+	                           Coord3d<float>& retCoord)
+	{
+		//iterate over all time points and determine two closest enclosing time points
+		auto earlierT = this->begin();
+		while (earlierT != this->end() && earlierT->first < time) earlierT++;
+
+		//all tracks are stored at earlier time (= asked time is behind any track we have)
+		if (earlierT == this->end()) return false;
+
+		//here: earlierT => time
+		if (earlierT->first == time && earlierT->second.find(track) != earlierT->second.end())
+		{
+			//track exists at exactly the queried time, return its coord
+			retCoord.x = earlierT->second[track].x;
+			retCoord.y = earlierT->second[track].y;
+			retCoord.z = earlierT->second[track].z;
+			return true;
+		}
+
+		//backup the current iterator
+		auto laterT = earlierT;
+
+		//here: either earlierT > time or track@time does not exists
+		//we go back looking for first occurrence of the track
+		if (earlierT != this->begin()) earlierT--;
+		else return false;
+		     //all tracks are stored at later time (= asked time is before any track we have)
+
+		//here: earlierT < time
+		while (earlierT != this->begin() && earlierT->second.find(track) == earlierT->second.end()) earlierT--;
+		if (earlierT == this->begin() && earlierT->second.find(track) == earlierT->second.end()) return false;
+		//here: earlierT points at closest track@lower_than_time
+
+		//DEBUG_REPORT("earlier is at " << earlierT->first);
+
+		//we go forward looking for first occurrence of the track
+		while (laterT != this->end() && laterT->second.find(track) == laterT->second.end()) laterT++;
+		if (laterT == this->end()) return false;
+
+		//DEBUG_REPORT("later is at " << laterT->first);
+
+		//finally, compute weighted sum of the closest coords
+		const float w = (time - earlierT->first) / (laterT->first - earlierT->first);
+		retCoord = earlierT->second[track];
+		retCoord *= 1.f-w;
+		retCoord += w*laterT->second[track];
+
+		return true;
+	}
 };
 #endif
