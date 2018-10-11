@@ -1,7 +1,35 @@
+/**********************************************************************
+*
+* flowfields.h
+*
+* This file is part of MitoGen
+*
+* Copyright (C) 2013-2016 -- Centre for Biomedical Image Analysis (CBIA)
+* http://cbia.fi.muni.cz/
+*
+* MitoGen is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+*
+* MitoGen is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with MitoGen. If not, see <http://www.gnu.org/licenses/>.
+*
+* Author: David Svoboda and Vladimir Ulman
+*
+* Description: Definition of basic datatypes.
+*
+***********************************************************************/
+
+
 #ifndef MITOGEN_TOOLBOX_FLOWFIELDS_H
 #define MITOGEN_TOOLBOX_FLOWFIELDS_H
 
-#include "../settings.h"
 
 /**
  * \ingroup toolbox
@@ -36,7 +64,7 @@ void ImageForwardTransformation(i3d::Image3d<VT> const &srcImg,
 				i3d::Image3d<VT> &dstImg,
 				FlowField<FT> const &FF);
 
-/** 
+/**
  * \ingroup toolbox
  *
  * A wrapper to the ConcatenateFlowFields() which first makes a copy of the
@@ -51,7 +79,7 @@ void ConcatenateFlowFields(FlowField<FT> const &srcFF,
 			   FlowField<FT> const &appFF,
 			   FlowField<FT> &resFF);
 
-/** 
+/**
  * \ingroup toolbox
  *
  * This function concatenates \e appFF vector flow field to \e srcFF.
@@ -81,7 +109,7 @@ template <class FT>
 void AddFlowFields(FlowField<FT> &srcFF,
 		   FlowField<FT> const &appFF);
 
-/** 
+/**
  * \ingroup toolbox
  *
  * A wrapper to the AddFlowFields() which first makes a copy of the

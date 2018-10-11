@@ -1,27 +1,27 @@
 /**********************************************************************
-* 
-* types.h
 *
-* This file is part of MitoGen
-* 
+* THIS CODE IS EXTRACTED FROM types.h
+*
+* The file 'types.h' is part of MitoGen
+*
 * Copyright (C) 2013-2016 -- Centre for Biomedical Image Analysis (CBIA)
 * http://cbia.fi.muni.cz/
-* 
+*
 * MitoGen is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
 * the Free Software Foundation, either version 3 of the License, or
 * (at your option) any later version.
-* 
+*
 * MitoGen is distributed in the hope that it will be useful,
 * but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 * GNU General Public License for more details.
-* 
+*
 * You should have received a copy of the GNU General Public License
 * along with MitoGen. If not, see <http://www.gnu.org/licenses/>.
-* 
+*
 * Author: David Svoboda and Vladimir Ulman
-* 
+*
 * Description: Definition of basic datatypes.
 *
 ***********************************************************************/
@@ -32,72 +32,6 @@
 
 #include <i3d/image3d.h>
 #include <i3d/vector3d.h>
-#include "macros.h"
-
-/**
- * \ingroup scheduler
- *
- * A datatype enumerating the particular phases of cel cycle
- */
-typedef enum
-{
-	 newBorn,
-	 G1Phase_p1,
-	 G1Phase_p2,
-	 G1Phase_p3,
-	 SPhase_p1,
-	 SPhase_p2,
-	 G2Phase,
-	 Prophase,
-	 Metaphase,
-	 Anaphase,
-	 Telophase,
-	 Cytokinesis
-} ListOfPhases;
-
-/**
- * Types of comets stating boundary to and from which the cell was supposed to move.
- *
- * This types are useful only if a cell is not of the StateOfComet type 'noComet'.
- */
-typedef enum
-{
-	rightBoundary,
-	topBoundary,
-	leftBoundary,
-	bottomBoundary
-} TypeOfComet;
-
-/**
- * States of comet movements.
- *
- * The scheduler might decide to go over all cells to find out
- * which cells are not comets but are good adepts to become one.
- *
- * Comet cells are asked to move towards either the left, right, bottom
- * (in y-axis), or top boundary. Once a cell reaches the boundary, it is forced
- * to be moving back from the boundary. This forcing, we call it cometing
- * ends after the cell reaches some distance from the boundary. If mitosis
- * occurs during cometing, one daughter cell continues in this journey.
- *
- * An adept is marked to be in 'hesitating' state and direction
- * is marked with type TypeOfComet. The cell in this state
- * checkes whether there is an open way towards its boundary
- * and if there is, it changes state to 'toBoundary' and sets
- * Cell::scmCometVector.
- *
- * If a cell in state 'toBoundary' reaches its boundary, its state
- * is changed to 'fromBoundary' and the Cell::scmCometVector gets
- * inverted (and randomized by a few degrees). If cell is sufficiently
- * far from boundary, it becomes 'noComet' again.
- */
-typedef enum
-{
-	noComet,
-	hesitating,
-	toBoundary,
-	fromBoundary
-} StateOfComet;
 
 /**
  * A wrapper for two or three images that should represent 2D or 3D vector
@@ -108,9 +42,9 @@ typedef enum
  */
 template <class FT>
 struct FlowField {
-  public:
+public:
 	///empty constructor
-  	FlowField() : x(NULL), y(NULL), z(NULL) {}
+	FlowField() : x(NULL), y(NULL), z(NULL) {}
 
 	///copy constructor: makes extra copies of flow fields
 	FlowField(FlowField<FT> const &FF) {
@@ -191,5 +125,4 @@ struct FlowField {
 		return true;
 	}
 };
-
 #endif

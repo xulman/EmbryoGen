@@ -1,9 +1,36 @@
+/**********************************************************************
+*
+* flowfields.cpp
+*
+* This file is part of MitoGen
+*
+* Copyright (C) 2013-2016 -- Centre for Biomedical Image Analysis (CBIA)
+* http://cbia.fi.muni.cz/
+*
+* MitoGen is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+*
+* MitoGen is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with MitoGen. If not, see <http://www.gnu.org/licenses/>.
+*
+* Author: David Svoboda and Vladimir Ulman
+*
+* Description: Definition of basic datatypes.
+*
+***********************************************************************/
+
+
 #ifdef MITOGEN_DEBUG
   #include <sys/time.h>
 #endif
 #include <i3d/filters.h>
-
-#include "../settings.h"
 #include "flowfields.h"
 
 template <class VT, class FT>
@@ -66,7 +93,7 @@ void ImageForwardTransformation(i3d::Image3d<VT> const &srcImg,
 					(float)y+ *yFF*yRes,
 					(float)z+ *zFF*zRes, *g);
 			/*
-			if ((x==46) && (y==33)) std::cout << z << ": " 
+			if ((x==46) && (y==33)) std::cout << z << ": "
 			  << "+ (" << *xFF*xRes << "," << *yFF*yRes << ","
 			  << *zFF*zRes << "), val " << (int)*g << "\n";
 			*/
@@ -99,7 +126,7 @@ void ConcatenateFlowFields(FlowField<FT> const &srcFF,
 	if (srcFF.x->GetOffset() != appFF.x->GetOffset())
 		throw ERROR_REPORT("Offsets of input flow fields do not match!");
 
-	//creates brand new FF or just copies the content from srcFF 
+	//creates brand new FF or just copies the content from srcFF
 	//note: owing to the consistency checks, the *srcFF.x and *srcFF.y exists now
 	if (!resFF.x) resFF.x=new i3d::Image3d<FT>(*srcFF.x); else *resFF.x=*srcFF.x;
 	if (!resFF.y) resFF.y=new i3d::Image3d<FT>(*srcFF.y); else *resFF.y=*srcFF.y;
@@ -226,7 +253,7 @@ void AddFlowFields(FlowField<FT> const &srcFF,
 	if (srcFF.x->GetOffset() != appFF.x->GetOffset())
 		throw ERROR_REPORT("Offsets of input flow fields do not match!");
 
-	//creates brand new FF or just copies the content from srcFF 
+	//creates brand new FF or just copies the content from srcFF
 	//note: owing to the consistency checks, the *srcFF.x and *srcFF.y exists now
 	if (!resFF.x) resFF.x=new i3d::Image3d<FT>(*srcFF.x); else *resFF.x=*srcFF.x;
 	if (!resFF.y) resFF.y=new i3d::Image3d<FT>(*srcFF.y); else *resFF.y=*srcFF.y;
@@ -685,7 +712,7 @@ void DescribeRadialFlow(FlowField<FT> &FF,
 		    for (int xx=-1; xx <= +1; ++xx)
 		{
 		/*
-		// smaller 6 neighborhood 
+		// smaller 6 neighborhood
 		for (int qq=0; qq < 7; ++qq)
 		{
 		int xx=dilationHints[qq][0];
@@ -728,7 +755,7 @@ void DescribeRadialFlow(FlowField<FT> &FF,
 						//is faster and just works well...
 						const float w=newHintVal * (0.5f*cos(k/sz*3.14159f)+0.5f); //ORIG
 						/*
-						const float w=(k < 0.f)? 
+						const float w=(k < 0.f)?
 							newHintVal * (-0.5f*cos(k/sz*3.14159f)+1.5f):
 							newHintVal * (0.5f*cos(k/sz*3.14159f)+0.5f);
 						*/
