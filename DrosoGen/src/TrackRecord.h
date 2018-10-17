@@ -28,9 +28,11 @@ public:
 	/** adds to the current trajectories whatever it finds in the 'filename',
 	    the file should be a text file with white-space separated items,
 	    in this order, TIME X Y Z TRACK_ID
+	    in this order, TIME X Y Z TRACK_ID. The X Y Z coordinates are element-wise
+	    multiplied with the 'scale' (micron coords remain in microns).
 
-	    the function also updates this->knownTracks */
-	void readFromFile(const char* filename)
+	    The function also updates this->knownTracks . */
+	void readFromFile(const char* filename, const Vector3d<float>& scale)
 	{
 		std::ifstream f(filename);
 		if (! f.is_open())
@@ -60,6 +62,7 @@ public:
 				//store the record
 				auto& rr = (*this)[time];
 				rr[id] = Coord3d<float>(x,y,z);
+				rr[id].elemMult(scale);
 
 				knownTracks.insert(id);
 			}
