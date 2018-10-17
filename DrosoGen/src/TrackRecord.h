@@ -20,14 +20,13 @@
 class TrackRecords: public std::map< float,std::map< int,Coord3d<float> > >
 {
 public:
-	/** a set of IDs of tracks that are recorded in this object,
-	    the synchronization between *this and this variable is, however,
-	    not enforced */
+	/** A set of IDs of tracks that are recorded in this object.
+	    The synchronization between *this and this variable is, however,
+	    not enforced. */
 	std::set<int> knownTracks;
 
-	/** adds to the current trajectories whatever it finds in the 'filename',
-	    the file should be a text file with white-space separated items,
-	    in this order, TIME X Y Z TRACK_ID
+	/** Adds to the current trajectories whatever it finds in the 'filename'.
+	    The file should be a text file with white-space separated items,
 	    in this order, TIME X Y Z TRACK_ID. The X Y Z coordinates are element-wise
 	    multiplied with the 'scale' (micron coords remain in microns).
 
@@ -72,8 +71,8 @@ public:
 	}
 
 
-	/** writes all trajectories back into a text 'filename' as white-space
-	    separated times, in this order, TIME X Y Z TRACK_ID */
+	/** Writes all trajectories back into a text 'filename' as white-space
+	    separated times, in this order, TIME X Y Z TRACK_ID. */
 	void writeToFile(const char* filename) const
 	{
 		std::ofstream f(filename);
@@ -97,8 +96,8 @@ public:
 	}
 
 
-	/** report displacement vector for a given 'track' between the two time points,
-	    or use 'defaultVec' if no such information is available in the records */
+	/** Reports displacement vector for a given 'track' between the two time points,
+	    or use 'defaultVec' if no such information is available in the records. */
 	Vector3d<float> getDisplacement(const float timeFrom, const float timeTo,
 	                                const int track,
 	                                const Vector3d<float>& defaultVec) const
@@ -116,8 +115,8 @@ public:
 	}
 
 
-	/** interpolate (if necessary) coordinate along the 'track' at 'time',
-	    returns true (and valid 'retCoord') if that was possible, otherwise
+	/** Interpolates (if necessary) coordinate along the 'track' at 'time'.
+	    Returns true (and valid 'retCoord') if that was possible, otherwise
 		 (if 'time' is outside the track's time span, for instance) returns false. */
 	bool getPositionAlongTrack(const float time, const int track,
 	                           Coord3d<float>& retCoord) const
