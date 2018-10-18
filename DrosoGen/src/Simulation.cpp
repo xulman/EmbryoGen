@@ -6,6 +6,9 @@
 #include "Agents/NucleusAgent.h"
 #include "Agents/ShapeHinter.h"
 
+#include "TrackRecord.h"
+#include "util/flowfields.h"
+
 void Simulation::initializeAgents(void)
 {
 	//stepping in all directions -> influences the final number of nuclei
@@ -71,6 +74,37 @@ void Simulation::initializeAgents(void)
 	ag->setOfficer(this);
 	agents.push_back(ag);
 
+	//-------------
+	//the trajectories hinter:
+	TrackRecords traHinter;
+	traHinter.readFromFile("../DrosophilaYolk_movement.txt", Vector3d<float>(2.f));
+	REPORT("Timepoints: " << traHinter.size() << ", Tracks: " << traHinter.knownTracks.size());
+
+	//-------------
+	//create and init FF
+	FlowField<float> ff;
+	InitFlowField(initShape,ff);
+
+	//populate it from traHinter
+	traHinter.resetToFF(0,1,ff,Vector3d<float>(2,2,2));
+
+	//draw it
+	ID = ff.DrawFF(displayUnit,100,2);
+	REPORT("printed " << ID-100 << " vectors");
+
+	//debug:
+	REPORT("printed " << traHinter.DrawFF(0,1,displayUnit,ID,0)-ID << " vectors");
+/*
+	Coord3d<float> cc;
+	if (traHinter.getPositionAlongTrack(314,1,cc))
+	{
+		REPORT("earlier position: " << cc);
+	}
+	else
+	{
+		REPORT("couldn't");
+	}
+*/
 } //end of initializeAgents()
 
 
