@@ -320,12 +320,13 @@ protected:
 	{
 		Spheres=0,
 		Mesh=1,
-		MaskImg=2
+		ScalarImg=2,
+		undefGeometry=10
 	} ListOfShapeForms;
 
 	/** Construct empty geometry object of given shape form.
 	    This class should never be used constructed directly, always use some
-	    derived class such as Spheres, Mesh or MaskImg. */
+	    derived class such as Spheres, Mesh or ScalarImg. */
 	Geometry(const ListOfShapeForms _shapeForm) : shapeForm(_shapeForm), AABB() {};
 
 
@@ -394,14 +395,14 @@ protected:
 
 
 public:
-	/** sets the given AABB to reflect the current geometry */
+	/** updates the given (foreign) AABB to reflect the current geometry */
 	virtual
-	void setAABB(AxisAlignedBoundingBox& AABB) const =0;
+	void updateThisAABB(AxisAlignedBoundingBox& AABB) const =0;
 
-	/** sets this object's own AABB to reflect the current geometry */
-	void setAABB(void)
+	/** updates this object's own AABB to reflect the current geometry */
+	void updateOwnAABB(void)
 	{
-		setAABB(this->AABB);
+		updateThisAABB(this->AABB);
 	}
 };
 #endif

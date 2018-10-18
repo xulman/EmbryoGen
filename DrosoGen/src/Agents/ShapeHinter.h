@@ -4,21 +4,21 @@
 #include <list>
 #include "../util/report.h"
 #include "AbstractAgent.h"
-#include "../Geometries/MaskImg.h"
+#include "../Geometries/ScalarImg.h"
 
 class ShapeHinter: public AbstractAgent
 {
 public:
 	ShapeHinter(const int ID, const std::string& type,
-	            const MaskImg& shape,
+	            const ScalarImg& shape,
 	            const float currTime, const float incrTime)
 		: AbstractAgent(ID,type, geometryAlias, currTime,incrTime),
 		  geometryAlias(shape),
 		  futureGeometry(shape)
 	{
 		//update AABBs
-		geometryAlias.Geometry::setAABB();
-		futureGeometry.Geometry::setAABB();
+		geometryAlias.Geometry::updateOwnAABB();
+		futureGeometry.Geometry::updateOwnAABB();
 
 		DEBUG_REPORT("EmbryoShell with ID=" << ID << " was just created");
 		DEBUG_REPORT("AABB: " << geometryAlias.AABB.minCorner << " -> " << geometryAlias.AABB.maxCorner);
@@ -35,11 +35,11 @@ private:
 
 	// ------------- internals geometry -------------
 	/** reference to my exposed geometry ShadowAgents::geometry */
-	MaskImg geometryAlias;
+	ScalarImg geometryAlias;
 
 	/** my internal representation of my geometry, which is exactly
 	    of the same form as my ShadowAgent::geometry, even the same noOfSpheres */
-	MaskImg futureGeometry;
+	ScalarImg futureGeometry;
 
 	// ------------- externals geometry -------------
 
@@ -76,11 +76,11 @@ private:
 	// ------------- rendering -------------
 	void drawMask(DisplayUnit& du) override
 	{
-		//draw bounding box of the GradIN region of the MaskImg
+		//draw bounding box of the GradIN region of the ScalarImg
 		int dID = ID << 17;
 		dID += futureGeometry.AABB.drawIt(dID,1, du);
 
-		//draw bounding box of the complete MaskImg, as a global debug element
+		//draw bounding box of the complete ScalarImg, as a global debug element
 		futureGeometry.AABB.drawBox(ID << 4,4,
 		  futureGeometry.getDistImgOff(),futureGeometry.getDistImgFarEnd(), du);
 	}
@@ -92,10 +92,10 @@ private:
 		const Vector3d<FLOAT>       off(img.GetOffset().x,img.GetOffset().y,img.GetOffset().z);
 
 		//shortcuts to our own geometry
-		const i3d::Image3d<float>& distImg = futureGeometry.getDistImg();
-		const Vector3d<FLOAT>&  distImgRes = futureGeometry.getDistImgRes();
-		const Vector3d<FLOAT>&  distImgOff = futureGeometry.getDistImgOff();
-		const MaskImg::DistanceModel model = futureGeometry.getDistImgModel();
+		const i3d::Image3d<float>&   distImg = futureGeometry.getDistImg();
+		const Vector3d<FLOAT>&    distImgRes = futureGeometry.getDistImgRes();
+		const Vector3d<FLOAT>&    distImgOff = futureGeometry.getDistImgOff();
+		const ScalarImg::DistanceModel model = futureGeometry.getDistImgModel();
 
 		//project and "clip" this AABB into the img frame
 		//so that voxels to sweep can be narrowed down...
@@ -139,7 +139,7 @@ private:
 			//extract the value from the distImg
 			const float dist = distImg.GetVoxel(centrePX.x,centrePX.y,centrePX.z);
 
-			if (dist < 0 || (dist == 0 && model == MaskImg::DistanceModel::ZeroIN_GradOUT))
+			if (dist < 0 || (dist == 0 && model == ScalarImg::DistanceModel::ZeroIN_GradOUT))
 			{
 #ifdef DEBUG
 				i3d::GRAY16 val = img.GetVoxel(curPos.x,curPos.y,curPos.z);
