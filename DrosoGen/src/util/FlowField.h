@@ -49,19 +49,45 @@ public:
 	FlowField() : x(NULL), y(NULL), z(NULL) {}
 
 	///copy constructor: makes extra copies of flow fields
-	FlowField(FlowField<FT> const &FF) {
+	FlowField(FlowField<FT> const &FF)
+	{
 		if (FF.x) x=new i3d::Image3d<FT>(*FF.x); else x=NULL;
 		if (FF.y) y=new i3d::Image3d<FT>(*FF.y); else y=NULL;
 		if (FF.z) z=new i3d::Image3d<FT>(*FF.z); else z=NULL;
 	}
 
 	///destructor
-	~FlowField() { if (x) delete x; if (y) delete y; if (z) delete z; }
+	~FlowField()
+	{
+		if (canDeleteXYZ)
+		{
+			if (x) delete x;
+			if (y) delete y;
+			if (z) delete z;
+		}
+	}
 
 	///the vector elements
 	i3d::Image3d<FT> *x;
 	i3d::Image3d<FT> *y;
 	i3d::Image3d<FT> *z;
+
+	///flag to signal if underlying image containers can be freed
+	bool canDeleteXYZ = true;
+
+	///connect/overlay outside underlying image containers
+	void proxify(i3d::Image3d<FT>* _x,i3d::Image3d<FT>* _y,i3d::Image3d<FT>* _z)
+	{
+		x = _x;  y = _y;  z = _z;
+		canDeleteXYZ = false;
+	}
+
+	///intentionally lose connection with underlying image containers
+	void deproxify(void)
+	{
+		x = y = z = NULL;
+		canDeleteXYZ = true;
+	}
 
 	/**
 	 * Is the flow field consistent? That is, \e x and \e y must exist
