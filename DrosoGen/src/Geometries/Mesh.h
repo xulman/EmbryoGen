@@ -36,6 +36,7 @@ public:
 			REPORT("this.Mesh vs Mesh is not implemented yet!");
 			break;
 		case ListOfShapeForms::ScalarImg:
+		case ListOfShapeForms::VectorImg:
 			//find collision "from the other side"
 			getSymmetricDistance(otherGeometry,l);
 			break;

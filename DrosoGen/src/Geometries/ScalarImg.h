@@ -108,6 +108,10 @@ public:
 			REPORT("this.ScalarImg vs ScalarImg is not implemented yet!");
 			//getDistanceToScalarImg((ScalarImg*)&otherGeometry,l);
 			break;
+		case ListOfShapeForms::VectorImg:
+			REPORT("this.ScalarImg vs VectorImg is not implemented yet!");
+			//getDistanceToVectorImg((VectorImg*)&otherGeometry,l);
+			break;
 
 		case ListOfShapeForms::undefGeometry:
 			REPORT("Ignoring other geometry of type 'undefGeometry'.");
@@ -302,6 +306,14 @@ public:
 	/** Specialized implementation of getDistance() for ScalarImg-ScalarImg geometries. */
 	/*
 	void getDistanceToScalarImg(const ScalarImg* otherScalarImg,
+	                            std::list<ProximityPair>& l) const
+	{
+	}
+	*/
+
+	/** Specialized implementation of getDistance() for ScalarImg-VectorImg geometries. */
+	/*
+	void getDistanceToVectorImg(const VectorImg* otherVectorImg,
 	                            std::list<ProximityPair>& l) const
 	{
 	}

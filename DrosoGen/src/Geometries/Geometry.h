@@ -321,6 +321,7 @@ protected:
 		Spheres=0,
 		Mesh=1,
 		ScalarImg=2,
+		VectorImg=3,
 		undefGeometry=10
 	} ListOfShapeForms;
 
