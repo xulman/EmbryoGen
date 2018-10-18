@@ -140,7 +140,7 @@ public:
 
 
 	// ------------- AABB -------------
-	void setAABB(AxisAlignedBoundingBox& AABB) const override
+	void updateThisAABB(AxisAlignedBoundingBox& AABB) const override
 	{
 		AABB.reset();
 

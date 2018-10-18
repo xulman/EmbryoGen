@@ -46,7 +46,7 @@ public:
 
 
 	/** construct AABB from the given Mesh */
-	void setAABB(AxisAlignedBoundingBox& AABB) const override
+	void updateThisAABB(AxisAlignedBoundingBox& AABB) const override
 	{
 		//scan through the mesh vertices/nodes and find extremal coordinates
 		//TODO

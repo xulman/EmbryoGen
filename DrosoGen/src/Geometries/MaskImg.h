@@ -302,8 +302,8 @@ public:
 	// ------------- AABB -------------
 	/** construct AABB from the the mask image considering
 	    only non-zero valued voxels, and considering mask's
-		 offset and resolution */
-	void setAABB(AxisAlignedBoundingBox& AABB) const override
+	    offset and resolution */
+	void updateThisAABB(AxisAlignedBoundingBox& AABB) const override
 	{
 		if (model == GradIN_ZeroOUT)
 		{

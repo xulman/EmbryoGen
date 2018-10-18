@@ -394,14 +394,14 @@ protected:
 
 
 public:
-	/** sets the given AABB to reflect the current geometry */
+	/** updates the given (foreign) AABB to reflect the current geometry */
 	virtual
-	void setAABB(AxisAlignedBoundingBox& AABB) const =0;
+	void updateThisAABB(AxisAlignedBoundingBox& AABB) const =0;
 
-	/** sets this object's own AABB to reflect the current geometry */
-	void setAABB(void)
+	/** updates this object's own AABB to reflect the current geometry */
+	void updateOwnAABB(void)
 	{
-		setAABB(this->AABB);
+		updateThisAABB(this->AABB);
 	}
 };
 #endif
