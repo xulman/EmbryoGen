@@ -206,32 +206,40 @@ public:
 
 		//iterates over all track IDs
 		for (const auto id : knownTracks)
+		if (getPositionAlongTrack(timeFrom,id,A) &&
+			 getPositionAlongTrack(timeTo,  id,B))
 		{
-			if (getPositionAlongTrack(timeFrom,id,A) &&
-			    getPositionAlongTrack(timeTo,  id,B))
+			//managed to obtain both track positions,
+			//the displacement vector (in microns)
+			B -= A;
+
+			//insert the displacement vector into a box of 'propagationRadius'
+			//around the position A (projected into the FF's images)
+			pos  = A;
+			pos -= off;
+			pos.elemMult(res); //in px within the FF's images
+			pos += zeroPointFive;
+
+			//sweep the box
+			for (z = (int)pos.z - halfBoxSize.z; z <= (int)pos.z + halfBoxSize.z; ++z)
+			for (y = (int)pos.y - halfBoxSize.y; y <= (int)pos.y + halfBoxSize.y; ++y)
 			{
-				//managed to obtain both track positions,
-				//the displacement vector (in microns)
-				B -= A;
+				//voxel offset at [0, y,z] in the image
+				long index = z*(signed)FF.x->GetSliceSize() + y*(signed)FF.x->GetWidth();
+				//
+				//now at [pos.x-halfBoxSize.x, y,z]
+				index += (int)pos.x - halfBoxSize.x;
 
-				//insert the displacement vector into a box of 'propagationRadius'
-				//around the position A (projected into the FF's images)
-				pos  = A;
-				pos -= off;
-				pos.elemMult(res); //in px within the FF's images
-				pos += zeroPointFive;
-
-				//sweep the box
-				for (z = (int)pos.z - halfBoxSize.z; z <= (int)pos.z + halfBoxSize.z; ++z)
-				for (y = (int)pos.y - halfBoxSize.y; y <= (int)pos.y + halfBoxSize.y; ++y)
 				for (x = (int)pos.x - halfBoxSize.x; x <= (int)pos.x + halfBoxSize.x; ++x)
-				if (FF.x->Include(x,y,z))
 				{
-					//is inside the image, put a vector then
-					const size_t index = FF.x->GetIndex((unsigned)x,(unsigned)y,(unsigned)z);
-					FF.x->SetVoxel(index,B.x);
-					FF.y->SetVoxel(index,B.y);
-					FF.z->SetVoxel(index,B.z);
+					if (FF.x->Include(x,y,z))
+					{
+						//is inside the image, put a vector then
+						FF.x->SetVoxel((unsigned)index,B.x);
+						FF.y->SetVoxel((unsigned)index,B.y);
+						FF.z->SetVoxel((unsigned)index,B.z);
+					}
+					++index;
 				}
 			}
 		}
@@ -293,33 +301,41 @@ public:
 
 		//iterates over all track IDs
 		for (const auto id : knownTracks)
+		if (getPositionAlongTrack(timeFrom,id,A) &&
+			 getPositionAlongTrack(timeTo,  id,B))
 		{
-			if (getPositionAlongTrack(timeFrom,id,A) &&
-			    getPositionAlongTrack(timeTo,  id,B))
+			//managed to obtain both track positions,
+			//the displacement vector (in microns)
+			B -= A;
+
+			//insert the displacement vector into a box of 'propagationRadius'
+			//around the position A (projected into the FF's images)
+			pos  = A;
+			pos -= off;
+			pos.elemMult(res); //in px within the FF's images
+			pos += zeroPointFive;
+
+			//sweep the box
+			for (z = (int)pos.z - halfBoxSize.z; z <= (int)pos.z + halfBoxSize.z; ++z)
+			for (y = (int)pos.y - halfBoxSize.y; y <= (int)pos.y + halfBoxSize.y; ++y)
 			{
-				//managed to obtain both track positions,
-				//the displacement vector (in microns)
-				B -= A;
+				//voxel offset at [0, y,z] in the image
+				long index = z*(signed)FF.x->GetSliceSize() + y*(signed)FF.x->GetWidth();
+				//
+				//now at [pos.x-halfBoxSize.x, y,z]
+				index += (int)pos.x - halfBoxSize.x;
 
-				//insert the displacement vector into a box of 'propagationRadius'
-				//around the position A (projected into the FF's images)
-				pos  = A;
-				pos -= off;
-				pos.elemMult(res); //in px within the FF's images
-				pos += zeroPointFive;
-
-				//sweep the box
-				for (z = (int)pos.z - halfBoxSize.z; z <= (int)pos.z + halfBoxSize.z; ++z)
-				for (y = (int)pos.y - halfBoxSize.y; y <= (int)pos.y + halfBoxSize.y; ++y)
 				for (x = (int)pos.x - halfBoxSize.x; x <= (int)pos.x + halfBoxSize.x; ++x)
-				if (FF.x->Include(x,y,z))
 				{
-					//is inside the image, put a vector then
-					const size_t index = FF.x->GetIndex((unsigned)x,(unsigned)y,(unsigned)z);
-					*(FFx+index) += B.x;
-					*(FFy+index) += B.y;
-					*(FFz+index) += B.z;
-					*(FFc+index) += 1;
+					if (FF.x->Include(x,y,z))
+					{
+						//is inside the image, put a vector then
+						*(FFx+index) += B.x;
+						*(FFy+index) += B.y;
+						*(FFz+index) += B.z;
+						*(FFc+index) += 1;
+					}
+					++index;
 				}
 			}
 		}
