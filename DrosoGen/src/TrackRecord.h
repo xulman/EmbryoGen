@@ -257,8 +257,10 @@ public:
 		FF.x->GetVoxelData() = 0;
 		FF.y->GetVoxelData() = 0;
 		FF.z->GetVoxelData() = 0;
+
 		i3d::Image3d<int> FFcnts;
 		FFcnts.CopyMetaData(*FF.x);
+		FFcnts.GetVoxelData() = 0;
 
 		//offset and resolution of the flow field images/containers
 		const Vector3d<float> off(FF.x->GetOffset().x,FF.x->GetOffset().y,FF.x->GetOffset().z);
