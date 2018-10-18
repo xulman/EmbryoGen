@@ -170,10 +170,12 @@ public:
 
 	/** Scans over all tracks and inserts (overwrites) displacement vectors
 	    between the given time span into the flow field 'FF'. The FF must be
-	    initialized beforehand. */
+	    initialized beforehand. Every vector of the FF is "dilated" before
+	    the insertion by a box structuring element whose half-sizes ("radii")
+	    are given in the 'propagationRadius' (in microns). */
 	void insertToFF(const float timeFrom, const float timeTo,
 	                FlowField<float>& FF,
-	                const float propagationDistance = 1.0f) const
+	                const Vector3d<float>& propagationRadius) const
 	{
 #ifdef DEBUG
 		if (!FF.isConsistent())
@@ -190,9 +192,9 @@ public:
 		//constant using for rounding to (integer) pixel coordinates
 		const Vector3d<float> zeroPointFive(0.5f);
 
-		//pixels size of the 'propagationDistance' w.r.t. resolution
-		pos  = res;
-		pos *= propagationDistance;
+		//pixels size of the 'propagationRadius' w.r.t. resolution
+		pos = res;
+		pos.elemMult(propagationRadius);
 		pos.x = std::ceil(pos.x);
 		pos.y = std::ceil(pos.y);
 		pos.z = std::ceil(pos.z);
@@ -212,7 +214,7 @@ public:
 				//the displacement vector (in microns)
 				B -= A;
 
-				//insert the displacement vector into a box of "radius" 'propagationDistance'
+				//insert the displacement vector into a box of 'propagationRadius'
 				//around the position A (projected into the FF's images)
 				pos  = A;
 				pos -= off;
@@ -240,10 +242,12 @@ public:
 	    given time span into the flow field 'FF'. The FF must be initialized
 	    beforehand; it is, however, zeroed in this function prior its work.
 	    If more displacement vectors coincide on the same voxel, their average
-	    value/vector is stored in the end. */
+	    value/vector is stored in the end. Every vector of the FF is "dilated"
+	    before the insertion by a box structuring element whose half-sizes
+	    ("radii") are given in the 'propagationRadius' (in microns). */
 	void resetToFF(const float timeFrom, const float timeTo,
 	               FlowField<float>& FF,
-	               const float propagationDistance = 1.0f) const
+	               const Vector3d<float>& propagationRadius) const
 	{
 #ifdef DEBUG
 		if (!FF.isConsistent())
@@ -267,9 +271,9 @@ public:
 		//constant using for rounding to (integer) pixel coordinates
 		const Vector3d<float> zeroPointFive(0.5f);
 
-		//pixels size of the 'propagationDistance' w.r.t. resolution
-		pos  = res;
-		pos *= propagationDistance;
+		//pixels size of the 'propagationRadius' w.r.t. resolution
+		pos = res;
+		pos.elemMult(propagationRadius);
 		pos.x = std::ceil(pos.x);
 		pos.y = std::ceil(pos.y);
 		pos.z = std::ceil(pos.z);
@@ -295,7 +299,7 @@ public:
 				//the displacement vector (in microns)
 				B -= A;
 
-				//insert the displacement vector into a box of "radius" 'propagationDistance'
+				//insert the displacement vector into a box of 'propagationRadius'
 				//around the position A (projected into the FF's images)
 				pos  = A;
 				pos -= off;
