@@ -77,7 +77,8 @@ void Simulation::initializeAgents(void)
 	//-------------
 	//the trajectories hinter:
 	TrackRecords traHinter;
-	traHinter.readFromFile("../DrosophilaYolk_movement.txt", Vector3d<float>(2.f));
+	//traHinter.readFromFile("../DrosophilaYolk_movement.txt", Vector3d<float>(2.f));
+	traHinter.readFromFile("dataset.tracks.txt", Vector3d<float>(0.5f));
 	REPORT("Timepoints: " << traHinter.size() << ", Tracks: " << traHinter.knownTracks.size());
 
 	//-------------
