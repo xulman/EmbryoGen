@@ -17,8 +17,8 @@ public:
 		  futureGeometry(shape)
 	{
 		//update AABBs
-		geometryAlias.Geometry::setAABB();
-		futureGeometry.Geometry::setAABB();
+		geometryAlias.Geometry::updateOwnAABB();
+		futureGeometry.Geometry::updateOwnAABB();
 
 		DEBUG_REPORT("EmbryoShell with ID=" << ID << " was just created");
 		DEBUG_REPORT("AABB: " << geometryAlias.AABB.minCorner << " -> " << geometryAlias.AABB.maxCorner);

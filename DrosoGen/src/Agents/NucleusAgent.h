@@ -43,8 +43,8 @@ public:
 		  weights(new FLOAT[shape.noOfSpheres])
 	{
 		//update AABBs
-		geometryAlias.Geometry::setAABB();
-		futureGeometry.Geometry::setAABB();
+		geometryAlias.Geometry::updateOwnAABB();
+		futureGeometry.Geometry::updateOwnAABB();
 
 		//estimate of number of forces (per simulation round):
 		//10(all s2s) + 4(spheres)*2(drive&friction) + 10(neigs)*4(spheres)*4("outer" forces),
@@ -203,7 +203,7 @@ private:
 		}
 
 		//update AABB to the new geometry
-		futureGeometry.Geometry::setAABB();
+		futureGeometry.Geometry::updateOwnAABB();
 
 		//all forces processed...
 		forces.clear();
@@ -459,7 +459,7 @@ private:
 		}
 
 		//update AABB
-		geometryAlias.Geometry::setAABB();
+		geometryAlias.Geometry::updateOwnAABB();
 	}
 
 public:
