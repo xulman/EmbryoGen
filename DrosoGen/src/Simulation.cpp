@@ -1,6 +1,6 @@
 #include "util/Vector3d.h"
 #include "Geometries/Spheres.h"
-#include "Geometries/MaskImg.h"
+#include "Geometries/ScalarImg.h"
 #include "Simulation.h"
 #include "Agents/AbstractAgent.h"
 #include "Agents/NucleusAgent.h"
@@ -63,7 +63,7 @@ void Simulation::initializeAgents(void)
 
 	//now, read the mask image and make it a shape hinter...
 	i3d::Image3d<i3d::GRAY8> initShape("../DrosophilaYolk_mask_lowerRes.tif");
-	MaskImg m(initShape,MaskImg::DistanceModel::ZeroIN_GradOUT);
+	ScalarImg m(initShape,ScalarImg::DistanceModel::ZeroIN_GradOUT);
 	//m.saveDistImg("GradIN_ZeroOUT.tif");
 
 	//finally, create the simulation agent to register this shape
@@ -140,7 +140,7 @@ void Simulation::initializeAgents_aFew(void)
 	//Img.SaveImage("GradIN_ZeroOUT__original.tif");
 
 	//now convert the actual shape into the shape geometry
-	MaskImg m(Img,MaskImg::DistanceModel::GradIN_ZeroOUT);
+	ScalarImg m(Img,ScalarImg::DistanceModel::GradIN_ZeroOUT);
 	//m.saveDistImg("GradIN_ZeroOUT.tif");
 
 	//finally, create the simulation agent to register this shape

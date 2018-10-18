@@ -40,10 +40,10 @@
  *
  * Author: Vladimir Ulman, 2018
  */
-class MaskImg: public Geometry
+class ScalarImg: public Geometry
 {
 public:
-	/** Defines how distances will be calculated on this geometry, see class MaskImg docs */
+	/** Defines how distances will be calculated on this geometry, see class ScalarImg docs */
 	typedef enum
 	{
 		ZeroIN_GradOUT=0,
@@ -53,7 +53,7 @@ public:
 
 private:
 	/** Image with precomputed distances, it is of the same offset, size, resolution
-	    (see docs of class MaskImg) as the one given during construction of this object */
+	    (see docs of class ScalarImg) as the one given during construction of this object */
 	i3d::Image3d<float> distImg;
 
 	/** (cached) resolution of the distImg [pixels per micrometer] */
@@ -63,7 +63,7 @@ private:
 	/** (cached) offset of the distImg's "maxCorner" [micrometer] */
 	Vector3d<FLOAT> distImgFarEnd;
 
-	/** This is just a reminder of how the MaskImg::distImg was created, since we don't
+	/** This is just a reminder of how the ScalarImg::distImg was created, since we don't
 	    have reference or copy to the original source image and we cannot reconstruct it
 	    easily... */
 	const DistanceModel model;
@@ -71,8 +71,8 @@ private:
 public:
 	/** constructor can be a bit more memory expensive if _model is GradIN_GradOUT */
 	template <class MT>
-	MaskImg(const i3d::Image3d<MT>& _mask, DistanceModel _model)
-		: Geometry(ListOfShapeForms::MaskImg), model(_model)
+	ScalarImg(const i3d::Image3d<MT>& _mask, DistanceModel _model)
+		: Geometry(ListOfShapeForms::ScalarImg), model(_model)
 	{
 		updateWithNewMask(_mask);
 	}
@@ -96,35 +96,35 @@ public:
 			break;
 		case ListOfShapeForms::Mesh:
 			//TODO: attempt to project mesh vertices into the mask image and look for collision
-			REPORT("this.MaskImg vs Mesh is not implemented yet!");
+			REPORT("this.ScalarImg vs Mesh is not implemented yet!");
 			break;
-		case ListOfShapeForms::MaskImg:
-			REPORT("this.MaskImg vs MaskImg is not implemented yet!");
-			//getDistanceToMaskImg((MaskImg*)&otherGeometry,l);
+		case ListOfShapeForms::ScalarImg:
+			REPORT("this.ScalarImg vs ScalarImg is not implemented yet!");
+			//getDistanceToScalarImg((ScalarImg*)&otherGeometry,l);
 			break;
 		default:
 			throw new std::runtime_error("Geometry::getDistance(): Not supported combination of shape representations.");
 		}
 	}
 
-	/** Specialized implementation of getDistance() for MaskImg & Spheres geometries.
-	    Rasterizes the 'other' spheres into the 'local' MaskImg and finds min distance
+	/** Specialized implementation of getDistance() for ScalarImg & Spheres geometries.
+	    Rasterizes the 'other' spheres into the 'local' ScalarImg and finds min distance
 	    for every other sphere. These nearest surface distances and corresponding
 	    ProximityPairs are added to the output list l.
 
-	    If a Sphere is calculating distance to a MaskImg, the ProximityPair "points"
+	    If a Sphere is calculating distance to a ScalarImg, the ProximityPair "points"
 	    (the vector from ProximityPair::localPos to ProximityPair::otherPos) from Sphere's
 	    surface in the direction parallel to the gradient (determined at 'localPos' in
-	    the MaskImg::distImg) towards a surface of the MaskImg. The surface, at 'otherPos',
+	    the ScalarImg::distImg) towards a surface of the ScalarImg. The surface, at 'otherPos',
 	    is not necessarily accurate as it is estimated from the distance and (local!)
 	    gradient only. The length of such a "vector" is the same as a distance to the surface
-	    found at 'localPos' in the 'distImg'. If a MaskImg is calculating distance to a Sphere,
+	    found at 'localPos' in the 'distImg'. If a ScalarImg is calculating distance to a Sphere,
 	    the opposite "vector" is created and placed such that the tip of this "vector" points
 	    at Sphere's surface. In other words, the tip becomes the base and vice versa. */
 	void getDistanceToSpheres(const class Spheres* otherSpheres,
 	                          std::list<ProximityPair>& l) const
 	{
-		//da plan: determine bounding box within this MaskImg where
+		//da plan: determine bounding box within this ScalarImg where
 		//we can potentially see any piece of the foreign Spheres;
 		//sweep it and consider voxel centres; construct a thought
 		//vector from a sphere's centre to the voxel centre, make it
@@ -279,7 +279,7 @@ public:
 			surfPoint *= radiiO[i] / surfPoint.len(); //stretch the vector
 			surfPoint += centresO[i]; //now point on the surface...
 
-			//this is from MaskImg perspective (local = MaskImg, other = Sphere),
+			//this is from ScalarImg perspective (local = ScalarImg, other = Sphere),
 			//it reports index of the relevant foreign sphere
 			l.push_back( ProximityPair(surfPoint+grad,surfPoint,
 			  distances[i], (signed)distImg.GetIndex(curPos.x,curPos.y,curPos.z),i) );
@@ -290,10 +290,10 @@ public:
 		delete[] hints;
 	}
 
-	/** Specialized implementation of getDistance() for MaskImg-MaskImg geometries. */
+	/** Specialized implementation of getDistance() for ScalarImg-ScalarImg geometries. */
 	/*
-	void getDistanceToMaskImg(const MaskImg* otherMaskImg,
-	                          std::list<ProximityPair>& l) const
+	void getDistanceToScalarImg(const ScalarImg* otherScalarImg,
+	                            std::list<ProximityPair>& l) const
 	{
 	}
 	*/
@@ -449,8 +449,8 @@ public:
 
 
 private:
-	/** updates MaskImg::distImgOff, MaskImg::distImgRes and MaskImg::distImgFarEnd
-	    to the current MaskImg::distImg */
+	/** updates ScalarImg::distImgOff, ScalarImg::distImgRes and ScalarImg::distImgFarEnd
+	    to the current ScalarImg::distImg */
 	void updateDistImgResOffFarEnd(void)
 	{
 		distImgRes.x = distImg.GetResolution().GetRes().x;

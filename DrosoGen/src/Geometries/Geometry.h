@@ -320,12 +320,12 @@ protected:
 	{
 		Spheres=0,
 		Mesh=1,
-		MaskImg=2
+		ScalarImg=2
 	} ListOfShapeForms;
 
 	/** Construct empty geometry object of given shape form.
 	    This class should never be used constructed directly, always use some
-	    derived class such as Spheres, Mesh or MaskImg. */
+	    derived class such as Spheres, Mesh or ScalarImg. */
 	Geometry(const ListOfShapeForms _shapeForm) : shapeForm(_shapeForm), AABB() {};
 
 

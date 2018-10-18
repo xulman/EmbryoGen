@@ -65,7 +65,7 @@ public:
 			//find collision "from the other side"
 			getSymmetricDistance(otherGeometry,l);
 			break;
-		case ListOfShapeForms::MaskImg:
+		case ListOfShapeForms::ScalarImg:
 			//find collision "from the other side"
 			getSymmetricDistance(otherGeometry,l);
 			break;
