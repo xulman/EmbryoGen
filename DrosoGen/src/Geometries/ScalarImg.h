@@ -35,8 +35,13 @@
  * inside this geometry. Variant b) will make the agents stay along the boundary/surface
  * of this geometry. Variant c) will prevent agents from staying inside this geometry.
  *
- * The class was designed with the assumption that agents who interact with this
- * agent will want to minimize their mutual (surface) distance.
+ * The class was originally designed with the assumption that agents who interact
+ * with this agent will want to minimize their mutual (surface) distance.
+ *
+ * However, the use of this class need not to be restricted to this
+ * use-case -- in which case the best is to create a new class that
+ * inherits from this one, overrides the getDistance() method, and
+ * declares shapeForm = Geometry::ListOfShapeForms::undefGeometry.
  *
  * Author: Vladimir Ulman, 2018
  */
@@ -99,8 +104,13 @@ public:
 			REPORT("this.ScalarImg vs Mesh is not implemented yet!");
 			break;
 		case ListOfShapeForms::ScalarImg:
+			//TODO identity case
 			REPORT("this.ScalarImg vs ScalarImg is not implemented yet!");
 			//getDistanceToScalarImg((ScalarImg*)&otherGeometry,l);
+			break;
+
+		case ListOfShapeForms::undefGeometry:
+			REPORT("Ignoring other geometry of type 'undefGeometry'.");
 			break;
 		default:
 			throw new std::runtime_error("Geometry::getDistance(): Not supported combination of shape representations.");

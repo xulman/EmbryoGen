@@ -320,7 +320,8 @@ protected:
 	{
 		Spheres=0,
 		Mesh=1,
-		ScalarImg=2
+		ScalarImg=2,
+		undefGeometry=10
 	} ListOfShapeForms;
 
 	/** Construct empty geometry object of given shape form.

@@ -39,6 +39,10 @@ public:
 			//find collision "from the other side"
 			getSymmetricDistance(otherGeometry,l);
 			break;
+
+		case ListOfShapeForms::undefGeometry:
+			REPORT("Ignoring other geometry of type 'undefGeometry'.");
+			break;
 		default:
 			throw new std::runtime_error("Geometry::getDistance(): Not supported combination of shape representations.");
 		}

@@ -62,12 +62,13 @@ public:
 			getDistanceToSpheres((Spheres*)&otherGeometry,l);
 			break;
 		case ListOfShapeForms::Mesh:
-			//find collision "from the other side"
-			getSymmetricDistance(otherGeometry,l);
-			break;
 		case ListOfShapeForms::ScalarImg:
 			//find collision "from the other side"
 			getSymmetricDistance(otherGeometry,l);
+			break;
+
+		case ListOfShapeForms::undefGeometry:
+			REPORT("Ignoring other geometry of type 'undefGeometry'.");
 			break;
 		default:
 			throw new std::runtime_error("Geometry::getDistance(): Not supported combination of shape representations.");
