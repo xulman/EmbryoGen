@@ -330,7 +330,7 @@ public:
 	void proxifyFF(FlowField<FLOAT>& FF)
 	{
 		FF.proxify(&X,&Y,&Z);
-		DEBUG_REPORT("The FF.isConsistent()=" << FF.isConsistent());
+		DEBUG_REPORT("The FF.isConsistent() gives " << (FF.isConsistent() ? "true" : "false"));
 	}
 
 	const Vector3d<FLOAT>& getImgRes(void) const
