@@ -63,7 +63,16 @@ public:
 		Y.CopyMetaData(_template);
 		Z.CopyMetaData(_template);
 
+		zeroAll();
 		updateResOffFarEnd();
+	}
+
+	/** inserts zero vectors to the vector field */
+	void zeroAll(void)
+	{
+		X.GetVoxelData() = 0;
+		Y.GetVoxelData() = 0;
+		Z.GetVoxelData() = 0;
 	}
 
 	/** just for debug purposes: save the vector field.x image to a filename */
