@@ -28,7 +28,7 @@
 class VectorImg: public Geometry
 {
 public:
-	/** Defines how distances will be calculated on this geometry, see class ScalarImg docs */
+	/** Defines how distances will be calculated on this geometry, see class VectorImg docs */
 	typedef enum
 	{
 		minVec=0,
@@ -134,7 +134,7 @@ public:
 			break;
 		case ListOfShapeForms::Mesh:
 			//TODO: attempt to project mesh vertices into the mask image and look for collision
-			REPORT("this.ScalarImg vs Mesh is not implemented yet!");
+			REPORT("this.VectorImg vs Mesh is not implemented yet!");
 			break;
 		case ListOfShapeForms::ScalarImg:
 			//find collision "from the other side"
@@ -154,24 +154,28 @@ public:
 		}
 	}
 
-	/** Specialized implementation of getDistance() for ScalarImg & Spheres geometries.
-	    Rasterizes the 'other' spheres into the 'local' ScalarImg and finds min distance
-	    for every other sphere. These nearest surface distances and corresponding
-	    ProximityPairs are added to the output list l.
+	/** Specialized implementation of getDistance() for VectorImg & Spheres geometries.
+	    Rasterizes the 'other' spheres into the 'local' VectorImg and, based on this->policy
+	    finds the right distance for every other sphere. These surface distances and
+	    corresponding ProximityPairs are added to the output list l.
 
-	    If a Sphere is calculating distance to a ScalarImg, the ProximityPair "points"
-	    (the vector from ProximityPair::localPos to ProximityPair::otherPos) from Sphere's
-	    surface in the direction parallel to the gradient (determined at 'localPos' in
-	    the ScalarImg::distImg) towards a surface of the ScalarImg. The surface, at 'otherPos',
-	    is not necessarily accurate as it is estimated from the distance and (local!)
-	    gradient only. The length of such a "vector" is the same as a distance to the surface
-	    found at 'localPos' in the 'distImg'. If a ScalarImg is calculating distance to a Sphere,
-	    the opposite "vector" is created and placed such that the tip of this "vector" points
-	    at Sphere's surface. In other words, the tip becomes the base and vice versa. */
+	    Every ProximityPair returned here is in fact encoding some vector from the VectorImg,
+	    it is no real distance to anything. The 'other' position in the ProximityPair is
+	    where the other surface is hitting this VectorImg, and displacement from 'other'
+	    to 'local' position in the ProximityPair is the vector itself. It is assumed that
+	    the other interacting party knows well how to interpret it.
+
+	    One could say that the ProximityPairs are hijacked in this special type of "geometry",
+	    and indeed it is true. The reason for it is that the only interaction between agents
+	    is allowed (currently) via ShadowAgent::geometry attribute, which supports communication
+	    by means of ProximityPairs (via Geometry::getDistance()). Nevertheless, one is always
+	    allowed to read out the ShadowAgent::geometry directly and process it according to
+	    one's own needs (in this light this function is more a convenience function than
+	    anything else). */
 	void getDistanceToSpheres(const class Spheres* otherSpheres,
 	                          std::list<ProximityPair>& l) const
 	{
-		//da plan: determine bounding box within this ScalarImg where
+		//da plan: determine bounding box within this VectorImg where
 		//we can potentially see any piece of the foreign Spheres;
 		//sweep it and consider voxel centres; construct a thought
 		//vector from a sphere's centre to the voxel centre, make it
@@ -193,13 +197,13 @@ public:
 		sweepBox.minCorner.elemMax(AABB.minCorner); //in mu
 		sweepBox.maxCorner.elemMin(AABB.maxCorner);
 
-		//the sweeping box in pixels, in coordinates of this distImg
+		//the sweeping box in pixels, in coordinates of this FF
 		Vector3d<size_t> curPos, minSweepPX,maxSweepPX;
-		sweepBox.exportInPixelCoords(distImg, minSweepPX,maxSweepPX);
+		sweepBox.exportInPixelCoords(X, minSweepPX,maxSweepPX);
 
 		//(squared) voxel's volume half-diagonal vector and its length
 		//(for detection of voxels that coincide with sphere's surface)
-		Vector3d<FLOAT> vecPXhd2(0.5f/distImgRes.x,0.5f/distImgRes.y,0.5f/distImgRes.z);
+		Vector3d<FLOAT> vecPXhd2(0.5f/imgRes.x,0.5f/imgRes.y,0.5f/imgRes.z);
 		const FLOAT     lenPXhd = vecPXhd2.len();
 		vecPXhd2.elemMult(vecPXhd2); //make it squared
 
@@ -208,11 +212,28 @@ public:
 		const FLOAT* const radiiO             = otherSpheres->getRadii();
 		const int io                          = otherSpheres->getNoOfSpheres();
 
-		//remember the smallest distance observed so far for every foreign sphere...
-		FLOAT* distances = new FLOAT[io];
-		for (int i = 0; i < io; ++i) distances[i] = TOOFAR;
+		//remember the squared lengths observed so far for every foreign sphere...
+		FLOAT* lengths2 = new FLOAT[io];
+		switch (policy)
+		{ //initialize the array
+		case minVec:
+			for (int i = 0; i < io; ++i) lengths2[i] = TOOFAR;
+			break;
+		case maxVec:
+		case avgVec:
+			for (int i = 0; i < io; ++i) lengths2[i] = 0;
+			break;
+		case allVec:
+		default: ;
+			//no init required
+		}
+		//...what was observed...
+		Vector3d<FLOAT>* vecs = new Vector3d<FLOAT>[io]; //inits to zero vector by default
 		//...and where it was observed
 		Vector3d<size_t>* hints = new Vector3d<size_t>[io];
+
+		//holder for the currently examined vectors in the FF
+		Vector3d<FLOAT> vec;
 
 		//aux position vectors: current voxel's centre and somewhat sphere's surface point
 		Vector3d<FLOAT> centre, surfPoint;
@@ -224,10 +245,10 @@ public:
 		{
 			//we are now visiting voxels where some sphere can be seen,
 			//get micron coordinate of the current voxel's centre
-			centre.x = ((FLOAT)curPos.x +0.5f) / distImgRes.x;
-			centre.y = ((FLOAT)curPos.y +0.5f) / distImgRes.y;
-			centre.z = ((FLOAT)curPos.z +0.5f) / distImgRes.z;
-			centre += distImgOff;
+			centre.x = ((FLOAT)curPos.x +0.5f) / imgRes.x;
+			centre.y = ((FLOAT)curPos.y +0.5f) / imgRes.y;
+			centre.z = ((FLOAT)curPos.z +0.5f) / imgRes.z;
+			centre += imgOff;
 
 			//check the current voxel against all spheres
 			for (int i = 0; i < io; ++i)
@@ -250,47 +271,98 @@ public:
 					if (surfPoint.x <= vecPXhd2.x && surfPoint.y <= vecPXhd2.y && surfPoint.z <= vecPXhd2.z)
 					{
 						//hooray, a voxel whose volume is intersecting with i-th sphere's surface
-						//let's inspect the distImg at this position
-						const FLOAT dist = 1;
-						//TODO = distImg.GetVoxel(curPos.x,curPos.y,curPos.z);
+						//let's inspect the FF's vector at this position
+						vec.x = X.GetVoxel(curPos.x,curPos.y,curPos.z);
+						vec.y = Y.GetVoxel(curPos.x,curPos.y,curPos.z);
+						vec.z = Z.GetVoxel(curPos.x,curPos.y,curPos.z);
 
-						if (dist < distances[i])
+						switch (policy)
 						{
-							distances[i] = dist;
-							hints[i] = curPos;
+						case minVec:
+							if (vec.len2() < lengths2[i])
+							{
+								lengths2[i] = vec.len2();
+								vecs[i] = vec;
+								hints[i] = curPos;
+							}
+							break;
+						case maxVec:
+							if (vec.len2() > lengths2[i])
+							{
+								lengths2[i] = vec.len2();
+								vecs[i] = vec;
+								hints[i] = curPos;
+							}
+							break;
+						case avgVec:
+							vecs[i] += vec;
+							lengths2[i] += 1; //act as count here
+							break;
+						case allVec:
+							//create immediately the ProximityPair
+							l.emplace_back( ProximityPair(centre+vec,centre, vec.len(),
+							  (signed)X.GetIndex(curPos.x,curPos.y,curPos.z),i) );
+							break;
+						default: ;
 						}
-					}
-				}
+
+					} //if intersecting voxel was found
+				} //if nearby voxel was found
 			} //over all foreign spheres
 		} //over all voxels in the sweeping box
 
-		//add ProximityPairs where found some
-		for (int i = 0; i < io; ++i)
-		if (distances[i] < TOOFAR)
+		//process (potentially) the one vector per sphere
+		if (policy == minVec)
 		{
-			//found some pair:
+			//add ProximityPairs where found some
+			for (int i = 0; i < io; ++i)
+			if (lengths2[i] < TOOFAR)
+			{
+				//found one
 
-			//determine the exact point on the sphere surface, use again the voxel's centre
-			surfPoint.x = ((FLOAT)hints[i].x +0.5f) / distImgRes.x; //coordinate within in the image, in microns
-			surfPoint.y = ((FLOAT)hints[i].y +0.5f) / distImgRes.y;
-			surfPoint.z = ((FLOAT)hints[i].z +0.5f) / distImgRes.z;
-			surfPoint += distImgOff;  //now real world coordinate of the pixel's centre
-			surfPoint -= centresO[i]; //now vector from sphere's centre
-			surfPoint *= radiiO[i] / surfPoint.len(); //stretch the vector
-			surfPoint += centresO[i]; //now point on the surface...
-
-			//this is from ScalarImg perspective (local = ScalarImg, other = Sphere),
-			//it reports index of the relevant foreign sphere
-			l.push_back( ProximityPair(surfPoint+grad,surfPoint,
-			  distances[i], (signed)distImg.GetIndex(curPos.x,curPos.y,curPos.z),i) );
-			//NB: a copy is of the ProximityPair 'p' is created while pushing...
+				//this is from VectorImg perspective (local = VectorImg, other = Sphere),
+				//it reports index of the relevant foreign sphere
+				l.emplace_back( ProximityPair(centresO[i]+vecs[i],centresO[i], std::sqrt(lengths2[i]), //TODO
+				  (signed)X.GetIndex(hints[i].x,hints[i].y,hints[i].z),i) );
+			}
 		}
+		else if (policy == maxVec)
+		{
+			//add ProximityPairs where found some
+			for (int i = 0; i < io; ++i)
+			if (lengths2[i] > 0)
+			{
+				//found one
 
-		delete[] distances;
+				//this is from VectorImg perspective (local = VectorImg, other = Sphere),
+				//it reports index of the relevant foreign sphere
+				l.emplace_back( ProximityPair(centresO[i]+vecs[i],centresO[i], std::sqrt(lengths2[i]), //TODO
+				  (signed)X.GetIndex(hints[i].x,hints[i].y,hints[i].z),i) );
+			}
+		}
+		else if (policy == avgVec)
+		{
+			//add ProximityPairs where found some
+			for (int i = 0; i < io; ++i)
+			if (lengths2[i] > 0)
+			{
+				//found at least one
+				vecs[i] /= lengths2[i];
+
+				//this is from VectorImg perspective (local = VectorImg, other = Sphere),
+				//it reports index of the relevant foreign sphere
+				l.emplace_back( ProximityPair(centresO[i]+vecs[i],centresO[i], vecs[i].len(), 0,i) );
+				//NB: average vector is no particular existing vector, hence local hint = 0
+			}
+		}
+		//else allVec -- this has been already done above
+
+		delete[] lengths2;
+		delete[] vecs;
 		delete[] hints;
 	}
 
-	/** Specialized implementation of getDistance() for ScalarImg-VectorImg geometries. */
+	/** Specialized implementation of getDistance() for VectorImg-VectorImg geometries. */
 	/*
 	void getDistanceToVectorImg(const VectorImg* otherVectorImg,
 	                            std::list<ProximityPair>& l) const
