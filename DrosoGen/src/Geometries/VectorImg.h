@@ -88,6 +88,30 @@ public:
 		sprintf(fn,"%s_z.ics",filename);  Z.SaveImage(fn);
 	}
 
+	/** just for debug purposes: save the image with magnitudes of the vectors to a filename */
+	void saveFFmagnitudes(const char* filename)
+	{
+		//create a new image of the same dimension
+		i3d::Image3d<float> mImg;
+		mImg.CopyMetaData(X);
+
+		//running pointers...
+		const FLOAT* x = X.GetFirstVoxelAddr();     //input vector elements
+		const FLOAT* y = Y.GetFirstVoxelAddr();
+		const FLOAT* z = Z.GetFirstVoxelAddr();
+		float* m = mImg.GetFirstVoxelAddr();        //for vector magnitude
+		float* const mE = m + mImg.GetImageSize();
+
+		//sweep the output image
+		while (m != mE)
+		{
+			*m = std::sqrt( (*x * *x) + (*y * *y) + (*z * *z) );
+			++m; ++x; ++y; ++z;
+		}
+
+		mImg.SaveImage(filename);
+	}
+
 
 	// ------------- distances -------------
 	/** calculate min surface distance between myself and some foreign agent */
