@@ -291,9 +291,8 @@ public:
 
 			//this is from ScalarImg perspective (local = ScalarImg, other = Sphere),
 			//it reports index of the relevant foreign sphere
-			l.push_back( ProximityPair(surfPoint+grad,surfPoint,
-			  distances[i], (signed)distImg.GetIndex(curPos.x,curPos.y,curPos.z),i) );
-			//NB: a copy is of the ProximityPair 'p' is created while pushing...
+			l.emplace_back( ProximityPair(surfPoint+grad,surfPoint,
+			  distances[i], (signed)distImg.GetIndex(hints[i].x,hints[i].y,hints[i].z),i) );
 		}
 
 		delete[] distances;
