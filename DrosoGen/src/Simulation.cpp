@@ -5,6 +5,7 @@
 #include "Agents/AbstractAgent.h"
 #include "Agents/NucleusAgent.h"
 #include "Agents/ShapeHinter.h"
+#include "util/rnd_generators.h"
 
 void Simulation::initializeAgents(void)
 {
@@ -20,15 +21,22 @@ void Simulation::initializeAgents(void)
 	const float Xside  = (0.90f*sceneSize.x)/2.0f;
 	const float YZside = (0.75f*sceneSize.y)/2.0f;
 
+	//rnd shifter along axes
+	rndGeneratorHandle coordShifterRNG;
+	float angVar = 0.f;
+
 	for (float z=-Xside; z <= +Xside; z += dx)
 	{
 		//radius at this z position
 		const float radius = YZside * std::sin(std::acos(std::abs(z)/Xside));
 
+		//shifts along the perimeter of the cylinder
+		angVar += GetRandomGauss(0.f, 0.8f, coordShifterRNG);
+
 		const int howManyToPlace = (int)ceil(6.28f*radius / dx);
 		for (int i=0; i < howManyToPlace; ++i)
 		{
-			const float ang = float(i)/float(howManyToPlace);
+			const float ang = float(i)/float(howManyToPlace) +angVar;
 
 			//the wished position relative to [0,0,0] centre
 			Vector3d<float> axis(0,std::cos(ang*6.28f),std::sin(ang*6.28f));
@@ -43,6 +51,9 @@ void Simulation::initializeAgents(void)
 			pos.x += sceneOffset.x;
 			pos.y += sceneOffset.y;
 			pos.z += sceneOffset.z;
+
+			//also random shift along the main axis
+			pos.x += GetRandomGauss(0.f,0.3f*dx,coordShifterRNG);
 
 			Spheres s(4);
 			s.updateCentre(0,pos);
