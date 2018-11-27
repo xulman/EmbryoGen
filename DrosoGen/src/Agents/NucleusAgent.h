@@ -102,6 +102,12 @@ private:
 	    should maintain during geometry changes during the simulation */
 	float centreDistance[3];
 
+	/** width of the "retention zone" around nuclei that another nuclei
+	    shall not enter; this zone simulates cytoplasm around the nucleus;
+	    it actually behaves as if nuclei spheres were this much larger
+		 in their radii; the value is in microns */
+	float cytoplasmWidth = 2.0f;
+
 	void getCurrentOffVectorsForCentres(Vector3d<FLOAT> offs[4])
 	{
 		//the centre point
@@ -455,7 +461,7 @@ private:
 		for (int i=0; i < geometryAlias.noOfSpheres; ++i)
 		{
 			geometryAlias.centres[i] = futureGeometry.centres[i];
-			geometryAlias.radii[i]   = futureGeometry.radii[i];
+			geometryAlias.radii[i]   = futureGeometry.radii[i] +cytoplasmWidth;
 		}
 
 		//update AABB
