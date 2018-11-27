@@ -38,7 +38,11 @@ void inline PossiblyReSeed(rndGeneratorHandle& rngHandle)
 		const unsigned long s = (unsigned)(-1 * time(NULL) * getpid());
 		gsl_rng_set(rngHandle.rngState,s);
 		DEBUG_REPORT("randomness started with seed " << s);
+
+		rngHandle.usageCnt = 0;
 	}
+	else
+		++rngHandle.usageCnt;
 }
 
 
