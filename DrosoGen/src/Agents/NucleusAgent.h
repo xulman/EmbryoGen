@@ -216,8 +216,46 @@ private:
 	}
 
 	// ------------- to implement one round of simulation -------------
+	int incrCnt = 0;
 	void advanceAndBuildIntForces(const float) override
 	{
+		//adjust the shape at first
+		if (incrCnt < 30)
+		{
+			//"grow factor"
+			const FLOAT dR = 0.05f;    //radius
+			const FLOAT dD = 1.8f*dR;  //diameter
+
+			//make the nuclei fatter by 'dD' um in diameter
+			for (int i=0; i < futureGeometry.noOfSpheres; ++i) futureGeometry.radii[i] += dR;
+			for (int i=1; i < futureGeometry.noOfSpheres; ++i) centreDistance[i-1]     += dD;
+
+			//offset the centres as well
+			Vector3d<FLOAT> dispL1,dispL2;
+
+			dispL1  = futureGeometry.centres[2];
+			dispL1 -= futureGeometry.centres[1];
+			dispL2  = futureGeometry.centres[3];
+			dispL2 -= futureGeometry.centres[2];
+			dispL1 *= dR / dispL1.len();
+			dispL2 *= dD / dispL2.len();
+
+			futureGeometry.centres[2] += dispL1;
+			futureGeometry.centres[3] += dispL1;
+			futureGeometry.centres[3] += dispL2;
+
+			dispL1 *= -1.0f;
+			dispL2  = futureGeometry.centres[0];
+			dispL2 -= futureGeometry.centres[1];
+			dispL2 *= dD / dispL2.len();
+
+			futureGeometry.centres[1] += dispL1;
+			futureGeometry.centres[0] += dispL1;
+			futureGeometry.centres[0] += dispL2;
+
+			++incrCnt;
+		}
+
 		//check bending of the spheres (how much their position deviates from a line,
 		//includes also checking the distance), and add, if necessary, another
 		//forces to the list
