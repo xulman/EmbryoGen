@@ -24,6 +24,24 @@ else (DEBUG_VERSION)
 		  set(CMAKE_BUILD_TYPE "RELEASE" CACHE STATIC "" FORCE)
 endif (DEBUG_VERSION)
 
+#-------------------------
+# USE STATIC LIBS OR NOT?
+#-------------------------
+
+option(BUILD_WITH_STATIC "Shall I build with static libraries?" OFF)
+if (BUILD_WITH_STATIC)
+	set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+	set(CMAKE_LIBRARY_PATH "/reset/path/to/myLibs/" CACHE PATH "optional additional search path where static libs might be gathered")
+else (BUILD_WITH_STATIC)
+	if (APPLE)
+		set(CMAKE_FIND_LIBRARY_SUFFIXES ".dylib")
+	else (APPLE)
+		set(CMAKE_FIND_LIBRARY_SUFFIXES ".so")
+		# dynamic i3dalgo uses the f2c library for which
+		# the following tweak must be here
+		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Xlinker -defsym -Xlinker MAIN__=main")
+	endif (APPLE)
+endif (BUILD_WITH_STATIC)
 
 #---------------
 # REQUIRED LIBS
@@ -61,9 +79,9 @@ if(NOT ZeroMQ_FOUND)
     find_package(ZeroMQ REQUIRED)
 endif()
 
-#--------------
-# SOURCE FILES
-#--------------
+#-----------------------------------
+# SOURCE FILES - TARGET COMPILATION
+#-----------------------------------
 
 set(SOURCES
 		  src/DisplayUnits/SceneryDisplayUnit.cpp
@@ -72,8 +90,52 @@ set(SOURCES
 		  src/Simulation.cpp
 		  src/main.cpp)
 
-#---------
-# TARGETS
-#---------
 add_executable(drosogen ${SOURCES})
+
+#-----------------
+# ADD STATIC LIBS
+#-----------------
+
+if (BUILD_WITH_STATIC)
+		  # explicitly add libraries required by the CBIA i3dlibs
+		  find_library(LIB_LAPACK lapack)
+		  find_library(LIB_BLAS blas)
+		  #find_library(LIB_GFORTRAN gfortran PATHS /usr/lib/gcc/x86_64-pc-linux-gnu/4.6.3)
+		  set(LIBS ${LIBS} ${LIB_LAPACK} ${LIB_BLAS} ${LIB_GFORTRAN})
+
+		  find_library(LIB_TIFF tiff)
+		  find_library(LIB_JPEG jpeg)
+		  find_library(LIB_ICS ics)
+		  #find_library(LIB_PNG png)
+		  #find_library(LIB_HDF5_HL hdf5_hl)
+		  #find_library(LIB_HDF5 hdf5)
+
+		  set(LIBS ${LIBS} ${LIB_TIFF} ${LIB_JPEG} ${LIB_ICS}
+					${LIB_PNG} ${LIB_HDF5} ${LIB_HDF5_HL})
+
+		  #find_library(LIB_LZMA lzma)
+		  find_library(LIB_Z z)
+
+		  set(LIBS ${LIBS} ${LIB_LZMA} ${LIB_Z})
+
+		  find_library(LIB_FFTW_SINGLE_THREADS fftw3f_threads)
+		  find_library(LIB_FFTW_SINGLE fftw3f)
+		  find_library(LIB_FFTW_DOUBLE_THREADS fftw3_threads)
+		  find_library(LIB_FFTW_DOUBLE fftw3)
+		  find_library(LIB_FFTW_LDOUBLE_THREADS fftw3l_threads)
+		  find_library(LIB_FFTW_LDOUBLE fftw3l)
+
+		  set(LIBS ${LIBS} ${LIB_FFTW_SINGLE_THREADS}
+					 ${LIB_FFTW_SINGLE}
+					 ${LIB_FFTW_DOUBLE_THREADS}
+					 ${LIB_FFTW_DOUBLE}
+					 ${LIB_FFTW_LDOUBLE_THREADS}
+					 ${LIB_FFTW_LDOUBLE})
+
+		  set_target_properties(drosogen PROPERTIES LINK_SEARCH_START_STATIC ON)
+endif (BUILD_WITH_STATIC)
+
+#----------------
+# TARGET LINKING
+#----------------
 target_link_libraries(drosogen ${LIBS} libzmq-static)
