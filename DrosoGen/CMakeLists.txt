@@ -79,6 +79,9 @@ if(NOT ZeroMQ_FOUND)
     find_package(ZeroMQ REQUIRED)
 endif()
 
+# cppzmq header only (that C++-ish wraps around the original libzmq)
+find_path(INC_CPPZMQ "zmq.hpp" DOC "DrosoGen, being a C++ project, needs cppzmq (zmq.hpp) installed around libzmq.")
+
 #-----------------------------------
 # SOURCE FILES - TARGET COMPILATION
 #-----------------------------------
