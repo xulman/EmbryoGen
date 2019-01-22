@@ -86,11 +86,11 @@ private:
 	const float incrTime = 0.1f;
 
 	/** at what global time should the simulation stop [min] */
-	const float stopTime = 200.2f;
+	const float stopTime = 15.2f;
 
 	/** export simulation status always after this amount of global time, [min]
 	    should be multiple of incrTime to obtain regular sampling */
-	const float expoTime = 0.5f;
+	const float expoTime = 15.0f;
 
 	// --------------------------------------------------
 
@@ -122,10 +122,10 @@ public:
 		//and make them persistent (to survive after this method is finished)
 		//static VoidDisplayUnit vDU;
 		//static ConsoleDisplayUnit cDU;
-		static SceneryBufferedDisplayUnit sDU("localhost:8765");
+		//static SceneryBufferedDisplayUnit sDU("localhost:8765");
 
 		//displayUnit.RegisterUnit(cDU);
-		displayUnit.RegisterUnit(sDU);
+		//displayUnit.RegisterUnit(sDU);
 	}
 
 
@@ -292,6 +292,13 @@ private:
 	/** Asks all agents to render and raster their state into this.displayUnit and this.img */
 	void renderNextFrame(void)
 	{
+		//just don't really render anything for the first time
+		if (frameCnt == 0)
+		{
+			frameCnt++;
+			return;
+		}
+
 		static char fn[1024];
 
 		//clear the output image
@@ -302,7 +309,7 @@ private:
 		for (; c != agents.end(); c++)
 		{
 			(*c)->drawMask(displayUnit);
-			//(*c)->drawMask(img);
+			(*c)->drawMask(img);
 		}
 
 		//render the current frame
@@ -311,11 +318,11 @@ private:
 		//save the image
 		sprintf(fn,"mask%03d.tif",frameCnt++);
 		REPORT("Saving " << fn << ", hold on...");
-		//img.SaveImage(fn);
+		img.SaveImage(fn);
 
 		//wait for key...
 		REPORT_NOENDL("Wait for key [and press Enter]: ");
-		std::cin >> fn[0];
+		//std::cin >> fn[0];
 
 		if (fn[0] == 'q')
 			throw new std::runtime_error("Simulation::renderNextFrame(): User requested exit.");
