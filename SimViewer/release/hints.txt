@@ -1,20 +1,5 @@
-how to create the jar file:
-$ jar cfm SimViewer-1.0-SNAPSHOT.jar  ../entryPointAddendum.txt  de
+this runs the Fiji and makes it find the SimViewer plugin including all its dependencies
+$ ./ImageJ-macosx  --jarpath ~/devel/EmbryoGen/SimViewer/target/dependency__OLD/  --jarpath ~/devel/EmbryoGen/SimViewer/target/
 
-where 1/2:
-$ cat ../entryPointAddendum.txt
-Main-Class: de.mpicbg.ulman.simviewer.StartUpScene
-Class-Path: dependency/scenery-0.6.2.jar dependency/jeromq-0.4.3.jar
-
-(the previous empty line must be part of the file and must be empty)
-
-where 2/2:
-$ ls de/mpicbg/ulman/simviewer/
-gives a bunch of *class files from the project
-
-how to populate the target/dependency folder:
-$ mvn clean dependency:copy-dependencies package
-(likely only mvn dependency:copy-dependencies would do it)
-
-how to run it:
-$ java -jar SimViewer-1.0-SNAPSHOT.jar
+the dependencies can be collcted with:
+$ mvn dependency:copy-dependencies
