@@ -2,6 +2,13 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
+  <parent>
+    <groupId>org.scijava</groupId>
+    <artifactId>pom-scijava</artifactId>
+    <version>24.2.0</version>
+    <relativePath />
+  </parent>
+
 
   <groupId>de.mpicbg.ulman.simviewer</groupId>
   <artifactId>SimViewer</artifactId>
@@ -96,6 +103,12 @@
       <groupId>graphics.scenery</groupId>
       <artifactId>scenery</artifactId>
       <version>0.6.2</version>
+    </dependency>
+
+    <!-- required only for the SimViewer_FijiPlugin -->
+    <dependency>
+      <groupId>net.imagej</groupId>
+      <artifactId>imagej</artifactId>
     </dependency>
   </dependencies>
 </project>
