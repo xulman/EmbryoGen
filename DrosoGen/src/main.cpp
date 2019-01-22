@@ -1,4 +1,5 @@
 #include <iostream>
+#include <i3d/basic.h>
 #include "Simulation.h"
 
 int main(void)
@@ -25,6 +26,14 @@ int main(void)
 	catch (std::runtime_error* e)
 	{
 		std::cout << "RuntimeError: " << e->what() << "\n\n";
+	}
+	catch (i3d::IOException* e)
+	{
+		std::cout << "i3d::IOException: " << e->what << "\n\n";
+	}
+	catch (i3d::LibException* e)
+	{
+		std::cout << "i3d::LibException: " << e->what << "\n\n";
 	}
 	catch (std::bad_alloc&)
 	{
