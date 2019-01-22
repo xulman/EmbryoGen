@@ -71,17 +71,6 @@ void Simulation::initializeAgents(void)
 			tracks.startNewTrack(ag->ID,frameCnt);
 		}
 	}
-
-	//now, read the mask image and make it a shape hinter...
-	i3d::Image3d<i3d::GRAY8> initShape("../DrosophilaYolk_mask_lowerRes.tif");
-	MaskImg m(initShape,MaskImg::DistanceModel::ZeroIN_GradOUT);
-	//m.saveDistImg("GradIN_ZeroOUT.tif");
-
-	//finally, create the simulation agent to register this shape
-	AbstractAgent* ag = new ShapeHinter(ID++,"yolk",m,currTime,incrTime);
-	ag->setOfficer(this);
-	agents.push_back(ag);
-
 } //end of initializeAgents()
 
 
