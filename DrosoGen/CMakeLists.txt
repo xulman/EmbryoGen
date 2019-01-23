@@ -101,6 +101,7 @@ endif()
 
 # cppzmq header only (that C++-ish wraps around the original libzmq)
 find_path(INC_CPPZMQ "zmq.hpp" DOC "DrosoGen, being a C++ project, needs cppzmq (zmq.hpp) installed around libzmq.")
+include_directories(${INC_CPPZMQ})
 
 #----------------------------------------------
 # TARGET LINKING - FURTHER-LEVEL REQUIRED LIBS
