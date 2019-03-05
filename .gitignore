@@ -1,36 +1,6 @@
-# Compiled object files (C++)
-*.o
-BUILD*
-
-# Compiled class file (Java)
-*.class
-
-# Log file
+# Log file, some documentation material #
 *.log
 doc/Mito*
-
-# Package Files #
-*.war
-*.ear
-*.zip
-*.tar.gz
-*.rar
-
-# Maven #
-/target/
-*/target/
-
-# Eclipse #
-/.classpath
-/.project
-/.settings/
-*/.classpath
-*/.project
-*/.settings/
-
-# IntelliJ #
-/.idea/
-/*.iml
 
 # Apple #
 .DS_Store
