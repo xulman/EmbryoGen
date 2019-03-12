@@ -250,6 +250,11 @@ public class NetworkScene implements Runnable
 		}
 
 		s.close();
+
+		//check if we should save the screen
+		if (scene.savingScreenshots) scene.saveNextScreenshot();
+		//NB: this assumes that SceneryBufferedDisplayUnit is used on the simulator side,
+		//    because this unit sends vectors last per timepoint
 	}
 
 	private

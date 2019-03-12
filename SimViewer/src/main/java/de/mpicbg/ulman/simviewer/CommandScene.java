@@ -62,6 +62,8 @@ public class CommandScene implements Runnable
 			System.out.println("I - Toggles between front/back/both/none ramp lights");
 			System.out.println("H - Toggles on/off of camera-attached lights");
 			System.out.println("r,R - Asks Scenery to re-render only-update-signalling/all objects");
+			System.out.println("s - Saves the current content as a screenshot image");
+			System.out.println("S - Toggles automatic saving of screenshots (always after vectors update)");
 
 			System.out.println("P - Adds some cells to have something to display");
 			System.out.println("D - Deletes all objects (even if not displayed)");
@@ -147,6 +149,14 @@ public class CommandScene implements Runnable
 		case 'R':
 			scene.scene.updateWorld(true, true);
 			System.out.println("Scenery refreshed (forcily everyone)");
+			break;
+		case 's':
+			scene.saveNextScreenshot();
+			System.out.println("Current content (screenshot) just saved into a file");
+			break;
+		case 'S':
+			scene.savingScreenshots ^= true;
+			System.out.println("Automatic screenshots are now: "+scene.savingScreenshots);
 			break;
 
 		case 'q':
