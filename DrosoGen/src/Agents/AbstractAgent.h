@@ -119,16 +119,24 @@ public:
 		Officer = _officer;
 	}
 
-	/** Enables/disables the inspection mode of this agent. When enabled,
-	    the agent might be reporting and rendering "more verbosely". */
-	void setInspectionMode(const bool state)
+	/** Enables/disables the visual inspection mode of this agent. When enabled,
+	    the agent might be drawing differently and likely "more verbosely". */
+	void setDetailedDrawingMode(const bool state)
 	{
-		inspectionMode = state;
+		detailedDrawingMode = state;
+	}
+
+	/** Enables/disables the calculations inspection mode of this agent. When enabled,
+	    the agent might be reporting its internal states "more verbosely". */
+	void setDetailedReportingMode(const bool state)
+	{
+		detailedReportingMode = state;
 	}
 
 protected:
 	Simulation* Officer = NULL;
-	bool inspectionMode = false;
+	bool detailedDrawingMode = false;
+	bool detailedReportingMode = false;
 
 	// ------------- local time -------------
 	/** agent's local time [min] */

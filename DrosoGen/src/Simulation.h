@@ -334,7 +334,7 @@ private:
 			{
 				REPORT("inspection " << (state ? "enabled" : "disabled") << " for ID = " << id);
 				for (auto c : agents)
-					if (c->ID == id) c->setInspectionMode(state);
+					if (c->ID == id) c->setDetailedDrawingMode(state);
 
 				//try to read next character
 				std::cin >> fn[0];

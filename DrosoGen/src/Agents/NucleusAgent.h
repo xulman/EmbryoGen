@@ -188,7 +188,7 @@ private:
 		for (const auto& f : forces) accels[f.hint] += f;
 
 #ifdef DEBUG
-		if (inspectionMode)
+		if (detailedReportingMode)
 		{
 			for (const auto& f : forces) REPORT(ID << ": ||=" << f.len() << "\tforce " << f);
 			REPORT(ID << ": final forces  |0|=" << accels[0].len()
@@ -313,7 +313,7 @@ private:
 		Officer->getNearbyAgents(this,ignoreDistance, nearbyAgents);
 
 #ifdef DEBUG
-		if (inspectionMode)
+		if (detailedReportingMode)
 			REPORT("ID " << ID << ": Found " << nearbyAgents.size() << " nearby agents");
 #endif
 		//those on the list are ShadowAgents who are potentially close enough
@@ -335,7 +335,7 @@ private:
 		}
 
 #ifdef DEBUG
-		if (inspectionMode)
+		if (detailedReportingMode)
 		{
 			DEBUG_REPORT("ID " << ID << ": Found " << proximityPairs_toNuclei.size() << " proximity pairs to nuclei");
 			DEBUG_REPORT("ID " << ID << ": Found " << proximityPairs_toYolk.size()   << " proximity pairs to yolk");
@@ -350,7 +350,7 @@ private:
 			if (pp.distance > 0)
 			{
 #ifdef DEBUG
-				if (inspectionMode)
+				if (detailedReportingMode)
 					REPORT(ID << ": repulsive  pp.distance=" << pp.distance);
 #endif
 				//no collision
@@ -395,7 +395,7 @@ private:
 					futureGeometry.centres[pp.localHint],pp.localHint, ftype_body ) );
 
 #ifdef DEBUG
-				if (inspectionMode)
+				if (detailedReportingMode)
 					REPORT(ID << ": body  pp.distance=" << pp.distance << " |force|=" << fScale*f.len());
 #endif
 				//sliding force
@@ -405,7 +405,7 @@ private:
 				g -= velocities[pp.localHint];
 
 #ifdef DEBUG
-				if (inspectionMode)
+				if (detailedReportingMode)
 					REPORT(ID << ": slide oID=" << ((const NucleusAgent*)pp.callerHint)->ID << " |velocityDiff|=" << g.len());
 #endif
 				//subtract from it the component that is parallel to this proximity pair
@@ -435,7 +435,7 @@ private:
 			f.changeToUnitOrZero();
 
 #ifdef DEBUG
-			if (inspectionMode)
+			if (detailedReportingMode)
 				REPORT(ID << ": hinter pp.distance=" << pp.distance);
 #endif
 			//the get-back-to-hinter force
@@ -521,9 +521,7 @@ private:
 			du.DrawLine(gdID++, p.localPos,p.otherPos, 1);
 
 		//render only if under inspection
-		if (!inspectionMode) return;
-
-		//draw debug stuff
+		if (detailedDrawingMode)
 		{
 			dID |= 1 << 16; //enable debug bit
 
