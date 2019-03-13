@@ -309,7 +309,7 @@ struct ProximityPair
 };
 
 
-/** A common ancestor class/type for the Spheres, Mesh and Mask Image
+/** A common ancestor class/type for the Spheres, Mesh and scalar or vector image
     representations of agent's geometry. It defines (pure virtual) methods
     to report collision pairs, see Geometry::getDistance(), between agents. */
 class Geometry
@@ -327,7 +327,7 @@ protected:
 
 	/** Construct empty geometry object of given shape form.
 	    This class should never be used constructed directly, always use some
-	    derived class such as Spheres, Mesh or ScalarImg. */
+	    derived class such as Spheres, Mesh, ScalarImg or VectorImg. */
 	Geometry(const ListOfShapeForms _shapeForm) : shapeForm(_shapeForm), AABB() {};
 
 

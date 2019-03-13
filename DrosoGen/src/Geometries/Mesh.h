@@ -20,6 +20,12 @@ public:
 		//TODO, somehow create this.mesh
 	}
 
+	/** copy constructor */
+	Mesh(const Mesh& s): Geometry(ListOfShapeForms::Mesh)
+	{
+		//TODO, somehow copy if there are new() used in the main c'tor
+	}
+
 
 	/** calculate min surface distance between myself and some foreign agent */
 	void getDistance(const Geometry& otherGeometry,

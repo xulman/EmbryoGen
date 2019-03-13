@@ -50,6 +50,13 @@ public:
 		}
 	}
 
+	~Spheres(void)
+	{
+		//c'tor guarantees that these arrays were always created
+		delete[] centres;
+		delete[] radii;
+	}
+
 
 	// ------------- distances -------------
 	/** calculate min surface distance between myself and some foreign agent */

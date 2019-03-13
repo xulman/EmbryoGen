@@ -67,6 +67,21 @@ public:
 		updateResOffFarEnd();
 	}
 
+	/** copy constructor */
+	/* not necessary as long as no new() constructs are used in the main c'tor
+	VectorImg(const VectorImg& s)
+		: Geometry(ListOfShapeForms::VectorImg), policy(s.getChoosingPolicy())
+	{
+		REPORT("copy c'tor");
+		X         = s.getImgX();
+		Y         = s.getImgY();
+		Z         = s.getImgZ();
+		imgRes    = s.getImgRes();
+		imgOff    = s.getImgOff();
+		imgFarEnd = s.getImgFarEnd();
+	}
+	*/
+
 	/** inserts zero vectors to the vector field */
 	void zeroAll(void)
 	{
@@ -413,6 +428,13 @@ public:
 		FF.proxify(&X,&Y,&Z);
 		DEBUG_REPORT("The FF.isConsistent() gives " << (FF.isConsistent() ? "true" : "false"));
 	}
+
+	const i3d::Image3d<FLOAT>& getImgX(void) const
+	{ return X; }
+	const i3d::Image3d<FLOAT>& getImgY(void) const
+	{ return Y; }
+	const i3d::Image3d<FLOAT>& getImgZ(void) const
+	{ return Z; }
 
 	const Vector3d<FLOAT>& getImgRes(void) const
 	{

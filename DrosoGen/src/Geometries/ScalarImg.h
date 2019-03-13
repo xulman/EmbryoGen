@@ -82,6 +82,19 @@ public:
 		updateWithNewMask(_mask);
 	}
 
+	/** copy constructor */
+	/* not necessary as long as no new() constructs are used in the main c'tor
+	ScalarImg(const ScalarImg& s)
+		: Geometry(ListOfShapeForms::ScalarImg), model(s.getDistImgModel())
+	{
+		REPORT("copy c'tor");
+		distImg       = s.getDistImg();
+		distImgRes    = s.getDistImgRes();
+		distImgOff    = s.getDistImgOff();
+		distImgFarEnd = s.getDistImgFarEnd();
+	}
+	*/
+
 	/** just for debug purposes: save the distance image to a filename */
 	void saveDistImg(const char* filename)
 	{
