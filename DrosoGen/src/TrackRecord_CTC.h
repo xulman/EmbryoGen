@@ -16,8 +16,9 @@ struct TrackRecord_CTC
 	TrackRecord_CTC(int id, int from, int to, int pid):
 		ID(id), fromTimeStamp(from), toTimeStamp(to), parentID(pid) {};
 
+	//default values are such to indicate that this track was not initialized
 	TrackRecord_CTC():
-		ID(0), fromTimeStamp(0), toTimeStamp(0), parentID(0) {};
+		ID(-1), fromTimeStamp(-1), toTimeStamp(-1), parentID(0) {};
 };
 
 
@@ -35,9 +36,9 @@ public:
 	/** MoID mother got divided into DoAID and DoBID daughters
 	    who came to being at frameNo, mother was last seen at frameNo-1.
 	    It is also assumed that mother's track record is already existing. */
-	void reportNewBornDaughters(const int MoID,
-	                            const int DoAID, const int DoBID,
-	                            const int frameNo)
+	void startDaughtersCloseMother(const int MoID,
+	                               const int DoAID, const int DoBID,
+	                               const int frameNo)
 	{
 		//close the mother tracks
 		(*this)[MoID].toTimeStamp = frameNo-1;
