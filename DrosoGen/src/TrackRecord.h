@@ -38,7 +38,7 @@ public:
 			throw new std::runtime_error(std::string("TrackRecords::readFromFile(): Cannot open ").append(filename));
 
 		float time,x,y,z;
-		int id;
+		int id,parent;
 		char c;
 
 		while (f.good())
@@ -55,7 +55,7 @@ public:
 
 			//else, we return back the first character, and start reading the record
 			f.putback(c);
-			f >> time >> x >> y >> z >> id;
+			f >> time >> x >> y >> z >> id >> parent;
 			if (f.good())
 			{
 				//store the record
@@ -88,7 +88,7 @@ public:
 				  << id.second.x << "\t"
 				  << id.second.y << "\t"
 				  << id.second.z << "\t"
-				  << id.first << "\n";
+				  << id.first << " 0\n";
 			}
 		}
 
