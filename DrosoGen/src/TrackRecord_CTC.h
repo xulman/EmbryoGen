@@ -35,9 +35,9 @@ public:
 	/** MoID mother got divided into DoAID and DoBID daughters
 	    who came to being at frameNo, mother was last seen at frameNo-1.
 	    It is also assumed that mother's track record is already existing. */
-	void reportNewBornDaughters(const int MoID,
-	                            const int DoAID, const int DoBID,
-	                            const int frameNo)
+	void startDaughtersCloseMother(const int MoID,
+	                               const int DoAID, const int DoBID,
+	                               const int frameNo)
 	{
 		//close the mother tracks
 		(*this)[MoID].toTimeStamp = frameNo-1;
