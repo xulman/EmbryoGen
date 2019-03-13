@@ -1,10 +1,12 @@
 #include "util/Vector3d.h"
 #include "Geometries/Spheres.h"
 #include "Geometries/ScalarImg.h"
+#include "Geometries/VectorImg.h"
 #include "Simulation.h"
 #include "Agents/AbstractAgent.h"
 #include "Agents/NucleusAgent.h"
 #include "Agents/ShapeHinter.h"
+#include "Agents/TrajectoriesHinter.h"
 
 void Simulation::initializeAgents(void)
 {
@@ -61,6 +63,7 @@ void Simulation::initializeAgents(void)
 		}
 	}
 
+	//-------------
 	//now, read the mask image and make it a shape hinter...
 	i3d::Image3d<i3d::GRAY8> initShape("../DrosophilaYolk_mask_lowerRes.tif");
 	ScalarImg m(initShape,ScalarImg::DistanceModel::ZeroIN_GradOUT);
@@ -71,6 +74,17 @@ void Simulation::initializeAgents(void)
 	ag->setOfficer(this);
 	agents.push_back(ag);
 
+	//-------------
+	TrajectoriesHinter* at = new TrajectoriesHinter(ID++,"trajectories",
+	                           initShape,VectorImg::ChoosingPolicy::avgVec,
+	                           currTime,incrTime);
+	at->setOfficer(this);
+	agents.push_back(at);
+
+	//the trajectories hinter:
+	at->talkToHinter().readFromFile("../DrosophilaYolk_movement.txt", Vector3d<float>(2.f));
+	REPORT("Timepoints: " << at->talkToHinter().size()
+	    << ", Tracks: " << at->talkToHinter().knownTracks.size());
 } //end of initializeAgents()
 
 
