@@ -1,7 +1,6 @@
 #ifndef SHAPEHINTER_H
 #define SHAPEHINTER_H
 
-#include <list>
 #include "../util/report.h"
 #include "AbstractAgent.h"
 #include "../Geometries/ScalarImg.h"
@@ -9,16 +8,15 @@
 class ShapeHinter: public AbstractAgent
 {
 public:
+	/** the same (given) shape is kept during the simulation */
 	ShapeHinter(const int ID, const std::string& type,
 	            const ScalarImg& shape,
 	            const float currTime, const float incrTime)
 		: AbstractAgent(ID,type, geometryAlias, currTime,incrTime),
-		  geometryAlias(shape),
-		  futureGeometry(shape)
+		  geometryAlias(shape)
 	{
 		//update AABBs
 		geometryAlias.Geometry::updateOwnAABB();
-		futureGeometry.Geometry::updateOwnAABB();
 
 		DEBUG_REPORT("EmbryoShell with ID=" << ID << " was just created");
 		DEBUG_REPORT("AABB: " << geometryAlias.AABB.minCorner << " -> " << geometryAlias.AABB.maxCorner);
@@ -38,8 +36,8 @@ private:
 	ScalarImg geometryAlias;
 
 	/** my internal representation of my geometry, which is exactly
-	    of the same form as my ShadowAgent::geometry, even the same noOfSpheres */
-	ScalarImg futureGeometry;
+	    of the same form as my ShadowAgent::geometry */
+	//ScalarImg futureGeometry;
 
 	// ------------- externals geometry -------------
 
@@ -53,7 +51,7 @@ private:
 
 	void adjustGeometryByIntForces(void) override
 	{
-		//update my futureGeometry
+		//would update my futureGeometry
 	}
 
 	void collectExtForces(void) override
@@ -63,7 +61,7 @@ private:
 
 	void adjustGeometryByExtForces(void) override
 	{
-		//update my futureGeometry
+		//would update my futureGeometry
 	}
 
 	//futureGeometry -> geometryAlias
@@ -78,11 +76,11 @@ private:
 	{
 		//draw bounding box of the GradIN region of the ScalarImg
 		int dID = ID << 17;
-		dID += futureGeometry.AABB.drawIt(dID,1, du);
+		dID += geometryAlias.AABB.drawIt(dID,1, du);
 
 		//draw bounding box of the complete ScalarImg, as a global debug element
-		futureGeometry.AABB.drawBox(ID << 4,4,
-		  futureGeometry.getDistImgOff(),futureGeometry.getDistImgFarEnd(), du);
+		geometryAlias.AABB.drawBox(ID << 4,4,
+		  geometryAlias.getDistImgOff(),geometryAlias.getDistImgFarEnd(), du);
 	}
 
 	void drawForDebug(i3d::Image3d<i3d::GRAY16>& img) override
@@ -92,17 +90,17 @@ private:
 		const Vector3d<FLOAT>       off(img.GetOffset().x,img.GetOffset().y,img.GetOffset().z);
 
 		//shortcuts to our own geometry
-		const i3d::Image3d<float>&   distImg = futureGeometry.getDistImg();
-		const Vector3d<FLOAT>&    distImgRes = futureGeometry.getDistImgRes();
-		const Vector3d<FLOAT>&    distImgOff = futureGeometry.getDistImgOff();
-		const ScalarImg::DistanceModel model = futureGeometry.getDistImgModel();
+		const i3d::Image3d<float>&   distImg = geometryAlias.getDistImg();
+		const Vector3d<FLOAT>&    distImgRes = geometryAlias.getDistImgRes();
+		const Vector3d<FLOAT>&    distImgOff = geometryAlias.getDistImgOff();
+		const ScalarImg::DistanceModel model = geometryAlias.getDistImgModel();
 
 		//project and "clip" this AABB into the img frame
 		//so that voxels to sweep can be narrowed down...
 		//
 		//   sweeping position and boundaries (relevant to the 'img')
 		Vector3d<size_t> curPos, minSweepPX,maxSweepPX;
-		futureGeometry.AABB.exportInPixelCoords(img, minSweepPX,maxSweepPX);
+		geometryAlias.AABB.exportInPixelCoords(img, minSweepPX,maxSweepPX);
 		//
 		//micron coordinate of the running voxel 'curPos'
 		Vector3d<FLOAT> centre;
@@ -110,7 +108,7 @@ private:
 		//px coordinate of the voxel that is counterpart in distImg to the running voxel
 		Vector3d<size_t> centrePX;
 
-		//sweep within the intersection of the 'img' and futureGeometry::distImg
+		//sweep within the intersection of the 'img' and geometryAlias::distImg
 		for (curPos.z = minSweepPX.z; curPos.z < maxSweepPX.z; curPos.z++)
 		for (curPos.y = minSweepPX.y; curPos.y < maxSweepPX.y; curPos.y++)
 		for (curPos.x = minSweepPX.x; curPos.x < maxSweepPX.x; curPos.x++)
@@ -122,7 +120,7 @@ private:
 			centre.z = ((FLOAT)curPos.z +0.5f) / res.z;
 			centre += off;
 
-			//project the voxel's 'centre' to the futureGeometry.distImg
+			//project the voxel's 'centre' to the geometryAlias.distImg
 			centre -= distImgOff;
 			centre.elemMult(distImgRes); //in px & in real coords
 
