@@ -156,8 +156,11 @@ public:
 
 	/** Draws content of this FF using the given display unit,
 	    with the given color and with increasing ID starting from
-	    the one given. The last used ID+1 is returned. */
-	int DrawFF(DisplayUnit& du, int ID, const int color) const
+	    the one given. The last used ID+1 is returned.
+	    The 'sparsity' defines the sampling rate (how many pixels
+	    to skip over) at which the FF is displayed. */
+	int DrawFF(DisplayUnit& du, int ID, const int color,
+	           const Vector3d<size_t>& sparsity) const
 	{
 		//offset and resolution of the flow field images/containers
 		const Vector3d<float> off(x->GetOffset().x,x->GetOffset().y,x->GetOffset().z);
@@ -169,9 +172,9 @@ public:
 		Vector3d<float> pos,vec;
 
 		//sweep the FF, voxel by voxel
-		for (size_t Z=0; Z < x->GetSizeZ(); ++Z)
-		for (size_t Y=0; Y < x->GetSizeY(); ++Y)
-		for (size_t X=0; X < x->GetSizeX(); ++X)
+		for (size_t Z = 0; Z < x->GetSizeZ(); Z += sparsity.z)
+		for (size_t Y = 0; Y < x->GetSizeY(); Y += sparsity.y)
+		for (size_t X = 0; X < x->GetSizeX(); X += sparsity.x)
 		{
 			//translate px coord into micron (real world) one
 			pos.x = X; pos.y = Y; pos.z = Z;
@@ -188,6 +191,14 @@ public:
 		}
 
 		return ID;
+	}
+
+
+	/** Draws content of this FF using the DrawFF(...,sparsity)
+	    with 'sparsity' = (1,1,1), that is, all vectors are displayed. */
+	int DrawFF(DisplayUnit& du, int ID, const int color) const
+	{
+		return DrawFF(du,ID,color, Vector3d<size_t>(1));
 	}
 };
 #endif
