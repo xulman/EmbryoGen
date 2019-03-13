@@ -175,76 +175,11 @@ public:
 	    are given in the 'propagationRadius' (in microns). */
 	void insertToFF(const float timeFrom, const float timeTo,
 	                FlowField<float>& FF,
-	                const Vector3d<float>& propagationRadius) const
+	                const Vector3d<float>& propagationRadius,
+	                const bool smoothExpansion=true) const
 	{
-#ifdef DEBUG
-		if (!FF.isConsistent())
-			throw new std::runtime_error("TrackRecords::addToFF(): inconsistent FF given!");
-#endif
-		//offset and resolution of the flow field images/containers
-		const Vector3d<float> off(FF.x->GetOffset().x,FF.x->GetOffset().y,FF.x->GetOffset().z);
-		const Vector3d<float> res(FF.x->GetResolution().GetRes().x,
-		                          FF.x->GetResolution().GetRes().y,
-		                          FF.x->GetResolution().GetRes().z);
-		//any position in pixels
-		Vector3d<float> pos;
-
-		//constant using for rounding to (integer) pixel coordinates
-		const Vector3d<float> zeroPointFive(0.5f);
-
-		//pixels size of the 'propagationRadius' w.r.t. resolution
-		pos = res;
-		pos.elemMult(propagationRadius);
-		pos.x = std::ceil(pos.x);
-		pos.y = std::ceil(pos.y);
-		pos.z = std::ceil(pos.z);
-		const Vector3d<int> halfBoxSize((int)pos.x,(int)pos.y,(int)pos.z);
-		int x,y,z;
-
-		//positions in microns (in real world coords) at a track at the given two times
-		Coord3d<float> A,B;
-
-		//iterates over all track IDs
-		for (const auto id : knownTracks)
-		if (getPositionAlongTrack(timeFrom,id,A) &&
-			 getPositionAlongTrack(timeTo,  id,B))
-		{
-			//managed to obtain both track positions,
-			//the displacement vector (in microns)
-			B -= A;
-
-			//insert the displacement vector into a box of 'propagationRadius'
-			//around the position A (projected into the FF's images)
-			pos  = A;
-			pos -= off;
-			pos.elemMult(res); //in px within the FF's images
-			pos += zeroPointFive;
-
-			//sweep the box
-			for (z = (int)pos.z - halfBoxSize.z; z <= (int)pos.z + halfBoxSize.z; ++z)
-			for (y = (int)pos.y - halfBoxSize.y; y <= (int)pos.y + halfBoxSize.y; ++y)
-			{
-				//voxel offset at [0, y,z] in the image
-				long index = z*(signed)FF.x->GetSliceSize() + y*(signed)FF.x->GetWidth();
-				//
-				//now at [pos.x-halfBoxSize.x, y,z]
-				index += (int)pos.x - halfBoxSize.x;
-
-				for (x = (int)pos.x - halfBoxSize.x; x <= (int)pos.x + halfBoxSize.x; ++x)
-				{
-					if (FF.x->Include(x,y,z))
-					{
-						//is inside the image, put a vector then
-						FF.x->SetVoxel((unsigned)index,B.x);
-						FF.y->SetVoxel((unsigned)index,B.y);
-						FF.z->SetVoxel((unsigned)index,B.z);
-					}
-					++index;
-				}
-			}
-		}
+		injectToFF(timeFrom,timeTo, FF, propagationRadius,smoothExpansion, false);
 	}
-
 
 	/** Scans over all tracks and inserts displacement vectors between the
 	    given time span into the flow field 'FF'. The FF must be initialized
@@ -255,20 +190,34 @@ public:
 	    ("radii") are given in the 'propagationRadius' (in microns). */
 	void resetToFF(const float timeFrom, const float timeTo,
 	               FlowField<float>& FF,
-	               const Vector3d<float>& propagationRadius) const
+	               const Vector3d<float>& propagationRadius,
+	               const bool smoothExpansion=true) const
+	{
+		injectToFF(timeFrom,timeTo, FF, propagationRadius,smoothExpansion, true);
+	}
+
+private:
+	void injectToFF(const float timeFrom, const float timeTo,
+	                FlowField<float>& FF,
+	                const Vector3d<float>& propagationRadius,
+	                const bool smoothExpansion,
+	                const bool doReset) const
 	{
 #ifdef DEBUG
 		if (!FF.isConsistent())
-			throw new std::runtime_error("TrackRecords::addToFF(): inconsistent FF given!");
+			throw new std::runtime_error("TrackRecords::injectToFF(): inconsistent FF given!");
 #endif
-		//clear the FF, and prepare the count image
-		FF.x->GetVoxelData() = 0;
-		FF.y->GetVoxelData() = 0;
-		FF.z->GetVoxelData() = 0;
-
 		i3d::Image3d<int> FFcnts;
-		FFcnts.CopyMetaData(*FF.x);
-		FFcnts.GetVoxelData() = 0;
+		if (doReset)
+		{
+			//clear the FF, and prepare the count image
+			FF.x->GetVoxelData() = 0;
+			FF.y->GetVoxelData() = 0;
+			FF.z->GetVoxelData() = 0;
+
+			FFcnts.CopyMetaData(*FF.x);
+			FFcnts.GetVoxelData() = 0;
+		}
 
 		//offset and resolution of the flow field images/containers
 		const Vector3d<float> off(FF.x->GetOffset().x,FF.x->GetOffset().y,FF.x->GetOffset().z);
@@ -329,28 +278,41 @@ public:
 				{
 					if (FF.x->Include(x,y,z))
 					{
-						//is inside the image, put a vector then
-						*(FFx+index) += B.x;
-						*(FFy+index) += B.y;
-						*(FFz+index) += B.z;
-						*(FFc+index) += 1;
+						if (doReset)
+						{
+							//is inside the image, put a vector then
+							*(FFx+index) += B.x;
+							*(FFy+index) += B.y;
+							*(FFz+index) += B.z;
+							*(FFc+index) += 1;
+						}
+						else
+						{
+							*(FFx+index) = B.x;
+							*(FFy+index) = B.y;
+							*(FFz+index) = B.z;
+						}
 					}
 					++index;
 				}
 			}
 		}
 
-		//now, finish the averaging
-		for (size_t index=0; index < FFcnts.GetImageSize(); ++index)
-		if (*(FFc+index) > 0)
+		if (doReset)
 		{
-			*(FFx+index) /= *(FFc+index);
-			*(FFy+index) /= *(FFc+index);
-			*(FFz+index) /= *(FFc+index);
+			//now, finish the averaging
+			for (size_t index=0; index < FFcnts.GetImageSize(); ++index)
+			if (*(FFc+index) > 0)
+			{
+				*(FFx+index) /= *(FFc+index);
+				*(FFy+index) /= *(FFc+index);
+				*(FFz+index) /= *(FFc+index);
+			}
 		}
 	}
 
 
+public:
 	/** Scans over all tracks and displays displacement vectors between
 	    the given time span. The vectors are drawn using the display
 	    unit, with the given color and with increasing ID starting
