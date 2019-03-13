@@ -226,9 +226,7 @@ private:
 		                          FF.x->GetResolution().GetRes().z);
 		//any position in pixels
 		Vector3d<float> pos;
-
-		//constant using for rounding to (integer) pixel coordinates
-		const Vector3d<float> zeroPointFive(0.5f);
+		Vector3d<int> posI;
 
 		//pixels size of the 'propagationRadius' w.r.t. resolution
 		pos = res;
@@ -238,6 +236,17 @@ private:
 		pos.z = std::ceil(pos.z);
 		const Vector3d<int> halfBoxSize((int)pos.x,(int)pos.y,(int)pos.z);
 		int x,y,z;
+
+		Vector3d<float> sigmaSq((float)halfBoxSize.x,(float)halfBoxSize.y,(float)halfBoxSize.z);
+		sigmaSq.elemDivBy( Vector3d<float>(2.5f) ); //halfBoxSize _nearly_ as much as 3*sigma
+		sigmaSq.elemMult( sigmaSq );
+		//
+		//assure sigmaSq is never zero and is mega-large (=100px) where it would have stayed zero
+		if (halfBoxSize.x == 0) sigmaSq.x = 10000;
+		if (halfBoxSize.y == 0) sigmaSq.y = 10000;
+		if (halfBoxSize.z == 0) sigmaSq.z = 10000;
+		//
+		DEBUG_REPORT("halfBoxSize = " << halfBoxSize << ", sigmaSq = " << sigmaSq);
 
 		//positions in microns (in real world coords) at a track at the given two times
 		Coord3d<float> A,B;
@@ -262,35 +271,45 @@ private:
 			pos  = A;
 			pos -= off;
 			pos.elemMult(res); //in px within the FF's images
-			pos += zeroPointFive;
+
+			//round to the nearest pixel (integer) coordinate
+			posI.x = (int)(pos.x +0.5f);
+			posI.y = (int)(pos.y +0.5f);
+			posI.z = (int)(pos.z +0.5f);
 
 			//sweep the box
-			for (z = (int)pos.z - halfBoxSize.z; z <= (int)pos.z + halfBoxSize.z; ++z)
-			for (y = (int)pos.y - halfBoxSize.y; y <= (int)pos.y + halfBoxSize.y; ++y)
+			for (z = posI.z - halfBoxSize.z; z <= posI.z + halfBoxSize.z; ++z)
+			for (y = posI.y - halfBoxSize.y; y <= posI.y + halfBoxSize.y; ++y)
 			{
+				float attenuation  = (pos.z-z)*(pos.z-z) /sigmaSq.z;
+				      attenuation += (pos.y-y)*(pos.y-y) /sigmaSq.y;
+
 				//voxel offset at [0, y,z] in the image
 				long index = z*(signed)FF.x->GetSliceSize() + y*(signed)FF.x->GetWidth();
 				//
 				//now at [pos.x-halfBoxSize.x, y,z]
-				index += (int)pos.x - halfBoxSize.x;
+				index += posI.x - halfBoxSize.x;
 
-				for (x = (int)pos.x - halfBoxSize.x; x <= (int)pos.x + halfBoxSize.x; ++x)
+				for (x = posI.x - halfBoxSize.x; x <= posI.x + halfBoxSize.x; ++x)
 				{
 					if (FF.x->Include(x,y,z))
 					{
+						attenuation += (pos.x-x)*(pos.x-x) /sigmaSq.x;
+						attenuation  = smoothExpansion? std::expf(-0.5f*attenuation) : 1.0f;
+
 						if (doReset)
 						{
 							//is inside the image, put a vector then
-							*(FFx+index) += B.x;
-							*(FFy+index) += B.y;
-							*(FFz+index) += B.z;
+							*(FFx+index) += attenuation * B.x;
+							*(FFy+index) += attenuation * B.y;
+							*(FFz+index) += attenuation * B.z;
 							*(FFc+index) += 1;
 						}
 						else
 						{
-							*(FFx+index) = B.x;
-							*(FFy+index) = B.y;
-							*(FFz+index) = B.z;
+							*(FFx+index) = attenuation * B.x;
+							*(FFy+index) = attenuation * B.y;
+							*(FFz+index) = attenuation * B.z;
 						}
 					}
 					++index;
