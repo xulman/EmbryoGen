@@ -220,7 +220,8 @@ public:
 		std::list<AbstractAgent*>::iterator iter=agents.begin();
 		while (iter != agents.end())
 		{
-			tracks.closeTrack((*iter)->ID,frameCnt-1);
+			if ((*iter)->getAgentType().find("nucleus") != std::string::npos)
+				tracks.closeTrack((*iter)->ID,frameCnt-1);
 
 			delete *iter; *iter = NULL;
 			iter++;
