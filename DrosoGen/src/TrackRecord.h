@@ -31,7 +31,7 @@ public:
 	    multiplied with the 'scale' (micron coords remain in microns).
 
 	    The function also updates this->knownTracks . */
-	void readFromFile(const char* filename, const Vector3d<float>& scale)
+	void readFromFile(const char* filename, const Vector3d<float>& spaceScale, const float timeScale = 1.0f)
 	{
 		std::ifstream f(filename);
 		if (! f.is_open())
@@ -59,9 +59,9 @@ public:
 			if (f.good())
 			{
 				//store the record
-				auto& rr = (*this)[time];
+				auto& rr = (*this)[time*timeScale];
 				rr[id] = Coord3d<float>(x,y,z);
-				rr[id].elemMult(scale);
+				rr[id].elemMult(spaceScale);
 
 				knownTracks.insert(id);
 			}
