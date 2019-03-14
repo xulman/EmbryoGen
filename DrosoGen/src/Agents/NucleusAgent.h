@@ -494,21 +494,30 @@ private:
 #ifdef DEBUG
 	std::vector< ForceVector3d<FLOAT> > forcesForDisplay;
 #endif
+	bool detailedDrawingModePrevState = detailedDrawingMode;
 
 	void drawMask(DisplayUnit& du) override
 	{
 		const int color = curPhase < 3? 2:3;
+
+		//if not selected: draw cells with no debug bit
+		//if     selected: draw cells as a global debug object
 		int dID = ID << 17;
+		int gdID = ID*30 +5000;
 
 		//draw spheres
 		for (int i=0; i < futureGeometry.noOfSpheres; ++i)
 		{
-			if (futureGeometry.radii[i] > 0.f)
-				du.DrawPoint(dID++,futureGeometry.centres[i],futureGeometry.radii[i],color);
+			du.DrawPoint( detailedDrawingMode?gdID:dID ,futureGeometry.centres[i],futureGeometry.radii[i],color);
+
+			if (detailedDrawingMode != detailedDrawingModePrevState)
+				du.DrawPoint( detailedDrawingMode?dID:gdID ,futureGeometry.centres[i],futureGeometry.radii[i],-1);
+
+			//update both counters so that gdID-to-object mapping is preserved
+			++dID; ++gdID;
 		}
 
 		//velocities -- global debug
-		int gdID = ID*20 +5000;
 		//for (int i=0; i < futureGeometry.noOfSpheres; ++i)
 		{
 			int i=0;
@@ -578,8 +587,10 @@ private:
 		indicatorPos += futureGeometry.centres[3];
 
 		//small sphere (in blue) to encode the four nuclei
-		gdID = ID*5;
 		du.DrawPoint(gdID++, indicatorPos,1.5f, 3);
+
+		//update to the most recent state
+		detailedDrawingModePrevState = detailedDrawingMode;
 	}
 
 	void drawMask(i3d::Image3d<i3d::GRAY16>& img) override
