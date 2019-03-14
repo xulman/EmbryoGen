@@ -82,7 +82,10 @@ void Simulation::initializeAgents(void)
 	agents.push_back(at);
 
 	//the trajectories hinter:
-	at->talkToHinter().readFromFile("../DrosophilaYolk_movement.txt", Vector3d<float>(2.f));
+	//at->talkToHinter().readFromFile("../DrosophilaYolk_movement.txt", Vector3d<float>(2.f));
+	at->talkToHinter().readFromFile("../dataset.tracks.txt", Vector3d<float>(0.5f));
+	at->talkToHinter().erase( at->talkToHinter().find(16), at->talkToHinter().end());
+
 	REPORT("Timepoints: " << at->talkToHinter().size()
 	    << ", Tracks: " << at->talkToHinter().knownTracks.size());
 } //end of initializeAgents()
