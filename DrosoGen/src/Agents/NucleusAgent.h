@@ -500,6 +500,12 @@ private:
 	{
 		const int color = curPhase < 3? 2:3;
 
+		//update detailedDrawingMode based on presence/absence of intersection with traHinter
+		float totalLen = 0;
+		for (const auto p : proximityPairs_tracks)
+			totalLen += (p.otherPos - p.localPos).len();
+		detailedDrawingMode = totalLen > 0;
+
 		//if not selected: draw cells with no debug bit
 		//if     selected: draw cells as a global debug object
 		int dID = ID << 17;
@@ -560,6 +566,7 @@ private:
 			if (p.distance > 0)
 				du.DrawVector(dID++, p.localPos,p.otherPos-p.localPos, 5);
 
+			/*
 #ifdef DEBUG
 			//forces:
 			for (const auto& f : forcesForDisplay)
@@ -582,6 +589,7 @@ private:
 			          << ", |1|=" << velocities[1].len()
 			          << ", |2|=" << velocities[2].len()
 			          << ", |3|=" << velocities[3].len());
+			*/
 		}
 
 		//global debug
