@@ -103,9 +103,38 @@ private:
 	{
 		if (didDrawTheWholePaths_IDspan == 0)
 		{
-			//draw all paths
+			//scan all time points to read out every tracks' "bending corners"
+			std::map< float,std::map< int,Coord3d<float> > >::const_iterator it;
 
-			didDrawTheWholePaths_IDspan = 10000;
+			//the current "segment" of the currently rendered trajectory
+			const Coord3d<float> *a,*b;
+
+			//draw all paths
+			for (int tID : traHinter.knownTracks)
+			{
+				//init the drawing... (by flagging the first node is missing)
+				a = NULL;
+
+				//scan all time points
+				it = traHinter.begin();
+				while (it != traHinter.end())
+				{
+					//does given timepoint contain info about our track?
+					if (it->second.find(tID) != it->second.end())
+					{
+						//update and draw then...
+						b = &(it->second.at(tID));
+
+						if (a != NULL)
+							du.DrawLine(didDrawTheWholePaths_IDspan++, *a,*b, 5);
+						a = b;
+					}
+
+					++it;
+				}
+			}
+
+			DEBUG_REPORT("drew all trajectories with " << didDrawTheWholePaths_IDspan << " lines");
 		}
 
 		//update the trajectory positioners (small balls)
@@ -141,6 +170,7 @@ private:
 		*/
 	}
 
+	/*
 	void drawForDebug(i3d::Image3d<i3d::GRAY16>& img) override
 	{
 		//running pointers...
@@ -153,12 +183,11 @@ private:
 		//sweep the output image
 		while (m != mE)
 		{
-			/*
 			//TODO: must translate coordinates img -> X,Y,Z to fetch the values
 			*m = std::sqrt( (*x * *x) + (*y * *y) + (*z * *z) );
 			++m; ++x; ++y; ++z;
-			*/
 		}
 	}
+	*/
 };
 #endif
