@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <cmath>
+#include <i3d/vector3d.h>
 
 /** simply a 3D vector... */
 template <typename T>
@@ -24,12 +25,18 @@ public:
 	Vector3d(const T xyz) :
 		x(xyz), y(xyz), z(xyz) {}
 
-	/** copy constructor... */
+	/** copy constructor from a vector of the same type */
 	Vector3d(const Vector3d<T>& vec)
 	{
 		this->x=vec.x;
 		this->y=vec.y;
 		this->z=vec.z;
+	}
+
+	/** copy constructor from i3d::Vector3d */
+	Vector3d(const i3d::Vector3d<T>& iv3d)
+	{
+		fromI3dVector3d(iv3d);
 	}
 
 	Vector3d<T>& operator=(const Vector3d<T>& vec)
@@ -133,6 +140,60 @@ public:
 			z /= l;
 		}
 		//or l == 0 which means x == y == z == 0
+	}
+
+	/** converts this pixel coordinate into this micron coordinate,
+	    returns *this to allow for concatenating of commands... */
+	Vector3d<T>& toMicrons(const Vector3d<T>& res, const Vector3d<T>& off)
+	{
+		x = x/res.x +off.x;
+		y = y/res.y +off.y;
+		z = z/res.z +off.z;
+		return *this;
+	}
+
+	/** converts this micron coordinate into this pixel coordinate,
+	    returns *this to allow for concatenating of commands... */
+	Vector3d<T>& toPixels(const Vector3d<T>& res, const Vector3d<T>& off)
+	{
+		x = (x-off.x) *res.x;
+		y = (y-off.y) *res.y;
+		z = (z-off.z) *res.z;
+		return *this;
+	}
+
+	/** converts from _the centre_ of the given pxIn coordinate into this micron coordinate,
+	    returns *this to allow for concatenating of commands... */
+	Vector3d<T>& toMicronsFrom(const Vector3d<size_t>& pxIn, const Vector3d<T>& res, const Vector3d<T>& off)
+	{
+		x = ( (T)pxIn.x +(T)0.5 )/res.x +off.x;
+		y = ( (T)pxIn.y +(T)0.5 )/res.y +off.y;
+		z = ( (T)pxIn.z +(T)0.5 )/res.z +off.z;
+		return *this;
+	}
+
+	/** converts this micron coordinate into _nearest_ pxOut coordinate,
+	    returns pxOut to allow for concatenating of commands... */
+	Vector3d<size_t>& toPixels(Vector3d<size_t>& pxOut, const Vector3d<T>& res, const Vector3d<T>& off) const
+	{
+		//NB: +0.5 is to achieve proper-rounding when casting to size_t does down-rounding
+		pxOut.x = (size_t)( ((x-off.x) *res.x) +(T)0.5 );
+		pxOut.y = (size_t)( ((y-off.y) *res.y) +(T)0.5 );
+		pxOut.z = (size_t)( ((z-off.z) *res.z) +(T)0.5 );
+		return pxOut;
+	}
+
+	void fromI3dVector3d(const i3d::Vector3d<T>& iv3d)
+	{
+		x = iv3d.x;
+		y = iv3d.y;
+		z = iv3d.z;
+	}
+	void toI3dVector3d(i3d::Vector3d<T>& iv3d) const
+	{
+		iv3d.x = x;
+		iv3d.y = y;
+		iv3d.z = z;
 	}
 };
 
