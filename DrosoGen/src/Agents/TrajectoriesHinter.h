@@ -88,7 +88,7 @@ private:
 			DEBUG_REPORT("updating FF from " << currTime-incrTime << " to " << currTime);
 
 			//update the geometryAlias according to the currTime
-			traHinter.resetToFF(currTime-incrTime,currTime, ff, Vector3d<float>(20.0f));
+			traHinter.resetToFF(currTime-incrTime,currTime, ff, Vector3d<float>(0.0f,20.0f,20.0f));
 			lastUpdatedTime = currTime;
 		}
 		else
