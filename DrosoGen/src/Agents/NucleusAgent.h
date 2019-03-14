@@ -555,6 +555,11 @@ private:
 			du.DrawLine(dID++, futureGeometry.centres[2],futureGeometry.centres[2]+sOff[2], 1);
 			du.DrawLine(dID++, futureGeometry.centres[3],futureGeometry.centres[3]+sOff[3], 1);
 
+			//magenta lines with trajectory guiding vectors
+			for (const auto& p : proximityPairs_tracks)
+			if (p.distance > 0)
+				du.DrawVector(dID++, p.localPos,p.otherPos-p.localPos, 5);
+
 #ifdef DEBUG
 			//forces:
 			for (const auto& f : forcesForDisplay)

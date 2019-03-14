@@ -88,7 +88,7 @@ private:
 			DEBUG_REPORT("updating FF from " << currTime-incrTime << " to " << currTime);
 
 			//update the geometryAlias according to the currTime
-			traHinter.resetToFF(currTime-incrTime,currTime, ff, Vector3d<float>(20.0f));
+			traHinter.resetToFF(currTime-incrTime,currTime, ff, Vector3d<float>(5.0f));
 			lastUpdatedTime = currTime;
 		}
 		else
@@ -105,6 +105,11 @@ private:
 		int usedIDforLines = 0;
 		int usedIDforBalls = 0;
 		int usedIDforVecs  = 0;
+
+		int gridIDs = ID<<17 | 1<<16;
+		Vector3d<size_t> centrePx;
+		const Vector3d<float> res( geometryAlias.getImgX().GetResolution().GetRes() );
+		const Vector3d<float> off( geometryAlias.getImgX().GetOffset() );
 
 		//scan all time points to read out every tracks' "bending corners"
 		std::map< float,std::map< int,Coord3d<float> > >::const_iterator it;
@@ -140,12 +145,16 @@ private:
 
 			//update the trajectory positioners (small balls)
 			du.DrawPoint(usedIDforBalls++, pos,1.5f, 5);
+
+			//also draw a (local debug) pixel grid around the ball centre
+			gridIDs = drawPixelCentresGrid(du, gridIDs, 1, geometryAlias.getImgX(),
+			                    pos.toPixels(centrePx, res,off), Vector3d<size_t>(3));
 		}
 		DEBUG_REPORT("trajectories: " << usedIDforLines <<
 		             " lines and " << usedIDforBalls << " balls");
 
 		//render the current flow field
-		usedIDforVecs = ff.DrawFF(du,usedIDforVecs,6,Vector3d<size_t>(3));
+		usedIDforVecs = ff.DrawFF(du,usedIDforVecs,6,Vector3d<size_t>(2));
 		DEBUG_REPORT("trajectories: " << usedIDforVecs << " vectors making up tracks-induced-FF");
 
 		//now remove any not-updated lines and balls
@@ -199,5 +208,63 @@ private:
 		}
 	}
 	*/
+
+	/** renders (local) grid of lines that align with voxel centres,
+	    that is, the boxes that are created do not represent individual voxels */
+	template <class P>
+	int drawPixelCentresGrid(DisplayUnit& du, int ID, const int color,
+	                         const i3d::Image3d<P>& refImg,
+	                         const Vector3d<size_t> centrePx,
+	                         const Vector3d<size_t> spanPx)
+	{
+		//shortcuts to our own geometry
+		const Vector3d<float> res( refImg.GetResolution().GetRes() );
+		const Vector3d<float> off( refImg.GetOffset() );
+
+		//pixel and micron coordinates
+		Vector3d<size_t> curPos;
+		Vector3d<float> a,b;
+
+		//rays through pixel centres "from the left"
+		for (curPos.z = centrePx.z-spanPx.z; curPos.z <= centrePx.z+spanPx.z; curPos.z++)
+		for (curPos.y = centrePx.y-spanPx.y; curPos.y <= centrePx.y+spanPx.y; curPos.y++)
+		{
+			curPos.x = centrePx.x-spanPx.x;
+			a.toMicronsFrom(curPos, res,off);
+
+			curPos.x = centrePx.x+spanPx.x;
+			b.toMicronsFrom(curPos, res,off);
+
+			du.DrawLine(ID++, a,b, color);
+		}
+
+		//rays "from the front"
+		for (curPos.z = centrePx.z-spanPx.z; curPos.z <= centrePx.z+spanPx.z; curPos.z++)
+		for (curPos.x = centrePx.x-spanPx.x; curPos.x <= centrePx.x+spanPx.x; curPos.x++)
+		{
+			curPos.y = centrePx.y-spanPx.y;
+			a.toMicronsFrom(curPos, res,off);
+
+			curPos.y = centrePx.y+spanPx.y;
+			b.toMicronsFrom(curPos, res,off);
+
+			du.DrawLine(ID++, a,b, color);
+		}
+
+		//rays "from the bottom"
+		for (curPos.y = centrePx.y-spanPx.y; curPos.y <= centrePx.y+spanPx.y; curPos.y++)
+		for (curPos.x = centrePx.x-spanPx.x; curPos.x <= centrePx.x+spanPx.x; curPos.x++)
+		{
+			curPos.z = centrePx.z-spanPx.z;
+			a.toMicronsFrom(curPos, res,off);
+
+			curPos.z = centrePx.z+spanPx.z;
+			b.toMicronsFrom(curPos, res,off);
+
+			du.DrawLine(ID++, a,b, color);
+		}
+
+		return ID;
+	}
 };
 #endif
