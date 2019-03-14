@@ -88,7 +88,7 @@ private:
 			DEBUG_REPORT("updating FF from " << currTime-incrTime << " to " << currTime);
 
 			//update the geometryAlias according to the currTime
-			traHinter.resetToFF(currTime-incrTime,currTime, ff, Vector3d<float>(10.0f));
+			traHinter.resetToFF(currTime-incrTime,currTime, ff, Vector3d<float>(20.0f));
 			lastUpdatedTime = currTime;
 		}
 		else
@@ -96,59 +96,69 @@ private:
 	}
 
 	// ------------- rendering -------------
-	//to make sure the paths are not overwritten, we remember here their IDs span
-	int didDrawTheWholePaths_IDspan = 0;
+	int lastUsedIDforLines = 0;
+	int lastUsedIDforBalls = 0;
+	int lastUsedIDforVecs  = 0;
 
 	void drawMask(DisplayUnit& du) override
 	{
-		if (didDrawTheWholePaths_IDspan == 0)
+		int usedIDforLines = 0;
+		int usedIDforBalls = 0;
+		int usedIDforVecs  = 0;
+
+		//scan all time points to read out every tracks' "bending corners"
+		std::map< float,std::map< int,Coord3d<float> > >::const_iterator it;
+
+		//the current "segment" of the currently rendered trajectory
+		const Coord3d<float> *a,*b;
+		Coord3d<float> pos;
+
+		//draw all paths that are still relevant to the current time
+		for (int tID : traHinter.knownTracks)
+		if (traHinter.getPositionAlongTrack(currTime,tID,pos))
 		{
-			//scan all time points to read out every tracks' "bending corners"
-			std::map< float,std::map< int,Coord3d<float> > >::const_iterator it;
+			//init the drawing... (by flagging the first node is missing)
+			a = NULL;
 
-			//the current "segment" of the currently rendered trajectory
-			const Coord3d<float> *a,*b;
-
-			//draw all paths
-			for (int tID : traHinter.knownTracks)
+			//scan all time points
+			it = traHinter.begin();
+			while (it != traHinter.end())
 			{
-				//init the drawing... (by flagging the first node is missing)
-				a = NULL;
-
-				//scan all time points
-				it = traHinter.begin();
-				while (it != traHinter.end())
+				//does given timepoint contain info about our track?
+				if (it->second.find(tID) != it->second.end())
 				{
-					//does given timepoint contain info about our track?
-					if (it->second.find(tID) != it->second.end())
-					{
-						//update and draw then...
-						b = &(it->second.at(tID));
+					//update and draw then...
+					b = &(it->second.at(tID));
 
-						if (a != NULL)
-							du.DrawLine(didDrawTheWholePaths_IDspan++, *a,*b, 5);
-						a = b;
-					}
-
-					++it;
+					if (a != NULL)
+						du.DrawLine(usedIDforLines++, *a,*b, 5);
+					a = b;
 				}
+
+				++it;
 			}
 
-			DEBUG_REPORT("drew all trajectories with " << didDrawTheWholePaths_IDspan << " lines");
+			//update the trajectory positioners (small balls)
+			du.DrawPoint(usedIDforBalls++, pos,1.5f, 5);
 		}
+		DEBUG_REPORT("trajectories: " << usedIDforLines <<
+		             " lines and " << usedIDforBalls << " balls");
 
-		//update the trajectory positioners (small balls)
-		int ID = didDrawTheWholePaths_IDspan;
-		for (int t : traHinter.knownTracks)
-		{
-			Coord3d<float> pos;
-			if (traHinter.getPositionAlongTrack(currTime,t,pos))
-				du.DrawPoint(ID,pos,2.0f,5);
+		//render the current flow field
+		usedIDforVecs = ff.DrawFF(du,usedIDforVecs,6,Vector3d<size_t>(3));
+		DEBUG_REPORT("trajectories: " << usedIDforVecs << " vectors making up tracks-induced-FF");
 
-			++ID;
-		}
+		//now remove any not-updated lines and balls
+		while (lastUsedIDforLines > usedIDforLines)
+			du.DrawLine(--lastUsedIDforLines, Vector3d<float>(0),Vector3d<float>(0), -1);
+		while (lastUsedIDforBalls > usedIDforBalls)
+			du.DrawPoint(--lastUsedIDforBalls, Vector3d<float>(0),1.5f, -1);
+		while (lastUsedIDforVecs > usedIDforVecs)
+			du.DrawVector(--lastUsedIDforVecs, Vector3d<float>(0),Vector3d<float>(0), -1);
+		lastUsedIDforLines = usedIDforLines;
+		lastUsedIDforBalls = usedIDforBalls;
+		lastUsedIDforVecs  = usedIDforVecs;
 
-		ff.DrawFF(du,ID,6,Vector3d<size_t>(2));
 
 		/*
 		//reduce flow field to the boundary of the shape
