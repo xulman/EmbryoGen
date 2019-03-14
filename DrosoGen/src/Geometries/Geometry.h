@@ -309,7 +309,7 @@ struct ProximityPair
 };
 
 
-/** A common ancestor class/type for the Spheres, Mesh and Mask Image
+/** A common ancestor class/type for the Spheres, Mesh and scalar or vector image
     representations of agent's geometry. It defines (pure virtual) methods
     to report collision pairs, see Geometry::getDistance(), between agents. */
 class Geometry
@@ -320,12 +320,14 @@ protected:
 	{
 		Spheres=0,
 		Mesh=1,
-		MaskImg=2
+		ScalarImg=2,
+		VectorImg=3,
+		undefGeometry=10
 	} ListOfShapeForms;
 
 	/** Construct empty geometry object of given shape form.
 	    This class should never be used constructed directly, always use some
-	    derived class such as Spheres, Mesh or MaskImg. */
+	    derived class such as Spheres, Mesh, ScalarImg or VectorImg. */
 	Geometry(const ListOfShapeForms _shapeForm) : shapeForm(_shapeForm), AABB() {};
 
 
@@ -394,14 +396,14 @@ protected:
 
 
 public:
-	/** sets the given AABB to reflect the current geometry */
+	/** updates the given (foreign) AABB to reflect the current geometry */
 	virtual
-	void setAABB(AxisAlignedBoundingBox& AABB) const =0;
+	void updateThisAABB(AxisAlignedBoundingBox& AABB) const =0;
 
-	/** sets this object's own AABB to reflect the current geometry */
-	void setAABB(void)
+	/** updates this object's own AABB to reflect the current geometry */
+	void updateOwnAABB(void)
 	{
-		setAABB(this->AABB);
+		updateThisAABB(this->AABB);
 	}
 };
 #endif

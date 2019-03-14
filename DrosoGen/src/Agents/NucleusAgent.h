@@ -43,8 +43,8 @@ public:
 		  weights(new FLOAT[shape.noOfSpheres])
 	{
 		//update AABBs
-		geometryAlias.Geometry::setAABB();
-		futureGeometry.Geometry::setAABB();
+		geometryAlias.Geometry::updateOwnAABB();
+		futureGeometry.Geometry::updateOwnAABB();
 
 		//estimate of number of forces (per simulation round):
 		//10(all s2s) + 4(spheres)*2(drive&friction) + 10(neigs)*4(spheres)*4("outer" forces),
@@ -153,6 +153,9 @@ private:
 	/** locations of possible interaction with nearby yolk */
 	std::list<ProximityPair> proximityPairs_toYolk;
 
+	/** locations of possible interaction with guiding trajectories */
+	std::list<ProximityPair> proximityPairs_tracks;
+
 	// ------------- forces & movement (physics) -------------
 	/** all forces that are in present acting on this agent */
 	std::vector< ForceVector3d<FLOAT> > forces;
@@ -209,7 +212,7 @@ private:
 		}
 
 		//update AABB to the new geometry
-		futureGeometry.Geometry::setAABB();
+		futureGeometry.Geometry::updateOwnAABB();
 
 		//all forces processed...
 		forces.clear();
@@ -317,12 +320,18 @@ private:
 		//to interact with me and these I need to inspect closely
 		proximityPairs_toNuclei.clear();
 		proximityPairs_toYolk.clear();
+		proximityPairs_tracks.clear();
 		for (const auto sa : nearbyAgents)
 		{
 			if ( (sa->getAgentType())[0] == 'n' )
 				geometry.getDistance(sa->getGeometry(),proximityPairs_toNuclei, (void*)((const NucleusAgent*)sa));
 			else
-				geometry.getDistance(sa->getGeometry(),proximityPairs_toYolk);
+			{
+				if ( (sa->getAgentType())[0] == 'y' )
+					geometry.getDistance(sa->getGeometry(),proximityPairs_toYolk);
+				else
+					geometry.getDistance(sa->getGeometry(),proximityPairs_tracks);
+			}
 		}
 
 #ifdef DEBUG
@@ -330,6 +339,7 @@ private:
 		{
 			DEBUG_REPORT("ID " << ID << ": Found " << proximityPairs_toNuclei.size() << " proximity pairs to nuclei");
 			DEBUG_REPORT("ID " << ID << ": Found " << proximityPairs_toYolk.size()   << " proximity pairs to yolk");
+			DEBUG_REPORT("ID " << ID << ": Found " << proximityPairs_tracks.size()   << " proximity pairs with guiding trajectories");
 		}
 #endif
 		//now, postprocess the proximityPairs, that is, to
@@ -465,7 +475,7 @@ private:
 		}
 
 		//update AABB
-		geometryAlias.Geometry::setAABB();
+		geometryAlias.Geometry::updateOwnAABB();
 	}
 
 public:

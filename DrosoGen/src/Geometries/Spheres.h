@@ -50,6 +50,13 @@ public:
 		}
 	}
 
+	~Spheres(void)
+	{
+		//c'tor guarantees that these arrays were always created
+		delete[] centres;
+		delete[] radii;
+	}
+
 
 	// ------------- distances -------------
 	/** calculate min surface distance between myself and some foreign agent */
@@ -62,12 +69,14 @@ public:
 			getDistanceToSpheres((Spheres*)&otherGeometry,l);
 			break;
 		case ListOfShapeForms::Mesh:
+		case ListOfShapeForms::ScalarImg:
+		case ListOfShapeForms::VectorImg:
 			//find collision "from the other side"
 			getSymmetricDistance(otherGeometry,l);
 			break;
-		case ListOfShapeForms::MaskImg:
-			//find collision "from the other side"
-			getSymmetricDistance(otherGeometry,l);
+
+		case ListOfShapeForms::undefGeometry:
+			REPORT("Ignoring other geometry of type 'undefGeometry'.");
 			break;
 		default:
 			throw new std::runtime_error("Geometry::getDistance(): Not supported combination of shape representations.");
@@ -140,7 +149,7 @@ public:
 
 
 	// ------------- AABB -------------
-	void setAABB(AxisAlignedBoundingBox& AABB) const override
+	void updateThisAABB(AxisAlignedBoundingBox& AABB) const override
 	{
 		AABB.reset();
 

@@ -189,9 +189,17 @@ template <typename T>
 class Coord3d : public Vector3d<T>
 {
 public:
+	/** a default empty constructor */
+	Coord3d(void)
+		: Vector3d<T>(0) {}
+
 	/** a copy constructor to "convert" pure vector into a coordinate */
 	Coord3d(const Vector3d<T>& vec)
 		: Vector3d<T>(vec) {}
+
+	/** an init constructor to "convert" x,y,z into a coordinate */
+	Coord3d(const T x, const T y, const T z)
+		: Vector3d<T>(x,y,z) {}
 };
 
 /** reports position coordinate (with square brackets) */

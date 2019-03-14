@@ -20,6 +20,12 @@ public:
 		//TODO, somehow create this.mesh
 	}
 
+	/** copy constructor */
+	Mesh(const Mesh& s): Geometry(ListOfShapeForms::Mesh)
+	{
+		//TODO, somehow copy if there are new() used in the main c'tor
+	}
+
 
 	/** calculate min surface distance between myself and some foreign agent */
 	void getDistance(const Geometry& otherGeometry,
@@ -35,9 +41,14 @@ public:
 			//TODO identity case
 			REPORT("this.Mesh vs Mesh is not implemented yet!");
 			break;
-		case ListOfShapeForms::MaskImg:
+		case ListOfShapeForms::ScalarImg:
+		case ListOfShapeForms::VectorImg:
 			//find collision "from the other side"
 			getSymmetricDistance(otherGeometry,l);
+			break;
+
+		case ListOfShapeForms::undefGeometry:
+			REPORT("Ignoring other geometry of type 'undefGeometry'.");
 			break;
 		default:
 			throw new std::runtime_error("Geometry::getDistance(): Not supported combination of shape representations.");
@@ -46,7 +57,7 @@ public:
 
 
 	/** construct AABB from the given Mesh */
-	void setAABB(AxisAlignedBoundingBox& AABB) const override
+	void updateThisAABB(AxisAlignedBoundingBox& AABB) const override
 	{
 		//scan through the mesh vertices/nodes and find extremal coordinates
 		//TODO

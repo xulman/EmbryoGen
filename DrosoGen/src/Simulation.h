@@ -7,7 +7,7 @@
 #include <i3d/image3d.h>
 
 #include "util/report.h"
-#include "TrackRecord.h"
+#include "TrackRecord_CTC.h"
 #include "util/Vector3d.h"
 
 #include "Agents/AbstractAgent.h"
@@ -98,8 +98,10 @@ private:
 	std::list<AbstractAgent*> agents;
 
 	/** structure to hold durations of tracks and the mother-daughter relations */
-	TrackRecords tracks;
-	bool tracksSaved = false;
+	TrackRecords_CTC tracks;
+
+	/** flag to run-once the closing routines */
+	bool simulationProperlyClosed = false;
 
 	// --------------------------------------------------
 
@@ -211,18 +213,21 @@ public:
 	/** frees simulation agents, writes the tracks.txt file */
 	void close(void)
 	{
+		//mark before closing is attempted...
+		simulationProperlyClosed = true;
+
 		//delete all agents...
 		std::list<AbstractAgent*>::iterator iter=agents.begin();
 		while (iter != agents.end())
 		{
-			tracks.closeTrack((*iter)->ID,frameCnt-1);
+			if ((*iter)->getAgentType().find("nucleus") != std::string::npos)
+				tracks.closeTrack((*iter)->ID,frameCnt-1);
 
 			delete *iter; *iter = NULL;
 			iter++;
 		}
 
 		tracks.exportAllToFile("tracks.txt");
-		tracksSaved = true;
 		DEBUG_REPORT("tracks.txt was saved...");
 	}
 
@@ -230,11 +235,7 @@ public:
 	/** tries to save tracks.txt at least, if not done earlier */
 	~Simulation(void)
 	{
-		if (!tracksSaved)
-		{
-			tracks.exportAllToFile("tracks.txt");
-			DEBUG_REPORT("tracks.txt was saved...");
-		}
+		if (!simulationProperlyClosed) this->close();
 	}
 
 

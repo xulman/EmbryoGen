@@ -54,6 +54,7 @@ set(SOURCES
 		src/DisplayUnits/SceneryDisplayUnit.cpp
 		src/DisplayUnits/SceneryBufferedDisplayUnit.cpp
 		src/util/rnd_generators.cpp
+		src/util/flowfields.cpp
 		src/Simulation.cpp
 		src/main.cpp)
 
