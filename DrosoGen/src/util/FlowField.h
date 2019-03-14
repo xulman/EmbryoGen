@@ -177,7 +177,7 @@ public:
 		for (size_t X = 0; X < x->GetSizeX(); X += sparsity.x)
 		{
 			//translate px coord into micron (real world) one
-			pos.x = X; pos.y = Y; pos.z = Z;
+			pos.x = X +0.5f; pos.y = Y +0.5f; pos.z = Z +0.5f;
 			pos.elemDivBy(res);
 			pos += off;
 
