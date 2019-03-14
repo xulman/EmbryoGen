@@ -82,6 +82,19 @@ public:
 		updateWithNewMask(_mask);
 	}
 
+	/** copy constructor */
+	/* not necessary as long as no new() constructs are used in the main c'tor
+	ScalarImg(const ScalarImg& s)
+		: Geometry(ListOfShapeForms::ScalarImg), model(s.getDistImgModel())
+	{
+		REPORT("copy c'tor");
+		distImg       = s.getDistImg();
+		distImgRes    = s.getDistImgRes();
+		distImgOff    = s.getDistImgOff();
+		distImgFarEnd = s.getDistImgFarEnd();
+	}
+	*/
+
 	/** just for debug purposes: save the distance image to a filename */
 	void saveDistImg(const char* filename)
 	{
@@ -107,6 +120,10 @@ public:
 			//TODO identity case
 			REPORT("this.ScalarImg vs ScalarImg is not implemented yet!");
 			//getDistanceToScalarImg((ScalarImg*)&otherGeometry,l);
+			break;
+		case ListOfShapeForms::VectorImg:
+			REPORT("this.ScalarImg vs VectorImg is not implemented yet!");
+			//getDistanceToVectorImg((VectorImg*)&otherGeometry,l);
 			break;
 
 		case ListOfShapeForms::undefGeometry:
@@ -302,6 +319,14 @@ public:
 	/** Specialized implementation of getDistance() for ScalarImg-ScalarImg geometries. */
 	/*
 	void getDistanceToScalarImg(const ScalarImg* otherScalarImg,
+	                            std::list<ProximityPair>& l) const
+	{
+	}
+	*/
+
+	/** Specialized implementation of getDistance() for ScalarImg-VectorImg geometries. */
+	/*
+	void getDistanceToVectorImg(const VectorImg* otherVectorImg,
 	                            std::list<ProximityPair>& l) const
 	{
 	}

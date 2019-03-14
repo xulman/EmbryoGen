@@ -20,6 +20,12 @@ public:
 		//TODO, somehow create this.mesh
 	}
 
+	/** copy constructor */
+	Mesh(const Mesh& s): Geometry(ListOfShapeForms::Mesh)
+	{
+		//TODO, somehow copy if there are new() used in the main c'tor
+	}
+
 
 	/** calculate min surface distance between myself and some foreign agent */
 	void getDistance(const Geometry& otherGeometry,
@@ -36,6 +42,7 @@ public:
 			REPORT("this.Mesh vs Mesh is not implemented yet!");
 			break;
 		case ListOfShapeForms::ScalarImg:
+		case ListOfShapeForms::VectorImg:
 			//find collision "from the other side"
 			getSymmetricDistance(otherGeometry,l);
 			break;
