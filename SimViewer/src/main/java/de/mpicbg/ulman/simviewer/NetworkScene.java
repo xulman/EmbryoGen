@@ -2,10 +2,9 @@ package de.mpicbg.ulman.simviewer;
 
 import java.util.Scanner;
 
+import org.zeromq.SocketType;
 import org.zeromq.ZMQ;
 import org.zeromq.ZMQException;
-
-import de.mpicbg.ulman.simviewer.DisplayScene;
 
 /**
  * Adapted from TexturedCubeJavaExample.java from the scenery project,
@@ -35,7 +34,8 @@ public class NetworkScene implements Runnable
 		final ZMQ.Context zmqContext = ZMQ.context(1);
 		ZMQ.Socket socket = null;
 		try {
-			socket = zmqContext.socket(ZMQ.PAIR); //NB: CLIENT/SERVER from v4.2 is not available yet
+			//socket = zmqContext.socket(ZMQ.PAIR); //NB: CLIENT/SERVER from v4.2 is not available yet
+			socket = zmqContext.socket(SocketType.PAIR);
 			if (socket == null)
 				throw new Exception("Network listener: Cannot obtain local socket.");
 

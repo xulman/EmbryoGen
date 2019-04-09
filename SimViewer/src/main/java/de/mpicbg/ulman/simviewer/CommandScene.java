@@ -3,8 +3,6 @@ package de.mpicbg.ulman.simviewer;
 import java.io.InputStreamReader;
 import java.io.IOException;
 
-import de.mpicbg.ulman.simviewer.DisplayScene;
-
 /**
  * Adapted from TexturedCubeJavaExample.java from the scenery project,
  * originally created by kharrington on 7/6/16.

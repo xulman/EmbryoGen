@@ -1,9 +1,5 @@
 package de.mpicbg.ulman.simviewer;
 
-import de.mpicbg.ulman.simviewer.DisplayScene;
-import de.mpicbg.ulman.simviewer.CommandScene;
-import de.mpicbg.ulman.simviewer.NetworkScene;
-
 /**
  * Opens the scenery window, starts the listening server, maintains
  * lightweight vector-graphics representation of cells and force vectors
