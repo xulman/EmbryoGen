@@ -482,20 +482,30 @@ public class DisplayScene extends SceneryBase implements Runnable
 		//shall we create a new vector?
 		if (n == null)
 		{
-			//new vector: adding
-			n = new myVector( new Line(10) );  //adopted from CreateVector()
-			n.node.setEdgeWidth(0.1f);         //adopted from CreateVector()
+			//new vector: adding it already in the desired shape
+			n = new myVector( new Arrow(v.vector) );
+			n.node.setEdgeWidth(0.1f);
 			n.node.setPosition(n.base);
 			n.node.setScale(vectorsStretchGLvec);
 
+			//(here's the "adding it" part)
 			vectorNodes.put(ID,n);
 			scene.addChild(n.node);
 			showOrHideMe(ID,n.node,vectorsShown);
 		}
-
-		//now update the vector with the current data
+		else
+		{
+			//existing vector: update it to the desired shape
+			n.node.reshape(v.vector);
+		}
+		//NB: n.vector is actually not used here!
+		//    (as Arrow.reshape() makes its own copy of
+		//     vector's shape, and we use v.vector here
+		//     to shape it; no reference to n.vector is
+		//     required and kept in the Arrow story)
+		//
+		//update the arrow with (at least) the current 'base' position
 		n.update(v);
-		UpdateVector(n.node,n.vector);
 		n.node.setMaterial(materials[n.color % materials.length]);
 		n.node.setNeedsUpdate(true);
 	}
@@ -602,10 +612,10 @@ public class DisplayScene extends SceneryBase implements Runnable
 	/** corresponds to one element that simulator's DrawVector() can send */
 	public class myVector
 	{
-		myVector()             { node = null; }
-		myVector(final Line v) { node = v; }
+		myVector()              { node = null; }
+		myVector(final Arrow v) { node = v; }
 
-		final Line node;
+		final Arrow node;
 		final GLVector base   = new GLVector(0.f,3);
 		final GLVector vector = new GLVector(0.f,3);
 		int color;
@@ -864,195 +874,5 @@ public class DisplayScene extends SceneryBase implements Runnable
 		currentNormalizedOrientVec.minusAssign(currentNormalizedOrientVec);
 		currentNormalizedOrientVec.plusAssign(newOrientVec);
 		currentNormalizedOrientVec.normalize();
-	}
-
-
-	/** Creates a vector node, that needs to be setMaterial'ed(), setPosition'ed(), and
-	    addChild'ed(). The this.UpdateVector() is used to construct the vector. */
-	Line CreateVector(final GLVector v)
-	{
-		final Line l = new Line(10);
-		l.setEdgeWidth(0.1f);
-
-		UpdateVector(l,v);
-		return l;
-	}
-
-	/** (Re-)Constructs a vector as a line with two perpendicular triangles as a "3D arrow".
-	    The base of the arrow head is a cross. */
-	void UpdateVector(final Line l, final GLVector v)
-	{
-		l.clearPoints();
-
-		/*
-		  /|\
-		 / | \
-		/--+--\
-		   |
-		   |
-		   |
-		Vector is created as the main segment (drawn vertically bottom to up),
-		then 3 segments to build a triangle and then another triangle perpendicular
-		to the former one; altogehter 7 segments drawn sequentially
-		*/
-
-		//first of the two mandatory surrounding fake points that are never displayed
-		l.addPoint(zeroGLvec);
-
-		//the main "vertical" segment of the vector
-		l.addPoint(zeroGLvec);
-		l.addPoint(v);
-
-		//the first triangle:
-		//the shape of the triangle
-		final float V = 0.1f * v.magnitude();
-
-		//vector base is perpendicular to the input vector v
-		GLVector base = new GLVector(-v.y(), v.x(), 0.0f);
-		float baseLen = base.magnitude();
-
-		if (baseLen == 0.f)
-		{
-			//v must be parallel to the z-axis, draw another perpendicular base
-			base = new GLVector(0.0f, 1.0f, 0.0f);
-			baseLen = 1.0f;
-		}
-		base.timesAssign(new GLVector(V/baseLen,3));
-
-		l.addPoint(v.times(0.8f).plus(base));
-		l.addPoint(v.times(0.8f).minus(base));
-		l.addPoint(v);
-
-		//the second triangle:
-		base = base.cross(v);
-		base.timesAssign(new GLVector(V/base.magnitude(),3));
-
-		l.addPoint(v.times(0.8f).plus(base));
-		l.addPoint(v.times(0.8f).minus(base));
-		l.addPoint(v);
-
-		//second of the two mandatory surrounding fake points that are never displayed
-		l.addPoint(v);
-	}
-
-
-	/** Creates a vector node, that needs to be setMaterial'ed(), setPosition'ed(), and
-	    addChild'ed(), as a line with a pyramid as a "3D arrow".
-	    The base of the arrow head is a square with diagonals. */
-	Line CreateVector_Pyramid(final GLVector v)
-	{
-		final Line l = new Line(14);
-		l.setEdgeWidth(0.1f);
-
-		/*
-		  /|\
-		 / | \
-		/--+--\
-		   |
-		   |
-		   |
-		Vector is created as the main segment (drawn vertically bottom to up),
-		then 3 segments to build a triangle and then another triangle perpendicular
-		to the former one; altogehter 7 segments drawn sequentially
-		*/
-
-		//first of the two mandatory surrounding fake points that are never displayed
-		l.addPoint(v);
-
-		//the main "vertical" segment of the vector
-		l.addPoint(new GLVector(0.f,3));
-		l.addPoint(v);
-
-		//the first triangle:
-		//the shape of the triangle
-		final float V = 0.1f * v.magnitude();
-
-		//vector base is perpendicular to the input vector v
-		GLVector base = new GLVector(-v.y(), v.x(), 0.0f);
-		float baseLen = base.magnitude();
-
-		if (baseLen == 0.f)
-		{
-			//v must be parallel to the z-axis, draw another perpendicular base
-			base = new GLVector(0.0f, 1.0f, 0.0f);
-			baseLen = 1.0f;
-		}
-		base.timesAssign(new GLVector(V/baseLen,3));
-
-		GLVector a,b,c,d;
-		a = v.times(0.8f).plus(base);
-		c = v.times(0.8f).minus(base);
-		l.addPoint(a);
-		l.addPoint(c);
-		l.addPoint(v);
-
-		//the second triangle:
-		base = base.cross(v);
-		base.timesAssign(new GLVector(V/base.magnitude(),3));
-
-		b = v.times(0.8f).plus(base);
-		d = v.times(0.8f).minus(base);
-		l.addPoint(b);
-		l.addPoint(d);
-
-		//the base
-		l.addPoint(a);
-		l.addPoint(b);
-		l.addPoint(c);
-		l.addPoint(d);
-
-		//finish the 2nd triangle
-		l.addPoint(v);
-
-		//second of the two mandatory surrounding fake points that are never displayed
-		l.addPoint(v);
-
-		return l;
-	}
-
-
-	/** Creates a vector node, that needs to be setMaterial'ed(), setPosition'ed(), and
-	    addChild'ed(), as a line with a fancy cone as a "3D arrow".
-	    The Scenery.Cone is used for the cone and is nested under the returned node.
-	    The base of the arrow head is a circle.
-
-	    Since the vector consists of two different graphics elements, we better
-	    return common ancester type of them because any method of the Node can be
-	    applied on the subsequent objects too. */
-	Node CreateVector_Cone(final GLVector v)
-	{
-		final Line l = new Line(4);
-		l.setEdgeWidth(0.1f);
-
-		/* .
-		  / \
-		 /   \
-		/-----\
-		   |
-		   |
-		   |
-		Vector is created as the main segment (drawn vertically bottom to up)
-		with a cone sitting on top of it
-		*/
-
-		//first of the two mandatory surrounding fake points that are never displayed
-		l.addPoint(v);
-
-		//the main "vertical" segment of the vector
-		l.addPoint(new GLVector(0.f,3));
-		l.addPoint(v.times(0.95f));
-
-		//second of the two mandatory surrounding fake points that are never displayed
-		l.addPoint(v);
-
-		//the cone
-		//the shape of the cone
-		final float V = 0.1f * v.magnitude();
-		final Cone c = new Cone(V,2.0f*V,6);
-		ReOrientNode(c,new GLVector(0.0f,1.0f,0.0f),v);
-		c.setPosition(v.times(0.8f));
-		l.addChild(c);
-
-		return l;
 	}
 }
