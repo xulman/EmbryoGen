@@ -27,13 +27,17 @@ public class StartUpScene
 		final Thread Network    = new Thread(new NetworkScene(scene));
 
 		try {
-			//start the rendering window and both window controls (console and network)
+			//start the rendering window first
 			GUIwindow.start();
-			GUIcontrol.start();
-			Network.start();
 
 			//give the GUI window some time to settle down, and populate it
 			Thread.sleep(5000);
+			while (!scene.scene.getInitialized()) Thread.sleep(3000);
+			System.out.println("SimViewer is ready!");
+
+			//only now start the both window controls (console and network)
+			GUIcontrol.start();
+			Network.start();
 
 			//how this can be stopped?
 			//network shall never stop by itself, it should keep reading and updating structures
