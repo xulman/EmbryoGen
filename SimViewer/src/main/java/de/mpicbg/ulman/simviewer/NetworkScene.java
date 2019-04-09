@@ -252,9 +252,20 @@ public class NetworkScene implements Runnable
 		s.close();
 
 		//check if we should save the screen
-		if (scene.savingScreenshots) scene.saveNextScreenshot();
-		//NB: this assumes that SceneryBufferedDisplayUnit is used on the simulator side,
-		//    because this unit sends vectors last per timepoint
+		if (scene.savingScreenshots)
+		{
+			//give scenery some grace time to redraw everything
+			try {
+				Thread.sleep(2000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+				System.out.println("But continuing with the processing....");
+			}
+
+			scene.saveNextScreenshot();
+			//NB: this assumes that SceneryBufferedDisplayUnit is used on the simulator side,
+			//    because this unit sends vectors last per timepoint
+		}
 	}
 
 	private
