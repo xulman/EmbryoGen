@@ -110,6 +110,8 @@ public class NetworkScene implements Runnable
 		s.next();
 		final int N = s.nextInt();
 
+		if (N > 10) scene.suspendNodesUpdating();
+
 		//is the next token 'dim'?
 		if (s.next("dim").startsWith("dim") == false)
 		{
@@ -146,6 +148,8 @@ public class NetworkScene implements Runnable
 		}
 
 		s.close();
+
+		if (N > 10) scene.resumeNodesUpdating();
 	}
 
 	private
@@ -159,6 +163,8 @@ public class NetworkScene implements Runnable
 		s.next();
 		s.next();
 		final int N = s.nextInt();
+
+		if (N > 10) scene.suspendNodesUpdating();
 
 		//is the next token 'dim'?
 		if (s.next("dim").startsWith("dim") == false)
@@ -198,6 +204,8 @@ public class NetworkScene implements Runnable
 		}
 
 		s.close();
+
+		if (N > 10) scene.resumeNodesUpdating();
 	}
 
 	private
@@ -211,6 +219,8 @@ public class NetworkScene implements Runnable
 		s.next();
 		s.next();
 		final int N = s.nextInt();
+
+		if (N > 10) scene.suspendNodesUpdating();
 
 		//is the next token 'dim'?
 		if (s.next("dim").startsWith("dim") == false)
@@ -250,6 +260,8 @@ public class NetworkScene implements Runnable
 		}
 
 		s.close();
+
+		if (N > 10) scene.resumeNodesUpdating();
 
 		//check if we should save the screen
 		if (scene.savingScreenshots)

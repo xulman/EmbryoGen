@@ -382,6 +382,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 	private final Map<Integer,myVector> vectorNodes = new HashMap<>();
 
 
+	/** this is designed (yet only) for SINGLE-THREAD application! */
 	public
 	void addUpdateOrRemovePoint(final int ID,final myPoint p)
 	{
@@ -409,17 +410,18 @@ public class DisplayScene extends SceneryBase implements Runnable
 			n.node.setScale(n.radius);
 
 			pointNodes.put(ID,n);
-			scene.addChild(n.node);
+			this.addChild(n.node);
 			showOrHideMe(ID,n.node,spheresShown);
 		}
 
 		//now update the point with the current data
 		n.update(p);
 		n.node.setMaterial(materials[n.color % materials.length]);
-		n.node.setNeedsUpdate(true);
+		this.nodeSetNeedsUpdate(n.node);
 	}
 
 
+	/** this is designed (yet only) for SINGLE-THREAD application! */
 	public
 	void addUpdateOrRemoveLine(final int ID,final myLine l)
 	{
@@ -446,7 +448,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 			//no setPosition(), no setScale()
 
 			lineNodes.put(ID,n);
-			scene.addChild(n.node);
+			this.addChild(n.node);
 			showOrHideMe(ID,n.node,linesShown);
 		}
 
@@ -462,6 +464,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 	}
 
 
+	/** this is designed (yet only) for SINGLE-THREAD application! */
 	public
 	void addUpdateOrRemoveVector(final int ID,final myVector v)
 	{
@@ -490,7 +493,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 
 			//(here's the "adding it" part)
 			vectorNodes.put(ID,n);
-			scene.addChild(n.node);
+			this.addChild(n.node);
 			showOrHideMe(ID,n.node,vectorsShown);
 		}
 		else
@@ -507,7 +510,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 		//update the arrow with (at least) the current 'base' position
 		n.update(v);
 		n.node.setMaterial(materials[n.color % materials.length]);
-		n.node.setNeedsUpdate(true);
+		this.nodeSetNeedsUpdate(n.node);
 	}
 
 
@@ -536,6 +539,86 @@ public class DisplayScene extends SceneryBase implements Runnable
 		{
 			scene.removeChild(vectorNodes.get(i.next()).node);
 			i.remove();
+		}
+	}
+	//----------------------------------------------------------------------------
+
+
+	/** flags if nodes should be scene.addChild(node)'ed and node.setNeedsUpdate(true)'ed
+	    right away (the online process mode), or do all such later at once (the batch
+	    process mode) because this might have positive performance impact */
+	private boolean updateNodesImmediately = true;
+
+	/** buffer of nodes to be added to the scene (ideally) at the same time */
+	private final Node[] nodesYetToBeAdded    = new Node[10240]; //40 kB of RAM
+	private int          nodesYetToBeAddedCnt = 0;
+
+	/** buffer of nodes to have their 'needsUpdate' flag set (ideally) at the same time */
+	private final Node[] nodesYetToBeUpdated    = new Node[10240]; //40 kB of RAM
+	private int          nodesYetToBeUpdatedCnt = 0;
+
+	/** only signals/enables the 'batch process' mode,
+	    this is designed (yet only) for SINGLE-THREAD application! */
+	public
+	void suspendNodesUpdating()
+	{
+		updateNodesImmediately = false;
+	}
+
+	/** calls processNodesYetToBeSmth() and switches back to the 'online process' mode,
+	    this is designed (yet only) for SINGLE-THREAD application! */
+	public
+	void resumeNodesUpdating()
+	{
+		updateNodesImmediately = true;
+		processNodesYetToBeSmth();
+	}
+
+	/** processes (ideally at the same time) and clears the content of
+	    the two buffers (buffers for adding and updating nodes simultaneously) */
+	private
+	void processNodesYetToBeSmth()
+	{
+		for (int i=0; i < nodesYetToBeAddedCnt; ++i)
+			scene.addChild( nodesYetToBeAdded[i] );
+		nodesYetToBeAddedCnt = 0;
+
+		for (int i=0; i < nodesYetToBeUpdatedCnt; ++i)
+			nodesYetToBeUpdated[i].setNeedsUpdate(true);
+		nodesYetToBeUpdatedCnt = 0;
+	}
+
+	/** either registers the node into the Scenery's scene immediately (when in the online
+	    process mode), or registers into the 'nodesYetToBeAdded' buffer (when in the batch
+	    process mode) */
+	private
+	void addChild(final Node node)
+	{
+		if (updateNodesImmediately) scene.addChild(node);
+		else
+		{
+			nodesYetToBeAdded[nodesYetToBeAddedCnt++] = node;
+
+			//overrun protection
+			if (nodesYetToBeAddedCnt == nodesYetToBeAdded.length)
+				processNodesYetToBeSmth();
+		}
+	}
+
+	/** either sets 'needsUpdate' flag of the node immediately (when in the online
+	    process mode), or registers into the 'nodesYetToBeUpdated' buffer to
+	    have it set later (when in the batch process mode) */
+	private
+	void nodeSetNeedsUpdate(final Node node)
+	{
+		if (updateNodesImmediately) node.setNeedsUpdate(true);
+		else
+		{
+			nodesYetToBeUpdated[nodesYetToBeUpdatedCnt++] = node;
+
+			//overrun protection
+			if (nodesYetToBeUpdatedCnt == nodesYetToBeUpdated.length)
+				processNodesYetToBeSmth();
 		}
 	}
 	//----------------------------------------------------------------------------
