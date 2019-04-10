@@ -1,5 +1,6 @@
 package de.mpicbg.ulman.simviewer;
 
+import java.util.Locale;
 import java.util.Scanner;
 
 import org.zeromq.SocketType;
@@ -101,7 +102,7 @@ public class NetworkScene implements Runnable
 	private
 	void processPoints(final String msg)
 	{
-		Scanner s = new Scanner(msg);
+		Scanner s = new Scanner(msg).useLocale(Locale.ENGLISH);
 
 		//System.out.println("processing point msg: "+msg);
 
@@ -155,7 +156,7 @@ public class NetworkScene implements Runnable
 	private
 	void processLines(final String msg)
 	{
-		Scanner s = new Scanner(msg);
+		Scanner s = new Scanner(msg).useLocale(Locale.ENGLISH);
 
 		//System.out.println("processing point msg: "+msg);
 
@@ -211,7 +212,7 @@ public class NetworkScene implements Runnable
 	private
 	void processVectors(final String msg)
 	{
-		Scanner s = new Scanner(msg);
+		Scanner s = new Scanner(msg).useLocale(Locale.ENGLISH);
 
 		//System.out.println("processing point msg: "+msg);
 
