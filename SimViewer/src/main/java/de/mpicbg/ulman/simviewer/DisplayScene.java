@@ -93,7 +93,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 		float zCam = (sceneOffset[2] + 1.7f*sceneSize[2]) *DsFactor;
 		cam = new DetachedHeadCamera();
 		cam.setPosition( new GLVector(xCam,yCam,zCam) );
-		cam.perspectiveCamera(50.0f, getRenderer().getWindow().getWidth(), getRenderer().getWindow().getHeight(), 10.0f*DsFactor, 100000.0f*DsFactor);
+		cam.perspectiveCamera(50.0f, getRenderer().getWindow().getWidth(), getRenderer().getWindow().getHeight(), 1.0f*DsFactor, 100000.0f*DsFactor);
 		cam.setActive( true );
 		getScene().addChild(cam);
 
@@ -103,7 +103,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 		yCam =  0.2f*sceneSize[1] *DsFactor;
 		zCam = -0.1f*sceneSize[2] *DsFactor;
 
-		float radius = 2.5f*sceneSize[1] *DsFactor;
+		float radius = 0.8f*sceneSize[1] *DsFactor;
 
 		headLights = new PointLight[6];
 		(headLights[0] = new PointLight(radius)).setPosition(new GLVector(-xCam,-yCam,zCam));
@@ -127,7 +127,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 		final float zFar  = (sceneOffset[2] - 0.3f*sceneSize[2]) *DsFactor;
 
 		//tuned such that, given current light intensity and fading, the rear cells are dark yet visible
-		radius = 1.8f*sceneSize[1] *DsFactor;
+		radius = 1.1f*sceneSize[1] *DsFactor;
 
 		//create the lights, one for each upper corner of the scene
 		fixedLights = new PointLight[2][6];
@@ -150,22 +150,24 @@ public class DisplayScene extends SceneryBase implements Runnable
 		final GLVector lightsColor = new GLVector(1.0f, 1.0f, 1.0f);
 		for (PointLight l : headLights)
 		{
-			l.setIntensity((450.0f*DsFactor)*(450.0f*DsFactor));
+			l.setIntensity((150.0f*DsFactor)*(150.0f*DsFactor));
 			l.setEmissionColor(lightsColor);
 		}
 		for (PointLight l : fixedLights[0])
 		{
-			l.setIntensity((300.0f*DsFactor)*(300.0f*DsFactor));
+			l.setIntensity((200.0f*DsFactor)*(200.0f*DsFactor));
 			l.setEmissionColor(lightsColor);
 		}
 		for (PointLight l : fixedLights[1])
 		{
-			l.setIntensity((300.0f*DsFactor)*(300.0f*DsFactor));
+			l.setIntensity((200.0f*DsFactor)*(200.0f*DsFactor));
 			l.setEmissionColor(lightsColor);
 		}
 
 		//enable the fixed ramp lights
-		ToggleFixedLights();
+		ToggleFixedLights(); //just the front ramp
+		ToggleFixedLights(); //just the rear ramp
+		ToggleFixedLights(); //both ramps
 	}
 
 	/** runs the scenery rendering backend in a separate thread */
