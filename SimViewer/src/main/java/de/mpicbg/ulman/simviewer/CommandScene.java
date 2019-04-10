@@ -54,6 +54,7 @@ public class CommandScene implements Runnable
 			System.out.println("List of accepted commands:");
 			System.out.println("h - Shows this help message");
 			System.out.println("q - Quits the program");
+			System.out.println("p - Toggles usage of the rendering push mode");
 
 			System.out.println("A - Toggles display of the axes in the scene centre");
 			System.out.println("B - Toggles display of the scene border");
@@ -155,6 +156,10 @@ public class CommandScene implements Runnable
 		case 'S':
 			scene.savingScreenshots ^= true;
 			System.out.println("Automatic screenshots are now: "+scene.savingScreenshots);
+			break;
+
+		case 'p':
+			System.out.println("Push node is now: "+scene.TogglePushMode());
 			break;
 
 		case 'q':

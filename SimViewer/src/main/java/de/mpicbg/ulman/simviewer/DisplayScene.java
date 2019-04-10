@@ -69,7 +69,6 @@ public class DisplayScene extends SceneryBase implements Runnable
 	void init()
 	{
 		final Renderer r = Renderer.createRenderer(getHub(), getApplicationName(), getScene(), getWindowWidth(), getWindowHeight());
-		r.setPushMode(true);
 		setRenderer(r);
 		getHub().add(SceneryElement.Renderer, getRenderer());
 
@@ -196,6 +195,14 @@ public class DisplayScene extends SceneryBase implements Runnable
 	void stop()
 	{
 		this.close();
+	}
+
+	/** attempts to turn on/off the "push mode", and reports the state */
+	public
+	boolean TogglePushMode()
+	{
+		this.getRenderer().setPushMode( !this.getRenderer().getPushMode() );
+		return this.getRenderer().getPushMode();
 	}
 	//----------------------------------------------------------------------------
 
