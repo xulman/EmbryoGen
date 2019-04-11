@@ -11,7 +11,7 @@ import org.zeromq.ZMQException;
  * Adapted from TexturedCubeJavaExample.java from the scenery project,
  * originally created by kharrington on 7/6/16.
  *
- * Current version is created by Vladimir Ulman, 2018.
+ * This file was created and is being developed by Vladimir Ulman, 2018.
  */
 public class NetworkScene implements Runnable
 {

@@ -13,7 +13,7 @@ package de.mpicbg.ulman.simviewer;
  * - one to host the ZeroMQ server to listen for stuff,
  *   and update the data structures
  * 
- * Created by Vladimir Ulman, 2018.
+ * This file was created and is being developed by Vladimir Ulman, 2018.
  */
 public class StartUpScene
 {
