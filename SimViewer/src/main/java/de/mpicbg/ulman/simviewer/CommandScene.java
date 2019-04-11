@@ -54,6 +54,7 @@ public class CommandScene implements Runnable
 			System.out.println("List of accepted commands:");
 			System.out.println("h - Shows this help message");
 			System.out.println("q - Quits the program");
+			System.out.println("o - Overviews the current settings");
 			System.out.println("p - Toggles usage of the rendering push mode");
 
 			System.out.println("A - Toggles display of the axes in the scene centre");
@@ -72,6 +73,9 @@ public class CommandScene implements Runnable
 			System.out.println("g,G - Toggles display of the cell-debug/general-debug");
 			System.out.println("m,M - Disable/Enable culling of front faces (Display/Hide)");
 			System.out.println("v,V - Decreases/Increases the vector display stretch");
+			break;
+		case 'o':
+			scene.reportSettings();
 			break;
 
 		case 'A':

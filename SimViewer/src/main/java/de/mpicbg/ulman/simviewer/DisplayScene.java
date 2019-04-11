@@ -924,6 +924,26 @@ public class DisplayScene extends SceneryBase implements Runnable
 	//----------------------------------------------------------------------------
 
 
+	public
+	void reportSettings()
+	{
+		System.out.println("push mode       : " + this.getRenderer().getPushMode() + "  \tscreenshots            : " + savingScreenshots);
+		System.out.println("ambient lights  : " + fixedLightsChoosen               + "  \thead lights            : " + headLightsChoosen);
+		System.out.println("scene border    : " + borderShown                      + "  \torientation compass    : " + axesShown);
+
+		System.out.println("visibility      : 'g' 'G'"                                                               +  "\t'g' mode   (cell debug): " + cellDebugShown);
+		System.out.println("         points :  "+(spheresShown.g_Mode? "Y":"N")+"   "+(spheresShown.G_Mode? "Y":"N") + " \t'G' mode (global debug): " + generalDebugShown);
+		System.out.println("         lines  :  "+(  linesShown.g_Mode? "Y":"N")+"   "+(  linesShown.G_Mode? "Y":"N") + " \tvector elongation      : " + vectorsStretch + "x");
+		System.out.println("         vectors:  "+(vectorsShown.g_Mode? "Y":"N")+"   "+(vectorsShown.G_Mode? "Y":"N") + " \tfront faces culling    : " + (materials[0].getCullingMode() == CullingMode.Front));
+
+		System.out.println("number of points: " + this.pointNodes.size() + "\t  lines: "+this.lineNodes.size() + "\t  vectors: "+this.vectorNodes.size());
+		System.out.println("color legend    :        white: velocity, 1stInnerMost2Yolk");
+		System.out.println(" red: overlap,skelDev    green: cell&skeleton          blue: friction, cellFlag");
+		System.out.println("cyan: body             magenta: tracks, rep&drive    yellow: slide, 2ndInnerMost2Yolk");
+	}
+	//----------------------------------------------------------------------------
+
+
 	/**
 	Rotates the node such that its orientation (whatever it is for the node, e.g.
 	the axis of rotational symmetry in a cylinder) given with _normalized_
