@@ -120,14 +120,10 @@ public:
 		  << " um =  "
 		  << imgSize.x << " x " << imgSize.y << " x " << imgSize.z << " px");
 
-		//init display/export units,
-		//and make them persistent (to survive after this method is finished)
-		//static VoidDisplayUnit vDU;
-		//static ConsoleDisplayUnit cDU;
-		static SceneryBufferedDisplayUnit sDU("localhost:8765");
-
-		//displayUnit.RegisterUnit(cDU);
-		displayUnit.RegisterUnit(sDU);
+		//init display/export units
+		//displayUnit.RegisterUnit( new ConsoleDisplayUnit() );
+		displayUnit.RegisterUnit( new SceneryBufferedDisplayUnit("localhost:8765") );
+		//displayUnit.RegisterUnit( new SceneryBufferedDisplayUnit("192.168.3.110:8765") );
 	}
 
 
