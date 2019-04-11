@@ -15,10 +15,20 @@ import org.zeromq.ZMQException;
  */
 public class NetworkScene implements Runnable
 {
-	/** constructor to create connection to a displayed window */
+	final int listenOnPort;
+
+	/** constructor to create connection (listening at the 8765 port) to a displayed window */
 	public NetworkScene(final DisplayScene _scene)
 	{
 		scene = _scene;
+		listenOnPort = 8765;
+	}
+
+	/** constructor to create connection (listening at the given port) to a displayed window */
+	public NetworkScene(final DisplayScene _scene, final int _port)
+	{
+		scene = _scene;
+		listenOnPort = _port;
 	}
 
 	/** reference on the controlled rendering display */
@@ -29,7 +39,7 @@ public class NetworkScene implements Runnable
 	public void run()
 	{
 		//start receiver in an infinite loop
-		System.out.println("Network listener: Started.");
+		System.out.println("Network listener: Started on port "+listenOnPort+".");
 
 		//init the communication side
 		final ZMQ.Context zmqContext = ZMQ.context(1);
@@ -42,7 +52,7 @@ public class NetworkScene implements Runnable
 
 			//port to listen for incoming data
 			//socket.subscribe(new byte[] {});
-			socket.bind("tcp://*:8765");
+			socket.bind("tcp://*:"+listenOnPort);
 
 			//the incoming data buffer
 			String msg = null;

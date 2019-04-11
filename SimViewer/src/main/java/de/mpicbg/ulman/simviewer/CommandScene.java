@@ -11,10 +11,20 @@ import java.io.IOException;
  */
 public class CommandScene implements Runnable
 {
+	final String initialCommands;
+
 	/** constructor to create connection to a displayed window */
 	public CommandScene(final DisplayScene _scene)
 	{
 		scene = _scene;
+		initialCommands = null;
+	}
+
+	/** constructor to create connection to a displayed window */
+	public CommandScene(final DisplayScene _scene, final String initCmds)
+	{
+		scene = _scene;
+		initialCommands = initCmds;
 	}
 
 	/** reference on the controlled rendering display */
@@ -27,6 +37,12 @@ public class CommandScene implements Runnable
 		System.out.println("Key listener: Started.");
 		final InputStreamReader console = new InputStreamReader(System.in);
 		try {
+			if (initialCommands != null)
+			{
+				System.out.println("Key listener: Processing initial commands: "+initialCommands);
+				for (int i=0; i < initialCommands.length(); ++i) processKey(initialCommands.charAt(i));
+			}
+
 			while (true)
 			{
 				if (console.ready())
