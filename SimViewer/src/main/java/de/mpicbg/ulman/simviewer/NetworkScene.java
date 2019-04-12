@@ -1,24 +1,34 @@
 package de.mpicbg.ulman.simviewer;
 
+import java.util.Locale;
 import java.util.Scanner;
 
+import org.zeromq.SocketType;
 import org.zeromq.ZMQ;
 import org.zeromq.ZMQException;
-
-import de.mpicbg.ulman.simviewer.DisplayScene;
 
 /**
  * Adapted from TexturedCubeJavaExample.java from the scenery project,
  * originally created by kharrington on 7/6/16.
  *
- * Current version is created by Vladimir Ulman, 2018.
+ * This file was created and is being developed by Vladimir Ulman, 2018.
  */
 public class NetworkScene implements Runnable
 {
-	/** constructor to create connection to a displayed window */
+	final int listenOnPort;
+
+	/** constructor to create connection (listening at the 8765 port) to a displayed window */
 	public NetworkScene(final DisplayScene _scene)
 	{
 		scene = _scene;
+		listenOnPort = 8765;
+	}
+
+	/** constructor to create connection (listening at the given port) to a displayed window */
+	public NetworkScene(final DisplayScene _scene, final int _port)
+	{
+		scene = _scene;
+		listenOnPort = _port;
 	}
 
 	/** reference on the controlled rendering display */
@@ -29,19 +39,20 @@ public class NetworkScene implements Runnable
 	public void run()
 	{
 		//start receiver in an infinite loop
-		System.out.println("Network listener: Started.");
+		System.out.println("Network listener: Started on port "+listenOnPort+".");
 
 		//init the communication side
 		final ZMQ.Context zmqContext = ZMQ.context(1);
 		ZMQ.Socket socket = null;
 		try {
-			socket = zmqContext.socket(ZMQ.PAIR); //NB: CLIENT/SERVER from v4.2 is not available yet
+			//socket = zmqContext.socket(ZMQ.PAIR); //NB: CLIENT/SERVER from v4.2 is not available yet
+			socket = zmqContext.socket(SocketType.PAIR);
 			if (socket == null)
 				throw new Exception("Network listener: Cannot obtain local socket.");
 
 			//port to listen for incoming data
 			//socket.subscribe(new byte[] {});
-			socket.bind("tcp://*:8765");
+			socket.bind("tcp://*:"+listenOnPort);
 
 			//the incoming data buffer
 			String msg = null;
@@ -101,7 +112,7 @@ public class NetworkScene implements Runnable
 	private
 	void processPoints(final String msg)
 	{
-		Scanner s = new Scanner(msg);
+		Scanner s = new Scanner(msg).useLocale(Locale.ENGLISH);
 
 		//System.out.println("processing point msg: "+msg);
 
@@ -109,6 +120,8 @@ public class NetworkScene implements Runnable
 		s.next();
 		s.next();
 		final int N = s.nextInt();
+
+		if (N > 10) scene.suspendNodesUpdating();
 
 		//is the next token 'dim'?
 		if (s.next("dim").startsWith("dim") == false)
@@ -146,12 +159,14 @@ public class NetworkScene implements Runnable
 		}
 
 		s.close();
+
+		if (N > 10) scene.resumeNodesUpdating();
 	}
 
 	private
 	void processLines(final String msg)
 	{
-		Scanner s = new Scanner(msg);
+		Scanner s = new Scanner(msg).useLocale(Locale.ENGLISH);
 
 		//System.out.println("processing point msg: "+msg);
 
@@ -159,6 +174,8 @@ public class NetworkScene implements Runnable
 		s.next();
 		s.next();
 		final int N = s.nextInt();
+
+		if (N > 10) scene.suspendNodesUpdating();
 
 		//is the next token 'dim'?
 		if (s.next("dim").startsWith("dim") == false)
@@ -198,12 +215,14 @@ public class NetworkScene implements Runnable
 		}
 
 		s.close();
+
+		if (N > 10) scene.resumeNodesUpdating();
 	}
 
 	private
 	void processVectors(final String msg)
 	{
-		Scanner s = new Scanner(msg);
+		Scanner s = new Scanner(msg).useLocale(Locale.ENGLISH);
 
 		//System.out.println("processing point msg: "+msg);
 
@@ -211,6 +230,8 @@ public class NetworkScene implements Runnable
 		s.next();
 		s.next();
 		final int N = s.nextInt();
+
+		if (N > 10) scene.suspendNodesUpdating();
 
 		//is the next token 'dim'?
 		if (s.next("dim").startsWith("dim") == false)
@@ -250,6 +271,24 @@ public class NetworkScene implements Runnable
 		}
 
 		s.close();
+
+		if (N > 10) scene.resumeNodesUpdating();
+
+		//check if we should save the screen
+		if (scene.savingScreenshots)
+		{
+			//give scenery some grace time to redraw everything
+			try {
+				Thread.sleep(2000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+				System.out.println("But continuing with the processing....");
+			}
+
+			scene.saveNextScreenshot();
+			//NB: this assumes that SceneryBufferedDisplayUnit is used on the simulator side,
+			//    because this unit sends vectors last per timepoint
+		}
 	}
 
 	private

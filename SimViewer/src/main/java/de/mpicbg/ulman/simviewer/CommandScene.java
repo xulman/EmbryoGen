@@ -3,20 +3,28 @@ package de.mpicbg.ulman.simviewer;
 import java.io.InputStreamReader;
 import java.io.IOException;
 
-import de.mpicbg.ulman.simviewer.DisplayScene;
-
 /**
  * Adapted from TexturedCubeJavaExample.java from the scenery project,
  * originally created by kharrington on 7/6/16.
  *
- * Current version is created by Vladimir Ulman, 2018.
+ * This file was created and is being developed by Vladimir Ulman, 2018.
  */
 public class CommandScene implements Runnable
 {
+	final String initialCommands;
+
 	/** constructor to create connection to a displayed window */
 	public CommandScene(final DisplayScene _scene)
 	{
 		scene = _scene;
+		initialCommands = null;
+	}
+
+	/** constructor to create connection to a displayed window */
+	public CommandScene(final DisplayScene _scene, final String initCmds)
+	{
+		scene = _scene;
+		initialCommands = initCmds;
 	}
 
 	/** reference on the controlled rendering display */
@@ -29,6 +37,12 @@ public class CommandScene implements Runnable
 		System.out.println("Key listener: Started.");
 		final InputStreamReader console = new InputStreamReader(System.in);
 		try {
+			if (initialCommands != null)
+			{
+				System.out.println("Key listener: Processing initial commands: "+initialCommands);
+				for (int i=0; i < initialCommands.length(); ++i) processKey(initialCommands.charAt(i));
+			}
+
 			while (true)
 			{
 				if (console.ready())
@@ -56,12 +70,16 @@ public class CommandScene implements Runnable
 			System.out.println("List of accepted commands:");
 			System.out.println("h - Shows this help message");
 			System.out.println("q - Quits the program");
+			System.out.println("o - Overviews the current settings");
+			System.out.println("p - Toggles usage of the rendering push mode");
 
 			System.out.println("A - Toggles display of the axes in the scene centre");
 			System.out.println("B - Toggles display of the scene border");
 			System.out.println("I - Toggles between front/back/both/none ramp lights");
 			System.out.println("H - Toggles on/off of camera-attached lights");
 			System.out.println("r,R - Asks Scenery to re-render only-update-signalling/all objects");
+			System.out.println("s - Saves the current content as a screenshot image");
+			System.out.println("S - Toggles automatic saving of screenshots (always after vectors update)");
 
 			System.out.println("P - Adds some cells to have something to display");
 			System.out.println("D - Deletes all objects (even if not displayed)");
@@ -71,6 +89,9 @@ public class CommandScene implements Runnable
 			System.out.println("g,G - Toggles display of the cell-debug/general-debug");
 			System.out.println("m,M - Disable/Enable culling of front faces (Display/Hide)");
 			System.out.println("v,V - Decreases/Increases the vector display stretch");
+			break;
+		case 'o':
+			scene.reportSettings();
 			break;
 
 		case 'A':
@@ -147,6 +168,18 @@ public class CommandScene implements Runnable
 		case 'R':
 			scene.scene.updateWorld(true, true);
 			System.out.println("Scenery refreshed (forcily everyone)");
+			break;
+		case 's':
+			scene.saveNextScreenshot();
+			System.out.println("Current content (screenshot) just saved into a file");
+			break;
+		case 'S':
+			scene.savingScreenshots ^= true;
+			System.out.println("Automatic screenshots are now: "+scene.savingScreenshots);
+			break;
+
+		case 'p':
+			System.out.println("Push node is now: "+scene.TogglePushMode());
 			break;
 
 		case 'q':

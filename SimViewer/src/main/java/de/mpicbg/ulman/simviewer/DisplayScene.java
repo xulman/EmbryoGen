@@ -13,7 +13,7 @@ import java.util.Iterator;
  * Adapted from TexturedCubeJavaExample.java from the scenery project,
  * originally created by kharrington on 7/6/16.
  *
- * Current version is created by Vladimir Ulman, 2018.
+ * This file was created and is being developed by Vladimir Ulman, 2018.
  */
 public class DisplayScene extends SceneryBase implements Runnable
 {
@@ -69,7 +69,6 @@ public class DisplayScene extends SceneryBase implements Runnable
 	void init()
 	{
 		final Renderer r = Renderer.createRenderer(getHub(), getApplicationName(), getScene(), getWindowWidth(), getWindowHeight());
-		r.setPushMode(true);
 		setRenderer(r);
 		getHub().add(SceneryElement.Renderer, getRenderer());
 
@@ -79,7 +78,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 		//non-scaled coordinates -- so we hook everything underneath the fake object
 		//that is downscaled (and consequently all is downscaled too) but defined with
 		//at original scale (with original coordinates and distances)
-		final float DsFactor = 0.1f;
+		final float DsFactor = r.toString().contains("vulkan")? 0.04f : 0.1f;
 
 		//introduce an invisible "fake" object
 		scene = new Box(new GLVector(0.0f,3));
@@ -93,7 +92,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 		float zCam = (sceneOffset[2] + 1.7f*sceneSize[2]) *DsFactor;
 		cam = new DetachedHeadCamera();
 		cam.setPosition( new GLVector(xCam,yCam,zCam) );
-		cam.perspectiveCamera(50.0f, getRenderer().getWindow().getWidth(), getRenderer().getWindow().getHeight(), 10.0f*DsFactor, 100000.0f*DsFactor);
+		cam.perspectiveCamera(50.0f, getRenderer().getWindow().getWidth(), getRenderer().getWindow().getHeight(), 1.0f*DsFactor, 100000.0f*DsFactor);
 		cam.setActive( true );
 		getScene().addChild(cam);
 
@@ -103,7 +102,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 		yCam =  0.2f*sceneSize[1] *DsFactor;
 		zCam = -0.1f*sceneSize[2] *DsFactor;
 
-		float radius = 2.5f*sceneSize[1] *DsFactor;
+		float radius = 0.8f*sceneSize[1] *DsFactor;
 
 		headLights = new PointLight[6];
 		(headLights[0] = new PointLight(radius)).setPosition(new GLVector(-xCam,-yCam,zCam));
@@ -127,7 +126,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 		final float zFar  = (sceneOffset[2] - 0.3f*sceneSize[2]) *DsFactor;
 
 		//tuned such that, given current light intensity and fading, the rear cells are dark yet visible
-		radius = 1.8f*sceneSize[1] *DsFactor;
+		radius = 1.1f*sceneSize[1] *DsFactor;
 
 		//create the lights, one for each upper corner of the scene
 		fixedLights = new PointLight[2][6];
@@ -150,22 +149,24 @@ public class DisplayScene extends SceneryBase implements Runnable
 		final GLVector lightsColor = new GLVector(1.0f, 1.0f, 1.0f);
 		for (PointLight l : headLights)
 		{
-			l.setIntensity((450.0f*DsFactor)*(450.0f*DsFactor));
+			l.setIntensity((150.0f*DsFactor)*(150.0f*DsFactor));
 			l.setEmissionColor(lightsColor);
 		}
 		for (PointLight l : fixedLights[0])
 		{
-			l.setIntensity((300.0f*DsFactor)*(300.0f*DsFactor));
+			l.setIntensity((200.0f*DsFactor)*(200.0f*DsFactor));
 			l.setEmissionColor(lightsColor);
 		}
 		for (PointLight l : fixedLights[1])
 		{
-			l.setIntensity((300.0f*DsFactor)*(300.0f*DsFactor));
+			l.setIntensity((200.0f*DsFactor)*(200.0f*DsFactor));
 			l.setEmissionColor(lightsColor);
 		}
 
 		//enable the fixed ramp lights
-		ToggleFixedLights();
+		ToggleFixedLights(); //just the front ramp
+		ToggleFixedLights(); //just the rear ramp
+		ToggleFixedLights(); //both ramps
 	}
 
 	/** runs the scenery rendering backend in a separate thread */
@@ -177,11 +178,31 @@ public class DisplayScene extends SceneryBase implements Runnable
 		this.main();
 	}
 
+	/** helper method to save the current content of the scene into /tmp/frameXXXX.png */
+	public
+	void saveNextScreenshot()
+	{
+		final String filename = String.format("/tmp/frame%04d.png",screenShotCounter++);
+		System.out.println("Saving screenshot: "+filename);
+		this.getRenderer().screenshot(filename,true);
+	}
+	private int screenShotCounter = 0;
+	/** flag for external modules to see if they should call saveNextScreenshot() */
+	public boolean savingScreenshots = false;
+
 	/** attempts to close this rendering window */
 	public
 	void stop()
 	{
 		this.close();
+	}
+
+	/** attempts to turn on/off the "push mode", and reports the state */
+	public
+	boolean TogglePushMode()
+	{
+		this.getRenderer().setPushMode( !this.getRenderer().getPushMode() );
+		return this.getRenderer().getPushMode();
 	}
 	//----------------------------------------------------------------------------
 
@@ -370,6 +391,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 	private final Map<Integer,myVector> vectorNodes = new HashMap<>();
 
 
+	/** this is designed (yet only) for SINGLE-THREAD application! */
 	public
 	void addUpdateOrRemovePoint(final int ID,final myPoint p)
 	{
@@ -397,17 +419,18 @@ public class DisplayScene extends SceneryBase implements Runnable
 			n.node.setScale(n.radius);
 
 			pointNodes.put(ID,n);
-			scene.addChild(n.node);
+			this.addChild(n.node);
 			showOrHideMe(ID,n.node,spheresShown);
 		}
 
 		//now update the point with the current data
 		n.update(p);
 		n.node.setMaterial(materials[n.color % materials.length]);
-		n.node.setNeedsUpdate(true);
+		this.nodeSetNeedsUpdate(n.node);
 	}
 
 
+	/** this is designed (yet only) for SINGLE-THREAD application! */
 	public
 	void addUpdateOrRemoveLine(final int ID,final myLine l)
 	{
@@ -434,7 +457,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 			//no setPosition(), no setScale()
 
 			lineNodes.put(ID,n);
-			scene.addChild(n.node);
+			this.addChild(n.node);
 			showOrHideMe(ID,n.node,linesShown);
 		}
 
@@ -450,6 +473,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 	}
 
 
+	/** this is designed (yet only) for SINGLE-THREAD application! */
 	public
 	void addUpdateOrRemoveVector(final int ID,final myVector v)
 	{
@@ -470,22 +494,32 @@ public class DisplayScene extends SceneryBase implements Runnable
 		//shall we create a new vector?
 		if (n == null)
 		{
-			//new vector: adding
-			n = new myVector( new Line(10) );  //adopted from CreateVector()
-			n.node.setEdgeWidth(0.1f);         //adopted from CreateVector()
+			//new vector: adding it already in the desired shape
+			n = new myVector( new Arrow(v.vector) );
+			n.node.setEdgeWidth(0.1f);
 			n.node.setPosition(n.base);
 			n.node.setScale(vectorsStretchGLvec);
 
+			//(here's the "adding it" part)
 			vectorNodes.put(ID,n);
-			scene.addChild(n.node);
+			this.addChild(n.node);
 			showOrHideMe(ID,n.node,vectorsShown);
 		}
-
-		//now update the vector with the current data
+		else
+		{
+			//existing vector: update it to the desired shape
+			n.node.reshape(v.vector);
+		}
+		//NB: n.vector is actually not used here!
+		//    (as Arrow.reshape() makes its own copy of
+		//     vector's shape, and we use v.vector here
+		//     to shape it; no reference to n.vector is
+		//     required and kept in the Arrow story)
+		//
+		//update the arrow with (at least) the current 'base' position
 		n.update(v);
-		UpdateVector(n.node,n.vector);
 		n.node.setMaterial(materials[n.color % materials.length]);
-		n.node.setNeedsUpdate(true);
+		this.nodeSetNeedsUpdate(n.node);
 	}
 
 
@@ -514,6 +548,86 @@ public class DisplayScene extends SceneryBase implements Runnable
 		{
 			scene.removeChild(vectorNodes.get(i.next()).node);
 			i.remove();
+		}
+	}
+	//----------------------------------------------------------------------------
+
+
+	/** flags if nodes should be scene.addChild(node)'ed and node.setNeedsUpdate(true)'ed
+	    right away (the online process mode), or do all such later at once (the batch
+	    process mode) because this might have positive performance impact */
+	private boolean updateNodesImmediately = true;
+
+	/** buffer of nodes to be added to the scene (ideally) at the same time */
+	private final Node[] nodesYetToBeAdded    = new Node[10240]; //40 kB of RAM
+	private int          nodesYetToBeAddedCnt = 0;
+
+	/** buffer of nodes to have their 'needsUpdate' flag set (ideally) at the same time */
+	private final Node[] nodesYetToBeUpdated    = new Node[10240]; //40 kB of RAM
+	private int          nodesYetToBeUpdatedCnt = 0;
+
+	/** only signals/enables the 'batch process' mode,
+	    this is designed (yet only) for SINGLE-THREAD application! */
+	public
+	void suspendNodesUpdating()
+	{
+		updateNodesImmediately = false;
+	}
+
+	/** calls processNodesYetToBeSmth() and switches back to the 'online process' mode,
+	    this is designed (yet only) for SINGLE-THREAD application! */
+	public
+	void resumeNodesUpdating()
+	{
+		updateNodesImmediately = true;
+		processNodesYetToBeSmth();
+	}
+
+	/** processes (ideally at the same time) and clears the content of
+	    the two buffers (buffers for adding and updating nodes simultaneously) */
+	private
+	void processNodesYetToBeSmth()
+	{
+		for (int i=0; i < nodesYetToBeAddedCnt; ++i)
+			scene.addChild( nodesYetToBeAdded[i] );
+		nodesYetToBeAddedCnt = 0;
+
+		for (int i=0; i < nodesYetToBeUpdatedCnt; ++i)
+			nodesYetToBeUpdated[i].setNeedsUpdate(true);
+		nodesYetToBeUpdatedCnt = 0;
+	}
+
+	/** either registers the node into the Scenery's scene immediately (when in the online
+	    process mode), or registers into the 'nodesYetToBeAdded' buffer (when in the batch
+	    process mode) */
+	private
+	void addChild(final Node node)
+	{
+		if (updateNodesImmediately) scene.addChild(node);
+		else
+		{
+			nodesYetToBeAdded[nodesYetToBeAddedCnt++] = node;
+
+			//overrun protection
+			if (nodesYetToBeAddedCnt == nodesYetToBeAdded.length)
+				processNodesYetToBeSmth();
+		}
+	}
+
+	/** either sets 'needsUpdate' flag of the node immediately (when in the online
+	    process mode), or registers into the 'nodesYetToBeUpdated' buffer to
+	    have it set later (when in the batch process mode) */
+	private
+	void nodeSetNeedsUpdate(final Node node)
+	{
+		if (updateNodesImmediately) node.setNeedsUpdate(true);
+		else
+		{
+			nodesYetToBeUpdated[nodesYetToBeUpdatedCnt++] = node;
+
+			//overrun protection
+			if (nodesYetToBeUpdatedCnt == nodesYetToBeUpdated.length)
+				processNodesYetToBeSmth();
 		}
 	}
 	//----------------------------------------------------------------------------
@@ -590,10 +704,10 @@ public class DisplayScene extends SceneryBase implements Runnable
 	/** corresponds to one element that simulator's DrawVector() can send */
 	public class myVector
 	{
-		myVector()             { node = null; }
-		myVector(final Line v) { node = v; }
+		myVector()              { node = null; }
+		myVector(final Arrow v) { node = v; }
 
-		final Line node;
+		final Arrow node;
 		final GLVector base   = new GLVector(0.f,3);
 		final GLVector vector = new GLVector(0.f,3);
 		int color;
@@ -810,6 +924,26 @@ public class DisplayScene extends SceneryBase implements Runnable
 	//----------------------------------------------------------------------------
 
 
+	public
+	void reportSettings()
+	{
+		System.out.println("push mode       : " + this.getRenderer().getPushMode() + "  \tscreenshots            : " + savingScreenshots);
+		System.out.println("ambient lights  : " + fixedLightsChoosen               + "  \thead lights            : " + headLightsChoosen);
+		System.out.println("scene border    : " + borderShown                      + "  \torientation compass    : " + axesShown);
+
+		System.out.println("visibility      : 'g' 'G'"                                                               +  "\t'g' mode   (cell debug): " + cellDebugShown);
+		System.out.println("         points :  "+(spheresShown.g_Mode? "Y":"N")+"   "+(spheresShown.G_Mode? "Y":"N") + " \t'G' mode (global debug): " + generalDebugShown);
+		System.out.println("         lines  :  "+(  linesShown.g_Mode? "Y":"N")+"   "+(  linesShown.G_Mode? "Y":"N") + " \tvector elongation      : " + vectorsStretch + "x");
+		System.out.println("         vectors:  "+(vectorsShown.g_Mode? "Y":"N")+"   "+(vectorsShown.G_Mode? "Y":"N") + " \tfront faces culling    : " + (materials[0].getCullingMode() == CullingMode.Front));
+
+		System.out.println("number of points: " + this.pointNodes.size() + "\t  lines: "+this.lineNodes.size() + "\t  vectors: "+this.vectorNodes.size());
+		System.out.println("color legend    :        white: velocity, 1stInnerMost2Yolk");
+		System.out.println(" red: overlap,skelDev    green: cell&skeleton          blue: friction, cellFlag");
+		System.out.println("cyan: body             magenta: tracks, rep&drive    yellow: slide, 2ndInnerMost2Yolk");
+	}
+	//----------------------------------------------------------------------------
+
+
 	/**
 	Rotates the node such that its orientation (whatever it is for the node, e.g.
 	the axis of rotational symmetry in a cylinder) given with _normalized_
@@ -852,195 +986,5 @@ public class DisplayScene extends SceneryBase implements Runnable
 		currentNormalizedOrientVec.minusAssign(currentNormalizedOrientVec);
 		currentNormalizedOrientVec.plusAssign(newOrientVec);
 		currentNormalizedOrientVec.normalize();
-	}
-
-
-	/** Creates a vector node, that needs to be setMaterial'ed(), setPosition'ed(), and
-	    addChild'ed(). The this.UpdateVector() is used to construct the vector. */
-	Line CreateVector(final GLVector v)
-	{
-		final Line l = new Line(10);
-		l.setEdgeWidth(0.1f);
-
-		UpdateVector(l,v);
-		return l;
-	}
-
-	/** (Re-)Constructs a vector as a line with two perpendicular triangles as a "3D arrow".
-	    The base of the arrow head is a cross. */
-	void UpdateVector(final Line l, final GLVector v)
-	{
-		l.clearPoints();
-
-		/*
-		  /|\
-		 / | \
-		/--+--\
-		   |
-		   |
-		   |
-		Vector is created as the main segment (drawn vertically bottom to up),
-		then 3 segments to build a triangle and then another triangle perpendicular
-		to the former one; altogehter 7 segments drawn sequentially
-		*/
-
-		//first of the two mandatory surrounding fake points that are never displayed
-		l.addPoint(zeroGLvec);
-
-		//the main "vertical" segment of the vector
-		l.addPoint(zeroGLvec);
-		l.addPoint(v);
-
-		//the first triangle:
-		//the shape of the triangle
-		final float V = 0.1f * v.magnitude();
-
-		//vector base is perpendicular to the input vector v
-		GLVector base = new GLVector(-v.y(), v.x(), 0.0f);
-		float baseLen = base.magnitude();
-
-		if (baseLen == 0.f)
-		{
-			//v must be parallel to the z-axis, draw another perpendicular base
-			base = new GLVector(0.0f, 1.0f, 0.0f);
-			baseLen = 1.0f;
-		}
-		base.timesAssign(new GLVector(V/baseLen,3));
-
-		l.addPoint(v.times(0.8f).plus(base));
-		l.addPoint(v.times(0.8f).minus(base));
-		l.addPoint(v);
-
-		//the second triangle:
-		base = base.cross(v);
-		base.timesAssign(new GLVector(V/base.magnitude(),3));
-
-		l.addPoint(v.times(0.8f).plus(base));
-		l.addPoint(v.times(0.8f).minus(base));
-		l.addPoint(v);
-
-		//second of the two mandatory surrounding fake points that are never displayed
-		l.addPoint(v);
-	}
-
-
-	/** Creates a vector node, that needs to be setMaterial'ed(), setPosition'ed(), and
-	    addChild'ed(), as a line with a pyramid as a "3D arrow".
-	    The base of the arrow head is a square with diagonals. */
-	Line CreateVector_Pyramid(final GLVector v)
-	{
-		final Line l = new Line(14);
-		l.setEdgeWidth(0.1f);
-
-		/*
-		  /|\
-		 / | \
-		/--+--\
-		   |
-		   |
-		   |
-		Vector is created as the main segment (drawn vertically bottom to up),
-		then 3 segments to build a triangle and then another triangle perpendicular
-		to the former one; altogehter 7 segments drawn sequentially
-		*/
-
-		//first of the two mandatory surrounding fake points that are never displayed
-		l.addPoint(v);
-
-		//the main "vertical" segment of the vector
-		l.addPoint(new GLVector(0.f,3));
-		l.addPoint(v);
-
-		//the first triangle:
-		//the shape of the triangle
-		final float V = 0.1f * v.magnitude();
-
-		//vector base is perpendicular to the input vector v
-		GLVector base = new GLVector(-v.y(), v.x(), 0.0f);
-		float baseLen = base.magnitude();
-
-		if (baseLen == 0.f)
-		{
-			//v must be parallel to the z-axis, draw another perpendicular base
-			base = new GLVector(0.0f, 1.0f, 0.0f);
-			baseLen = 1.0f;
-		}
-		base.timesAssign(new GLVector(V/baseLen,3));
-
-		GLVector a,b,c,d;
-		a = v.times(0.8f).plus(base);
-		c = v.times(0.8f).minus(base);
-		l.addPoint(a);
-		l.addPoint(c);
-		l.addPoint(v);
-
-		//the second triangle:
-		base = base.cross(v);
-		base.timesAssign(new GLVector(V/base.magnitude(),3));
-
-		b = v.times(0.8f).plus(base);
-		d = v.times(0.8f).minus(base);
-		l.addPoint(b);
-		l.addPoint(d);
-
-		//the base
-		l.addPoint(a);
-		l.addPoint(b);
-		l.addPoint(c);
-		l.addPoint(d);
-
-		//finish the 2nd triangle
-		l.addPoint(v);
-
-		//second of the two mandatory surrounding fake points that are never displayed
-		l.addPoint(v);
-
-		return l;
-	}
-
-
-	/** Creates a vector node, that needs to be setMaterial'ed(), setPosition'ed(), and
-	    addChild'ed(), as a line with a fancy cone as a "3D arrow".
-	    The Scenery.Cone is used for the cone and is nested under the returned node.
-	    The base of the arrow head is a circle.
-
-	    Since the vector consists of two different graphics elements, we better
-	    return common ancester type of them because any method of the Node can be
-	    applied on the subsequent objects too. */
-	Node CreateVector_Cone(final GLVector v)
-	{
-		final Line l = new Line(4);
-		l.setEdgeWidth(0.1f);
-
-		/* .
-		  / \
-		 /   \
-		/-----\
-		   |
-		   |
-		   |
-		Vector is created as the main segment (drawn vertically bottom to up)
-		with a cone sitting on top of it
-		*/
-
-		//first of the two mandatory surrounding fake points that are never displayed
-		l.addPoint(v);
-
-		//the main "vertical" segment of the vector
-		l.addPoint(new GLVector(0.f,3));
-		l.addPoint(v.times(0.95f));
-
-		//second of the two mandatory surrounding fake points that are never displayed
-		l.addPoint(v);
-
-		//the cone
-		//the shape of the cone
-		final float V = 0.1f * v.magnitude();
-		final Cone c = new Cone(V,2.0f*V,6);
-		ReOrientNode(c,new GLVector(0.0f,1.0f,0.0f),v);
-		c.setPosition(v.times(0.8f));
-		l.addChild(c);
-
-		return l;
 	}
 }
