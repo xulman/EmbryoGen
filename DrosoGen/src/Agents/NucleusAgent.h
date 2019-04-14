@@ -337,9 +337,9 @@ private:
 #ifdef DEBUG
 		if (detailedReportingMode)
 		{
-			DEBUG_REPORT("ID " << ID << ": Found " << proximityPairs_toNuclei.size() << " proximity pairs to nuclei");
-			DEBUG_REPORT("ID " << ID << ": Found " << proximityPairs_toYolk.size()   << " proximity pairs to yolk");
-			DEBUG_REPORT("ID " << ID << ": Found " << proximityPairs_tracks.size()   << " proximity pairs with guiding trajectories");
+			REPORT("ID " << ID << ": Found " << proximityPairs_toNuclei.size() << " proximity pairs to nuclei");
+			REPORT("ID " << ID << ": Found " << proximityPairs_toYolk.size()   << " proximity pairs to yolk");
+			REPORT("ID " << ID << ": Found " << proximityPairs_tracks.size()   << " proximity pairs with guiding trajectories");
 		}
 #endif
 		//now, postprocess the proximityPairs, that is, to
@@ -453,7 +453,7 @@ private:
 		}
 
 #ifdef DEBUG
-		//append forces to forcesForDisplay
+		//append forces to forcesForDisplay, make a copy (push_back, not emplace_back)!
 		for (const auto& f : forces)
 			forcesForDisplay.push_back(f);
 #endif
