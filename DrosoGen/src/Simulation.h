@@ -347,8 +347,8 @@ private:
 		//to prevent zeroMQ from flooding the Scenery
 		if (std::cin.eof())
 		{
-			REPORT("waiting 500 ms to give Scenery some breath out time")
-			std::this_thread::sleep_for((std::chrono::milliseconds)500);
+			REPORT("waiting 1000 ms to give SimViewer some time to breath...")
+			std::this_thread::sleep_for((std::chrono::milliseconds)1000);
 		}
 	}
 };
