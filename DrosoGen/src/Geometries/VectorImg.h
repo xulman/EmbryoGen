@@ -321,8 +321,8 @@ public:
 							surfPoint += centresO[i];
 
 							//create immediately the ProximityPair
-							l.emplace_back( ProximityPair(surfPoint+vec,surfPoint, vec.len(),
-							  (signed)X.GetIndex(curPos.x,curPos.y,curPos.z),i) );
+							l.emplace_back( surfPoint+vec,surfPoint, vec.len(),
+							  (signed)X.GetIndex(curPos.x,curPos.y,curPos.z),i );
 							break;
 						default: ;
 						}
@@ -351,8 +351,8 @@ public:
 
 				//this is from VectorImg perspective (local = VectorImg, other = Sphere),
 				//it reports index of the relevant foreign sphere
-				l.emplace_back( ProximityPair(surfPoint+vecs[i],surfPoint, std::sqrt(lengths2[i]),
-				  (signed)X.GetIndex(hints[i].x,hints[i].y,hints[i].z),i) );
+				l.emplace_back( surfPoint+vecs[i],surfPoint, std::sqrt(lengths2[i]),
+				  (signed)X.GetIndex(hints[i].x,hints[i].y,hints[i].z),i );
 			}
 		}
 		else if (policy == maxVec)
@@ -373,8 +373,8 @@ public:
 
 				//this is from VectorImg perspective (local = VectorImg, other = Sphere),
 				//it reports index of the relevant foreign sphere
-				l.emplace_back( ProximityPair(surfPoint+vecs[i],surfPoint, std::sqrt(lengths2[i]),
-				  (signed)X.GetIndex(hints[i].x,hints[i].y,hints[i].z),i) );
+				l.emplace_back( surfPoint+vecs[i],surfPoint, std::sqrt(lengths2[i]),
+				  (signed)X.GetIndex(hints[i].x,hints[i].y,hints[i].z),i );
 			}
 		}
 		else if (policy == avgVec)
@@ -388,7 +388,7 @@ public:
 
 				//this is from VectorImg perspective (local = VectorImg, other = Sphere),
 				//it reports index of the relevant foreign sphere
-				l.emplace_back( ProximityPair(centresO[i]+vecs[i],centresO[i], vecs[i].len(), 0,i) );
+				l.emplace_back( centresO[i]+vecs[i],centresO[i], vecs[i].len(), 0,i );
 				//NB: average vector is no particular existing vector, hence local hint = 0,
 				//    and placed in the sphere's centre
 			}

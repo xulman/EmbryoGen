@@ -234,42 +234,42 @@ private:
 		{
 			//properly scaled force acting on the 1st sphere: body_scale * len()
 			sOff[0] *= fstrength_body_scale;
-			forces.push_back( ForceVector3d<FLOAT>(sOff[0], futureGeometry.centres[0],0, ftype_s2s) );
+			forces.emplace_back( sOff[0], futureGeometry.centres[0],0, ftype_s2s );
 
 			sOff[0] *= -1.0;
-			forces.push_back( ForceVector3d<FLOAT>(sOff[0], futureGeometry.centres[1],1, ftype_s2s) );
+			forces.emplace_back( sOff[0], futureGeometry.centres[1],1, ftype_s2s );
 		}
 
 		if (sOff[1].len2() > keepCalmDistanceSq)
 		{
 			//properly scaled force acting on the 2nd sphere: body_scale * len()
 			sOff[1] *= fstrength_body_scale;
-			forces.push_back( ForceVector3d<FLOAT>(sOff[1], futureGeometry.centres[1],1, ftype_s2s) );
+			forces.emplace_back( sOff[1], futureGeometry.centres[1],1, ftype_s2s );
 
 			sOff[1] *= -0.5;
-			forces.push_back( ForceVector3d<FLOAT>(sOff[1], futureGeometry.centres[0],0, ftype_s2s) );
-			forces.push_back( ForceVector3d<FLOAT>(sOff[1], futureGeometry.centres[2],2, ftype_s2s) );
+			forces.emplace_back( sOff[1], futureGeometry.centres[0],0, ftype_s2s );
+			forces.emplace_back( sOff[1], futureGeometry.centres[2],2, ftype_s2s );
 		}
 
 		if (sOff[2].len2() > keepCalmDistanceSq)
 		{
 			//properly scaled force acting on the 2nd sphere: body_scale * len()
 			sOff[2] *= fstrength_body_scale;
-			forces.push_back( ForceVector3d<FLOAT>(sOff[2], futureGeometry.centres[2],2, ftype_s2s) );
+			forces.emplace_back( sOff[2], futureGeometry.centres[2],2, ftype_s2s );
 
 			sOff[2] *= -0.5;
-			forces.push_back( ForceVector3d<FLOAT>(sOff[2], futureGeometry.centres[1],1, ftype_s2s) );
-			forces.push_back( ForceVector3d<FLOAT>(sOff[2], futureGeometry.centres[3],3, ftype_s2s) );
+			forces.emplace_back( sOff[2], futureGeometry.centres[1],1, ftype_s2s );
+			forces.emplace_back( sOff[2], futureGeometry.centres[3],3, ftype_s2s );
 		}
 
 		if (sOff[3].len2() > keepCalmDistanceSq)
 		{
 			//properly scaled force acting on the 1st sphere: body_scale * len()
 			sOff[3] *= fstrength_body_scale;
-			forces.push_back( ForceVector3d<FLOAT>(sOff[3], futureGeometry.centres[3],3, ftype_s2s) );
+			forces.emplace_back( sOff[3], futureGeometry.centres[3],3, ftype_s2s );
 
 			sOff[3] *= -1.0;
-			forces.push_back( ForceVector3d<FLOAT>(sOff[3], futureGeometry.centres[2],2, ftype_s2s) );
+			forces.emplace_back( sOff[3], futureGeometry.centres[2],2, ftype_s2s );
 		}
 
 		//add forces on the list that represent how and where the nucleus would like to move
@@ -277,9 +277,9 @@ private:
 		//NB: the forces will act rigidly on the full nucleus
 		for (int i=0; i < futureGeometry.noOfSpheres; ++i)
 		{
-			forces.push_back( ForceVector3d<FLOAT>(
+			forces.emplace_back(
 				(weights[i]/velocity_PersistenceTime) * velocity_CurrentlyDesired,
-				futureGeometry.centres[i],i, ftype_drive ) );
+				futureGeometry.centres[i],i, ftype_drive );
 		}
 
 #ifdef DEBUG
@@ -302,9 +302,9 @@ private:
 		//TRAgen paper, eq. (3)
 		for (int i=0; i < futureGeometry.noOfSpheres; ++i)
 		{
-			forces.push_back( ForceVector3d<FLOAT>(
+			forces.emplace_back(
 				(-weights[i]/velocity_PersistenceTime)*velocities[i],
-				futureGeometry.centres[i],i, ftype_friction ) );
+				futureGeometry.centres[i],i, ftype_friction );
 		}
 
 		//scheduler, please give me ShadowAgents that are not further than ignoreDistance
@@ -364,9 +364,9 @@ private:
 					f.changeToUnitOrZero();
 
 					//TRAgen paper, eq. (4)
-					forces.push_back( ForceVector3d<FLOAT>(
+					forces.emplace_back(
 						(fstrength_overlap_level * std::exp(-pp.distance / fstrength_rep_scale)) * f,
-						futureGeometry.centres[pp.localHint],pp.localHint, ftype_repulsive ) );
+						futureGeometry.centres[pp.localHint],pp.localHint, ftype_repulsive );
 				}
 			}
 			else
@@ -391,8 +391,8 @@ private:
 				}
 
 				//TRAgen paper, eq. (5)
-				forces.push_back( ForceVector3d<FLOAT>( fScale * f,
-					futureGeometry.centres[pp.localHint],pp.localHint, ftype_body ) );
+				forces.emplace_back( fScale * f,
+					futureGeometry.centres[pp.localHint],pp.localHint, ftype_body );
 
 #ifdef DEBUG
 				if (detailedReportingMode)
@@ -416,8 +416,8 @@ private:
 				//TRAgen paper, somewhat eq. (6)
 				g *= fstrength_slide_scale * weights[pp.localHint]/velocity_PersistenceTime;
 				// "surface friction coeff" | velocity->force, the same as for ftype_drive
-				forces.push_back( ForceVector3d<FLOAT>( g,
-					futureGeometry.centres[pp.localHint],pp.localHint, ftype_slide ) );
+				forces.emplace_back( g,
+					futureGeometry.centres[pp.localHint],pp.localHint, ftype_slide );
 #ifdef DEBUG
 				Officer->reportOverlap(-pp.distance);
 #endif
@@ -442,14 +442,10 @@ private:
 			f *= 2*fstrength_overlap_level * std::min(pp.distance*pp.distance * fstrength_hinter_scale,(FLOAT)1);
 
 			//apply the same force to all spheres
-			forces.push_back( ForceVector3d<FLOAT>( f,
-				futureGeometry.centres[0],0, ftype_hinter ) );
-			forces.push_back( ForceVector3d<FLOAT>( f,
-				futureGeometry.centres[1],1, ftype_hinter ) );
-			forces.push_back( ForceVector3d<FLOAT>( f,
-				futureGeometry.centres[2],2, ftype_hinter ) );
-			forces.push_back( ForceVector3d<FLOAT>( f,
-				futureGeometry.centres[3],3, ftype_hinter ) );
+			forces.emplace_back( f, futureGeometry.centres[0],0, ftype_hinter );
+			forces.emplace_back( f, futureGeometry.centres[1],1, ftype_hinter );
+			forces.emplace_back( f, futureGeometry.centres[2],2, ftype_hinter );
+			forces.emplace_back( f, futureGeometry.centres[3],3, ftype_hinter );
 		}
 
 #ifdef DEBUG

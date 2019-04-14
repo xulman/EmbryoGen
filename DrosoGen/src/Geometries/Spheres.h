@@ -131,18 +131,15 @@ public:
 			{
 				//we have now a shortest distance between 'im' and 'bestIo',
 				//create output ProximityPairs (and note indices of the incident spheres)
-				ProximityPair p(centres[im],centresO[bestIo], bestDist, im,bestIo);
 
-				//vector between the two centres
+				//vector between the two centres (will be made
+				//'radius' longer, and offsets the 'centre' point)
 				Vector3d<FLOAT> dp = centresO[bestIo] - centres[im];
 				dp.changeToUnitOrZero();
 
-				//the vector made 'radius' longer, and offsets the 'centre' point
-				p.localPos +=      +radii[im] * dp;
-				p.otherPos += -radiiO[bestIo] * dp;
-
-				//NB: a copy is of the ProximityPair 'p' is created while pushing...
-				l.push_back(p);
+				l.emplace_back( centres[im] + (radii[im] * dp),
+				                centresO[bestIo] - (radiiO[bestIo] * dp),
+				                bestDist, im,bestIo );
 			}
 		}
 	}
