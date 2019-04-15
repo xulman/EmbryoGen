@@ -541,7 +541,7 @@ private:
 		//if not selected: draw cells with no debug bit
 		//if     selected: draw cells as a global debug object
 		int dID = ID << 17;
-		int gdID = ID*30 +5000;
+		int gdID = ID*50 +5000;
 
 		//draw spheres
 		for (int i=0; i < futureGeometry.noOfSpheres; ++i)
@@ -563,9 +563,13 @@ private:
 		}
 
 		//red lines with overlapping proximity pairs to nuclei
-		for (const auto& p : proximityPairs_toNuclei)
-		if (p.distance < 0)
-			du.DrawLine(gdID++, p.localPos,p.otherPos, 1);
+		//(if detailedDrawingMode is true, these lines will be drawn later as "local debug")
+		if (!detailedDrawingMode)
+		{
+			for (const auto& p : proximityPairs_toNuclei)
+			if (p.distance < 0)
+				du.DrawLine(gdID++, p.localPos,p.otherPos, 1);
+		}
 
 		//render only if under inspection
 		if (detailedDrawingMode)
@@ -576,6 +580,11 @@ private:
 			du.DrawLine(dID++, futureGeometry.centres[0],futureGeometry.centres[1], color);
 			du.DrawLine(dID++, futureGeometry.centres[1],futureGeometry.centres[2], color);
 			du.DrawLine(dID++, futureGeometry.centres[2],futureGeometry.centres[3], color);
+
+			//red lines with overlapping proximity pairs to nuclei
+			for (const auto& p : proximityPairs_toNuclei)
+			if (p.distance < 0)
+				du.DrawLine(dID++, p.localPos,p.otherPos, 1);
 
 			//neighbors:
 			//white line for the most inner spheres, yellow for second most inner
@@ -588,10 +597,10 @@ private:
 			//red lines to show deviations from the expected geometry
 			Vector3d<FLOAT> sOff[4];
 			getCurrentOffVectorsForCentres(sOff);
-			du.DrawLine(dID++, futureGeometry.centres[0],futureGeometry.centres[0]+sOff[0], 1); //red color
-			du.DrawLine(dID++, futureGeometry.centres[1],futureGeometry.centres[1]+sOff[1], 1);
-			du.DrawLine(dID++, futureGeometry.centres[2],futureGeometry.centres[2]+sOff[2], 1);
-			du.DrawLine(dID++, futureGeometry.centres[3],futureGeometry.centres[3]+sOff[3], 1);
+			du.DrawLine(dID++, futureGeometry.centres[0],futureGeometry.centres[0]+sOff[0], 3); //blue color
+			du.DrawLine(dID++, futureGeometry.centres[1],futureGeometry.centres[1]+sOff[1], 3);
+			du.DrawLine(dID++, futureGeometry.centres[2],futureGeometry.centres[2]+sOff[2], 3);
+			du.DrawLine(dID++, futureGeometry.centres[3],futureGeometry.centres[3]+sOff[3], 3);
 
 			//magenta lines with trajectory guiding vectors
 			for (const auto& p : proximityPairs_tracks)
@@ -630,7 +639,7 @@ private:
 		indicatorPos += futureGeometry.centres[3];
 
 		//small sphere (in blue) to encode the four nuclei
-		du.DrawPoint(gdID++, indicatorPos,1.5f, 3);
+		du.DrawPoint(gdID++, indicatorPos,0.7f, 3);
 
 		//update to the most recent state
 		detailedDrawingModePrevState = detailedDrawingMode;
