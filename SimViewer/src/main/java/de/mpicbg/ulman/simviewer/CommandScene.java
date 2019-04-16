@@ -3,6 +3,8 @@ package de.mpicbg.ulman.simviewer;
 import java.io.InputStreamReader;
 import java.io.IOException;
 
+import de.mpicbg.ulman.simviewer.aux.Point;
+
 /**
  * Adapted from TexturedCubeJavaExample.java from the scenery project,
  * originally created by kharrington on 7/6/16.
@@ -202,7 +204,7 @@ public class CommandScene implements Runnable
 		final float yCentre  = scene.sceneOffset[1] + 0.5f*scene.sceneSize[1];
 		final float zCentre  = scene.sceneOffset[2] + 0.5f*scene.sceneSize[2];
 
-		final DisplayScene.myPoint c = scene.new myPoint();
+		final Point c = new Point();
 		int ID = 0;
 
 		for (int y=0; y < 5; ++y)
