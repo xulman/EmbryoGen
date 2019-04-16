@@ -4,6 +4,7 @@ import cleargl.GLVector;
 import graphics.scenery.*;
 import graphics.scenery.backends.Renderer;
 import graphics.scenery.Material.CullingMode;
+import graphics.scenery.controls.InputHandler;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -184,6 +185,13 @@ public class DisplayScene extends SceneryBase implements Runnable
 		while (scene == null)            Thread.sleep(1000);
 		//this condition used to work alone...
 		while (!scene.getInitialized())  Thread.sleep(1000);
+	}
+
+	/** exposes the InputHandler outside this class */
+	public
+	InputHandler exposeInputHandler()
+	{
+		return this.getInputHandler();
 	}
 
 	/** runs the scenery rendering backend in a separate thread */
