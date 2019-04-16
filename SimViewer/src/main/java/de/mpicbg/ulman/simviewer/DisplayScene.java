@@ -57,7 +57,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 	final Material[] materials;
 
 	/** short cut to the root Node underwhich all displayed objects should be hooked up */
-	Node scene;
+	Node scene = null;
 
 	/** reference for the camera to be able to enable/disable head lights */
 	Camera cam;
@@ -167,6 +167,19 @@ public class DisplayScene extends SceneryBase implements Runnable
 		ToggleFixedLights(); //just the front ramp
 		ToggleFixedLights(); //just the rear ramp
 		ToggleFixedLights(); //both ramps
+	}
+
+	/** returns true when the underlying rendering machinery is ready to draw anything */
+	public
+	void waitUntilSceneIsReady()
+	throws InterruptedException
+	{
+		//official Scenery flag
+		while (!this.sceneInitialized()) Thread.sleep(1000);
+		//proof that this.init() is indeed in progress
+		while (scene == null)            Thread.sleep(1000);
+		//this condition used to work alone...
+		while (!scene.getInitialized())  Thread.sleep(1000);
 	}
 
 	/** runs the scenery rendering backend in a separate thread */

@@ -54,8 +54,7 @@ public class StartUpScene
 			GUIwindow.start();
 
 			//give the GUI window some time to settle down, and populate it
-			Thread.sleep(5000);
-			while (!scene.scene.getInitialized()) Thread.sleep(3000);
+			scene.waitUntilSceneIsReady();
 			System.out.println("SimViewer is ready!");
 
 			//only now start the both window controls (console and network)
