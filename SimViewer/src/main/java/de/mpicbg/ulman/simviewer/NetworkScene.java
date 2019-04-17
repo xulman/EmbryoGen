@@ -106,6 +106,8 @@ public class NetworkScene implements Runnable
 			else
 			if (msg.startsWith("v1 triangles")) processTriangles(msg);
 			else
+			if (msg.startsWith("v1 tick")) processTickMessage(msg.substring(8));
+			else
 				System.out.println("Don't understand this msg: "+msg);
 		}
 		catch (java.util.InputMismatchException e) {
@@ -277,12 +279,20 @@ public class NetworkScene implements Runnable
 		s.close();
 
 		if (N > 10) scene.resumeNodesUpdating();
+	}
 
 	private
 	void processTriangles(final String msg)
 	{
 		System.out.println("not implemented yet: "+msg);
 	}
+
+	/** this is a general (free format) message, which is assumed
+	    to be sent typically after one simulation round is over */
+	private
+	void processTickMessage(final String msg)
+	{
+		System.out.println("Got tick message: "+msg);
 
 		//check if we should save the screen
 		if (scene.savingScreenshots)
@@ -296,10 +306,10 @@ public class NetworkScene implements Runnable
 			}
 
 			scene.saveNextScreenshot();
-			//NB: this assumes that SceneryBufferedDisplayUnit is used on the simulator side,
-			//    because this unit sends vectors last per timepoint
 		}
-	}
 
+		if (scene.garbageCollecting) scene.garbageCollect();
+
+		scene.increaseTickCounter();
 	}
 }
