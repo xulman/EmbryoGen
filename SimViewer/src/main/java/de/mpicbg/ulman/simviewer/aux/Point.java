@@ -14,6 +14,8 @@ public class Point
 	public final GLVector radius = new GLVector(0.f,3);
 	public int color;
 
+	public int lastSeenTick = 0;
+
 	public void update(final Point p)
 	{
 		centre.set(0, p.centre.x());

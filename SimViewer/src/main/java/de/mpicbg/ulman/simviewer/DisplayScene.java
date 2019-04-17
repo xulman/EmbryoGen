@@ -224,7 +224,12 @@ public class DisplayScene extends SceneryBase implements Runnable
 	/** flag for external modules to see if they should call saveNextScreenshot() */
 	public boolean savingScreenshots = false;
 
+	/** counts how many times the "tick message" has been received, this message
+	    is assumed to be sent typically after one simulation round is over */
+	private int tickCounter = 0;
+	//
 	public
+	void increaseTickCounter() { ++tickCounter; }
 
 	/** attempts to turn on/off the "push mode", and reports the state */
 	public
@@ -456,6 +461,9 @@ public class DisplayScene extends SceneryBase implements Runnable
 		//now update the point with the current data
 		n.update(p);
 		n.node.setMaterial(materials[n.color % materials.length]);
+
+		n.lastSeenTick = tickCounter;
+
 		this.nodeSetNeedsUpdate(n.node);
 	}
 
@@ -500,6 +508,8 @@ public class DisplayScene extends SceneryBase implements Runnable
 		n.node.addPoint(zeroGLvec);
 		//NB: surrounded by two mandatory fake points that are never displayed
 		n.node.setMaterial(materials[n.color % materials.length]);
+
+		n.lastSeenTick = tickCounter;
 	}
 
 
@@ -549,6 +559,9 @@ public class DisplayScene extends SceneryBase implements Runnable
 		//update the arrow with (at least) the current 'base' position
 		n.update(v);
 		n.node.setMaterial(materials[n.color % materials.length]);
+
+		n.lastSeenTick = tickCounter;
+
 		this.nodeSetNeedsUpdate(n.node);
 	}
 

@@ -13,6 +13,8 @@ public class Line
 	public final GLVector posB = new GLVector(0.f,3);
 	public int color;
 
+	public int lastSeenTick = 0;
+
 	public void update(final Line l)
 	{
 		posA.set(0, l.posA.x());

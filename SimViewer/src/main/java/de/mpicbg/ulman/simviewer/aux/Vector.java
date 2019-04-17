@@ -14,6 +14,8 @@ public class Vector
 	public final GLVector vector = new GLVector(0.f,3);
 	public int color;
 
+	public int lastSeenTick = 0;
+
 	public void update(final Vector v)
 	{
 		base.set(0, v.base.x());
