@@ -304,6 +304,7 @@ private:
 
 		//render the current frame
 		displayUnit.Flush();
+		displayUnit.Tick( ("Time: "+std::to_string(currTime)).c_str() );
 
 		//save the image
 		sprintf(fn,"mask%03d.tif",frameCnt++);

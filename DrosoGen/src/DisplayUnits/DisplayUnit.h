@@ -62,5 +62,11 @@ public:
 	    method is kept empty for them. */
 	virtual
 	void Flush(void) {};
+
+	/** A free format message to be sent over to the display unit. The idea/assumption
+	    is that this message is sent typically after one simulation round is over.
+	    One can use it to communicate some additional informative/status message... */
+	virtual
+	void Tick(const char*) {};
 };
 #endif
