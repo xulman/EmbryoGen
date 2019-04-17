@@ -74,7 +74,7 @@ public:
 	}
 
 
-private:
+protected:
 	// ------------- internals state -------------
 	CellCycleParams cellCycle;
 
@@ -222,7 +222,7 @@ private:
 public:
 	float startGrowTime = 99999999.f;
 	float stopGrowTime  = 99999999.f;
-private:
+protected:
 	int incrCnt = 0;
 	void advanceAndBuildIntForces(const float) override
 	{
@@ -527,7 +527,7 @@ public:
 		return velocities[index];
 	}
 
-private:
+protected:
 	// ------------- rendering -------------
 #ifdef DEBUG
 	std::vector< ForceVector3d<FLOAT> > forcesForDisplay;
