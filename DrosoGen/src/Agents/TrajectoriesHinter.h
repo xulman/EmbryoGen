@@ -24,7 +24,7 @@ public:
 		geometryAlias.proxifyFF(ff);
 		lastUpdatedTime = currTime-1;
 
-		DEBUG_REPORT("EmbryoTraces with ID=" << ID << " was just created");
+		DEBUG_REPORT("EmbryoTracks with ID=" << ID << " was just created");
 		DEBUG_REPORT("AABB: " << geometryAlias.AABB.minCorner << " -> " << geometryAlias.AABB.maxCorner);
 	}
 
@@ -106,10 +106,12 @@ private:
 		int usedIDforBalls = 0;
 		int usedIDforVecs  = 0;
 
+		/*
 		int gridIDs = ID<<17 | 1<<16;
 		Vector3d<size_t> centrePx;
 		const Vector3d<float> res( geometryAlias.getImgX().GetResolution().GetRes() );
 		const Vector3d<float> off( geometryAlias.getImgX().GetOffset() );
+		*/
 
 		//scan all time points to read out every tracks' "bending corners"
 		std::map< float,std::map< int,Coord3d<float> > >::const_iterator it;
@@ -146,9 +148,11 @@ private:
 			//update the trajectory positioners (small balls)
 			du.DrawPoint(usedIDforBalls++, pos,1.5f, 5);
 
+			/*
 			//also draw a (local debug) pixel grid around the ball centre
 			gridIDs = drawPixelCentresGrid(du, gridIDs, 1, geometryAlias.getImgX(),
 			                    pos.toPixels(centrePx, res,off), Vector3d<size_t>(3));
+			*/
 		}
 		DEBUG_REPORT("trajectories: " << usedIDforLines <<
 		             " lines and " << usedIDforBalls << " balls");

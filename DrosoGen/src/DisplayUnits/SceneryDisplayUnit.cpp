@@ -110,6 +110,13 @@ void SceneryDisplayUnit::DrawTriangle(const int ID,
 }
 
 
+void SceneryDisplayUnit::Tick(const char* msg)
+{
+	std::string msgString = std::string("v1 tick ") + (msg != NULL ? msg : "");
+	socket->send(msgString.c_str(),msgString.size());
+}
+
+
 void SceneryDisplayUnit::ConnectToHost(void)
 {
 	context  = new zmq::context_t(1);

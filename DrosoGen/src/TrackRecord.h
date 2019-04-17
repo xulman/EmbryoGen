@@ -31,14 +31,15 @@ public:
 	    multiplied with the 'scale' (micron coords remain in microns).
 
 	    The function also updates this->knownTracks . */
-	void readFromFile(const char* filename, const Vector3d<float>& spaceScale, const float timeScale = 1.0f)
+	void readFromFile(const char* filename, const Vector3d<float>& spaceScale,
+	                  const float timeScale = 1.0f, const float timeShift = 0.0f)
 	{
 		std::ifstream f(filename);
 		if (! f.is_open())
 			throw new std::runtime_error(std::string("TrackRecords::readFromFile(): Cannot open ").append(filename));
 
 		float time,x,y,z;
-		int id,parent;
+		int id,parent,ignore;
 		char c;
 
 		while (f.good())
@@ -55,11 +56,11 @@ public:
 
 			//else, we return back the first character, and start reading the record
 			f.putback(c);
-			f >> time >> x >> y >> z >> id >> parent;
+			f >> time >> x >> y >> z >> id >> parent >> ignore;
 			if (f.good())
 			{
 				//store the record
-				auto& rr = (*this)[time*timeScale];
+				auto& rr = (*this)[time*timeScale +timeShift];
 				rr[id] = Coord3d<float>(x,y,z);
 				rr[id].elemMult(spaceScale);
 
@@ -88,7 +89,7 @@ public:
 				  << id.second.x << "\t"
 				  << id.second.y << "\t"
 				  << id.second.z << "\t"
-				  << id.first << " 0\n";
+				  << id.first << " 0 0\n";
 			}
 		}
 

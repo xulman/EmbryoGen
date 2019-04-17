@@ -55,6 +55,8 @@ public:
 	                  const Vector3d<float>& posC,
 	                  const int color = 0) override;
 
+	void Tick(const char* msg) override;
+
 protected:
 	/** URL of the host (a Scenery renderer) to which we are connected */
 	std::string hostUrl;

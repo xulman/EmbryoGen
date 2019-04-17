@@ -50,5 +50,10 @@ public:
 		REPORT("ID " << ID << ": "
 		       << posA << ", " << posB << ", " << posC << ", color=" << color);
 	}
+
+	void Tick(const char* msg) override
+	{
+		REPORT((msg != NULL ? msg : " (no message given) "));
+	}
 };
 #endif

@@ -72,8 +72,9 @@ private:
 	}
 
 	// ------------- rendering -------------
-	void drawMask(DisplayUnit& du) override
+	void drawMask(DisplayUnit&) override
 	{
+		/*
 		//draw bounding box of the GradIN region of the ScalarImg
 		int dID = ID << 17;
 		dID += geometryAlias.AABB.drawIt(dID,1, du);
@@ -81,6 +82,7 @@ private:
 		//draw bounding box of the complete ScalarImg, as a global debug element
 		geometryAlias.AABB.drawBox(ID << 4,4,
 		  geometryAlias.getDistImgOff(),geometryAlias.getDistImgFarEnd(), du);
+		*/
 	}
 
 	void drawForDebug(i3d::Image3d<i3d::GRAY16>& img) override

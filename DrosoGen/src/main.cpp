@@ -1,13 +1,14 @@
 #include <iostream>
 #include <i3d/basic.h>
 #include "Simulation.h"
+#include "Scenarios/Scenarios.h"
 
-int main(void)
+int main(int argc, char** argv)
 {
-	Simulation s;
-
 	try
 	{
+		Simulation& s = Scenarios(argc,argv).getSimulation();
+
 		s.init();    //init the simulation, and render the first frame
 		s.execute(); //execute the simulation, and render frames
 		s.close();   //close the simulation, and save tracks.txt

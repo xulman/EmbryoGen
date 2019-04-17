@@ -74,7 +74,7 @@ public:
 	}
 
 
-private:
+protected:
 	// ------------- internals state -------------
 	CellCycleParams cellCycle;
 
@@ -219,8 +219,50 @@ private:
 	}
 
 	// ------------- to implement one round of simulation -------------
+public:
+	float startGrowTime = 99999999.f;
+	float stopGrowTime  = 99999999.f;
+protected:
+	int incrCnt = 0;
 	void advanceAndBuildIntForces(const float) override
 	{
+		//adjust the shape at first
+		if (currTime >= startGrowTime && currTime <= stopGrowTime && incrCnt < 30)
+		{
+			//"grow factor"
+			const FLOAT dR = 0.05f;    //radius
+			const FLOAT dD = 1.8f*dR;  //diameter
+
+			//make the nuclei fatter by 'dD' um in diameter
+			for (int i=0; i < futureGeometry.noOfSpheres; ++i) futureGeometry.radii[i] += dR;
+			for (int i=1; i < futureGeometry.noOfSpheres; ++i) centreDistance[i-1]     += dD;
+
+			//offset the centres as well
+			Vector3d<FLOAT> dispL1,dispL2;
+
+			dispL1  = futureGeometry.centres[2];
+			dispL1 -= futureGeometry.centres[1];
+			dispL2  = futureGeometry.centres[3];
+			dispL2 -= futureGeometry.centres[2];
+			dispL1 *= dR / dispL1.len();
+			dispL2 *= dD / dispL2.len();
+
+			futureGeometry.centres[2] += dispL1;
+			futureGeometry.centres[3] += dispL1;
+			futureGeometry.centres[3] += dispL2;
+
+			dispL1 *= -1.0f;
+			dispL2  = futureGeometry.centres[0];
+			dispL2 -= futureGeometry.centres[1];
+			dispL2 *= dD / dispL2.len();
+
+			futureGeometry.centres[1] += dispL1;
+			futureGeometry.centres[0] += dispL1;
+			futureGeometry.centres[0] += dispL2;
+
+			++incrCnt;
+		}
+
 		//check bending of the spheres (how much their position deviates from a line,
 		//includes also checking the distance), and add, if necessary, another
 		//forces to the list
@@ -234,42 +276,42 @@ private:
 		{
 			//properly scaled force acting on the 1st sphere: body_scale * len()
 			sOff[0] *= fstrength_body_scale;
-			forces.push_back( ForceVector3d<FLOAT>(sOff[0], futureGeometry.centres[0],0, ftype_s2s) );
+			forces.emplace_back( sOff[0], futureGeometry.centres[0],0, ftype_s2s );
 
 			sOff[0] *= -1.0;
-			forces.push_back( ForceVector3d<FLOAT>(sOff[0], futureGeometry.centres[1],1, ftype_s2s) );
+			forces.emplace_back( sOff[0], futureGeometry.centres[1],1, ftype_s2s );
 		}
 
 		if (sOff[1].len2() > keepCalmDistanceSq)
 		{
 			//properly scaled force acting on the 2nd sphere: body_scale * len()
 			sOff[1] *= fstrength_body_scale;
-			forces.push_back( ForceVector3d<FLOAT>(sOff[1], futureGeometry.centres[1],1, ftype_s2s) );
+			forces.emplace_back( sOff[1], futureGeometry.centres[1],1, ftype_s2s );
 
 			sOff[1] *= -0.5;
-			forces.push_back( ForceVector3d<FLOAT>(sOff[1], futureGeometry.centres[0],0, ftype_s2s) );
-			forces.push_back( ForceVector3d<FLOAT>(sOff[1], futureGeometry.centres[2],2, ftype_s2s) );
+			forces.emplace_back( sOff[1], futureGeometry.centres[0],0, ftype_s2s );
+			forces.emplace_back( sOff[1], futureGeometry.centres[2],2, ftype_s2s );
 		}
 
 		if (sOff[2].len2() > keepCalmDistanceSq)
 		{
 			//properly scaled force acting on the 2nd sphere: body_scale * len()
 			sOff[2] *= fstrength_body_scale;
-			forces.push_back( ForceVector3d<FLOAT>(sOff[2], futureGeometry.centres[2],2, ftype_s2s) );
+			forces.emplace_back( sOff[2], futureGeometry.centres[2],2, ftype_s2s );
 
 			sOff[2] *= -0.5;
-			forces.push_back( ForceVector3d<FLOAT>(sOff[2], futureGeometry.centres[1],1, ftype_s2s) );
-			forces.push_back( ForceVector3d<FLOAT>(sOff[2], futureGeometry.centres[3],3, ftype_s2s) );
+			forces.emplace_back( sOff[2], futureGeometry.centres[1],1, ftype_s2s );
+			forces.emplace_back( sOff[2], futureGeometry.centres[3],3, ftype_s2s );
 		}
 
 		if (sOff[3].len2() > keepCalmDistanceSq)
 		{
 			//properly scaled force acting on the 1st sphere: body_scale * len()
 			sOff[3] *= fstrength_body_scale;
-			forces.push_back( ForceVector3d<FLOAT>(sOff[3], futureGeometry.centres[3],3, ftype_s2s) );
+			forces.emplace_back( sOff[3], futureGeometry.centres[3],3, ftype_s2s );
 
 			sOff[3] *= -1.0;
-			forces.push_back( ForceVector3d<FLOAT>(sOff[3], futureGeometry.centres[2],2, ftype_s2s) );
+			forces.emplace_back( sOff[3], futureGeometry.centres[2],2, ftype_s2s );
 		}
 
 		//add forces on the list that represent how and where the nucleus would like to move
@@ -277,9 +319,9 @@ private:
 		//NB: the forces will act rigidly on the full nucleus
 		for (int i=0; i < futureGeometry.noOfSpheres; ++i)
 		{
-			forces.push_back( ForceVector3d<FLOAT>(
+			forces.emplace_back(
 				(weights[i]/velocity_PersistenceTime) * velocity_CurrentlyDesired,
-				futureGeometry.centres[i],i, ftype_drive ) );
+				futureGeometry.centres[i],i, ftype_drive );
 		}
 
 #ifdef DEBUG
@@ -302,9 +344,9 @@ private:
 		//TRAgen paper, eq. (3)
 		for (int i=0; i < futureGeometry.noOfSpheres; ++i)
 		{
-			forces.push_back( ForceVector3d<FLOAT>(
+			forces.emplace_back(
 				(-weights[i]/velocity_PersistenceTime)*velocities[i],
-				futureGeometry.centres[i],i, ftype_friction ) );
+				futureGeometry.centres[i],i, ftype_friction );
 		}
 
 		//scheduler, please give me ShadowAgents that are not further than ignoreDistance
@@ -337,9 +379,9 @@ private:
 #ifdef DEBUG
 		if (detailedReportingMode)
 		{
-			DEBUG_REPORT("ID " << ID << ": Found " << proximityPairs_toNuclei.size() << " proximity pairs to nuclei");
-			DEBUG_REPORT("ID " << ID << ": Found " << proximityPairs_toYolk.size()   << " proximity pairs to yolk");
-			DEBUG_REPORT("ID " << ID << ": Found " << proximityPairs_tracks.size()   << " proximity pairs with guiding trajectories");
+			REPORT("ID " << ID << ": Found " << proximityPairs_toNuclei.size() << " proximity pairs to nuclei");
+			REPORT("ID " << ID << ": Found " << proximityPairs_toYolk.size()   << " proximity pairs to yolk");
+			REPORT("ID " << ID << ": Found " << proximityPairs_tracks.size()   << " proximity pairs with guiding trajectories");
 		}
 #endif
 		//now, postprocess the proximityPairs, that is, to
@@ -364,9 +406,9 @@ private:
 					f.changeToUnitOrZero();
 
 					//TRAgen paper, eq. (4)
-					forces.push_back( ForceVector3d<FLOAT>(
+					forces.emplace_back(
 						(fstrength_overlap_level * std::exp(-pp.distance / fstrength_rep_scale)) * f,
-						futureGeometry.centres[pp.localHint],pp.localHint, ftype_repulsive ) );
+						futureGeometry.centres[pp.localHint],pp.localHint, ftype_repulsive );
 				}
 			}
 			else
@@ -391,8 +433,8 @@ private:
 				}
 
 				//TRAgen paper, eq. (5)
-				forces.push_back( ForceVector3d<FLOAT>( fScale * f,
-					futureGeometry.centres[pp.localHint],pp.localHint, ftype_body ) );
+				forces.emplace_back( fScale * f,
+					futureGeometry.centres[pp.localHint],pp.localHint, ftype_body );
 
 #ifdef DEBUG
 				if (detailedReportingMode)
@@ -416,8 +458,8 @@ private:
 				//TRAgen paper, somewhat eq. (6)
 				g *= fstrength_slide_scale * weights[pp.localHint]/velocity_PersistenceTime;
 				// "surface friction coeff" | velocity->force, the same as for ftype_drive
-				forces.push_back( ForceVector3d<FLOAT>( g,
-					futureGeometry.centres[pp.localHint],pp.localHint, ftype_slide ) );
+				forces.emplace_back( g,
+					futureGeometry.centres[pp.localHint],pp.localHint, ftype_slide );
 #ifdef DEBUG
 				Officer->reportOverlap(-pp.distance);
 #endif
@@ -442,18 +484,14 @@ private:
 			f *= 2*fstrength_overlap_level * std::min(pp.distance*pp.distance * fstrength_hinter_scale,(FLOAT)1);
 
 			//apply the same force to all spheres
-			forces.push_back( ForceVector3d<FLOAT>( f,
-				futureGeometry.centres[0],0, ftype_hinter ) );
-			forces.push_back( ForceVector3d<FLOAT>( f,
-				futureGeometry.centres[1],1, ftype_hinter ) );
-			forces.push_back( ForceVector3d<FLOAT>( f,
-				futureGeometry.centres[2],2, ftype_hinter ) );
-			forces.push_back( ForceVector3d<FLOAT>( f,
-				futureGeometry.centres[3],3, ftype_hinter ) );
+			forces.emplace_back( f, futureGeometry.centres[0],0, ftype_hinter );
+			forces.emplace_back( f, futureGeometry.centres[1],1, ftype_hinter );
+			forces.emplace_back( f, futureGeometry.centres[2],2, ftype_hinter );
+			forces.emplace_back( f, futureGeometry.centres[3],3, ftype_hinter );
 		}
 
 #ifdef DEBUG
-		//append forces to forcesForDisplay
+		//append forces to forcesForDisplay, make a copy (push_back, not emplace_back)!
 		for (const auto& f : forces)
 			forcesForDisplay.push_back(f);
 #endif
@@ -489,7 +527,7 @@ public:
 		return velocities[index];
 	}
 
-private:
+protected:
 	// ------------- rendering -------------
 #ifdef DEBUG
 	std::vector< ForceVector3d<FLOAT> > forcesForDisplay;
@@ -503,7 +541,7 @@ private:
 		//if not selected: draw cells with no debug bit
 		//if     selected: draw cells as a global debug object
 		int dID = ID << 17;
-		int gdID = ID*30 +5000;
+		int gdID = ID*50 +5000;
 
 		//draw spheres
 		for (int i=0; i < futureGeometry.noOfSpheres; ++i)
@@ -525,9 +563,13 @@ private:
 		}
 
 		//red lines with overlapping proximity pairs to nuclei
-		for (const auto& p : proximityPairs_toNuclei)
-		if (p.distance < 0)
-			du.DrawLine(gdID++, p.localPos,p.otherPos, 1);
+		//(if detailedDrawingMode is true, these lines will be drawn later as "local debug")
+		if (!detailedDrawingMode)
+		{
+			for (const auto& p : proximityPairs_toNuclei)
+			if (p.distance < 0)
+				du.DrawLine(gdID++, p.localPos,p.otherPos, 1);
+		}
 
 		//render only if under inspection
 		if (detailedDrawingMode)
@@ -538,6 +580,11 @@ private:
 			du.DrawLine(dID++, futureGeometry.centres[0],futureGeometry.centres[1], color);
 			du.DrawLine(dID++, futureGeometry.centres[1],futureGeometry.centres[2], color);
 			du.DrawLine(dID++, futureGeometry.centres[2],futureGeometry.centres[3], color);
+
+			//red lines with overlapping proximity pairs to nuclei
+			for (const auto& p : proximityPairs_toNuclei)
+			if (p.distance < 0)
+				du.DrawLine(dID++, p.localPos,p.otherPos, 1);
 
 			//neighbors:
 			//white line for the most inner spheres, yellow for second most inner
@@ -550,10 +597,10 @@ private:
 			//red lines to show deviations from the expected geometry
 			Vector3d<FLOAT> sOff[4];
 			getCurrentOffVectorsForCentres(sOff);
-			du.DrawLine(dID++, futureGeometry.centres[0],futureGeometry.centres[0]+sOff[0], 1); //red color
-			du.DrawLine(dID++, futureGeometry.centres[1],futureGeometry.centres[1]+sOff[1], 1);
-			du.DrawLine(dID++, futureGeometry.centres[2],futureGeometry.centres[2]+sOff[2], 1);
-			du.DrawLine(dID++, futureGeometry.centres[3],futureGeometry.centres[3]+sOff[3], 1);
+			du.DrawLine(dID++, futureGeometry.centres[0],futureGeometry.centres[0]+sOff[0], 3); //blue color
+			du.DrawLine(dID++, futureGeometry.centres[1],futureGeometry.centres[1]+sOff[1], 3);
+			du.DrawLine(dID++, futureGeometry.centres[2],futureGeometry.centres[2]+sOff[2], 3);
+			du.DrawLine(dID++, futureGeometry.centres[3],futureGeometry.centres[3]+sOff[3], 3);
 
 			//magenta lines with trajectory guiding vectors
 			for (const auto& p : proximityPairs_tracks)
@@ -592,7 +639,7 @@ private:
 		indicatorPos += futureGeometry.centres[3];
 
 		//small sphere (in blue) to encode the four nuclei
-		du.DrawPoint(gdID++, indicatorPos,1.5f, 3);
+		du.DrawPoint(gdID++, indicatorPos,0.7f, 3);
 
 		//update to the most recent state
 		detailedDrawingModePrevState = detailedDrawingMode;

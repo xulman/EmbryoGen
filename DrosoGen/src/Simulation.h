@@ -39,7 +39,7 @@
  */
 class Simulation
 {
-private:
+protected:
 	//fixed parameters of the simulation:
 
 	//CTC drosophila:
@@ -126,6 +126,9 @@ public:
 		//displayUnit.RegisterUnit( new SceneryBufferedDisplayUnit("192.168.3.110:8765") );
 	}
 
+	int argc;
+	char** argv;
+
 
 	/** allocates output images, adds agents, renders the first frame */
 	void init(void)
@@ -135,7 +138,6 @@ public:
 		img.SetResolution(i3d::Resolution(imgRes.x,imgRes.y,imgRes.z));
 
 		initializeAgents();
-		//initializeAgents_aFew();
 		REPORT("--------------- " << currTime << " (" << agents.size() << " agents) ---------------");
 
 		renderNextFrame();
@@ -282,9 +284,10 @@ public:
 
 private:
 	/** Just initializes all agents: positions, weights, etc.,
-	    and adds them into the this->agents, and into the this->tracks. */
-	void initializeAgents(void);
-	void initializeAgents_aFew(void);
+	    and adds them into the this->agents, and into the this->tracks.
+	    Additional command-line parameters may be available
+	    as this->argc and this->argv. */
+	virtual void initializeAgents(void) =0;
 
 	/** Asks all agents to render and raster their state into this.displayUnit and this.img */
 	void renderNextFrame(void)
@@ -304,6 +307,7 @@ private:
 
 		//render the current frame
 		displayUnit.Flush();
+		displayUnit.Tick( ("Time: "+std::to_string(currTime)).c_str() );
 
 		//save the image
 		sprintf(fn,"mask%03d.tif",frameCnt++);
@@ -347,8 +351,8 @@ private:
 		//to prevent zeroMQ from flooding the Scenery
 		if (std::cin.eof())
 		{
-			REPORT("waiting 500 ms to give Scenery some breath out time")
-			std::this_thread::sleep_for((std::chrono::milliseconds)500);
+			REPORT("waiting 1000 ms to give SimViewer some time to breath...")
+			std::this_thread::sleep_for((std::chrono::milliseconds)1000);
 		}
 	}
 };

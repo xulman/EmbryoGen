@@ -57,6 +57,12 @@ public:
 			(*it)->Flush();
 	}
 
+	void Tick(const char* msg) override
+	{
+		for (auto it = displayUnits.begin(); it != displayUnits.end(); ++it)
+			(*it)->Tick(msg);
+	}
+
 
 	///variants with reference params
 	void RegisterUnit(DisplayUnit& ds)
