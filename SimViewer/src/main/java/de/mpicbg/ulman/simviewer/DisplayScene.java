@@ -216,11 +216,11 @@ public class DisplayScene extends SceneryBase implements Runnable
 	public
 	void saveNextScreenshot()
 	{
-		final String filename = String.format("/tmp/frame%04d.png",screenShotCounter++);
+		final String filename = String.format("/tmp/frame%04d.png",tickCounter);
 		System.out.println("Saving screenshot: "+filename);
 		this.getRenderer().screenshot(filename,true);
 	}
-	private int screenShotCounter = 0;
+	//
 	/** flag for external modules to see if they should call saveNextScreenshot() */
 	public boolean savingScreenshots = false;
 
