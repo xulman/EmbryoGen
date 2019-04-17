@@ -84,7 +84,10 @@ public class CommandScene implements Runnable
 			System.out.println("S - Toggles automatic saving of screenshots (always after vectors update)");
 
 			System.out.println("P - Adds some cells to have something to display");
-			System.out.println("D - Deletes all objects (even if not displayed)");
+			System.out.println("W - Deletes (Wipes away) all objects (even if not displayed)");
+			System.out.println("d - Deletes old/not-recently-updated objects (even if not displayed)");
+			System.out.println("D - Toggle \"garbage collection\" of old/not-recently-updated objects");
+
 			System.out.println("c,C - Toggles display of the cell/general-debug spheres (shape)");
 			System.out.println("l,L - Toggles display of the cell/general-debug lines");
 			System.out.println("f,F - Toggles display of the cell/general-debug vectors (forces)");
@@ -113,9 +116,17 @@ public class CommandScene implements Runnable
 			CreateFakeCells();
 			System.out.println("Fake cells added");
 			break;
-		case 'D':
+		case 'W':
 			scene.removeAllObjects();
 			System.out.println("All objects removed (incl. lines and vectors)");
+			break;
+		case 'd':
+			scene.garbageCollect();
+			System.out.println("Garbage removed (incl. lines and vectors)");
+			break;
+		case 'D':
+			scene.garbageCollecting ^= true;
+			System.out.println("Garbage collection activated: "+scene.garbageCollecting);
 			break;
 
 		case 'c':

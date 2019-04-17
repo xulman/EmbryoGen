@@ -927,6 +927,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 	void reportSettings()
 	{
 		System.out.println("push mode       : " + this.getRenderer().getPushMode() + "  \tscreenshots            : " + savingScreenshots);
+		System.out.println("garbage collect.: " + garbageCollecting                + "  \ttickCounter            : " + tickCounter);
 		System.out.println("ambient lights  : " + fixedLightsChoosen               + "  \thead lights            : " + headLightsChoosen);
 		System.out.println("scene border    : " + borderShown                      + "  \torientation compass    : " + axesShown);
 
