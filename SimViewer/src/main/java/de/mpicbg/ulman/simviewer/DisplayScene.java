@@ -479,7 +479,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 		{
 			//new line: adding
 			n = new Line( new graphics.scenery.Line(4) );
-			n.node.setEdgeWidth(0.3f);
+			n.node.setEdgeWidth(3.0f);
 			//no setPosition(), no setScale()
 
 			lineNodes.put(ID,n);
@@ -522,7 +522,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 		{
 			//new vector: adding it already in the desired shape
 			n = new Vector( new Arrow(v.vector) );
-			n.node.setEdgeWidth(0.1f);
+			n.node.setEdgeWidth(3.0f);
 			n.node.setPosition(n.base);
 			n.node.setScale(vectorsStretchGLvec);
 
