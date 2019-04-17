@@ -121,7 +121,7 @@ public class CommandScene implements Runnable
 			System.out.println("All objects removed (incl. lines and vectors)");
 			break;
 		case 'd':
-			scene.garbageCollect();
+			scene.garbageCollect(1);
 			System.out.println("Garbage removed (incl. lines and vectors)");
 			break;
 		case 'D':

@@ -570,11 +570,18 @@ public class DisplayScene extends SceneryBase implements Runnable
 	void removeAllObjects()
 	{
 		tickCounter = Integer.MAX_VALUE;
-		garbageCollect();
+		garbageCollect(-1);
 	}
 
 	public
 	void garbageCollect()
+	{
+		garbageCollect(0);
+	}
+
+	/** remove all objects that were last touched before tickCounter-tolerance */
+	public
+	void garbageCollect(int tolerance)
 	{
 		//NB: HashMap may be modified while being swept through only via iterator
 		//    (and iterator must remove the elements actually)
@@ -584,7 +591,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 		{
 			final Point p = pointNodes.get(i.next());
 
-			if (p.lastSeenTick < tickCounter)
+			if (p.lastSeenTick+tolerance < tickCounter)
 			{
 				scene.removeChild(p.node);
 				i.remove();
@@ -596,7 +603,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 		{
 			final Line l = lineNodes.get(i.next());
 
-			if (l.lastSeenTick < tickCounter)
+			if (l.lastSeenTick+tolerance < tickCounter)
 			{
 				scene.removeChild(l.node);
 				i.remove();
@@ -608,7 +615,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 		{
 			final Vector v = vectorNodes.get(i.next());
 
-			if (v.lastSeenTick < tickCounter)
+			if (v.lastSeenTick+tolerance < tickCounter)
 			{
 				scene.removeChild(v.node);
 				i.remove();
