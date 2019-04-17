@@ -567,7 +567,14 @@ public class DisplayScene extends SceneryBase implements Runnable
 
 
 	public
-	void RemoveAllObjects()
+	void removeAllObjects()
+	{
+		tickCounter = Integer.MAX_VALUE;
+		garbageCollect();
+	}
+
+	public
+	void garbageCollect()
 	{
 		//NB: HashMap may be modified while being swept through only via iterator
 		//    (and iterator must remove the elements actually)
@@ -575,24 +582,42 @@ public class DisplayScene extends SceneryBase implements Runnable
 
 		while (i.hasNext())
 		{
-			scene.removeChild(pointNodes.get(i.next()).node);
-			i.remove();
+			final Point p = pointNodes.get(i.next());
+
+			if (p.lastSeenTick < tickCounter)
+			{
+				scene.removeChild(p.node);
+				i.remove();
+			}
 		}
 
 		i = lineNodes.keySet().iterator();
 		while (i.hasNext())
 		{
-			scene.removeChild(lineNodes.get(i.next()).node);
-			i.remove();
+			final Line l = lineNodes.get(i.next());
+
+			if (l.lastSeenTick < tickCounter)
+			{
+				scene.removeChild(l.node);
+				i.remove();
+			}
 		}
 
 		i = vectorNodes.keySet().iterator();
 		while (i.hasNext())
 		{
-			scene.removeChild(vectorNodes.get(i.next()).node);
-			i.remove();
+			final Vector v = vectorNodes.get(i.next());
+
+			if (v.lastSeenTick < tickCounter)
+			{
+				scene.removeChild(v.node);
+				i.remove();
+			}
 		}
 	}
+	//
+	/** flag for external modules to see if they should call garbageCollect() */
+	public boolean garbageCollecting = true;
 	//----------------------------------------------------------------------------
 
 

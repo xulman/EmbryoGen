@@ -114,7 +114,7 @@ public class CommandScene implements Runnable
 			System.out.println("Fake cells added");
 			break;
 		case 'D':
-			scene.RemoveAllObjects();
+			scene.removeAllObjects();
 			System.out.println("All objects removed (incl. lines and vectors)");
 			break;
 
