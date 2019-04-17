@@ -174,6 +174,24 @@ public class DisplayScene extends SceneryBase implements Runnable
 		ToggleFixedLights(); //both ramps
 	}
 
+	/** runs the scenery rendering backend in a separate thread */
+	public
+	void run()
+	{
+		//this is the main loop: the code "blocks" here until the main window is closed,
+		//and that's gonna be the job of this thread
+		this.main();
+	}
+
+	/** attempts to close this rendering window */
+	public
+	void stop()
+	{
+		this.close();
+	}
+	//----------------------------------------------------------------------------
+
+
 	/** returns true when the underlying rendering machinery is ready to draw anything */
 	public
 	void waitUntilSceneIsReady()
@@ -194,15 +212,6 @@ public class DisplayScene extends SceneryBase implements Runnable
 		return this.getInputHandler();
 	}
 
-	/** runs the scenery rendering backend in a separate thread */
-	public
-	void run()
-	{
-		//this is the main loop: the code "blocks" here until the main window is closed,
-		//and that's gonna be the job of this thread
-		this.main();
-	}
-
 	/** helper method to save the current content of the scene into /tmp/frameXXXX.png */
 	public
 	void saveNextScreenshot()
@@ -215,12 +224,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 	/** flag for external modules to see if they should call saveNextScreenshot() */
 	public boolean savingScreenshots = false;
 
-	/** attempts to close this rendering window */
 	public
-	void stop()
-	{
-		this.close();
-	}
 
 	/** attempts to turn on/off the "push mode", and reports the state */
 	public
