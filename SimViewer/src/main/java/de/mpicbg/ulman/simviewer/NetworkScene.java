@@ -278,6 +278,12 @@ public class NetworkScene implements Runnable
 
 		if (N > 10) scene.resumeNodesUpdating();
 
+	private
+	void processTriangles(final String msg)
+	{
+		System.out.println("not implemented yet: "+msg);
+	}
+
 		//check if we should save the screen
 		if (scene.savingScreenshots)
 		{
@@ -295,9 +301,5 @@ public class NetworkScene implements Runnable
 		}
 	}
 
-	private
-	void processTriangles(final String msg)
-	{
-		System.out.println("not implemented yet: "+msg);
 	}
 }
