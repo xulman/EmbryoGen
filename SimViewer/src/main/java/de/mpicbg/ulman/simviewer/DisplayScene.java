@@ -4,10 +4,15 @@ import cleargl.GLVector;
 import graphics.scenery.*;
 import graphics.scenery.backends.Renderer;
 import graphics.scenery.Material.CullingMode;
+import graphics.scenery.controls.InputHandler;
 
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Iterator;
+
+import de.mpicbg.ulman.simviewer.aux.Point;
+import de.mpicbg.ulman.simviewer.aux.Line;
+import de.mpicbg.ulman.simviewer.aux.Vector;
 
 /**
  * Adapted from TexturedCubeJavaExample.java from the scenery project,
@@ -57,7 +62,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 	final Material[] materials;
 
 	/** short cut to the root Node underwhich all displayed objects should be hooked up */
-	Node scene;
+	Node scene = null;
 
 	/** reference for the camera to be able to enable/disable head lights */
 	Camera cam;
@@ -169,6 +174,26 @@ public class DisplayScene extends SceneryBase implements Runnable
 		ToggleFixedLights(); //both ramps
 	}
 
+	/** returns true when the underlying rendering machinery is ready to draw anything */
+	public
+	void waitUntilSceneIsReady()
+	throws InterruptedException
+	{
+		//official Scenery flag
+		while (!this.sceneInitialized()) Thread.sleep(1000);
+		//proof that this.init() is indeed in progress
+		while (scene == null)            Thread.sleep(1000);
+		//this condition used to work alone...
+		while (!scene.getInitialized())  Thread.sleep(1000);
+	}
+
+	/** exposes the InputHandler outside this class */
+	public
+	InputHandler exposeInputHandler()
+	{
+		return this.getInputHandler();
+	}
+
 	/** runs the scenery rendering backend in a separate thread */
 	public
 	void run()
@@ -264,7 +289,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 
 
 	private Cylinder[] axesData = null;
-	private boolean    axesShown = false;
+	private boolean   axesShown = false;
 
 	public
 	boolean ToggleDisplayAxes()
@@ -310,7 +335,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 	//----------------------------------------------------------------------------
 
 
-	private Line[]  borderData = null;
+	private graphics.scenery.Line[] borderData = null;
 	private boolean borderShown = false;
 
 	public
@@ -319,8 +344,9 @@ public class DisplayScene extends SceneryBase implements Runnable
 		//first run, init the data
 		if (borderData == null)
 		{
-			borderData = new Line[] { new Line(6), new Line(6),
-			                          new Line(6), new Line(6)};
+			borderData = new graphics.scenery.Line[] {
+				new graphics.scenery.Line(6), new graphics.scenery.Line(6),
+				new graphics.scenery.Line(6), new graphics.scenery.Line(6)  };
 
 			final GLVector sxsysz = new GLVector(sceneOffset[0]             , sceneOffset[1]             , sceneOffset[2]             );
 			final GLVector lxsysz = new GLVector(sceneOffset[0]+sceneSize[0], sceneOffset[1]             , sceneOffset[2]             );
@@ -332,7 +358,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 			final GLVector lxlylz = new GLVector(sceneOffset[0]+sceneSize[0], sceneOffset[1]+sceneSize[1], sceneOffset[2]+sceneSize[2]);
 
 			//first of the two mandatory surrounding fake points that are never displayed
-			for (Line l : borderData) l.addPoint(sxsysz);
+			for (graphics.scenery.Line l : borderData) l.addPoint(sxsysz);
 
 			//C-shape around the front face (one edge missing)
 			borderData[0].addPoint(lxlysz);
@@ -362,7 +388,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 			borderData[3].addPoint(sxsysz);
 			borderData[3].setMaterial(materials[3]);
 
-			for (Line l : borderData)
+			for (graphics.scenery.Line l : borderData)
 			{
 				//second of the two mandatory surrounding fake points that are never displayed
 				l.addPoint(sxsysz);
@@ -384,19 +410,19 @@ public class DisplayScene extends SceneryBase implements Runnable
 
 
 	/** these points are registered with the display, but not necessarily always visible */
-	private final Map<Integer,myPoint>  pointNodes = new HashMap<>();
+	private final Map<Integer,Point> pointNodes = new HashMap<>();
 	/** these lines are registered with the display, but not necessarily always visible */
-	private final Map<Integer,myLine>   lineNodes = new HashMap<>();
+	private final Map<Integer,Line> lineNodes = new HashMap<>();
 	/** these vectors are registered with the display, but not necessarily always visible */
-	private final Map<Integer,myVector> vectorNodes = new HashMap<>();
+	private final Map<Integer,Vector> vectorNodes = new HashMap<>();
 
 
 	/** this is designed (yet only) for SINGLE-THREAD application! */
 	public
-	void addUpdateOrRemovePoint(final int ID,final myPoint p)
+	void addUpdateOrRemovePoint(final int ID,final Point p)
 	{
 		//attempt to retrieve node of this ID
-		myPoint n = pointNodes.get(ID);
+		Point n = pointNodes.get(ID);
 
 		//negative color is an agreed signal to remove the point
 		//also, get rid of a point whose radius is "impossible"
@@ -414,7 +440,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 		if (n == null)
 		{
 			//new point: adding
-			n = new myPoint( new Sphere(1.0f, 12) );
+			n = new Point( new Sphere(1.0f, 12) );
 			n.node.setPosition(n.centre);
 			n.node.setScale(n.radius);
 
@@ -432,10 +458,10 @@ public class DisplayScene extends SceneryBase implements Runnable
 
 	/** this is designed (yet only) for SINGLE-THREAD application! */
 	public
-	void addUpdateOrRemoveLine(final int ID,final myLine l)
+	void addUpdateOrRemoveLine(final int ID,final Line l)
 	{
 		//attempt to retrieve node of this ID
-		myLine n = lineNodes.get(ID);
+		Line n = lineNodes.get(ID);
 
 		//negative color is an agreed signal to remove the line
 		if (l.color < 0)
@@ -452,7 +478,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 		if (n == null)
 		{
 			//new line: adding
-			n = new myLine( new Line(4) );
+			n = new Line( new graphics.scenery.Line(4) );
 			n.node.setEdgeWidth(0.3f);
 			//no setPosition(), no setScale()
 
@@ -475,10 +501,10 @@ public class DisplayScene extends SceneryBase implements Runnable
 
 	/** this is designed (yet only) for SINGLE-THREAD application! */
 	public
-	void addUpdateOrRemoveVector(final int ID,final myVector v)
+	void addUpdateOrRemoveVector(final int ID,final Vector v)
 	{
 		//attempt to retrieve node of this ID
-		myVector n = vectorNodes.get(ID);
+		Vector n = vectorNodes.get(ID);
 
 		//negative color is an agreed signal to remove the vector
 		if (v.color < 0)
@@ -495,7 +521,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 		if (n == null)
 		{
 			//new vector: adding it already in the desired shape
-			n = new myVector( new Arrow(v.vector) );
+			n = new Vector( new Arrow(v.vector) );
 			n.node.setEdgeWidth(0.1f);
 			n.node.setPosition(n.base);
 			n.node.setScale(vectorsStretchGLvec);
@@ -651,79 +677,10 @@ public class DisplayScene extends SceneryBase implements Runnable
 		vectorNodes.values().forEach( n -> n.node.setScale(vectorsStretchGLvec) );
 	}
 
-
 	/** shortcut zero vector to prevent from coding "new GLVector(0.f,3)" where needed */
 	private final GLVector zeroGLvec = new GLVector(0.f,3);
-
-	/** corresponds to one element that simulator's DrawPoint() can send */
-	public class myPoint
-	{
-		myPoint()             { node = null; }   //without connection to Scenery
-		myPoint(final Node n) { node = n; }      //  with  connection to Scenery
-
-		final Node node;
-		final GLVector centre = new GLVector(0.f,3);
-		final GLVector radius = new GLVector(0.f,3);
-		int color;
-
-		void update(final myPoint p)
-		{
-			centre.set(0, p.centre.x());
-			centre.set(1, p.centre.y());
-			centre.set(2, p.centre.z());
-			radius.set(0, p.radius.x());
-			radius.set(1, p.radius.y());
-			radius.set(2, p.radius.z());
-			color = p.color;
-		}
-	}
-
-	/** corresponds to one element that simulator's DrawLine() can send */
-	public class myLine
-	{
-		myLine()             { node = null; }
-		myLine(final Line l) { node = l; }
-
-		final Line node;
-		final GLVector posA = new GLVector(0.f,3);
-		final GLVector posB = new GLVector(0.f,3);
-		int color;
-
-		void update(final myLine l)
-		{
-			posA.set(0, l.posA.x());
-			posA.set(1, l.posA.y());
-			posA.set(2, l.posA.z());
-			posB.set(0, l.posB.x());
-			posB.set(1, l.posB.y());
-			posB.set(2, l.posB.z());
-			color = l.color;
-		}
-	}
-
-	/** corresponds to one element that simulator's DrawVector() can send */
-	public class myVector
-	{
-		myVector()              { node = null; }
-		myVector(final Arrow v) { node = v; }
-
-		final Arrow node;
-		final GLVector base   = new GLVector(0.f,3);
-		final GLVector vector = new GLVector(0.f,3);
-		int color;
-
-		void update(final myVector v)
-		{
-			base.set(0, v.base.x());
-			base.set(1, v.base.y());
-			base.set(2, v.base.z());
-			vector.set(0, v.vector.x());
-			vector.set(1, v.vector.y());
-			vector.set(2, v.vector.z());
-			color = v.color;
-		}
-	}
 	//----------------------------------------------------------------------------
+
 
 	/** groups visibility conditions across modes for one displayed object, e.g. sphere */
 	private class elementVisibility

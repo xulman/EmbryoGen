@@ -7,6 +7,10 @@ import org.zeromq.SocketType;
 import org.zeromq.ZMQ;
 import org.zeromq.ZMQException;
 
+import de.mpicbg.ulman.simviewer.aux.Point;
+import de.mpicbg.ulman.simviewer.aux.Line;
+import de.mpicbg.ulman.simviewer.aux.Vector;
+
 /**
  * Adapted from TexturedCubeJavaExample.java from the scenery project,
  * originally created by kharrington on 7/6/16.
@@ -135,7 +139,7 @@ public class NetworkScene implements Runnable
 		final int D = s.nextInt();
 
 		//now, point by point is reported
-		final DisplayScene.myPoint p = scene.new myPoint();
+		final Point p = new Point();
 		int ID = 0;
 
 		for (int n=0; n < N; ++n)
@@ -189,7 +193,7 @@ public class NetworkScene implements Runnable
 		final int D = s.nextInt();
 
 		//now, point pair by pair is reported
-		final DisplayScene.myLine l = scene.new myLine();
+		final Line l = new Line();
 		int ID = 0;
 
 		for (int n=0; n < N; ++n)
@@ -245,7 +249,7 @@ public class NetworkScene implements Runnable
 		final int D = s.nextInt();
 
 		//now, point pair by pair is reported
-		final DisplayScene.myVector v = scene.new myVector();
+		final Vector v = new Vector();
 		int ID = 0;
 
 		for (int n=0; n < N; ++n)
