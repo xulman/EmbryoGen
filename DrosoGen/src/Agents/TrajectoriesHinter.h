@@ -199,13 +199,17 @@ private:
 	*/
 
 	/** renders (local) grid of lines that align with voxel centres,
-	    that is, the boxes that are created do not represent individual voxels */
+	    that is, the boxes that are created do not represent individual voxels,
+	    returns the number of lines it has created */
 	template <class P>
-	int drawPixelCentresGrid(DisplayUnit& du, int ID, const int color,
+	int drawPixelCentresGrid(DisplayUnit& du, const int ID, const int color,
 	                         const i3d::Image3d<P>& refImg,
 	                         const Vector3d<size_t> centrePx,
 	                         const Vector3d<size_t> spanPx)
 	{
+		//return value
+		int elemCnt = 0;
+
 		//shortcuts to our own geometry
 		const Vector3d<float> res( refImg.GetResolution().GetRes() );
 		const Vector3d<float> off( refImg.GetOffset() );
@@ -224,7 +228,7 @@ private:
 			curPos.x = centrePx.x+spanPx.x;
 			b.toMicronsFrom(curPos, res,off);
 
-			du.DrawLine(ID++, a,b, color);
+			du.DrawLine(ID+ elemCnt++, a,b, color);
 		}
 
 		//rays "from the front"
@@ -237,7 +241,7 @@ private:
 			curPos.y = centrePx.y+spanPx.y;
 			b.toMicronsFrom(curPos, res,off);
 
-			du.DrawLine(ID++, a,b, color);
+			du.DrawLine(ID+ elemCnt++, a,b, color);
 		}
 
 		//rays "from the bottom"
@@ -250,10 +254,10 @@ private:
 			curPos.z = centrePx.z+spanPx.z;
 			b.toMicronsFrom(curPos, res,off);
 
-			du.DrawLine(ID++, a,b, color);
+			du.DrawLine(ID+ elemCnt++, a,b, color);
 		}
 
-		return ID;
+		return elemCnt;
 	}
 };
 #endif

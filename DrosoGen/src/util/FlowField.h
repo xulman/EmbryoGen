@@ -155,13 +155,16 @@ public:
 
 
 	/** Draws content of this FF using the given display unit,
-	    with the given color and with increasing ID starting from
-	    the one given. The last used ID+1 is returned.
+	    with the given color and with increasing IDs starting from
+	    the one given. The number of drawn/created vectors is returned.
 	    The 'sparsity' defines the sampling rate (how many pixels
 	    to skip over) at which the FF is displayed. */
-	int DrawFF(DisplayUnit& du, int ID, const int color,
+	int drawFF(DisplayUnit& du, const int ID, const int color,
 	           const Vector3d<size_t>& sparsity) const
 	{
+		//return value
+		int elemCnt = 0;
+
 		//offset and resolution of the flow field images/containers
 		const Vector3d<float> off(x->GetOffset().x,x->GetOffset().y,x->GetOffset().z);
 		const Vector3d<float> res(x->GetResolution().GetRes().x,
@@ -187,18 +190,18 @@ public:
 
 			//display only non-zero vectors
 			if (vec.len2() > 0)
-				du.DrawVector(ID++,pos,vec,color);
+				du.DrawVector(ID+ elemCnt++,pos,vec,color);
 		}
 
-		return ID;
+		return elemCnt;
 	}
 
 
-	/** Draws content of this FF using the DrawFF(...,sparsity)
+	/** Draws content of this FF using the drawFF(...,sparsity)
 	    with 'sparsity' = (1,1,1), that is, all vectors are displayed. */
-	int DrawFF(DisplayUnit& du, int ID, const int color) const
+	int drawFF(DisplayUnit& du, int ID, const int color) const
 	{
-		return DrawFF(du,ID,color, Vector3d<size_t>(1));
+		return drawFF(du,ID,color, Vector3d<size_t>(1));
 	}
 };
 #endif
