@@ -154,7 +154,7 @@ public:
 #endif
 
 		initializeAgents();
-		REPORT("--------------- " << currTime << " (" << agents.size() << " agents) ---------------");
+		REPORT("--------------- " << currTime << " min (" << agents.size() << " agents) ---------------");
 
 		renderNextFrame();
 	}
@@ -216,7 +216,7 @@ public:
 
 			// move to the next simulation time point
 			currTime += incrTime;
-			REPORT("--------------- " << currTime << " (" << agents.size() << " agents) ---------------");
+			REPORT("--------------- " << currTime << " min (" << agents.size() << " agents) ---------------");
 
 			// is this the right time to export data?
 			if (currTime >= frameCnt*expoTime) renderNextFrame();

@@ -127,7 +127,7 @@ public:
 	 *
 	 * \returns True, if considered aligned.
 	 */
-	bool isAligned(FlowField<FT> const &FF, const FT precision2=0.0001) {
+	bool isAligned(FlowField<FT> const &FF, const FT precision2=(FT)0.0001) {
 		//does it have the same spacing of the pixel grid?
 		if (x->GetResolution().GetRes() != FF.x->GetResolution().GetRes())
 			return false;
