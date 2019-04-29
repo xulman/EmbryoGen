@@ -96,10 +96,6 @@ private:
 	}
 
 	// ------------- rendering -------------
-	int lastUsedIDforLines = 0;
-	int lastUsedIDforBalls = 0;
-	int lastUsedIDforVecs  = 0;
-
 	void drawMask(DisplayUnit& du) override
 	{
 		int usedIDforLines = 0;
@@ -160,17 +156,6 @@ private:
 		//render the current flow field
 		usedIDforVecs = ff.DrawFF(du,usedIDforVecs,6,Vector3d<size_t>(2));
 		DEBUG_REPORT("trajectories: " << usedIDforVecs << " vectors making up tracks-induced-FF");
-
-		//now remove any not-updated lines and balls
-		while (lastUsedIDforLines > usedIDforLines)
-			du.DrawLine(--lastUsedIDforLines, Vector3d<float>(0),Vector3d<float>(0), -1);
-		while (lastUsedIDforBalls > usedIDforBalls)
-			du.DrawPoint(--lastUsedIDforBalls, Vector3d<float>(0),1.5f, -1);
-		while (lastUsedIDforVecs > usedIDforVecs)
-			du.DrawVector(--lastUsedIDforVecs, Vector3d<float>(0),Vector3d<float>(0), -1);
-		lastUsedIDforLines = usedIDforLines;
-		lastUsedIDforBalls = usedIDforBalls;
-		lastUsedIDforVecs  = usedIDforVecs;
 
 
 		/*

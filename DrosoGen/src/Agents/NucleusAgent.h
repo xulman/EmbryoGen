@@ -532,7 +532,6 @@ protected:
 #ifdef DEBUG
 	std::vector< ForceVector3d<FLOAT> > forcesForDisplay;
 #endif
-	bool detailedDrawingModePrevState = detailedDrawingMode;
 
 	void drawMask(DisplayUnit& du) override
 	{
@@ -542,14 +541,12 @@ protected:
 		//if     selected: draw cells as a global debug object
 		int dID = ID << 17;
 		int gdID = ID*50 +5000;
+		//NB: 'd'ID = is for 'd'rawing, not for 'd'ebug !
 
 		//draw spheres
 		for (int i=0; i < futureGeometry.noOfSpheres; ++i)
 		{
 			du.DrawPoint( detailedDrawingMode?gdID:dID ,futureGeometry.centres[i],futureGeometry.radii[i],color);
-
-			if (detailedDrawingMode != detailedDrawingModePrevState)
-				du.DrawPoint( detailedDrawingMode?dID:gdID ,futureGeometry.centres[i],futureGeometry.radii[i],-1);
 
 			//update both counters so that gdID-to-object mapping is preserved
 			++dID; ++gdID;
