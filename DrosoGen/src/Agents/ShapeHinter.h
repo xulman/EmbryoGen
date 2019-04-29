@@ -72,18 +72,20 @@ private:
 	}
 
 	// ------------- rendering -------------
-	void drawMask(DisplayUnit&) override
+	void drawForDebug(DisplayUnit& du) override
 	{
-		/*
-		//draw bounding box of the GradIN region of the ScalarImg
-		int dID = ID << 17;
-		dID += geometryAlias.AABB.drawIt(dID,1, du);
+		if (detailedDrawingMode)
+		{
+			int dID = ID << 17 | 1 << 16; //enable debug bit
 
-		//draw bounding box of the complete ScalarImg, as a global debug element
-		geometryAlias.AABB.drawBox(ID << 4,4,
-		  geometryAlias.getDistImgOff(),geometryAlias.getDistImgFarEnd(), du);
-		*/
+			//draw bounding box of the complete ScalarImg
+			dID += geometryAlias.AABB.drawBox(dID,4,
+			  geometryAlias.getDistImgOff(),geometryAlias.getDistImgFarEnd(), du);
+
+			//TODO: render spheres along a certain isoline,
+			//      with user given sparsity
 			REPORT(IDSIGN << "not implemented yet...");
+		}
 	}
 
 	void drawForDebug(i3d::Image3d<i3d::GRAY16>& img) override

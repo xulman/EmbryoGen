@@ -529,10 +529,6 @@ public:
 
 protected:
 	// ------------- rendering -------------
-#ifdef DEBUG
-	std::vector< ForceVector3d<FLOAT> > forcesForDisplay;
-#endif
-
 	void drawMask(DisplayUnit& du) override
 	{
 		const int color = curPhase < 3? 2:3;
@@ -547,9 +543,7 @@ protected:
 		for (int i=0; i < futureGeometry.noOfSpheres; ++i)
 		{
 			du.DrawPoint( detailedDrawingMode?gdID:dID ,futureGeometry.centres[i],futureGeometry.radii[i],color);
-
-			//update both counters so that gdID-to-object mapping is preserved
-			++dID; ++gdID;
+			++dID; ++gdID; //just update both counters
 		}
 
 		//velocities -- global debug
@@ -567,11 +561,19 @@ protected:
 			if (p.distance < 0)
 				du.DrawLine(gdID++, p.localPos,p.otherPos, 1);
 		}
+	}
 
+#ifdef DEBUG
+	std::vector< ForceVector3d<FLOAT> > forcesForDisplay;
+#endif
+
+	void drawForDebug(DisplayUnit& du) override
+	{
 		//render only if under inspection
 		if (detailedDrawingMode)
 		{
-			dID |= 1 << 16; //enable debug bit
+			const int color = curPhase < 3? 2:3;
+			int dID = ID << 17 | 1 << 16; //enable debug bit
 
 			//cell centres connection "line" (green):
 			du.DrawLine(dID++, futureGeometry.centres[0],futureGeometry.centres[1], color);
@@ -591,10 +593,10 @@ protected:
 				du.DrawLine(dID++, p.localPos, p.otherPos, (int)(p.localHint*6));
 
 			//shape deviations:
-			//red lines to show deviations from the expected geometry
+			//blue lines to show deviations from the expected geometry
 			Vector3d<FLOAT> sOff[4];
 			getCurrentOffVectorsForCentres(sOff);
-			du.DrawLine(dID++, futureGeometry.centres[0],futureGeometry.centres[0]+sOff[0], 3); //blue color
+			du.DrawLine(dID++, futureGeometry.centres[0],futureGeometry.centres[0]+sOff[0], 3);
 			du.DrawLine(dID++, futureGeometry.centres[1],futureGeometry.centres[1]+sOff[1], 3);
 			du.DrawLine(dID++, futureGeometry.centres[2],futureGeometry.centres[2]+sOff[2], 3);
 			du.DrawLine(dID++, futureGeometry.centres[3],futureGeometry.centres[3]+sOff[3], 3);
