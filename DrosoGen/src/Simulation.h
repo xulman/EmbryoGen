@@ -311,8 +311,7 @@ private:
 	/** Asks all agents to render and raster their state into this.displayUnit and the images */
 	void renderNextFrame(void)
 	{
-		static char fn[1024];
-
+		// ----------- OUTPUT EVENTS -----------
 #ifdef PRODUCE_IMAGES
 		//clear the output images
 		imgMask.GetVoxelData()    = 0;
@@ -341,51 +340,119 @@ private:
 		displayUnit.Flush();
 		displayUnit.Tick( ("Time: "+std::to_string(currTime)).c_str() );
 
-		//save the image
-		sprintf(fn,"mask%03d.tif",frameCnt++);
+#ifdef PRODUCE_IMAGES
+		//save the images
+		static char fn[1024];
+		sprintf(fn,"mask%03d.tif",frameCnt);
 		REPORT("Saving " << fn << ", hold on...");
-		//img.SaveImage(fn);
+		imgMask.SaveImage(fn);
 
-		//wait for key...
-		REPORT_NOENDL("Wait for key [and press Enter]: ");
-		std::cin >> fn[0];
+		sprintf(fn,"phantom%03d.tif",frameCnt);
+		REPORT("Saving " << fn << ", hold on...");
+		imgMask.SaveImage(fn);
 
-		if (fn[0] == 'q')
-			throw new std::runtime_error("Simulation::renderNextFrame(): User requested exit.");
+		sprintf(fn,"optics%03d.tif",frameCnt);
+		REPORT("Saving " << fn << ", hold on...");
+		imgMask.SaveImage(fn);
+#endif
+		++frameCnt;
 
-		while (fn[0] == 'i')
-		{
-			//inspection command is followed by cell sub-command and agent ID(s)
-			std::cin >> fn[0];
-			bool state = (fn[0] == 'e' || fn[0] == 'o' || fn[0] == '1');
-
-			int id;
-			std::cin >> id;
-
-			if (std::cin.good())
-			{
-				REPORT("inspection " << (state ? "enabled" : "disabled") << " for ID = " << id);
-				for (auto c : agents)
-					if (c->ID == id) c->setDetailedDrawingMode(state);
-
-				//try to read next character
-				std::cin >> fn[0];
-			}
-			else
-			{
-				REPORT("unrecognized command")
-				fn[0]='X';          //prevent from entering this loop again
-				std::cin.clear();   //prevent from giving up reading
-			}
-		}
-
+		// ----------- INPUT EVENTS -----------
 		//if std::cin is closed permanently, wait here a couple of milliseconds
 		//to prevent zeroMQ from flooding the Scenery
 		if (std::cin.eof())
 		{
 			REPORT("waiting 1000 ms to give SimViewer some time to breath...")
 			std::this_thread::sleep_for((std::chrono::milliseconds)1000);
+			return;
 		}
+
+		//wait for key...
+		char key;
+		do {
+			//read the key
+			REPORT_NOENDL("Waiting for a key [and press Enter]: ");
+			std::cin >> key;
+
+			//memorize original key for the inspections handling
+			const char ivwKey = key;
+
+			//some known action?
+			switch (key) {
+			case 'Q':
+				throw new std::runtime_error("Simulation::renderNextFrame(): User requested exit.");
+
+			case 'H':
+				//print summary of commands (and their keys)
+				REPORT("key summary:");
+				REPORT("Q - quits the program");
+				REPORT("H - prints this summary");
+				REPORT("E - no operation, just an empty command");
+				REPORT("D - toggles whether agents' drawForDebug() is called");
+				REPORT("I - toggles console (reporting) inspection of selected agents");
+				REPORT("V - toggles visual inspection (in SimViewer) of selected agents");
+				REPORT("W - toggles console and visual inspection of selected agents");
+				break;
+
+			case 'E':
+				//empty action... just a key press eater when user gets lots in the commanding scheme
+				REPORT("No action taken");
+				break;
+
+			case 'D':
+				renderingDebug ^= true;
+				REPORT("Debug rendering toggled to: " << (renderingDebug? "enabled" : "disabled"));
+				break;
+
+			case 'I':
+			case 'V':
+			case 'W':
+				//inspection command(s) is followed by cell sub-command and agent ID(s)
+				REPORT("Entering Inspection toggle mode: press 'e' or 'o' or '1' and agent ID to  enable its inspection");
+				REPORT("Entering Inspection toggle mode: press      any key      and agent ID to disable its inspection");
+				REPORT("Entering Inspection toggle mode: press  any key and 'E'     to leave the Inspection toggle mode");
+				while (key != 'X')
+				{
+					std::cin >> key;
+					bool state = (key == 'e' || key == 'o' || key == '1');
+
+					int id;
+					std::cin >> id;
+
+					if (std::cin.good())
+					{
+						key = 'y'; //to detect if some agent has been modified
+						for (auto c : agents)
+						if (c->ID == id)
+						{
+							if (ivwKey != 'I') c->setDetailedDrawingMode(state);
+							if (ivwKey != 'V') c->setDetailedReportingMode(state);
+							REPORT((ivwKey != 'I' ? "vizu " : "")
+							    << (ivwKey != 'V' ? "console " : "")
+							    << "inspection" << (ivwKey == 'W'? "s " : " ")
+							    << (state ? "enabled" : "disabled") << " for ID = " << id);
+							key = 'Y'; //signal we got here
+						}
+
+						if (key == 'y')
+							REPORT("no agent ID = " << id << " found");
+					}
+					else
+					{
+						key = 'X';          //prevent from entering this loop again (but not the outter one!)
+						std::cin.clear();   //prevent from giving up reading
+					}
+					//NB: key is now either 'y' or 'Y', or 'X'
+				}
+				REPORT("Leaving Inspection toggle mode");
+				break;
+
+			default:
+				//signal not-recognized action -> which means "do next simulation batch"
+				key = 0;
+			}
+		}
+		while (key != 0);
 	}
 };
 #endif
