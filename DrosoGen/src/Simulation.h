@@ -17,6 +17,9 @@
 #include "DisplayUnits/SceneryBufferedDisplayUnit.h"
 #include "DisplayUnits/BroadcasterDisplayUnit.h"
 
+//uncomment this macro to enable the system to generate images
+//#define PRODUCE_IMAGES
+
 /**
  * This class contains all simulation agents, scene and simulation
  * parameters, and takes care of the iterations of the simulation.
@@ -66,9 +69,14 @@ protected:
 	    it is a function of this->sceneSize and this->imgRes */
 	const Vector3d<size_t> imgSize;
 
-	/** output image into which the simulation will be iteratively rasterized/rendered,
-	    just one image for now... */
-	i3d::Image3d<i3d::GRAY16> img;
+	/** output image into which the simulation will be iteratively rasterized/rendered: instance masks */
+	i3d::Image3d<i3d::GRAY16> imgMask;
+
+	/** output image into which the simulation will be iteratively rasterized/rendered: texture phantom image */
+	i3d::Image3d<float> imgPhantom;
+	//
+	/** output image into which the simulation will be iteratively rasterized/rendered: optical indices image */
+	i3d::Image3d<float> imgOptics;
 
 	/** output display unit into which the simulation will be iteratively rendered */
 	BroadcasterDisplayUnit displayUnit;
@@ -133,9 +141,17 @@ public:
 	/** allocates output images, adds agents, renders the first frame */
 	void init(void)
 	{
-		//output image that will be iteratively re-rendered
-		img.MakeRoom(imgSize.x,imgSize.y,imgSize.z);
-		img.SetResolution(i3d::Resolution(imgRes.x,imgRes.y,imgRes.z));
+#ifdef PRODUCE_IMAGES
+		//output images that will be iteratively re-rendered
+		imgMask.MakeRoom(imgSize.x,imgSize.y,imgSize.z);
+		imgMask.SetResolution(i3d::Resolution(imgRes.x,imgRes.y,imgRes.z));
+
+		imgPhantom.MakeRoom(imgSize.x,imgSize.y,imgSize.z);
+		imgPhantom.SetResolution(i3d::Resolution(imgRes.x,imgRes.y,imgRes.z));
+
+		imgOptics.MakeRoom(imgSize.x,imgSize.y,imgSize.z);
+		imgOptics.SetResolution(i3d::Resolution(imgRes.x,imgRes.y,imgRes.z));
+#endif
 
 		initializeAgents();
 		REPORT("--------------- " << currTime << " (" << agents.size() << " agents) ---------------");
@@ -289,20 +305,36 @@ private:
 	    as this->argc and this->argv. */
 	virtual void initializeAgents(void) =0;
 
-	/** Asks all agents to render and raster their state into this.displayUnit and this.img */
+	/** Flags if agents' drawForDebug() should be called with every this->renderNextFrame() */
+	bool renderingDebug = false;
+
+	/** Asks all agents to render and raster their state into this.displayUnit and the images */
 	void renderNextFrame(void)
 	{
 		static char fn[1024];
 
-		//clear the output image
-		//img.GetVoxelData() = 0;
+#ifdef PRODUCE_IMAGES
+		//clear the output images
+		imgMask.GetVoxelData()    = 0;
+		imgPhantom.GetVoxelData() = 0;
+		imgOptics.GetVoxelData()  = 0;
+#endif
 
 		//go over all cells, and render them
 		std::list<AbstractAgent*>::const_iterator c=agents.begin();
 		for (; c != agents.end(); c++)
 		{
+			(*c)->drawTexture(displayUnit);
 			(*c)->drawMask(displayUnit);
-			//(*c)->drawMask(img);
+			if (renderingDebug)
+				(*c)->drawForDebug(displayUnit);
+
+#ifdef PRODUCE_IMAGES
+			(*c)->drawTexture(imgPhantom,imgOptics);
+			(*c)->drawMask(imgMask);
+			if (renderingDebug)
+				(*c)->drawForDebug(imgMask); //TODO, should go into its own separate image
+#endif
 		}
 
 		//render the current frame
