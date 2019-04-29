@@ -83,6 +83,7 @@ private:
 		geometryAlias.AABB.drawBox(ID << 4,4,
 		  geometryAlias.getDistImgOff(),geometryAlias.getDistImgFarEnd(), du);
 		*/
+			REPORT(IDSIGN << "not implemented yet...");
 	}
 
 	void drawForDebug(i3d::Image3d<i3d::GRAY16>& img) override
