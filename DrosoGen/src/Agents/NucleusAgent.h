@@ -627,19 +627,6 @@ protected:
 			          << ", |2|=" << velocities[2].len()
 			          << ", |3|=" << velocities[3].len());
 		}
-
-		//global debug
-		Vector3d<FLOAT> indicatorPos(futureGeometry.centres[3]);
-		indicatorPos -= futureGeometry.centres[2];
-		indicatorPos.changeToUnitOrZero();
-		indicatorPos *= 2.0f;
-		indicatorPos += futureGeometry.centres[3];
-
-		//small sphere (in blue) to encode the four nuclei
-		du.DrawPoint(gdID++, indicatorPos,0.7f, 3);
-
-		//update to the most recent state
-		detailedDrawingModePrevState = detailedDrawingMode;
 	}
 
 	void drawMask(i3d::Image3d<i3d::GRAY16>& img) override
