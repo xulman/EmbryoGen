@@ -174,6 +174,24 @@ public class DisplayScene extends SceneryBase implements Runnable
 		ToggleFixedLights(); //both ramps
 	}
 
+	/** runs the scenery rendering backend in a separate thread */
+	public
+	void run()
+	{
+		//this is the main loop: the code "blocks" here until the main window is closed,
+		//and that's gonna be the job of this thread
+		this.main();
+	}
+
+	/** attempts to close this rendering window */
+	public
+	void stop()
+	{
+		this.close();
+	}
+	//----------------------------------------------------------------------------
+
+
 	/** returns true when the underlying rendering machinery is ready to draw anything */
 	public
 	void waitUntilSceneIsReady()
@@ -194,33 +212,24 @@ public class DisplayScene extends SceneryBase implements Runnable
 		return this.getInputHandler();
 	}
 
-	/** runs the scenery rendering backend in a separate thread */
-	public
-	void run()
-	{
-		//this is the main loop: the code "blocks" here until the main window is closed,
-		//and that's gonna be the job of this thread
-		this.main();
-	}
-
 	/** helper method to save the current content of the scene into /tmp/frameXXXX.png */
 	public
 	void saveNextScreenshot()
 	{
-		final String filename = String.format("/tmp/frame%04d.png",screenShotCounter++);
+		final String filename = String.format("/tmp/frame%04d.png",tickCounter);
 		System.out.println("Saving screenshot: "+filename);
 		this.getRenderer().screenshot(filename,true);
 	}
-	private int screenShotCounter = 0;
+	//
 	/** flag for external modules to see if they should call saveNextScreenshot() */
 	public boolean savingScreenshots = false;
 
-	/** attempts to close this rendering window */
+	/** counts how many times the "tick message" has been received, this message
+	    is assumed to be sent typically after one simulation round is over */
+	private int tickCounter = 0;
+	//
 	public
-	void stop()
-	{
-		this.close();
-	}
+	void increaseTickCounter() { ++tickCounter; }
 
 	/** attempts to turn on/off the "push mode", and reports the state */
 	public
@@ -452,6 +461,9 @@ public class DisplayScene extends SceneryBase implements Runnable
 		//now update the point with the current data
 		n.update(p);
 		n.node.setMaterial(materials[n.color % materials.length]);
+
+		n.lastSeenTick = tickCounter;
+
 		this.nodeSetNeedsUpdate(n.node);
 	}
 
@@ -479,7 +491,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 		{
 			//new line: adding
 			n = new Line( new graphics.scenery.Line(4) );
-			n.node.setEdgeWidth(0.3f);
+			n.node.setEdgeWidth(3.0f);
 			//no setPosition(), no setScale()
 
 			lineNodes.put(ID,n);
@@ -496,6 +508,8 @@ public class DisplayScene extends SceneryBase implements Runnable
 		n.node.addPoint(zeroGLvec);
 		//NB: surrounded by two mandatory fake points that are never displayed
 		n.node.setMaterial(materials[n.color % materials.length]);
+
+		n.lastSeenTick = tickCounter;
 	}
 
 
@@ -522,7 +536,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 		{
 			//new vector: adding it already in the desired shape
 			n = new Vector( new Arrow(v.vector) );
-			n.node.setEdgeWidth(0.1f);
+			n.node.setEdgeWidth(3.0f);
 			n.node.setPosition(n.base);
 			n.node.setScale(vectorsStretchGLvec);
 
@@ -545,12 +559,29 @@ public class DisplayScene extends SceneryBase implements Runnable
 		//update the arrow with (at least) the current 'base' position
 		n.update(v);
 		n.node.setMaterial(materials[n.color % materials.length]);
+
+		n.lastSeenTick = tickCounter;
+
 		this.nodeSetNeedsUpdate(n.node);
 	}
 
 
 	public
-	void RemoveAllObjects()
+	void removeAllObjects()
+	{
+		tickCounter = Integer.MAX_VALUE;
+		garbageCollect(-1);
+	}
+
+	public
+	void garbageCollect()
+	{
+		garbageCollect(0);
+	}
+
+	/** remove all objects that were last touched before tickCounter-tolerance */
+	public
+	void garbageCollect(int tolerance)
 	{
 		//NB: HashMap may be modified while being swept through only via iterator
 		//    (and iterator must remove the elements actually)
@@ -558,24 +589,42 @@ public class DisplayScene extends SceneryBase implements Runnable
 
 		while (i.hasNext())
 		{
-			scene.removeChild(pointNodes.get(i.next()).node);
-			i.remove();
+			final Point p = pointNodes.get(i.next());
+
+			if (p.lastSeenTick+tolerance < tickCounter)
+			{
+				scene.removeChild(p.node);
+				i.remove();
+			}
 		}
 
 		i = lineNodes.keySet().iterator();
 		while (i.hasNext())
 		{
-			scene.removeChild(lineNodes.get(i.next()).node);
-			i.remove();
+			final Line l = lineNodes.get(i.next());
+
+			if (l.lastSeenTick+tolerance < tickCounter)
+			{
+				scene.removeChild(l.node);
+				i.remove();
+			}
 		}
 
 		i = vectorNodes.keySet().iterator();
 		while (i.hasNext())
 		{
-			scene.removeChild(vectorNodes.get(i.next()).node);
-			i.remove();
+			final Vector v = vectorNodes.get(i.next());
+
+			if (v.lastSeenTick+tolerance < tickCounter)
+			{
+				scene.removeChild(v.node);
+				i.remove();
+			}
 		}
 	}
+	//
+	/** flag for external modules to see if they should call garbageCollect() */
+	public boolean garbageCollecting = true;
 	//----------------------------------------------------------------------------
 
 
@@ -885,6 +934,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 	void reportSettings()
 	{
 		System.out.println("push mode       : " + this.getRenderer().getPushMode() + "  \tscreenshots            : " + savingScreenshots);
+		System.out.println("garbage collect.: " + garbageCollecting                + "  \ttickCounter            : " + tickCounter);
 		System.out.println("ambient lights  : " + fixedLightsChoosen               + "  \thead lights            : " + headLightsChoosen);
 		System.out.println("scene border    : " + borderShown                      + "  \torientation compass    : " + axesShown);
 
