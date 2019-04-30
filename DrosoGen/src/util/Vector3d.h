@@ -129,6 +129,22 @@ public:
 		z /= v.z;
 	}
 
+	/** change this vector with element-wise absolute values */
+	void elemAbs(void)
+	{
+		x = std::abs(x);
+		y = std::abs(y);
+		z = std::abs(z);
+	}
+
+	/** change this vector with element-wise squared values */
+	void elemSquare(void)
+	{
+		x *= x;
+		y *= y;
+		z *= z;
+	}
+
 	void changeToUnitOrZero(void)
 	{
 		T l = this->len2();
@@ -189,11 +205,33 @@ public:
 		y = iv3d.y;
 		z = iv3d.z;
 	}
+
 	void toI3dVector3d(i3d::Vector3d<T>& iv3d) const
 	{
 		iv3d.x = x;
 		iv3d.y = y;
 		iv3d.z = z;
+	}
+
+	/** converts this vector into the "same" vector whose elements
+	    are of another type (e.g., size_t -> float conversion),
+	    creates and returns the converted vector */
+	template <typename FT> //FT = foreign type
+	Vector3d<FT>& to(void) const
+	{
+		return Vector3d<FT>( (FT)x, (FT)y, (FT)z );
+	}
+
+	/** converts a given vector whose elements are of another type
+	    into this vector (e.g., size_t -> float conversion), returns
+	    *this to allow for concatenating of commands... */
+	template <typename FT> //FT = foreign type
+	Vector3d<T>& from(const Vector3d<FT>& v)
+	{
+		x = (T)v.x;
+		y = (T)v.y;
+		z = (T)v.z;
+		return *this;
 	}
 };
 
