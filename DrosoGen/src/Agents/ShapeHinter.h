@@ -2,6 +2,7 @@
 #define SHAPEHINTER_H
 
 #include "../util/report.h"
+#include "../util/surfacesamplers.h"
 #include "AbstractAgent.h"
 #include "../Geometries/ScalarImg.h"
 
@@ -82,9 +83,20 @@ private:
 			dID += geometryAlias.AABB.drawBox(dID,4,
 			  geometryAlias.getDistImgOff(),geometryAlias.getDistImgFarEnd(), du);
 
-			//TODO: render spheres along a certain isoline,
-			//      with user given sparsity
-			REPORT(IDSIGN << "not implemented yet...");
+			//render spheres along a certain isoline
+			ImageSampler<float,float> is;
+			Vector3d<float> periPoint;
+			int periPointCnt=0;
+
+			is.resetByMicronStep(geometryAlias.getDistImg(),
+			                     [](const float px){ return px == 2; },
+			                     Vector3d<float>(10,5,5));
+			while (is.next(periPoint))
+			{
+				du.DrawPoint(dID++, periPoint, 0.3f, 4);
+				++periPointCnt;
+			}
+			DEBUG_REPORT(IDSIGN << "surface consists of " << periPointCnt << " spheres");
 		}
 	}
 
