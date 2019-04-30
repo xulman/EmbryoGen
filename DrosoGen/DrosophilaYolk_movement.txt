@@ -1,4 +1,4 @@
-# TIME X Y Z TRACK_ID PIXEL_VALUE from file /Users/ulman/devel/EmbryoGen/DrosoGen/Mastodon/Mastodon_mamut.xml
+# TIME X Y Z TRACK_ID PARENT_ID PIXEL_VALUE from file /Users/ulman/devel/EmbryoGen/DrosoGen/Mastodon/Mastodon_mamut.xml
 0	134.58099868	48.5413410964	14.6390692154	1	0 0
 1	134.58099868	40.4531107201	16.6611268094	1	0 0
 2	134.58099868	40.4531107201	16.6611268094	1	0 0

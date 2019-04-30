@@ -15,4 +15,7 @@
 	#define DEBUG_REPORT_NOENDL(x)
 #endif
 
+#define SIGN    agentType << ": "
+#define IDSIGN  ID << "-" << agentType << ": "
+
 #endif

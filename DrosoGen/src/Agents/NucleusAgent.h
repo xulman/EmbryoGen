@@ -4,6 +4,7 @@
 #include <list>
 #include <vector>
 #include "../util/report.h"
+#include "../util/surfacesamplers.h"
 #include "AbstractAgent.h"
 #include "CellCycle.h"
 #include "../Geometries/Spheres.h"
@@ -529,11 +530,6 @@ public:
 
 protected:
 	// ------------- rendering -------------
-#ifdef DEBUG
-	std::vector< ForceVector3d<FLOAT> > forcesForDisplay;
-#endif
-	bool detailedDrawingModePrevState = detailedDrawingMode;
-
 	void drawMask(DisplayUnit& du) override
 	{
 		const int color = curPhase < 3? 2:3;
@@ -541,18 +537,14 @@ protected:
 		//if not selected: draw cells with no debug bit
 		//if     selected: draw cells as a global debug object
 		int dID = ID << 17;
-		int gdID = ID*50 +5000;
+		int gdID = ID*40 +5000;
+		//NB: 'd'ID = is for 'd'rawing, not for 'd'ebug !
 
 		//draw spheres
 		for (int i=0; i < futureGeometry.noOfSpheres; ++i)
 		{
 			du.DrawPoint( detailedDrawingMode?gdID:dID ,futureGeometry.centres[i],futureGeometry.radii[i],color);
-
-			if (detailedDrawingMode != detailedDrawingModePrevState)
-				du.DrawPoint( detailedDrawingMode?dID:gdID ,futureGeometry.centres[i],futureGeometry.radii[i],-1);
-
-			//update both counters so that gdID-to-object mapping is preserved
-			++dID; ++gdID;
+			++dID; ++gdID; //just update both counters
 		}
 
 		//velocities -- global debug
@@ -570,16 +562,43 @@ protected:
 			if (p.distance < 0)
 				du.DrawLine(gdID++, p.localPos,p.otherPos, 1);
 		}
+	}
 
+#ifdef DEBUG
+	std::vector< ForceVector3d<FLOAT> > forcesForDisplay;
+#endif
+
+	void drawForDebug(DisplayUnit& du) override
+	{
 		//render only if under inspection
 		if (detailedDrawingMode)
 		{
-			dID |= 1 << 16; //enable debug bit
+			const int color = curPhase < 3? 2:3;
+			int dID = ID << 17 | 1 << 16; //enable debug bit
 
 			//cell centres connection "line" (green):
 			du.DrawLine(dID++, futureGeometry.centres[0],futureGeometry.centres[1], color);
 			du.DrawLine(dID++, futureGeometry.centres[1],futureGeometry.centres[2], color);
 			du.DrawLine(dID++, futureGeometry.centres[2],futureGeometry.centres[3], color);
+
+			//draw agent's periphery (as blue spheres)
+			//NB: showing the cell outline, that is now updated from the futureGeometry,
+			//and stored already in the geometryAlias
+			SphereSampler<float> ss;
+			Vector3d<float> periPoint;
+
+			for (int S = 0; S < geometryAlias.noOfSpheres; ++S)
+			{
+				ss.resetByStepSize(geometryAlias.radii[S]);
+				while (ss.next(periPoint))
+				{
+					periPoint += geometryAlias.centres[S];
+
+					//draw the periPoint only if it collides with no (and excluding this) sphere
+					if (geometryAlias.collideWithPoint(periPoint, S) == 0)
+						du.DrawPoint(dID++, periPoint, 0.3f, 3);
+				}
+			}
 
 			//red lines with overlapping proximity pairs to nuclei
 			for (const auto& p : proximityPairs_toNuclei)
@@ -594,10 +613,10 @@ protected:
 				du.DrawLine(dID++, p.localPos, p.otherPos, (int)(p.localHint*6));
 
 			//shape deviations:
-			//red lines to show deviations from the expected geometry
+			//blue lines to show deviations from the expected geometry
 			Vector3d<FLOAT> sOff[4];
 			getCurrentOffVectorsForCentres(sOff);
-			du.DrawLine(dID++, futureGeometry.centres[0],futureGeometry.centres[0]+sOff[0], 3); //blue color
+			du.DrawLine(dID++, futureGeometry.centres[0],futureGeometry.centres[0]+sOff[0], 3);
 			du.DrawLine(dID++, futureGeometry.centres[1],futureGeometry.centres[1]+sOff[1], 3);
 			du.DrawLine(dID++, futureGeometry.centres[2],futureGeometry.centres[2]+sOff[2], 3);
 			du.DrawLine(dID++, futureGeometry.centres[3],futureGeometry.centres[3]+sOff[3], 3);
@@ -630,19 +649,6 @@ protected:
 			          << ", |2|=" << velocities[2].len()
 			          << ", |3|=" << velocities[3].len());
 		}
-
-		//global debug
-		Vector3d<FLOAT> indicatorPos(futureGeometry.centres[3]);
-		indicatorPos -= futureGeometry.centres[2];
-		indicatorPos.changeToUnitOrZero();
-		indicatorPos *= 2.0f;
-		indicatorPos += futureGeometry.centres[3];
-
-		//small sphere (in blue) to encode the four nuclei
-		du.DrawPoint(gdID++, indicatorPos,0.7f, 3);
-
-		//update to the most recent state
-		detailedDrawingModePrevState = detailedDrawingMode;
 	}
 
 	void drawMask(i3d::Image3d<i3d::GRAY16>& img) override

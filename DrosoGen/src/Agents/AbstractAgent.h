@@ -245,11 +245,11 @@ public:
 	virtual
 	void drawTexture(DisplayUnit&) {};
 
-	/** Should raster the current texture into the image.
+	/** Should raster the current texture and optical properties into the images.
 	    Must take into account image's resolution and offset. */
 	virtual
 	//template <class VT> //VT = Voxel Type
-	void drawTexture(i3d::Image3d<i3d::GRAY16>&) {};
+	void drawTexture(i3d::Image3d<float>&, i3d::Image3d<float>&) {};
 
 	/** Render whatever might be appropriate for debug into the DisplayUnit,
 	    see AbstractAgent::drawMask(DisplayUnit&) for details. */

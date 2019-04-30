@@ -945,7 +945,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 
 		System.out.println("number of points: " + this.pointNodes.size() + "\t  lines: "+this.lineNodes.size() + "\t  vectors: "+this.vectorNodes.size());
 		System.out.println("color legend    :        white: velocity, 1stInnerMost2Yolk");
-		System.out.println(" red: overlap            green: cell&skeleton          blue: friction, cellFlag, skelDev");
+		System.out.println(" red: overlap            green: cell&skeleton          blue: friction, skelDev");
 		System.out.println("cyan: body             magenta: tracks, rep&drive    yellow: slide, 2ndInnerMost2Yolk, tracksFF");
 	}
 	//----------------------------------------------------------------------------

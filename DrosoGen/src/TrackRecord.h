@@ -335,11 +335,14 @@ private:
 public:
 	/** Scans over all tracks and displays displacement vectors between
 	    the given time span. The vectors are drawn using the display
-	    unit, with the given color and with increasing ID starting
-	    from the one given. The last used ID+1 is returned. */
-	int DrawFF(const float timeFrom, const float timeTo,
-	           DisplayUnit& du, int ID, const int color) const
+	    unit, with the given color and with increasing IDs starting from
+	    the one given. The number of drawn/created vectors is returned. */
+	int drawFF(const float timeFrom, const float timeTo,
+	           DisplayUnit& du, const int ID, const int color) const
 	{
+		//return value
+		int elemCnt = 0;
+
 		//positions at a track at the given two times
 		Coord3d<float> A,B;
 
@@ -350,11 +353,11 @@ public:
 			    getPositionAlongTrack(timeTo,  id,B))
 			{
 				//managed to obtain both track positions
-				du.DrawVector(ID++,A,B-A,color);
+				du.DrawVector(ID+ elemCnt++,A,B-A,color);
 			}
 		}
 
-		return ID;
+		return elemCnt;
 	}
 };
 #endif

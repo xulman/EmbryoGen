@@ -85,112 +85,84 @@ private:
 	{
 		if (currTime > lastUpdatedTime)
 		{
-			DEBUG_REPORT("updating FF from " << currTime-incrTime << " to " << currTime);
+			DEBUG_REPORT(IDSIGN << "updating FF from " << currTime-incrTime << " to " << currTime);
 
 			//update the geometryAlias according to the currTime
 			traHinter.resetToFF(currTime-incrTime,currTime, ff, Vector3d<float>(5.0f));
 			lastUpdatedTime = currTime;
 		}
 		else
-			DEBUG_REPORT("skipping update now");
+			DEBUG_REPORT(IDSIGN << "skipping update now");
 	}
 
 	// ------------- rendering -------------
-	int lastUsedIDforLines = 0;
-	int lastUsedIDforBalls = 0;
-	int lastUsedIDforVecs  = 0;
+//#define DRAW_VOXEL_GRID_AROUND_TRAJECTORIES
 
-	void drawMask(DisplayUnit& du) override
+	void drawForDebug(DisplayUnit& du) override
 	{
-		int usedIDforLines = 0;
-		int usedIDforBalls = 0;
-		int usedIDforVecs  = 0;
-
-		/*
-		int gridIDs = ID<<17 | 1<<16;
-		Vector3d<size_t> centrePx;
-		const Vector3d<float> res( geometryAlias.getImgX().GetResolution().GetRes() );
-		const Vector3d<float> off( geometryAlias.getImgX().GetOffset() );
-		*/
-
-		//scan all time points to read out every tracks' "bending corners"
-		std::map< float,std::map< int,Coord3d<float> > >::const_iterator it;
-
-		//the current "segment" of the currently rendered trajectory
-		const Coord3d<float> *a,*b;
-		Coord3d<float> pos;
-
-		//draw all paths that are still relevant to the current time
-		for (int tID : traHinter.knownTracks)
-		if (traHinter.getPositionAlongTrack(currTime,tID,pos))
+		if (detailedDrawingMode)
 		{
-			//init the drawing... (by flagging the first node is missing)
-			a = NULL;
+			const int DBG = ID << 17 | 1 << 16;
+			int createdLines = 0;
+			int createdBalls = 0;
+			int createdVecs  = 0;
+			//NB: the same starting number/element_ID does not matter as the
+			//    corresponding objects shall live in different vizu categories
 
-			//scan all time points
-			it = traHinter.begin();
-			while (it != traHinter.end())
+#ifdef DRAW_VOXEL_GRID_AROUND_TRAJECTORIES
+			Vector3d<size_t> centrePx;
+			const Vector3d<float> res( geometryAlias.getImgX().GetResolution().GetRes() );
+			const Vector3d<float> off( geometryAlias.getImgX().GetOffset() );
+#endif
+
+			//scan all time points to read out every tracks' "bending corners"
+			std::map< float,std::map< int,Coord3d<float> > >::const_iterator it;
+
+			//the current "segment" of the currently rendered trajectory
+			const Coord3d<float> *a,*b;
+			Coord3d<float> pos;
+
+			//draw all paths that are still relevant to the current time
+			for (int tID : traHinter.knownTracks)
+			if (traHinter.getPositionAlongTrack(currTime,tID,pos))
 			{
-				//does given timepoint contain info about our track?
-				if (it->second.find(tID) != it->second.end())
-				{
-					//update and draw then...
-					b = &(it->second.at(tID));
+				//init the drawing... (by flagging the first node is missing)
+				a = NULL;
 
-					if (a != NULL)
-						du.DrawLine(usedIDforLines++, *a,*b, 5);
-					a = b;
+				//scan all time points
+				it = traHinter.begin();
+				while (it != traHinter.end())
+				{
+					//does given timepoint contain info about our track?
+					if (it->second.find(tID) != it->second.end())
+					{
+						//update and draw then...
+						b = &(it->second.at(tID));
+
+						if (a != NULL)
+							du.DrawLine(DBG+ createdLines++, *a,*b, 5);
+						a = b;
+					}
+
+					++it;
 				}
 
-				++it;
+				//update the trajectory positioners (small balls)
+				du.DrawPoint(DBG+ createdBalls++, pos,1.5f, 5);
+
+#ifdef DRAW_VOXEL_GRID_AROUND_TRAJECTORIES
+				//also draw a (local debug) pixel grid around the ball centre
+				createdLines += drawPixelCentresGrid(du, DBG+createdLines, 1, geometryAlias.getImgX(),
+				                                     pos.toPixels(centrePx, res,off), Vector3d<size_t>(3));
+#endif
 			}
+			DEBUG_REPORT(IDSIGN << "trajectories: " << createdLines
+			             << " lines and " << createdBalls << " balls");
 
-			//update the trajectory positioners (small balls)
-			du.DrawPoint(usedIDforBalls++, pos,1.5f, 5);
-
-			/*
-			//also draw a (local debug) pixel grid around the ball centre
-			gridIDs = drawPixelCentresGrid(du, gridIDs, 1, geometryAlias.getImgX(),
-			                    pos.toPixels(centrePx, res,off), Vector3d<size_t>(3));
-			*/
+			//render the current flow field
+			createdVecs += ff.drawFF(du, DBG+createdVecs, 6, Vector3d<size_t>(2));
+			DEBUG_REPORT(IDSIGN << "trajectories: " << createdVecs << " vectors making up tracks-induced-FF");
 		}
-		DEBUG_REPORT("trajectories: " << usedIDforLines <<
-		             " lines and " << usedIDforBalls << " balls");
-
-		//render the current flow field
-		usedIDforVecs = ff.DrawFF(du,usedIDforVecs,6,Vector3d<size_t>(2));
-		DEBUG_REPORT("trajectories: " << usedIDforVecs << " vectors making up tracks-induced-FF");
-
-		//now remove any not-updated lines and balls
-		while (lastUsedIDforLines > usedIDforLines)
-			du.DrawLine(--lastUsedIDforLines, Vector3d<float>(0),Vector3d<float>(0), -1);
-		while (lastUsedIDforBalls > usedIDforBalls)
-			du.DrawPoint(--lastUsedIDforBalls, Vector3d<float>(0),1.5f, -1);
-		while (lastUsedIDforVecs > usedIDforVecs)
-			du.DrawVector(--lastUsedIDforVecs, Vector3d<float>(0),Vector3d<float>(0), -1);
-		lastUsedIDforLines = usedIDforLines;
-		lastUsedIDforBalls = usedIDforBalls;
-		lastUsedIDforVecs  = usedIDforVecs;
-
-
-		/*
-		//reduce flow field to the boundary of the shape
-		i3d::Image3d<i3d::GRAY8> initShapeEroded;
-		i3d::ErosionO(initShape,initShapeEroded,1);
-
-		i3d::GRAY8* i = initShape.GetFirstVoxelAddr();
-		i3d::GRAY8* e = initShapeEroded.GetFirstVoxelAddr();
-		float*      x = ff.x->GetFirstVoxelAddr();
-		float*      y = ff.y->GetFirstVoxelAddr();
-		float*      z = ff.z->GetFirstVoxelAddr();
-		for (size_t qq=0; qq < initShape.GetImageSize(); ++qq)
-		{
-			if (*i == 0 || (*i > 0 && *e > 0)) { *x = *y = *z = 0; }
-			++i; ++e;
-			++x; ++y; ++z;
-		}
-		DEBUG_REPORT("printed " << ff.DrawFF(displayUnit,100,2,Vector3d<size_t>(4,2,2))-100 << " vectors");
-		*/
 	}
 
 	/*
@@ -214,13 +186,17 @@ private:
 	*/
 
 	/** renders (local) grid of lines that align with voxel centres,
-	    that is, the boxes that are created do not represent individual voxels */
+	    that is, the boxes that are created do not represent individual voxels,
+	    returns the number of lines it has created */
 	template <class P>
-	int drawPixelCentresGrid(DisplayUnit& du, int ID, const int color,
+	int drawPixelCentresGrid(DisplayUnit& du, const int ID, const int color,
 	                         const i3d::Image3d<P>& refImg,
 	                         const Vector3d<size_t> centrePx,
 	                         const Vector3d<size_t> spanPx)
 	{
+		//return value
+		int elemCnt = 0;
+
 		//shortcuts to our own geometry
 		const Vector3d<float> res( refImg.GetResolution().GetRes() );
 		const Vector3d<float> off( refImg.GetOffset() );
@@ -239,7 +215,7 @@ private:
 			curPos.x = centrePx.x+spanPx.x;
 			b.toMicronsFrom(curPos, res,off);
 
-			du.DrawLine(ID++, a,b, color);
+			du.DrawLine(ID+ elemCnt++, a,b, color);
 		}
 
 		//rays "from the front"
@@ -252,7 +228,7 @@ private:
 			curPos.y = centrePx.y+spanPx.y;
 			b.toMicronsFrom(curPos, res,off);
 
-			du.DrawLine(ID++, a,b, color);
+			du.DrawLine(ID+ elemCnt++, a,b, color);
 		}
 
 		//rays "from the bottom"
@@ -265,10 +241,10 @@ private:
 			curPos.z = centrePx.z+spanPx.z;
 			b.toMicronsFrom(curPos, res,off);
 
-			du.DrawLine(ID++, a,b, color);
+			du.DrawLine(ID+ elemCnt++, a,b, color);
 		}
 
-		return ID;
+		return elemCnt;
 	}
 };
 #endif

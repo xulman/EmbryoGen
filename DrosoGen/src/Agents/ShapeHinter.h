@@ -2,6 +2,7 @@
 #define SHAPEHINTER_H
 
 #include "../util/report.h"
+#include "../util/surfacesamplers.h"
 #include "AbstractAgent.h"
 #include "../Geometries/ScalarImg.h"
 
@@ -72,17 +73,31 @@ private:
 	}
 
 	// ------------- rendering -------------
-	void drawMask(DisplayUnit&) override
+	void drawForDebug(DisplayUnit& du) override
 	{
-		/*
-		//draw bounding box of the GradIN region of the ScalarImg
-		int dID = ID << 17;
-		dID += geometryAlias.AABB.drawIt(dID,1, du);
+		if (detailedDrawingMode)
+		{
+			int dID = ID << 17 | 1 << 16; //enable debug bit
 
-		//draw bounding box of the complete ScalarImg, as a global debug element
-		geometryAlias.AABB.drawBox(ID << 4,4,
-		  geometryAlias.getDistImgOff(),geometryAlias.getDistImgFarEnd(), du);
-		*/
+			//draw bounding box of the complete ScalarImg
+			dID += geometryAlias.AABB.drawBox(dID,4,
+			  geometryAlias.getDistImgOff(),geometryAlias.getDistImgFarEnd(), du);
+
+			//render spheres along a certain isoline
+			ImageSampler<float,float> is;
+			Vector3d<float> periPoint;
+			int periPointCnt=0;
+
+			is.resetByMicronStep(geometryAlias.getDistImg(),
+			                     [](const float px){ return px == 2; },
+			                     Vector3d<float>(10,5,5));
+			while (is.next(periPoint))
+			{
+				du.DrawPoint(dID++, periPoint, 0.3f, 4);
+				++periPointCnt;
+			}
+			DEBUG_REPORT(IDSIGN << "surface consists of " << periPointCnt << " spheres");
+		}
 	}
 
 	void drawForDebug(i3d::Image3d<i3d::GRAY16>& img) override
