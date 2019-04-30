@@ -144,6 +144,32 @@ public:
 		}
 	}
 
+	/** tests position of the point w.r.t. this geometry, which is
+	    the union of these spheres, and returns index of the first
+	    sphere with which the point is in collision, or returns 0 if
+	    there is no collision at all (with no sphere); the sphere at
+	    the 'ignore' index is omitted from the tests (note the default
+	    ignoreIdx is -1, means consider all spheres for the test) */
+	int collideWithPoint(const Vector3d<FLOAT>& point,
+	                     const int ignoreIdx = -1)
+	{
+		bool collision = false;
+
+		Vector3d<FLOAT> tmp;
+		int testingIndex = 0;
+		while (!collision && testingIndex < noOfSpheres)
+		{
+			tmp  = centres[testingIndex];
+			tmp -= point;
+			collision = tmp.len() <= radii[testingIndex];
+
+			++testingIndex;
+			if (testingIndex == ignoreIdx) ++testingIndex;
+		}
+
+		return collision == false ? 0 : testingIndex-1;
+	}
+
 
 	// ------------- AABB -------------
 	void updateThisAABB(AxisAlignedBoundingBox& AABB) const override
