@@ -4,6 +4,7 @@
 #include <list>
 #include <vector>
 #include "../util/report.h"
+#include "../util/surfacesamplers.h"
 #include "AbstractAgent.h"
 #include "CellCycle.h"
 #include "../Geometries/Spheres.h"
@@ -536,7 +537,7 @@ protected:
 		//if not selected: draw cells with no debug bit
 		//if     selected: draw cells as a global debug object
 		int dID = ID << 17;
-		int gdID = ID*50 +5000;
+		int gdID = ID*40 +5000;
 		//NB: 'd'ID = is for 'd'rawing, not for 'd'ebug !
 
 		//draw spheres
@@ -579,6 +580,25 @@ protected:
 			du.DrawLine(dID++, futureGeometry.centres[0],futureGeometry.centres[1], color);
 			du.DrawLine(dID++, futureGeometry.centres[1],futureGeometry.centres[2], color);
 			du.DrawLine(dID++, futureGeometry.centres[2],futureGeometry.centres[3], color);
+
+			//draw agent's periphery (as blue spheres)
+			//NB: showing the cell outline, that is now updated from the futureGeometry,
+			//and stored already in the geometryAlias
+			SphereSampler<float> ss;
+			Vector3d<float> periPoint;
+
+			for (int S = 0; S < geometryAlias.noOfSpheres; ++S)
+			{
+				ss.resetByStepSize(geometryAlias.radii[S]);
+				while (ss.next(periPoint))
+				{
+					periPoint += geometryAlias.centres[S];
+
+					//draw the periPoint only if it collides with no (and excluding this) sphere
+					if (geometryAlias.collideWithPoint(periPoint, S) == 0)
+						du.DrawPoint(dID++, periPoint, 0.3f, 3);
+				}
+			}
 
 			//red lines with overlapping proximity pairs to nuclei
 			for (const auto& p : proximityPairs_toNuclei)
