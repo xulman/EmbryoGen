@@ -54,13 +54,6 @@ public:
 		velocity_CurrentlyDesired = 0; //no own movement desired yet
 		velocity_PersistenceTime  = (FLOAT)2.0;
 
-		//init centreDistances based on the initial geometry
-		//(silently assuming that there are 4 spheres TODO)
-		centreDistance[0] = (geometryAlias.centres[1] - geometryAlias.centres[0]).len();
-		centreDistance[1] = (geometryAlias.centres[2] - geometryAlias.centres[1]).len();
-		centreDistance[2] = (geometryAlias.centres[3] - geometryAlias.centres[2]).len();
-		weights[0] = weights[1] = weights[2] = weights[3] = (FLOAT)1.0;
-
 		curPhase = G1Phase;
 
 		//DEBUG_REPORT("Nucleus with ID=" << ID << " was just created");
@@ -99,49 +92,11 @@ protected:
 	    of the same form as my ShadowAgent::geometry, even the same noOfSpheres */
 	Spheres futureGeometry;
 
-	/** canonical distance between the four cell centres that this agent
-	    should maintain during geometry changes during the simulation */
-	float centreDistance[3];
-
 	/** width of the "retention zone" around nuclei that another nuclei
 	    shall not enter; this zone simulates cytoplasm around the nucleus;
 	    it actually behaves as if nuclei spheres were this much larger
 		 in their radii; the value is in microns */
 	float cytoplasmWidth = 2.0f;
-
-	void getCurrentOffVectorsForCentres(Vector3d<FLOAT> offs[4])
-	{
-		//the centre point
-		Vector3d<FLOAT> refCentre(futureGeometry.centres[1]);
-		refCentre += futureGeometry.centres[2];
-		refCentre *= 0.5;
-
-		//the axis/orientation between 2nd and 3rd sphere
-		Vector3d<FLOAT> refAxis(futureGeometry.centres[2]);
-		refAxis -= futureGeometry.centres[1];
-
-		//make it half-of-the-expected-distance long
-		refAxis *= 0.5f*centreDistance[1] / refAxis.len();
-
-		//calculate how much are the 2nd and 3rd spheres off their expected positions
-		offs[1]  = refCentre;
-		offs[1] -= refAxis; //the expected position
-		offs[1] -= futureGeometry.centres[1]; //the difference vector
-
-		offs[2]  = refCentre;
-		offs[2] += refAxis;
-		offs[2] -= futureGeometry.centres[2];
-
-		//calculate how much is the 1st sphere off its expected position
-		offs[0]  = refCentre;
-		offs[0] -= (centreDistance[0]/(0.5f*centreDistance[1]) +1.0f) * refAxis;
-		offs[0] -= futureGeometry.centres[0];
-
-		//calculate how much is the 4th sphere off its expected position
-		offs[3]  = refCentre;
-		offs[3] += (centreDistance[2]/(0.5f*centreDistance[1]) +1.0f) * refAxis;
-		offs[3] -= futureGeometry.centres[3];
-	}
 
 	// ------------- externals geometry -------------
 	/** limiting distance beyond which I consider no interaction possible
@@ -222,57 +177,6 @@ protected:
 	// ------------- to implement one round of simulation -------------
 	void advanceAndBuildIntForces(const float) override
 	{
-		//check bending of the spheres (how much their position deviates from a line,
-		//includes also checking the distance), and add, if necessary, another
-		//forces to the list
-		Vector3d<FLOAT> sOff[4];
-		getCurrentOffVectorsForCentres(sOff);
-
-		//tolerated mis-position (no "adjustment" s2s forces are created within this radius)
-		const FLOAT keepCalmDistanceSq = (FLOAT)0.01; // 0.01 = 0.1^2
-
-		if (sOff[0].len2() > keepCalmDistanceSq)
-		{
-			//properly scaled force acting on the 1st sphere: body_scale * len()
-			sOff[0] *= fstrength_body_scale;
-			forces.emplace_back( sOff[0], futureGeometry.centres[0],0, ftype_s2s );
-
-			sOff[0] *= -1.0;
-			forces.emplace_back( sOff[0], futureGeometry.centres[1],1, ftype_s2s );
-		}
-
-		if (sOff[1].len2() > keepCalmDistanceSq)
-		{
-			//properly scaled force acting on the 2nd sphere: body_scale * len()
-			sOff[1] *= fstrength_body_scale;
-			forces.emplace_back( sOff[1], futureGeometry.centres[1],1, ftype_s2s );
-
-			sOff[1] *= -0.5;
-			forces.emplace_back( sOff[1], futureGeometry.centres[0],0, ftype_s2s );
-			forces.emplace_back( sOff[1], futureGeometry.centres[2],2, ftype_s2s );
-		}
-
-		if (sOff[2].len2() > keepCalmDistanceSq)
-		{
-			//properly scaled force acting on the 2nd sphere: body_scale * len()
-			sOff[2] *= fstrength_body_scale;
-			forces.emplace_back( sOff[2], futureGeometry.centres[2],2, ftype_s2s );
-
-			sOff[2] *= -0.5;
-			forces.emplace_back( sOff[2], futureGeometry.centres[1],1, ftype_s2s );
-			forces.emplace_back( sOff[2], futureGeometry.centres[3],3, ftype_s2s );
-		}
-
-		if (sOff[3].len2() > keepCalmDistanceSq)
-		{
-			//properly scaled force acting on the 1st sphere: body_scale * len()
-			sOff[3] *= fstrength_body_scale;
-			forces.emplace_back( sOff[3], futureGeometry.centres[3],3, ftype_s2s );
-
-			sOff[3] *= -1.0;
-			forces.emplace_back( sOff[3], futureGeometry.centres[2],2, ftype_s2s );
-		}
-
 		//add forces on the list that represent how and where the nucleus would like to move
 		//TRAgen paper, eq (2): Fdesired = weight * drivingForceMagnitude
 		//NB: the forces will act rigidly on the full nucleus
@@ -535,9 +439,8 @@ protected:
 			int dID = ID << 17 | 1 << 16; //enable debug bit
 
 			//cell centres connection "line" (green):
-			du.DrawLine(dID++, futureGeometry.centres[0],futureGeometry.centres[1], color);
-			du.DrawLine(dID++, futureGeometry.centres[1],futureGeometry.centres[2], color);
-			du.DrawLine(dID++, futureGeometry.centres[2],futureGeometry.centres[3], color);
+			for (int i=1; i < futureGeometry.noOfSpheres; ++i)
+				du.DrawLine(dID++, futureGeometry.centres[i-1],futureGeometry.centres[i], color);
 
 			//draw agent's periphery (as blue spheres)
 			//NB: showing the cell outline, that is now updated from the futureGeometry,
@@ -548,7 +451,7 @@ protected:
 
 			for (int S = 0; S < geometryAlias.noOfSpheres; ++S)
 			{
-				ss.resetByStepSize(geometryAlias.radii[S]);
+				ss.resetByStepSize(geometryAlias.radii[S], 2.6f);
 				while (ss.next(periPoint))
 				{
 					periPoint += geometryAlias.centres[S];
@@ -574,15 +477,6 @@ protected:
 			for (const auto& p : proximityPairs_toYolk)
 			if (p.localHint < 2)
 				du.DrawLine(dID++, p.localPos, p.otherPos, (int)(p.localHint*6));
-
-			//shape deviations:
-			//blue lines to show deviations from the expected geometry
-			Vector3d<FLOAT> sOff[4];
-			getCurrentOffVectorsForCentres(sOff);
-			du.DrawLine(dID++, futureGeometry.centres[0],futureGeometry.centres[0]+sOff[0], 3);
-			du.DrawLine(dID++, futureGeometry.centres[1],futureGeometry.centres[1]+sOff[1], 3);
-			du.DrawLine(dID++, futureGeometry.centres[2],futureGeometry.centres[2]+sOff[2], 3);
-			du.DrawLine(dID++, futureGeometry.centres[3],futureGeometry.centres[3]+sOff[3], 3);
 
 			//magenta lines with trajectory guiding vectors
 			for (const auto& p : proximityPairs_tracks)
