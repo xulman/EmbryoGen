@@ -134,9 +134,6 @@ public:
 		//displayUnit.RegisterUnit( new SceneryBufferedDisplayUnit("192.168.3.110:8765") );
 	}
 
-	int argc;
-	char** argv;
-
 
 	/** allocates output images, adds agents, renders the first frame */
 	void init(void)
@@ -298,13 +295,26 @@ public:
 
 	// --------------------------------------------------
 
-private:
+	/** setter for the argc & argv CLI params for initializeAgents() */
+	void setArgs(int argc, char** argv)
+	{
+		this->argc = argc;
+		this->argv = argv;
+	}
+
+protected:
+	/** CLI params that might be considered by initializeAgents() */
+	int argc;
+	/** CLI params that might be considered by initializeAgents() */
+	char** argv;
+
 	/** Just initializes all agents: positions, weights, etc.,
 	    and adds them into the this->agents, and into the this->tracks.
 	    Additional command-line parameters may be available
 	    as this->argc and this->argv. */
 	virtual void initializeAgents(void) =0;
 
+private:
 	/** Flags if agents' drawForDebug() should be called with every this->renderNextFrame() */
 	bool renderingDebug = false;
 

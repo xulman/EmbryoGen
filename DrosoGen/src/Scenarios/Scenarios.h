@@ -67,8 +67,9 @@ public:
 			}
 		}
 
-		simulation->argc = argc;
-		simulation->argv = argv;
+		//pass the CLI params inside, to be
+		//possibly considered by initializeAgents()
+		simulation->setArgs(argc,argv);
 	}
 
 
