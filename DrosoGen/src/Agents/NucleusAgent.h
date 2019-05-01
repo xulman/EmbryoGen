@@ -54,6 +54,8 @@ public:
 		velocity_CurrentlyDesired = 0; //no own movement desired yet
 		velocity_PersistenceTime  = (FLOAT)2.0;
 
+		for (int i=0; i < shape.noOfSpheres; ++i) weights[i] = (FLOAT)1.0;
+
 		curPhase = G1Phase;
 
 		//DEBUG_REPORT("Nucleus with ID=" << ID << " was just created");
@@ -147,10 +149,12 @@ protected:
 		if (detailedReportingMode)
 		{
 			for (const auto& f : forces) REPORT(ID << ": ||=" << f.len() << "\tforce " << f);
-			REPORT(ID << ": final forces  |0|=" << accels[0].len()
-			                        << ", |1|=" << accels[1].len()
-			                        << ", |2|=" << accels[2].len()
-			                        << ", |3|=" << accels[3].len());
+
+			std::ostringstream forcesReport;
+			forcesReport << ID << ": final forces";
+			for (int i=0; i < futureGeometry.noOfSpheres; ++i)
+				forcesReport << ", |" << i << "|=" << accels[i].len();
+			REPORT(forcesReport.str());
 		}
 #endif
 		//now, translation is a result of forces:
@@ -208,7 +212,7 @@ protected:
 		for (int i=0; i < futureGeometry.noOfSpheres; ++i)
 		{
 			forces.emplace_back(
-				(-weights[i]/velocity_PersistenceTime)*velocities[i],
+				(-weights[i]/velocity_PersistenceTime) * velocities[i],
 				futureGeometry.centres[i],i, ftype_friction );
 		}
 
@@ -347,10 +351,8 @@ protected:
 			f *= 2*fstrength_overlap_level * std::min(pp.distance*pp.distance * fstrength_hinter_scale,(FLOAT)1);
 
 			//apply the same force to all spheres
-			forces.emplace_back( f, futureGeometry.centres[0],0, ftype_hinter );
-			forces.emplace_back( f, futureGeometry.centres[1],1, ftype_hinter );
-			forces.emplace_back( f, futureGeometry.centres[2],2, ftype_hinter );
-			forces.emplace_back( f, futureGeometry.centres[3],3, ftype_hinter );
+			for (int i=0; i < futureGeometry.noOfSpheres; ++i)
+				forces.emplace_back( f, futureGeometry.centres[i],i, ftype_hinter );
 		}
 
 #ifdef DEBUG
@@ -500,11 +502,18 @@ protected:
 			}
 #endif
 			//velocities:
-			REPORT(ID << ": velocity[1]=" << velocities[1]
-			          << "  |0|=" << velocities[0].len()
-			          << ", |1|=" << velocities[1].len()
-			          << ", |2|=" << velocities[2].len()
-			          << ", |3|=" << velocities[3].len());
+			std::ostringstream velocitiesReport;
+			//
+			//choose 2nd sphere if avail, else 1st sphere if avail, else none (then: Idx == -1)
+			const int velocityReportIdx = std::min(2,futureGeometry.noOfSpheres) -1;
+			if (velocityReportIdx == -1)
+				velocitiesReport << ID << ": no spheres -> no velocities";
+			else
+				velocitiesReport << ID << ": velocity[" << velocityReportIdx << "]=" << velocities[velocityReportIdx];
+			//
+			for (int i=0; i < futureGeometry.noOfSpheres; ++i)
+				velocitiesReport << ", |" << i << "|=" << velocities[i].len();
+			REPORT(velocitiesReport.str());
 		}
 	}
 
