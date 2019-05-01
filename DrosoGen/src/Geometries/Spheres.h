@@ -12,7 +12,7 @@
  */
 class Spheres: public Geometry
 {
-private:
+protected:
 	/** length of the this.centres and this.radii arrays */
 	const int noOfSpheres;
 
@@ -30,6 +30,10 @@ public:
 		  centres(new Vector3d<FLOAT>[noOfSpheres]),
 		  radii(new FLOAT[noOfSpheres])
 	{
+		//sanity check...
+		if (_noOfSpheres < 0)
+			throw new std::runtime_error("Spheres::c'tor(): Cannot construct geometry with negative number of spheres.");
+
 		for (int i=0; i < noOfSpheres; ++i) radii[i] = 0.0;
 	}
 
@@ -221,5 +225,6 @@ public:
 
 
 	friend class NucleusAgent;
+	friend class Nucleus4SAgent;
 };
 #endif
