@@ -174,8 +174,6 @@ public:
 			for (; c != agents.end(); c++)
 			{
 				(*c)->advanceAndBuildIntForces(futureTime);
-				(*c)->adjustGeometryByIntForces();
-
 #ifdef DEBUG
 				if ((*c)->getLocalTime() < futureTime)
 					throw new std::runtime_error("Simulation::execute(): Agent is not synchronized.");
@@ -186,6 +184,7 @@ public:
 			c=agents.begin();
 			for (; c != agents.end(); c++)
 			{
+				(*c)->adjustGeometryByIntForces();
 				(*c)->updateGeometry();
 			}
 
@@ -194,13 +193,13 @@ public:
 			for (; c != agents.end(); c++)
 			{
 				(*c)->collectExtForces();
-				(*c)->adjustGeometryByExtForces();
 			}
 
 			//propagate current internal geometries to the exported ones... (can run in parallel)
 			c=agents.begin();
 			for (; c != agents.end(); c++)
 			{
+				(*c)->adjustGeometryByExtForces();
 				(*c)->updateGeometry();
 			}
 
