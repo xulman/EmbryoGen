@@ -2,8 +2,7 @@
 #include "../Geometries/Spheres.h"
 #include "../Geometries/ScalarImg.h"
 #include "../Simulation.h"
-#include "../Agents/AbstractAgent.h"
-#include "../Agents/NucleusAgent.h"
+#include "../Agents/Nucleus4SAgent.h"
 #include "../Agents/ShapeHinter.h"
 #include "Scenarios.h"
 
@@ -39,7 +38,7 @@ void Scenario_AFewAgents::initializeAgents(void)
 		s.updateCentre(3,pos+Vector3d<float>(0,0,+9));
 		s.updateRadius(3,3.0f);
 
-		AbstractAgent* ag = new NucleusAgent(ID++,"nucleus",s,currTime,incrTime);
+		Nucleus4SAgent* ag = new Nucleus4SAgent(ID++,"nucleus",s,currTime,incrTime);
 		ag->setOfficer(this);
 		agents.push_back(ag);
 		tracks.startNewTrack(ag->ID,frameCnt);
@@ -77,7 +76,7 @@ void Scenario_AFewAgents::initializeAgents(void)
 	//m.saveDistImg("GradIN_ZeroOUT.tif");
 
 	//finally, create the simulation agent to register this shape
-	AbstractAgent* ag = new ShapeHinter(ID++,"yolk",m,currTime,incrTime);
+	ShapeHinter* ag = new ShapeHinter(ID++,"yolk",m,currTime,incrTime);
 	ag->setOfficer(this);
 	agents.push_back(ag);
 }

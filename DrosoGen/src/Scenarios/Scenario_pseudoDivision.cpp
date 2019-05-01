@@ -23,7 +23,6 @@ void Scenario_pseudoDivision::initializeAgents(void)
 	for (int i=0; i < howManyToPlace; ++i)
 	{
 		//the wished position relative to [0,0,0] centre
-		Vector3d<float> axis(0,1,0);
 		Vector3d<float> pos((float)i*1.0f,0,50);
 
 		//position is shifted to the scene centre
@@ -36,15 +35,9 @@ void Scenario_pseudoDivision::initializeAgents(void)
 		pos.y += sceneOffset.y;
 		pos.z += sceneOffset.z;
 
-		Spheres s(4);
+		Spheres s(1);
 		s.updateCentre(0,pos);
-		s.updateRadius(0,1.0f);
-		s.updateCentre(1,pos +0.1f*axis);
-		s.updateRadius(1,1.5f);
-		s.updateCentre(2,pos +0.2f*axis);
-		s.updateRadius(2,2.0f);
-		s.updateCentre(3,pos +0.3f*axis);
-		s.updateRadius(3,10.0f);
+		s.updateRadius(0,10.0f);
 
 		myNucleusB* ag = new myNucleusB(ID++,"nucleus",s,currTime,incrTime);
 		ag->setOfficer(this);

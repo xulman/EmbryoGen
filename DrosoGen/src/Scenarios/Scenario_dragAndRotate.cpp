@@ -3,19 +3,18 @@
 #include "../Geometries/ScalarImg.h"
 #include "../Geometries/VectorImg.h"
 #include "../Simulation.h"
-#include "../Agents/AbstractAgent.h"
-#include "../Agents/NucleusAgent.h"
+#include "../Agents/Nucleus4SAgent.h"
 #include "../Agents/ShapeHinter.h"
 #include "../Agents/TrajectoriesHinter.h"
 #include "Scenarios.h"
 
-class myNucleus: public NucleusAgent
+class myNucleus: public Nucleus4SAgent
 {
 public:
 	myNucleus(const int _ID, const std::string& _type,
 	          const Spheres& shape,
 	          const float _currTime, const float _incrTime):
-		NucleusAgent(_ID,_type, shape, _currTime,_incrTime)
+		Nucleus4SAgent(_ID,_type, shape, _currTime,_incrTime)
 		{ cytoplasmWidth = 0.0f; }
 
 
@@ -41,7 +40,7 @@ public:
 		velocity_CurrentlyDesired.z = 1.0f* std::sin(currTime/10.f * 6.28f);
 
 		//call the original method... takes care of own velocity, spheres mis-alignments, etc.
-		NucleusAgent::advanceAndBuildIntForces(0.f);
+		Nucleus4SAgent::advanceAndBuildIntForces(0.f);
 	}
 };
 

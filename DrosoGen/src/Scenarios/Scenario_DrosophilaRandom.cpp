@@ -3,20 +3,19 @@
 #include "../Geometries/ScalarImg.h"
 #include "../Geometries/VectorImg.h"
 #include "../Simulation.h"
-#include "../Agents/AbstractAgent.h"
-#include "../Agents/NucleusAgent.h"
+#include "../Agents/Nucleus4SAgent.h"
 #include "../Agents/ShapeHinter.h"
 #include "../Agents/TrajectoriesHinter.h"
 #include "../Agents/util/Growable4Spheres.h"
 #include "Scenarios.h"
 
-class myNucleus: public NucleusAgent
+class GrowableNucleus: public Nucleus4SAgent
 {
 public:
-	myNucleus(const int _ID, const std::string& _type,
-	          const Growable4Spheres& shape,
-	          const float _currTime, const float _incrTime):
-		NucleusAgent(_ID,_type, shape, _currTime,_incrTime) {}
+	GrowableNucleus(const int _ID, const std::string& _type,
+	                const Growable4Spheres& shape,
+	                const float _currTime, const float _incrTime):
+		Nucleus4SAgent(_ID,_type, shape, _currTime,_incrTime) {}
 
 	float startGrowTime = 99999999.f;
 	float stopGrowTime  = 99999999.f;
@@ -45,7 +44,7 @@ protected:
 		}
 
 		//also call the upstream original method
-		NucleusAgent::advanceAndBuildIntForces(dt);
+		Nucleus4SAgent::advanceAndBuildIntForces(dt);
 	}
 };
 
@@ -107,7 +106,7 @@ void Scenario_DrosophilaRandom::initializeAgents(void)
 			s.updateCentre(3,pos +18.0f*axis);
 			s.updateRadius(3,3.0f);
 
-			myNucleus* ag = new myNucleus(ID++,"nucleus",s,currTime,incrTime);
+			GrowableNucleus* ag = new GrowableNucleus(ID++,"nucleus",s,currTime,incrTime);
 			ag->setOfficer(this);
 			ag->startGrowTime=10.0f;
 			agents.push_back(ag);
@@ -122,7 +121,7 @@ void Scenario_DrosophilaRandom::initializeAgents(void)
 	//m.saveDistImg("GradIN_ZeroOUT.tif");
 
 	//finally, create the simulation agent to register this shape
-	AbstractAgent* ag = new ShapeHinter(ID++,"yolk",m,currTime,incrTime);
+	ShapeHinter* ag = new ShapeHinter(ID++,"yolk",m,currTime,incrTime);
 	ag->setOfficer(this);
 	agents.push_back(ag);
 
