@@ -586,6 +586,7 @@ protected:
 			//and stored already in the geometryAlias
 			SphereSampler<float> ss;
 			Vector3d<float> periPoint;
+			int periPointCnt=0;
 
 			for (int S = 0; S < geometryAlias.noOfSpheres; ++S)
 			{
@@ -595,10 +596,14 @@ protected:
 					periPoint += geometryAlias.centres[S];
 
 					//draw the periPoint only if it collides with no (and excluding this) sphere
-					if (geometryAlias.collideWithPoint(periPoint, S) == 0)
+					if (geometryAlias.collideWithPoint(periPoint, S) == -1)
+					{
+						++periPointCnt;
 						du.DrawPoint(dID++, periPoint, 0.3f, 3);
+					}
 				}
 			}
+			DEBUG_REPORT(IDSIGN << "surface consists of " << periPointCnt << " spheres");
 
 			//red lines with overlapping proximity pairs to nuclei
 			for (const auto& p : proximityPairs_toNuclei)
