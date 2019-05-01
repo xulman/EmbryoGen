@@ -1,6 +1,5 @@
 #include "../util/rnd_generators.h"
 #include "../util/Vector3d.h"
-#include "../Geometries/Spheres.h"
 #include "../Geometries/ScalarImg.h"
 #include "../Geometries/VectorImg.h"
 #include "../Simulation.h"
@@ -8,7 +7,47 @@
 #include "../Agents/NucleusAgent.h"
 #include "../Agents/ShapeHinter.h"
 #include "../Agents/TrajectoriesHinter.h"
+#include "../Agents/util/Growable4Spheres.h"
 #include "Scenarios.h"
+
+class myNucleus: public NucleusAgent
+{
+public:
+	myNucleus(const int _ID, const std::string& _type,
+	          const Growable4Spheres& shape,
+	          const float _currTime, const float _incrTime):
+		NucleusAgent(_ID,_type, shape, _currTime,_incrTime) {}
+
+	float startGrowTime = 99999999.f;
+	float stopGrowTime  = 99999999.f;
+
+protected:
+	Growable4Spheres futureGeometry;
+	int incrCnt = 0;
+
+	void advanceAndBuildIntForces(const float dt) override
+	{
+		//adjust the shape at first
+		if (currTime >= startGrowTime && currTime <= stopGrowTime && incrCnt < 30)
+		{
+			//"grow factor"
+			const FLOAT dR = 0.05f;    //radius
+			const FLOAT dD = 1.8f*dR;  //diameter
+
+			//grow the current geometry
+			futureGeometry.growBy(dR,dD);
+
+			//also update the expected distances
+			for (int i=1; i < futureGeometry.getNoOfSpheres(); ++i) centreDistance[i-1] += dD;
+
+			//emergency break...
+			++incrCnt;
+		}
+
+		//also call the upstream original method
+		NucleusAgent::advanceAndBuildIntForces(dt);
+	}
+};
 
 void Scenario_DrosophilaRandom::initializeAgents(void)
 {
@@ -58,7 +97,7 @@ void Scenario_DrosophilaRandom::initializeAgents(void)
 			//also random shift along the main axis
 			pos.x += GetRandomGauss(0.f,0.3f*dx,coordShifterRNG);
 
-			Spheres s(4);
+			Growable4Spheres s;
 			s.updateCentre(0,pos);
 			s.updateRadius(0,3.0f);
 			s.updateCentre(1,pos +6.0f*axis);
@@ -68,7 +107,7 @@ void Scenario_DrosophilaRandom::initializeAgents(void)
 			s.updateCentre(3,pos +18.0f*axis);
 			s.updateRadius(3,3.0f);
 
-			NucleusAgent* ag = new NucleusAgent(ID++,"nucleus",s,currTime,incrTime);
+			myNucleus* ag = new myNucleus(ID++,"nucleus",s,currTime,incrTime);
 			ag->setOfficer(this);
 			ag->startGrowTime=10.0f;
 			agents.push_back(ag);
