@@ -351,6 +351,70 @@ private:
 	// --------------------------------------------------
 	// service for agents (externals):  add/divide/remove agents
 
+public:
+	/** introduces a new agent into the universe of this simulation, and,
+	    optionally, it can log this event into the CTC tracking file */
+	void startNewAgent(AbstractAgent* ag, const bool wantsToAppearInCTCtracksTXTfile = true)
+	{
+		if (ag == NULL)
+			throw new std::runtime_error("Simulation::startNewAgent(): refuse to include NULL agent.");
+
+		//TODO reentrant: this method may be run multiple times in parallel
+		//register the agent for adding into the system
+		newAgents.push_back(ag);
+		ag->setOfficer(this);
+
+		//CTC logging?
+		if (wantsToAppearInCTCtracksTXTfile) tracks.startNewTrack(ag->ID, frameCnt);
+	}
+
+	/** removes the agent from this simulation, this event is logged into
+	    the CTC tracking file iff the agent was registered previously;
+	    for the CTC logging, it is assumed that the agent is not available in
+	    the current rendered frame but was (last) visible in the previous frame */
+	void closeAgent(AbstractAgent* ag)
+	{
+		if (ag == NULL)
+			throw new std::runtime_error("Simulation::closeAgent(): refuse to deal with NULL agent.");
+
+		//TODO reentrant: this method may be run multiple times in parallel
+		//register the agent for removing from the system
+		deadAgents.push_back(ag);
+
+		//CTC logging?
+		if (tracks.isTrackFollowed(ag->ID)) tracks.closeTrack(ag->ID, frameCnt-1);
+	}
+
+	/** introduces a new agent into the universe of this simulation, and,
+	    _automatically_, it logs this event into the CTC tracking file
+	    along with the (explicit) parental information; the mother-daughter
+	    relationship is purely semantical and is here only because of the
+	    CTC format, that said, the simulator does not care if an agent is
+	    actually a "daughter" of another agent */
+	void startNewDaughterAgent(AbstractAgent* ag, const int parentID)
+	{
+		startNewAgent(ag, true);
+
+		//CTC logging: also add the parental link
+		tracks.updateParentalLink(ag->ID, parentID);
+	}
+
+	/** removes the 'mother' agent from this simulation and introduces two new instead, this event
+	    is logged into the CTC tracking file automatically (see the docs of startNewDaughterAgent());
+	    for the CTC logging, it is assumed that the mother is not available in
+	    the current rendered frame but was (last) visible in the previous frame */
+	void closeMotherStartDaughters(AbstractAgent* mother,
+	                               AbstractAgent* daughterA, AbstractAgent* daughterB)
+	{
+		if (mother == NULL || daughterA == NULL || daughterB == NULL)
+			throw new std::runtime_error("Simulation::closeMotherStartDaughters(): refuse to deal with (some) NULL agent.");
+
+		closeAgent(mother);
+		startNewDaughterAgent(daughterA, mother->ID);
+		startNewDaughterAgent(daughterB, mother->ID);
+		//NB: this can be extended to any number of daughters
+	}
+
 	// --------------------------------------------------
 	// service for agents (externals):  getNearbyAgents()
 
