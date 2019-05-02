@@ -226,5 +226,6 @@ public:
 
 	friend class NucleusAgent;
 	friend class Nucleus4SAgent;
+	friend class SpheresFunctions;
 };
 #endif

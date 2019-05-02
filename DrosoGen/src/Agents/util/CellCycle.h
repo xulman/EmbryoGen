@@ -1,7 +1,7 @@
 #ifndef CELLCYCLE_H
 #define CELLCYCLE_H
 
-#include "../util/rnd_generators.h"
+#include "../../util/rnd_generators.h"
 
 /** A datatype enumerating the particular phases of cell cycle */
 typedef enum
