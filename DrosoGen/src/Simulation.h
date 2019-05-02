@@ -169,7 +169,8 @@ public:
 			//reach local times greater than this global time
 			const float futureTime = currTime + incrTime -0.0001f;
 
-			//develop (willingly) new shapes... (can run in parallel)
+			//develop (willingly) new shapes... (can run in parallel),
+			//the agents' (external at least!) geometries must not change during this phase
 			std::list<AbstractAgent*>::iterator c=agents.begin();
 			for (; c != agents.end(); c++)
 			{
@@ -188,7 +189,8 @@ public:
 				(*c)->updateGeometry();
 			}
 
-			//react (unwillingly) to the new geometries... (can run in parallel)
+			//react (unwillingly) to the new geometries... (can run in parallel),
+			//the agents' (external at least!) geometries must not change during this phase
 			c=agents.begin();
 			for (; c != agents.end(); c++)
 			{

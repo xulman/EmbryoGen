@@ -23,7 +23,7 @@ public:
 protected:
 	int incrCnt = 0;
 
-	void advanceAndBuildIntForces(const float dt) override
+	void adjustGeometryByIntForces() override
 	{
 		//adjust the shape at first
 		if (currTime >= startGrowTime && currTime <= stopGrowTime && incrCnt < 30)
@@ -36,14 +36,14 @@ protected:
 			SpheresFunctions::grow4SpheresBy(futureGeometry, dR,dD);
 
 			//also update the expected distances
-			for (int i=1; i < futureGeometry.getNoOfSpheres(); ++i) centreDistance[i-1] += dD;
+			for (int i=1; i < 4; ++i) centreDistance[i-1] += dD;
 
 			//emergency break...
 			++incrCnt;
 		}
 
 		//also call the upstream original method
-		Nucleus4SAgent::advanceAndBuildIntForces(dt);
+		Nucleus4SAgent::adjustGeometryByIntForces();
 	}
 };
 
