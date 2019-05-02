@@ -36,9 +36,9 @@ public:
 	/** MoID mother got divided into DoAID and DoBID daughters
 	    who came to being at frameNo, mother was last seen at frameNo-1.
 	    It is also assumed that mother's track record is already existing. */
-	void startDaughtersCloseMother(const int MoID,
-	                               const int DoAID, const int DoBID,
-	                               const int frameNo)
+	void closeMotherStartDaughtersTracks(const int MoID,
+	                   const int DoAID, const int DoBID,
+	                   const int frameNo)
 	{
 		//close the mother tracks
 		(*this)[MoID].toTimeStamp = frameNo-1;
@@ -48,10 +48,28 @@ public:
 		(*this)[DoBID] = TrackRecord_CTC(DoBID,frameNo,-1,MoID);
 	}
 
+	/** additionally (re)defines the parental link of the track ID */
+	void updateParentalLink(const int ID, const int parentID)
+	{
+		(*this)[ID].parentID = parentID;
+	}
+
 	/** closes the track ID at time point frameNo */
 	void closeTrack(const int ID, const int frameNo)
 	{
 		(*this)[ID].toTimeStamp = frameNo;
+	}
+
+	/** returns true if the track ID has been closed already */
+	bool isTrackClosed(const int ID)
+	{
+		return ( (*this)[ID].toTimeStamp > -1 );
+	}
+
+	/** returns true if the track ID is registered/listed/tracked/present */
+	bool isTrackFollowed(const int ID)
+	{
+		return ( this->find(ID) != this->end() );
 	}
 
 	void exportAllToFile(const char* filename)

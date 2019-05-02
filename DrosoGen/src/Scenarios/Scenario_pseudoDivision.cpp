@@ -11,7 +11,45 @@ public:
 	          const Spheres& shape,
 	          const float _currTime, const float _incrTime):
 		NucleusAgent(_ID,_type, shape, _currTime,_incrTime)
-		{ cytoplasmWidth = 25.0f; }
+		{
+			REPORT(IDSIGN << "c'tor");
+			cytoplasmWidth = 25.0f;
+		}
+
+	~myNucleusB(void) { REPORT(IDSIGN << "d'tor"); }
+
+
+	void advanceAndBuildIntForces(const float gTime) override
+	{
+		if (gTime >= 2.0f && ID == 1)
+		{
+			//Officer->closeAgent(this);
+
+			int IID = ID+10;
+
+			Spheres s(futureGeometry);
+			s.updateCentre(0, s.getCentres()[0] + Vector3d<float>(0,0,5));
+			s.updateCentre(1, s.getCentres()[1] + Vector3d<float>(0,0,5));
+			myNucleusB* agA = new myNucleusB(IID++,"nucleusB",s,currTime+incrTime,incrTime);
+			agA->setDetailedDrawingMode(true);
+			//Officer->startNewDaughterAgent(agA,ID);
+
+			s.updateCentre(0, s.getCentres()[0] - Vector3d<float>(0,0,10));
+			s.updateCentre(1, s.getCentres()[1] - Vector3d<float>(0,0,10));
+			myNucleusB* agB = new myNucleusB(IID++,"nucleusB",s,currTime+incrTime,incrTime);
+			agB->setDetailedDrawingMode(true);
+			//Officer->startNewDaughterAgent(agB,ID);
+
+			Officer->closeMotherStartDaughters(this,agA,agB);
+		}
+
+#ifdef DEBUG
+		//export forces for display:
+		forcesForDisplay = forces;
+#endif
+		//increase the local time of the agent
+		currTime += incrTime;
+	}
 };
 
 void Scenario_pseudoDivision::initializeAgents(void)
@@ -35,14 +73,16 @@ void Scenario_pseudoDivision::initializeAgents(void)
 		pos.y += sceneOffset.y;
 		pos.z += sceneOffset.z;
 
-		Spheres s(1);
+		Spheres s(2);
 		s.updateCentre(0,pos);
 		s.updateRadius(0,10.0f);
+		s.updateCentre(1,pos+Vector3d<float>(0,3,0));
+		s.updateRadius(1,10.0f);
 
 		myNucleusB* ag = new myNucleusB(ID++,"nucleus",s,currTime,incrTime);
-		ag->setOfficer(this);
 		ag->setDetailedDrawingMode(true);
-		agents.push_back(ag);
-		tracks.startNewTrack(ag->ID,frameCnt);
+		startNewAgent(ag);
 	}
+
+	stopTime = 6.0f;
 }

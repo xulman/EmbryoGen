@@ -5,15 +5,19 @@
 
 int main(int argc, char** argv)
 {
+	Simulation* s = NULL;
+
 	try
 	{
-		Simulation& s = Scenarios(argc,argv).getSimulation();
+		s = Scenarios(argc,argv).getSimulation();
 
-		s.init();    //init the simulation, and render the first frame
-		s.execute(); //execute the simulation, and render frames
-		s.close();   //close the simulation, and save tracks.txt
+		s->init();    //init the simulation, and render the first frame
+		s->execute(); //execute the simulation, and render frames
+		s->close();   //close the simulation, deletes agents, and save tracks.txt
 
-		std::cout << "Happy end.\n";
+		std::cout << "Happy end.\n\n";
+
+		delete s;     //calls also destructor for very final clean up
 		return (0);
 	}
 	catch (const char *e)
@@ -45,6 +49,8 @@ int main(int argc, char** argv)
 		std::cout << "System exception.\n\n";
 	}
 
-	//also attempts to save tracks.txt
+	//calls destructor for very final clean up, it will also call
+	//the Simulation::close() if it has not been called before...
+	if (s != NULL) delete s;
 	return (1);
 }

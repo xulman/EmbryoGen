@@ -155,9 +155,9 @@ public:
 	}
 
 	/** This is where agent's internal affairs happen, e.g., development
-	    of agent's state (other simulated sub-objects, texture), movement,
-	    chemotaxis smelling etc., the agent signals its will to change
-	    shape by creating (internal) forces.
+	    of agent's state (other simulated sub-objects, texture), movement
+	    decision (but not the movement itself!), chemotaxis smelling etc.,
+	    the agent signals its will to change shape by creating (internal) forces.
 
 	    The agent is expected to develop its simulation to at least the given
 	    futureGlobalTime, which is where the current simulation round will
@@ -167,8 +167,14 @@ public:
 	    uses smaller time step than the global one. In any case, the agent must
 	    keep itself in synchrony with the global time.
 
-	    This is method implements agent's development (e.g. the process of growth).
-	    It should, therefore, be concluded with adjusting the local time. */
+	    This method implements agent's development (e.g. the process of aging).
+	    It should, therefore, be concluded with adjusting the local time.
+
+	    This method must not change agent's exported geometry. The method may,
+	    however, consider the (exported) geometries when making its own decisions
+	    (e.g., where to position daughters after the division). The method may
+	    change its internal/private geometry, despite this is recommended to
+	    be implemented in the advanceAndBuildIntForces() method. */
 	virtual
 	void advanceAndBuildIntForces(const float futureGlobalTime) =0;
 
@@ -192,7 +198,7 @@ public:
 
 	/** An agent maintains data structure to represent next-time-point geometry. This one is
 	    being built in the current round of simulation, the "futureGeometry" of this agent.
-	    Additionally, the futureGeometry may be much more detailed than this.geometry.
+	    Additionally, the this.futureGeometry may be much more detailed than this.geometry.
 	    However, since this.geometry is what is visible to the outside world, we need
 	    a convertor function to "publish" the new geometry to the world. In other words,
 	    to update the (old) this.geometry with the (new) this.futureGeometry. */

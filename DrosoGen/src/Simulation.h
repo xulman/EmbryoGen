@@ -94,16 +94,21 @@ protected:
 	const float incrTime = 0.1f;
 
 	/** at what global time should the simulation stop [min] */
-	const float stopTime = 200.2f;
+	float stopTime = 200.2f;
 
 	/** export simulation status always after this amount of global time, [min]
 	    should be multiple of incrTime to obtain regular sampling */
-	const float expoTime = 0.5f;
+	float expoTime = 0.5f;
 
 	// --------------------------------------------------
 
-	/** list of all agents currently active in the simulation */
+	/** list of all agents currently active in the simulation
+	    and calculated on this node (managed by this officer) */
 	std::list<AbstractAgent*> agents;
+
+	/** list of all agents currently active in the simulation
+	    and calculated elsewhere (managed by foreign officers) */
+	std::list<ShadowAgent*> shadowAgents;
 
 	/** structure to hold durations of tracks and the mother-daughter relations */
 	TrackRecords_CTC tracks;
@@ -112,6 +117,7 @@ protected:
 	bool simulationProperlyClosed = false;
 
 	// --------------------------------------------------
+	// execute and maintenance methods:  init(), execute(), close()
 
 public:
 	/** initializes the simulation parameters */
@@ -151,7 +157,10 @@ public:
 #endif
 
 		initializeAgents();
-		REPORT("--------------- " << currTime << " min (" << agents.size() << " agents) ---------------");
+		updateAndPublishAgents();
+		REPORT("--------------- " << currTime << " min ("
+		  << agents.size() << " local and "
+		  << shadowAgents.size() << " shadow agents) ---------------");
 
 		renderNextFrame();
 	}
@@ -169,13 +178,12 @@ public:
 			//reach local times greater than this global time
 			const float futureTime = currTime + incrTime -0.0001f;
 
-			//develop (willingly) new shapes... (can run in parallel)
+			//develop (willingly) new shapes... (can run in parallel),
+			//the agents' (external at least!) geometries must not change during this phase
 			std::list<AbstractAgent*>::iterator c=agents.begin();
 			for (; c != agents.end(); c++)
 			{
 				(*c)->advanceAndBuildIntForces(futureTime);
-				(*c)->adjustGeometryByIntForces();
-
 #ifdef DEBUG
 				if ((*c)->getLocalTime() < futureTime)
 					throw new std::runtime_error("Simulation::execute(): Agent is not synchronized.");
@@ -186,23 +194,29 @@ public:
 			c=agents.begin();
 			for (; c != agents.end(); c++)
 			{
+				(*c)->adjustGeometryByIntForces();
 				(*c)->updateGeometry();
 			}
 
-			//react (unwillingly) to the new geometries... (can run in parallel)
+			updateAndPublishAgents();
+
+			//react (unwillingly) to the new geometries... (can run in parallel),
+			//the agents' (external at least!) geometries must not change during this phase
 			c=agents.begin();
 			for (; c != agents.end(); c++)
 			{
 				(*c)->collectExtForces();
-				(*c)->adjustGeometryByExtForces();
 			}
 
 			//propagate current internal geometries to the exported ones... (can run in parallel)
 			c=agents.begin();
 			for (; c != agents.end(); c++)
 			{
+				(*c)->adjustGeometryByExtForces();
 				(*c)->updateGeometry();
 			}
+
+			updateAndPublishAgents();
 
 			//overlap reports:
 			DEBUG_REPORT("max overlap: " << overlapMax
@@ -213,7 +227,9 @@ public:
 
 			// move to the next simulation time point
 			currTime += incrTime;
-			REPORT("--------------- " << currTime << " min (" << agents.size() << " agents) ---------------");
+			REPORT("--------------- " << currTime << " min ("
+			  << agents.size() << " local and "
+			  << shadowAgents.size() << " shadow agents) ---------------");
 
 			// is this the right time to export data?
 			if (currTime >= frameCnt*expoTime) renderNextFrame();
@@ -227,12 +243,24 @@ public:
 		//mark before closing is attempted...
 		simulationProperlyClosed = true;
 
-		//delete all agents...
+		//delete all agents... also from newAgents & deadAgents, note that the
+		//same agent may exist on the agents and deadAgents lists simultaneously
 		std::list<AbstractAgent*>::iterator iter=agents.begin();
 		while (iter != agents.end())
 		{
-			if ((*iter)->getAgentType().find("nucleus") != std::string::npos)
+			//CTC logging?
+			if ( tracks.isTrackFollowed((*iter)->ID)      //was part of logging?
+			&&  !tracks.isTrackClosed((*iter)->ID) )      //wasn't closed yet?
 				tracks.closeTrack((*iter)->ID,frameCnt-1);
+
+			//check and possibly remove from the deadAgents list
+			auto daIt = deadAgents.begin();
+			while (daIt != deadAgents.end() && *daIt != *iter) ++daIt;
+			if (daIt != deadAgents.end())
+			{
+				DEBUG_REPORT("removing from deadAgents duplicate ID " << (*daIt)->ID);
+				deadAgents.erase(daIt);
+			}
 
 			delete *iter; *iter = NULL;
 			iter++;
@@ -240,15 +268,159 @@ public:
 
 		tracks.exportAllToFile("tracks.txt");
 		DEBUG_REPORT("tracks.txt was saved...");
+
+		//now remove what's left on newAgents and deadAgents
+		DEBUG_REPORT("will remove " << newAgents.size() << " and " << deadAgents.size()
+		          << " agents from newAgents and deadAgents, respectively");
+		while (!newAgents.empty())
+		{
+			delete newAgents.front();
+			newAgents.pop_front();
+		}
+		while (!deadAgents.empty())
+		{
+			delete deadAgents.front();
+			deadAgents.pop_front();
+		}
 	}
 
 
 	/** tries to save tracks.txt at least, if not done earlier */
-	~Simulation(void)
+	virtual ~Simulation(void)
 	{
+		DEBUG_REPORT("simulation already closed? " << (simulationProperlyClosed ? "yes":"no"));
 		if (!simulationProperlyClosed) this->close();
 	}
 
+	// --------------------------------------------------
+	// execute and maintenance methods:  adding and removing agents
+
+private:
+	/** lists of existing agents scheduled for the addition to or
+	    for the removal from the simulation (at the appropriate occasion) */
+	std::list<AbstractAgent*> newAgents, deadAgents;
+
+	/** register the new agents, unregister the dead agents;
+	    distribute the new and old existing agents to the sites,
+	    revoke/invalidate dead agents from the sites;
+		 also retrieve similar requests from other co-workers */
+	void updateAndPublishAgents()
+	{
+		//remove/unregister dead agents
+		//(but keep them on the "dead list" for now)
+		auto ag = deadAgents.begin();
+		while (ag != deadAgents.end())
+		{
+			agents.remove(*ag);
+			++ag;
+		}
+
+		//register the new ones (and remove from the "new born list")
+		ag = newAgents.begin();
+		while (ag != newAgents.end())
+		{
+			agents.push_back(*ag);
+			ag = newAgents.erase(ag);
+		}
+
+		//now revoke/invalidate the dead ones
+		ag = deadAgents.begin();
+		while (ag != deadAgents.end())
+		{
+			//TODO... ask for the revocation
+			//DEBUG_REPORT("Revoke ID " << (*ag)->ID);
+
+			delete *ag;
+			ag = deadAgents.erase(ag);
+		}
+
+		//now distribute the existing ones
+		ag = agents.begin();
+		while (ag != agents.end())
+		{
+			//TODO... send the geometry update
+			//DEBUG_REPORT("Update ID " << (*ag)->ID);
+
+			++ag;
+		}
+
+		//TODO... wait for and process data from co-workers
+		//        and update this->shadowAgents
+	}
+
+	// --------------------------------------------------
+	// service for agents (externals):  add/divide/remove agents
+
+public:
+	/** introduces a new agent into the universe of this simulation, and,
+	    optionally, it can log this event into the CTC tracking file */
+	void startNewAgent(AbstractAgent* ag, const bool wantsToAppearInCTCtracksTXTfile = true)
+	{
+		if (ag == NULL)
+			throw new std::runtime_error("Simulation::startNewAgent(): refuse to include NULL agent.");
+
+		//TODO reentrant: this method may be run multiple times in parallel
+		//register the agent for adding into the system
+		newAgents.push_back(ag);
+		ag->setOfficer(this);
+
+		//CTC logging?
+		if (wantsToAppearInCTCtracksTXTfile) tracks.startNewTrack(ag->ID, frameCnt);
+
+		DEBUG_REPORT("just registered this new agent: " << ag->ID << "-" << ag->getAgentType());
+	}
+
+	/** removes the agent from this simulation, this event is logged into
+	    the CTC tracking file iff the agent was registered previously;
+	    for the CTC logging, it is assumed that the agent is not available in
+	    the current rendered frame but was (last) visible in the previous frame */
+	void closeAgent(AbstractAgent* ag)
+	{
+		if (ag == NULL)
+			throw new std::runtime_error("Simulation::closeAgent(): refuse to deal with NULL agent.");
+
+		//TODO reentrant: this method may be run multiple times in parallel
+		//register the agent for removing from the system
+		deadAgents.push_back(ag);
+
+		//CTC logging?
+		if (tracks.isTrackFollowed(ag->ID)) tracks.closeTrack(ag->ID, frameCnt-1);
+
+		DEBUG_REPORT("just unregistered this dead agent: " << ag->ID << "-" << ag->getAgentType());
+	}
+
+	/** introduces a new agent into the universe of this simulation, and,
+	    _automatically_, it logs this event into the CTC tracking file
+	    along with the (explicit) parental information; the mother-daughter
+	    relationship is purely semantical and is here only because of the
+	    CTC format, that said, the simulator does not care if an agent is
+	    actually a "daughter" of another agent */
+	void startNewDaughterAgent(AbstractAgent* ag, const int parentID)
+	{
+		startNewAgent(ag, true);
+
+		//CTC logging: also add the parental link
+		tracks.updateParentalLink(ag->ID, parentID);
+	}
+
+	/** removes the 'mother' agent from this simulation and introduces two new instead, this event
+	    is logged into the CTC tracking file automatically (see the docs of startNewDaughterAgent());
+	    for the CTC logging, it is assumed that the mother is not available in
+	    the current rendered frame but was (last) visible in the previous frame */
+	void closeMotherStartDaughters(AbstractAgent* mother,
+	                               AbstractAgent* daughterA, AbstractAgent* daughterB)
+	{
+		if (mother == NULL || daughterA == NULL || daughterB == NULL)
+			throw new std::runtime_error("Simulation::closeMotherStartDaughters(): refuse to deal with (some) NULL agent.");
+
+		closeAgent(mother);
+		startNewDaughterAgent(daughterA, mother->ID);
+		startNewDaughterAgent(daughterB, mother->ID);
+		//NB: this can be extended to any number of daughters
+	}
+
+	// --------------------------------------------------
+	// service for agents (externals):  getNearbyAgents()
 
 	/** Fills the list 'l' of ShadowAgents that are no further than maxDist
 	    parameter [micrometer]. The distance is examined as the distance
@@ -262,9 +434,9 @@ public:
 		const AxisAlignedBoundingBox& fromAABB = fromSA->getAABB();
 		const float maxDist2 = maxDist*maxDist;
 
-		//examine all agents
-		std::list<AbstractAgent*>::const_iterator c=agents.begin();
-		for (; c != agents.end(); c++)
+		//examine all full (local) agents
+		for (std::list<AbstractAgent*>::const_iterator
+		     c=agents.begin(); c != agents.end(); c++)
 		{
 			//don't evaluate against itself
 			if (*c == fromSA) continue;
@@ -273,9 +445,19 @@ public:
 			if (fromAABB.minDistance((*c)->getAABB()) < maxDist2)
 				l.push_back(*c);
 		}
+
+		//examine all shadow (outside) agents
+		for (std::list<ShadowAgent*>::const_iterator
+		     c=shadowAgents.begin(); c != shadowAgents.end(); c++)
+		{
+			//close enough?
+			if (fromAABB.minDistance((*c)->getAABB()) < maxDist2)
+				l.push_back(*c);
+		}
 	}
 
 	// --------------------------------------------------
+	// stats:  reportOverlap()
 
 private:
 	float overlapMax = 0.f;
@@ -294,6 +476,7 @@ public:
 	}
 
 	// --------------------------------------------------
+	// input & output:  initializeAgents() & renderNextFrame()
 
 	/** setter for the argc & argv CLI params for initializeAgents() */
 	void setArgs(int argc, char** argv)
