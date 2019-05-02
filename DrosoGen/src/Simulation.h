@@ -328,7 +328,7 @@ private:
 		while (ag != deadAgents.end())
 		{
 			//TODO... ask for the revocation
-			DEBUG_REPORT("Revoke ID " << (*ag)->ID);
+			//DEBUG_REPORT("Revoke ID " << (*ag)->ID);
 
 			delete *ag;
 			ag = deadAgents.erase(ag);
@@ -339,7 +339,7 @@ private:
 		while (ag != agents.end())
 		{
 			//TODO... send the geometry update
-			DEBUG_REPORT("Update ID " << (*ag)->ID);
+			//DEBUG_REPORT("Update ID " << (*ag)->ID);
 
 			++ag;
 		}
@@ -366,6 +366,8 @@ public:
 
 		//CTC logging?
 		if (wantsToAppearInCTCtracksTXTfile) tracks.startNewTrack(ag->ID, frameCnt);
+
+		DEBUG_REPORT("just registered this new agent: " << ag->ID << "-" << ag->getAgentType());
 	}
 
 	/** removes the agent from this simulation, this event is logged into
@@ -383,6 +385,8 @@ public:
 
 		//CTC logging?
 		if (tracks.isTrackFollowed(ag->ID)) tracks.closeTrack(ag->ID, frameCnt-1);
+
+		DEBUG_REPORT("just unregistered this dead agent: " << ag->ID << "-" << ag->getAgentType());
 	}
 
 	/** introduces a new agent into the universe of this simulation, and,
