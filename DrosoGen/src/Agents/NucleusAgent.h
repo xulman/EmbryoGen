@@ -6,7 +6,7 @@
 #include "../util/report.h"
 #include "../util/surfacesamplers.h"
 #include "AbstractAgent.h"
-#include "CellCycle.h"
+#include "util/CellCycle.h"
 #include "../Geometries/Spheres.h"
 
 static ForceName ftype_s2s       = "sphere-sphere";     //internal forces
