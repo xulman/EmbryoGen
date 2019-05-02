@@ -102,8 +102,13 @@ protected:
 
 	// --------------------------------------------------
 
-	/** list of all agents currently active in the simulation */
+	/** list of all agents currently active in the simulation
+	    and calculated on this node (managed by this officer) */
 	std::list<AbstractAgent*> agents;
+
+	/** list of all agents currently active in the simulation
+	    and calculated elsewhere (managed by foreign officers) */
+	std::list<ShadowAgent*> shadowAgents;
 
 	/** structure to hold durations of tracks and the mother-daughter relations */
 	TrackRecords_CTC tracks;
@@ -153,7 +158,9 @@ public:
 
 		initializeAgents();
 		updateAndPublishAgents();
-		REPORT("--------------- " << currTime << " min (" << agents.size() << " agents) ---------------");
+		REPORT("--------------- " << currTime << " min ("
+		  << agents.size() << " local and "
+		  << shadowAgents.size() << " shadow agents) ---------------");
 
 		renderNextFrame();
 	}
@@ -220,7 +227,9 @@ public:
 
 			// move to the next simulation time point
 			currTime += incrTime;
-			REPORT("--------------- " << currTime << " min (" << agents.size() << " agents) ---------------");
+			REPORT("--------------- " << currTime << " min ("
+			  << agents.size() << " local and "
+			  << shadowAgents.size() << " shadow agents) ---------------");
 
 			// is this the right time to export data?
 			if (currTime >= frameCnt*expoTime) renderNextFrame();
@@ -357,13 +366,22 @@ private:
 		const AxisAlignedBoundingBox& fromAABB = fromSA->getAABB();
 		const float maxDist2 = maxDist*maxDist;
 
-		//examine all agents
-		std::list<AbstractAgent*>::const_iterator c=agents.begin();
-		for (; c != agents.end(); c++)
+		//examine all full (local) agents
+		for (std::list<AbstractAgent*>::const_iterator
+		     c=agents.begin(); c != agents.end(); c++)
 		{
 			//don't evaluate against itself
 			if (*c == fromSA) continue;
 
+			//close enough?
+			if (fromAABB.minDistance((*c)->getAABB()) < maxDist2)
+				l.push_back(*c);
+		}
+
+		//examine all shadow (outside) agents
+		for (std::list<ShadowAgent*>::const_iterator
+		     c=shadowAgents.begin(); c != shadowAgents.end(); c++)
+		{
 			//close enough?
 			if (fromAABB.minDistance((*c)->getAABB()) < maxDist2)
 				l.push_back(*c);
