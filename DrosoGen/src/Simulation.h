@@ -112,6 +112,7 @@ protected:
 	bool simulationProperlyClosed = false;
 
 	// --------------------------------------------------
+	// execute and maintenance methods:  init(), execute(), close()
 
 public:
 	/** initializes the simulation parameters */
@@ -253,6 +254,11 @@ public:
 		if (!simulationProperlyClosed) this->close();
 	}
 
+	// --------------------------------------------------
+	// service for agents (externals):  add/divide/remove agents
+
+	// --------------------------------------------------
+	// service for agents (externals):  getNearbyAgents()
 
 	/** Fills the list 'l' of ShadowAgents that are no further than maxDist
 	    parameter [micrometer]. The distance is examined as the distance
@@ -280,6 +286,7 @@ public:
 	}
 
 	// --------------------------------------------------
+	// stats:  reportOverlap()
 
 private:
 	float overlapMax = 0.f;
@@ -298,6 +305,7 @@ public:
 	}
 
 	// --------------------------------------------------
+	// input & output:  initializeAgents() & renderNextFrame()
 
 	/** setter for the argc & argv CLI params for initializeAgents() */
 	void setArgs(int argc, char** argv)
