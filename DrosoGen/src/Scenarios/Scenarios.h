@@ -73,9 +73,9 @@ public:
 	}
 
 
-	Simulation& getSimulation(void)
+	Simulation* getSimulation(void)
 	{
-		return *simulation;
+		return simulation;
 	}
 };
 #endif

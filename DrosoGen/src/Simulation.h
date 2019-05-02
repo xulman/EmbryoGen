@@ -245,8 +245,9 @@ public:
 
 
 	/** tries to save tracks.txt at least, if not done earlier */
-	~Simulation(void)
+	virtual ~Simulation(void)
 	{
+		DEBUG_REPORT("simulation already closed? " << (simulationProperlyClosed ? "yes":"no"));
 		if (!simulationProperlyClosed) this->close();
 	}
 
