@@ -152,6 +152,7 @@ public:
 #endif
 
 		initializeAgents();
+		updateAndPublishAgents();
 		REPORT("--------------- " << currTime << " min (" << agents.size() << " agents) ---------------");
 
 		renderNextFrame();
@@ -190,6 +191,8 @@ public:
 				(*c)->updateGeometry();
 			}
 
+			updateAndPublishAgents();
+
 			//react (unwillingly) to the new geometries... (can run in parallel),
 			//the agents' (external at least!) geometries must not change during this phase
 			c=agents.begin();
@@ -205,6 +208,8 @@ public:
 				(*c)->adjustGeometryByExtForces();
 				(*c)->updateGeometry();
 			}
+
+			updateAndPublishAgents();
 
 			//overlap reports:
 			DEBUG_REPORT("max overlap: " << overlapMax
@@ -252,6 +257,62 @@ public:
 	{
 		DEBUG_REPORT("simulation already closed? " << (simulationProperlyClosed ? "yes":"no"));
 		if (!simulationProperlyClosed) this->close();
+	}
+
+	// --------------------------------------------------
+	// execute and maintenance methods:  adding and removing agents
+
+private:
+	/** lists of existing agents scheduled for the addition to or
+	    for the removal from the simulation (at the appropriate occasion) */
+	std::list<AbstractAgent*> newAgents, deadAgents;
+
+	/** register the new agents, unregister the dead agents;
+	    distribute the new and old existing agents to the sites,
+	    revoke/invalidate dead agents from the sites;
+		 also retrieve similar requests from other co-workers */
+	void updateAndPublishAgents()
+	{
+		//remove/unregister dead agents
+		//(but keep on the "dead list" for now)
+		auto ag = deadAgents.begin();
+		while (ag != deadAgents.end())
+		{
+			agents.remove(*ag);
+			++ag;
+		}
+
+		//register the new ones (and remove from the "new born list")
+		ag = newAgents.begin();
+		while (ag != newAgents.end())
+		{
+			agents.push_back(*ag);
+			ag = newAgents.erase(ag);
+		}
+
+		//now revoke/invalidate the dead ones
+		ag = deadAgents.begin();
+		while (ag != deadAgents.end())
+		{
+			//TODO... ask for the revocation
+			DEBUG_REPORT("Revoke ID " << (*ag)->ID);
+
+			delete *ag;
+			ag = deadAgents.erase(ag);
+		}
+
+		//now distribute the existing ones
+		ag = agents.begin();
+		while (ag != agents.end())
+		{
+			//TODO... send the geometry update
+			DEBUG_REPORT("Update ID " << (*ag)->ID);
+
+			++ag;
+		}
+
+		//TODO... wait for and process data from co-workers
+		//        and update this->shadowAgents
 	}
 
 	// --------------------------------------------------
