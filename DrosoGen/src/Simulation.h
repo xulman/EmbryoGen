@@ -232,7 +232,9 @@ public:
 		std::list<AbstractAgent*>::iterator iter=agents.begin();
 		while (iter != agents.end())
 		{
-			if ((*iter)->getAgentType().find("nucleus") != std::string::npos)
+			//CTC logging?
+			if ( tracks.isTrackFollowed((*iter)->ID)      //was part of logging?
+			&&  !tracks.isTrackClosed((*iter)->ID) )      //wasn't closed yet?
 				tracks.closeTrack((*iter)->ID,frameCnt-1);
 
 			delete *iter; *iter = NULL;
