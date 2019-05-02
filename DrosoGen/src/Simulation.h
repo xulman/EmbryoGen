@@ -94,11 +94,11 @@ protected:
 	const float incrTime = 0.1f;
 
 	/** at what global time should the simulation stop [min] */
-	const float stopTime = 200.2f;
+	float stopTime = 200.2f;
 
 	/** export simulation status always after this amount of global time, [min]
 	    should be multiple of incrTime to obtain regular sampling */
-	const float expoTime = 0.5f;
+	float expoTime = 0.5f;
 
 	// --------------------------------------------------
 
