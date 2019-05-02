@@ -39,9 +39,7 @@ void Scenario_AFewAgents::initializeAgents(void)
 		s.updateRadius(3,3.0f);
 
 		Nucleus4SAgent* ag = new Nucleus4SAgent(ID++,"nucleus",s,currTime,incrTime);
-		ag->setOfficer(this);
-		agents.push_back(ag);
-		tracks.startNewTrack(ag->ID,frameCnt);
+		startNewAgent(ag);
 	}
 
 
@@ -77,6 +75,5 @@ void Scenario_AFewAgents::initializeAgents(void)
 
 	//finally, create the simulation agent to register this shape
 	ShapeHinter* ag = new ShapeHinter(ID++,"yolk",m,currTime,incrTime);
-	ag->setOfficer(this);
-	agents.push_back(ag);
+	startNewAgent(ag, false);
 }

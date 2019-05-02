@@ -106,10 +106,8 @@ void Scenario_DrosophilaRandom::initializeAgents(void)
 			s.updateRadius(3,3.0f);
 
 			GrowableNucleus* ag = new GrowableNucleus(ID++,"nucleus",s,currTime,incrTime);
-			ag->setOfficer(this);
 			ag->startGrowTime=10.0f;
-			agents.push_back(ag);
-			tracks.startNewTrack(ag->ID,frameCnt);
+			startNewAgent(ag);
 		}
 	}
 
@@ -121,15 +119,13 @@ void Scenario_DrosophilaRandom::initializeAgents(void)
 
 	//finally, create the simulation agent to register this shape
 	ShapeHinter* ag = new ShapeHinter(ID++,"yolk",m,currTime,incrTime);
-	ag->setOfficer(this);
-	agents.push_back(ag);
+	startNewAgent(ag, false);
 
 	//-------------
 	TrajectoriesHinter* at = new TrajectoriesHinter(ID++,"trajectories",
 	                           initShape,VectorImg::ChoosingPolicy::avgVec,
 	                           currTime,incrTime);
-	at->setOfficer(this);
-	agents.push_back(at);
+	startNewAgent(at, false);
 
 	//the trajectories hinter:
 	at->talkToHinter().readFromFile("../DrosophilaYolk_movement.txt", Vector3d<float>(2.f), 10.0f, 20.0f);

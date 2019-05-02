@@ -35,14 +35,17 @@ void Scenario_pseudoDivision::initializeAgents(void)
 		pos.y += sceneOffset.y;
 		pos.z += sceneOffset.z;
 
-		Spheres s(1);
+		Spheres s(2);
 		s.updateCentre(0,pos);
 		s.updateRadius(0,10.0f);
+		s.updateCentre(1,pos+Vector3d<float>(0,3,0));
+		s.updateRadius(1,10.0f);
 
 		myNucleusB* ag = new myNucleusB(ID++,"nucleus",s,currTime,incrTime);
-		ag->setOfficer(this);
 		ag->setDetailedDrawingMode(true);
-		agents.push_back(ag);
-		tracks.startNewTrack(ag->ID,frameCnt);
+		//startNewAgent(ag);
+		startNewDaughterAgent(ag,5);
 	}
+
+	stopTime = 0.6f;
 }

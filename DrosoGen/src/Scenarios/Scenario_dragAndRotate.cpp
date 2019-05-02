@@ -82,9 +82,7 @@ void Scenario_dragAndRotate::initializeAgents(void)
 		s.updateRadius(3,3.0f);
 
 		myNucleus* ag = new myNucleus(ID++,"nucleus",s,currTime,incrTime);
-		ag->setOfficer(this);
 		ag->setDetailedDrawingMode(true);
-		agents.push_back(ag);
-		tracks.startNewTrack(ag->ID,frameCnt);
+		startNewAgent(ag);
 	}
 }
