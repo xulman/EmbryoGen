@@ -306,6 +306,7 @@ public:
 					//
 					lastPhaseChangeGlobalTime += phaseDurations[curPhase];
 					curPhase = RestInPeace;
+					tryNextPhase = false;
 					break;
 
 				default:
