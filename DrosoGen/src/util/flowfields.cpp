@@ -33,8 +33,6 @@
 #include <i3d/filters.h>
 #include "flowfields.h"
 
-#define ERROR_REPORT(x)  new std::runtime_error( std::string(__FUNCTION__).append("(): ").append(x) )
-
 template <class VT, class FT>
 void ImageForwardTransformation(i3d::Image3d<VT> const &srcImg,
 				i3d::Image3d<VT> &dstImg,
