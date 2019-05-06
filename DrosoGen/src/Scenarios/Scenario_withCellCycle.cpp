@@ -10,29 +10,19 @@ class myNucleusC: public NucleusAgent, CellCycle
 {
 public:
 	myNucleusC(const int _ID, const std::string& _type,
-	          const Spheres& shape,
-	          const float _currTime, const float _incrTime):
+	           const Spheres& shape,
+	           const float _currTime, const float _incrTime):
 		NucleusAgent(_ID,_type, shape, _currTime,_incrTime),
-		CellCycle(100)
-		{
-			//debug report
-			startCycling(_currTime);
-			if (ID == 1) reportPhaseDurations();
-		}
-
-	void advanceAndBuildIntForces(const float gTime) override
+		CellCycle(8)
 	{
-		if (ID == 1)
-		{
-			//testing cell cycle
-			for (float time = 10; time < 115; time += 3)
-			{
-				triggerCycleMethods(time);
-				DEBUG_REPORT("------------- " << time << " ---------------");
-			}
-		}
+		//debug report
+		startCycling(_currTime);
+		if (ID == 1) reportPhaseDurations();
+	}
 
-		NucleusAgent::advanceAndBuildIntForces(gTime);
+	void advanceAgent(const float gTime) override
+	{
+		triggerCycleMethods(gTime);
 	}
 
 	//this is how you can override lenghts of the cell phases
@@ -115,5 +105,5 @@ void Scenario_withCellCycle::initializeAgents(void)
 		startNewAgent(ag);
 	}
 
-	stopTime = 0.1f;
+	stopTime = 8.2f;
 }
