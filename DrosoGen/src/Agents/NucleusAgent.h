@@ -6,7 +6,6 @@
 #include "../util/report.h"
 #include "../util/surfacesamplers.h"
 #include "AbstractAgent.h"
-#include "util/CellCycle.h"
 #include "../Geometries/Spheres.h"
 
 static ForceName ftype_s2s       = "sphere-sphere";     //internal forces
@@ -56,8 +55,6 @@ public:
 
 		for (int i=0; i < shape.noOfSpheres; ++i) weights[i] = (FLOAT)1.0;
 
-		curPhase = G1Phase;
-
 		//DEBUG_REPORT("Nucleus with ID=" << ID << " was just created");
 	}
 
@@ -72,11 +69,6 @@ public:
 
 protected:
 	// ------------- internals state -------------
-	CellCycleParams cellCycle;
-
-	/** currently exhibited cell phase */
-	ListOfPhases curPhase;
-
 	/** motion: desired current velocity [um/min] */
 	Vector3d<FLOAT> velocity_CurrentlyDesired;
 
@@ -396,7 +388,7 @@ protected:
 	// ------------- rendering -------------
 	void drawMask(DisplayUnit& du) override
 	{
-		const int color = curPhase < 3? 2:3;
+		const int color = 2;
 
 		//if not selected: draw cells with no debug bit
 		//if     selected: draw cells as a global debug object
@@ -437,7 +429,7 @@ protected:
 		//render only if under inspection
 		if (detailedDrawingMode)
 		{
-			const int color = curPhase < 3? 2:3;
+			const int color = 2;
 			int dID = ID << 17 | 1 << 16; //enable debug bit
 
 			//cell centres connection "line" (green):
