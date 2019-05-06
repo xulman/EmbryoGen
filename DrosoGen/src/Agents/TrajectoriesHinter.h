@@ -82,7 +82,7 @@ private:
 	}
 
 	//futureGeometry -> geometryAlias
-	void updateGeometry(void) override
+	void publishGeometry(void) override
 	{
 		if (currTime > lastUpdatedTime)
 		{

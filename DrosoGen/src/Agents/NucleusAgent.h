@@ -6,7 +6,6 @@
 #include "../util/report.h"
 #include "../util/surfacesamplers.h"
 #include "AbstractAgent.h"
-#include "util/CellCycle.h"
 #include "../Geometries/Spheres.h"
 
 static ForceName ftype_s2s       = "sphere-sphere";     //internal forces
@@ -56,8 +55,6 @@ public:
 
 		for (int i=0; i < shape.noOfSpheres; ++i) weights[i] = (FLOAT)1.0;
 
-		curPhase = G1Phase;
-
 		//DEBUG_REPORT("Nucleus with ID=" << ID << " was just created");
 	}
 
@@ -72,11 +69,6 @@ public:
 
 protected:
 	// ------------- internals state -------------
-	CellCycleParams cellCycle;
-
-	/** currently exhibited cell phase */
-	ListOfPhases curPhase;
-
 	/** motion: desired current velocity [um/min] */
 	Vector3d<FLOAT> velocity_CurrentlyDesired;
 
@@ -134,7 +126,7 @@ protected:
 	    the current content of the 'forces'; note that, in this particular agent type,
 	    the 'geometryAlias' is kept synchronized with the 'futureGeometry' so they seem
 	    to be interchangeable, but in general setting the 'futureGeometry' might be more
-	    rich representation of the current geometry that is regularly "exported" via updateGeometry()
+	    rich representation of the current geometry that is regularly "exported" via publishGeometry()
 	    and for which the list of ProximityPairs was built during collectExtForces() */
 	void adjustGeometryByForces(void)
 	{
@@ -179,8 +171,11 @@ protected:
 	}
 
 	// ------------- to implement one round of simulation -------------
-	void advanceAndBuildIntForces(const float) override
+	void advanceAndBuildIntForces(const float futureGlobalTime) override
 	{
+		//call the "texture hook"!
+		advanceAgent(futureGlobalTime);
+
 		//add forces on the list that represent how and where the nucleus would like to move
 		//TRAgen paper, eq (2): Fdesired = weight * drivingForceMagnitude
 		//NB: the forces will act rigidly on the full nucleus
@@ -367,7 +362,7 @@ protected:
 		adjustGeometryByForces();
 	}
 
-	void updateGeometry(void) override
+	void publishGeometry(void) override
 	{
 		//promote my NucleusAgent::futureGeometry to my ShadowAgent::geometry, which happens
 		//to be overlaid/mapped-over with NucleusAgent::geometryAlias (see the constructor)
@@ -396,7 +391,7 @@ protected:
 	// ------------- rendering -------------
 	void drawMask(DisplayUnit& du) override
 	{
-		const int color = curPhase < 3? 2:3;
+		const int color = 2;
 
 		//if not selected: draw cells with no debug bit
 		//if     selected: draw cells as a global debug object
@@ -437,7 +432,7 @@ protected:
 		//render only if under inspection
 		if (detailedDrawingMode)
 		{
-			const int color = curPhase < 3? 2:3;
+			const int color = 2;
 			int dID = ID << 17 | 1 << 16; //enable debug bit
 
 			//cell centres connection "line" (green):

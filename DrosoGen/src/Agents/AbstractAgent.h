@@ -154,10 +154,43 @@ public:
 		return currTime;
 	}
 
-	/** This is where agent's internal affairs happen, e.g., development
+	/** This method is considered as a callback function, also known as the
+	    "texture hook", and it should be regularly executed from the main
+	    simulator (the Officer). Technically, the method should be called
+	    directly from the advanceAndBuildIntForces() as the first instruction
+	    in there. This method is not expected to modify the agent's local time
+	    despite this method implements agent's development (e.g. the process
+	    of aging).
+
+	    It is here where agent's internal affairs happen, e.g., development
 	    of agent's state (other simulated sub-objects, texture), movement
-	    decision (but not the movement itself!), chemotaxis smelling etc.,
-	    the agent signals its will to change shape by creating (internal) forces.
+	    decision (but not the movement itself!), chemotaxis smelling etc.
+	    After the internal state is developed/modified here, its geometrical
+	    implications should be translated in the advanceAndBuildIntForces(),
+	    and later realized in the adjustGeometryByIntForces().
+
+	    Please, see also the docs of the advanceAndBuildIntForces().
+
+	    This method must not change agent's exported geometry. The method may,
+	    however, consider the (exported) geometries when making its own decisions
+	    (e.g., where to position daughters after the division). The method may
+	    change its internal/private geometry, despite this is recommended to
+	    be implemented in the advanceAndBuildIntForces() method. */
+	virtual
+	void advanceAgent(const float) {};
+
+	/** This method is the outer envelope of where agent's internal affairs happen.
+	    The product of this (internal) development is translated here ideally into
+	    a couple of forces that are later (in the adjustGeometryByIntForces())
+	    materialized into a shape change. This method, therefore, should call the
+	    advanceAgent() as the first instruction it executes. The agent then signals
+	    its will to change shape (if necessary) by creating (internally induced) forces.
+
+	    The expected ways of the interaction with the main simulator (the Officer)
+	    are: Override the "texture hook" to implement agent's own development that
+	    does not necessary need specific shape changes (specific force types),
+	    override this method to implement specific shape changes (and don't forget
+	    to increase the agent's local time).
 
 	    The agent is expected to develop its simulation to at least the given
 	    futureGlobalTime, which is where the current simulation round will
@@ -179,7 +212,7 @@ public:
 	void advanceAndBuildIntForces(const float futureGlobalTime) =0;
 
 	/** This is where agent's shape (geometry) change is implemented as
-	    a result of the acting of internal forces. Don't call updateGeometry()
+	    a result of the acting of internal forces. Don't call publishGeometry()
 	    as it will be triggered from the outside automatically. */
 	virtual
 	void adjustGeometryByIntForces(void) =0;
@@ -191,7 +224,7 @@ public:
 	void collectExtForces(void) =0;
 
 	/** This is where agent's shape (geometry) change is implemented as
-	    a result of the acting of external forces. Don't call updateGeometry()
+	    a result of the acting of external forces. Don't call publishGeometry()
 	    as it will be triggered from the outside automatically. */
 	virtual
 	void adjustGeometryByExtForces(void) =0;
@@ -203,7 +236,7 @@ public:
 	    a convertor function to "publish" the new geometry to the world. In other words,
 	    to update the (old) this.geometry with the (new) this.futureGeometry. */
 	virtual
-	void updateGeometry(void) =0;
+	void publishGeometry(void) =0;
 
 
 	// ------------- rendering -------------

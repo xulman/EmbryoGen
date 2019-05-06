@@ -20,6 +20,7 @@ class Scenario_DrosophilaRegular         CLASS_DECLARATION
 class Scenario_DrosophilaRandom          CLASS_DECLARATION
 class Scenario_pseudoDivision            CLASS_DECLARATION
 class Scenario_dragAndRotate             CLASS_DECLARATION
+class Scenario_withCellCycle             CLASS_DECLARATION
 //  ---> ADD NEW SCENARIO HERE (and bellow) <---
 
 class Scenarios
@@ -53,6 +54,7 @@ public:
 			AVAILABLE_SCENARIO( "randomDrosophila",  Scenario_DrosophilaRandom )
 			AVAILABLE_SCENARIO( "pseudoDivision",    Scenario_pseudoDivision )
 			AVAILABLE_SCENARIO( "dragAndRotate",     Scenario_dragAndRotate )
+			AVAILABLE_SCENARIO( "cellCycle",         Scenario_withCellCycle )
 			//  ---> ADD NEW SCENARIO HERE (and add definition *cpp file, re-run cmake!) <---
 
 			if (simulation == NULL)
