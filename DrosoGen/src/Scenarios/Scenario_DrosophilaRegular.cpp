@@ -22,7 +22,7 @@ public:
 protected:
 	int incrCnt = 0;
 
-	void adjustGeometryByIntForces() override
+	void advanceAgent(const float) override
 	{
 		//adjust the shape at first
 		if (currTime >= startGrowTime && currTime <= stopGrowTime && incrCnt < 30)
@@ -40,9 +40,6 @@ protected:
 			//emergency break...
 			++incrCnt;
 		}
-
-		//also call the upstream original method
-		Nucleus4SAgent::adjustGeometryByIntForces();
 	}
 };
 
