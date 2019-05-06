@@ -3,7 +3,7 @@
 
 #include "../../util/rnd_generators.h"
 
-/** A datatype enumerating the particular phases of cell cycle */
+/** A datatype enumerating the particular phases of cell cycle in their order */
 typedef enum
 {
 	G1Phase=0,
@@ -17,49 +17,108 @@ typedef enum
 } ListOfPhases;
 
 
-/** A holder of simulation parameters relevant to a cell itself.
-    Note that any (more specialized) cell can extend this class
-    with attributes it needs to have... */
-class CellCycleParams
+/**
+ * Utility class that governs proper cycling through a (normal) cell cycle.
+ *
+ * Derive this class while overriding the default methods for
+ * the basic 8 phases (aka phase_methods) of the cell cycle; instantiate
+ * this new class with the desired full cycle duration and the information
+ * about the current time (essentially the time when this cell was born),
+ * and iteratively keep calling doNextPhase(currentTime) that will assure
+ * that the relevant phase_methods are called in the correct order.
+ *
+ * Each phase_method has one parameter (phase progress bar ratio) that informs
+ * its content how far it should get within the phase; the ratio is always (0;1].
+*/
+class CellCycle
 {
 public:
-	/** the cell cycle length [min] */
-	float cellCycleLength;
-
-	/** the length of individual cell cycle phases [min] */
-	float cellPhaseDuration[8];
-
-	/** constructor with default settings */
-	CellCycleParams(void)
-	{
-		//adapted for cell cycle length of 24 hours
-		//params.cellCycleLength = 14.5*60; //[min]
-		cellCycleLength = 30.f; //[min]
-		determinePhaseDurations();
-	}
+	/** constructor with default 24h cell cycle */
+	CellCycle():
+		CellCycle( 24*60 ) {}
 
 	/** a randomizing! no-exact-copy constructor */
-	CellCycleParams(const CellCycleParams& otherCellParams)
+	CellCycle(const CellCycle& refCellCycle, const float spreadFactor = 0.17f):
+		CellCycle( GetRandomGauss(refCellCycle.fullCycleDuration,
+		                          spreadFactor * refCellCycle.fullCycleDuration) ) {}
+
+	/** constructor with (in minutes) given cycle length */
+	CellCycle(const float _fullCycleDuration):
+		fullCycleDuration(_fullCycleDuration)
 	{
-		//a randomized copy of the cell cycle
-		cellCycleLength = GetRandomGauss(otherCellParams.cellCycleLength,
-		                                 0.17f * otherCellParams.cellCycleLength);
 		determinePhaseDurations();
 	}
 
-private:
+	/** the (informative) cell cycle length [min] */
+	const float fullCycleDuration;
+
+protected:
+	/** the length of individual cell cycle phases [min] */
+	float phaseDurations[8];
+
+	/** override-able pie-slicing of the fullCycleDuration, this
+	    method is called from every constructor
+
+	    the method must define durations (in minutes) of all eight
+	    phases of this->phaseDurations[] and it must hold
+	    afterwards that the sum of the individual durations is
+	    exactly the value of this->fullCycleDuration */
+	virtual
 	void determinePhaseDurations(void)
 	{
-		cellPhaseDuration[G1Phase]    = 0.5f     * cellCycleLength;
-		cellPhaseDuration[SPhase]     = 0.3f     * cellCycleLength;
-		cellPhaseDuration[G2Phase]    = 0.15f    * cellCycleLength;
-		cellPhaseDuration[Prophase]   = 0.0125f  * cellCycleLength;
-		cellPhaseDuration[Metaphase]  = 0.0285f  * cellCycleLength;
-		cellPhaseDuration[Anaphase]   = 0.0025f  * cellCycleLength;
-		cellPhaseDuration[Telophase]  = 0.00325f * cellCycleLength;
-		cellPhaseDuration[Cytokinesis]= 0.00325f * cellCycleLength;
-		//                              --------
-		//                      sums to 1.0f
+		setNormalPhaseDurations(fullCycleDuration, phaseDurations);
+	}
+
+public:
+	/** read-only accessor to the lengths of the individual phases */
+	float getPhaseDuration(const ListOfPhases phase) const
+	{
+		return phaseDurations[phase];
+	}
+
+	/** normal cell cycle pie-slicing, available for anyone...
+	    note that the method follows rules set out for determinePhaseDurations() */
+	static
+	void setNormalPhaseDurations(const float fullCycleDuration,  //input
+	                             float phaseDurations[8])        //output
+	{
+		DEBUG_REPORT("setting up phase durations for standard cell cycle of "
+		             << fullCycleDuration << " mins");
+
+		phaseDurations[G1Phase    ] = 0.5f     * fullCycleDuration;
+		phaseDurations[SPhase     ] = 0.3f     * fullCycleDuration;
+		phaseDurations[G2Phase    ] = 0.15f    * fullCycleDuration;
+		phaseDurations[Prophase   ] = 0.0125f  * fullCycleDuration;
+		phaseDurations[Metaphase  ] = 0.0285f  * fullCycleDuration;
+		phaseDurations[Anaphase   ] = 0.0025f  * fullCycleDuration;
+		phaseDurations[Telophase  ] = 0.00325f * fullCycleDuration;
+		phaseDurations[Cytokinesis] = 0.00325f * fullCycleDuration;
+		//                            --------
+		//                    sums to 1.0f
+	}
+
+	/** (debug) report of the internal setting */
+	void reportPhaseDurations(void) const
+	{
+		REPORT("full cycle duration is: " << fullCycleDuration << " minutes ("
+		       << fullCycleDuration/60 << " hrs)");
+
+		REPORT("  G1Phase    : " << phaseDurations[G1Phase    ] << " mins\t ("
+		       << phaseDurations[G1Phase    ]/fullCycleDuration << "%)");
+		REPORT("  SPhase     : " << phaseDurations[SPhase     ] << " mins\t ("
+		       << phaseDurations[SPhase     ]/fullCycleDuration << "%)");
+		REPORT("  G2Phase    : " << phaseDurations[G2Phase    ] << " mins\t ("
+		       << phaseDurations[G2Phase    ]/fullCycleDuration << "%)");
+		REPORT("  Prophase   : " << phaseDurations[Prophase   ] << " mins\t ("
+		       << phaseDurations[Prophase   ]/fullCycleDuration << "%)");
+		REPORT("  Metaphase  : " << phaseDurations[Metaphase  ] << " mins\t ("
+		       << phaseDurations[Metaphase  ]/fullCycleDuration << "%)");
+		REPORT("  Anaphase   : " << phaseDurations[Anaphase   ] << " mins\t ("
+		       << phaseDurations[Anaphase   ]/fullCycleDuration << "%)");
+		REPORT("  Telophase  : " << phaseDurations[Telophase  ] << " mins\t ("
+		       << phaseDurations[Telophase  ]/fullCycleDuration << "%)");
+		REPORT("  Cytokinesis: " << phaseDurations[Cytokinesis] << " mins\t ("
+		       << phaseDurations[Cytokinesis]/fullCycleDuration << "%)");
 	}
 };
 #endif
