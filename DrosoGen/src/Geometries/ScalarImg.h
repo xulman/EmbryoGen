@@ -130,7 +130,7 @@ public:
 			REPORT("Ignoring other geometry of type 'undefGeometry'.");
 			break;
 		default:
-			throw new std::runtime_error("Geometry::getDistance(): Not supported combination of shape representations.");
+			throw ERROR_REPORT("Not supported combination of shape representations.");
 		}
 	}
 

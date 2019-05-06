@@ -36,7 +36,7 @@ public:
 	{
 		std::ifstream f(filename);
 		if (! f.is_open())
-			throw new std::runtime_error(std::string("TrackRecords::readFromFile(): Cannot open ").append(filename));
+			throw new std::runtime_error(EREPORT("Cannot read from ").append(filename));
 
 		float time,x,y,z;
 		int id,parent,ignore;
@@ -78,7 +78,7 @@ public:
 	{
 		std::ofstream f(filename);
 		if (! f.is_open())
-			throw new std::runtime_error(std::string("TrackRecords::writeToFile(): Cannot open ").append(filename));
+			throw new std::runtime_error(EREPORT("Cannot write to ").append(filename));
 
 		auto t = this->begin();
 		for (; t != this->end(); ++t)
@@ -206,7 +206,7 @@ private:
 	{
 #ifdef DEBUG
 		if (!FF.isConsistent())
-			throw new std::runtime_error("TrackRecords::injectToFF(): inconsistent FF given!");
+			throw ERROR_REPORT("inconsistent FF given!");
 #endif
 		i3d::Image3d<int> FFcnts;
 		if (doReset)

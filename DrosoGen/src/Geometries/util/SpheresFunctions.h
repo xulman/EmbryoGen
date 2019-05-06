@@ -11,7 +11,7 @@ public:
 	void grow4SpheresBy(Spheres& s, const FLOAT dR, const FLOAT dD)
 	{
 		if (s.noOfSpheres != 4)
-			throw new std::runtime_error("SpheresFunctions::grow4SpheresBy(): Cannot grow non-four sphere geometry.");
+			throw ERROR_REPORT("Cannot grow non-four sphere geometry.");
 
 		//make the nuclei fatter by 'dD' um in diameter
 		for (int i=0; i < 4; ++i) s.radii[i] += dR;

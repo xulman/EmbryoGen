@@ -186,7 +186,7 @@ public:
 				(*c)->advanceAndBuildIntForces(futureTime);
 #ifdef DEBUG
 				if ((*c)->getLocalTime() < futureTime)
-					throw new std::runtime_error("Simulation::execute(): Agent is not synchronized.");
+					throw ERROR_REPORT("Agent is not synchronized.");
 #endif
 			}
 
@@ -357,7 +357,7 @@ public:
 	void startNewAgent(AbstractAgent* ag, const bool wantsToAppearInCTCtracksTXTfile = true)
 	{
 		if (ag == NULL)
-			throw new std::runtime_error("Simulation::startNewAgent(): refuse to include NULL agent.");
+			throw ERROR_REPORT("refuse to include NULL agent.");
 
 		//TODO reentrant: this method may be run multiple times in parallel
 		//register the agent for adding into the system
@@ -377,7 +377,7 @@ public:
 	void closeAgent(AbstractAgent* ag)
 	{
 		if (ag == NULL)
-			throw new std::runtime_error("Simulation::closeAgent(): refuse to deal with NULL agent.");
+			throw ERROR_REPORT("refuse to deal with NULL agent.");
 
 		//TODO reentrant: this method may be run multiple times in parallel
 		//register the agent for removing from the system
@@ -411,7 +411,7 @@ public:
 	                               AbstractAgent* daughterA, AbstractAgent* daughterB)
 	{
 		if (mother == NULL || daughterA == NULL || daughterB == NULL)
-			throw new std::runtime_error("Simulation::closeMotherStartDaughters(): refuse to deal with (some) NULL agent.");
+			throw ERROR_REPORT("refuse to deal with (some) NULL agent.");
 
 		closeAgent(mother);
 		startNewDaughterAgent(daughterA, mother->ID);
@@ -573,7 +573,7 @@ private:
 			//some known action?
 			switch (key) {
 			case 'Q':
-				throw new std::runtime_error("Simulation::renderNextFrame(): User requested exit.");
+				throw ERROR_REPORT("User requested exit.");
 
 			case 'H':
 				//print summary of commands (and their keys)

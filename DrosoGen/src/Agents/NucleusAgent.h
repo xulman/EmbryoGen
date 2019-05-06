@@ -386,7 +386,7 @@ public:
 	{
 #ifdef DEBUG
 		if (index >= geometryAlias.noOfSpheres)
-			throw new std::runtime_error("NucleusAgent::getVelocityOfSphere(): requested sphere index out of bound.");
+			throw ERROR_REPORT("requested sphere index out of bound.");
 #endif
 
 		return velocities[index];

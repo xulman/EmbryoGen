@@ -114,7 +114,7 @@ public:
 	void setOfficer(Simulation* _officer)
 	{
 		if (_officer == NULL)
-			throw new std::runtime_error("AbstractAgent::setOfficer(): got NULL new Officer.");
+			throw ERROR_REPORT("got NULL reference on my associated Officer.");
 
 		Officer = _officer;
 	}

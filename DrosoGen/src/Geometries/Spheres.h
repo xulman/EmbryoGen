@@ -32,7 +32,7 @@ public:
 	{
 		//sanity check...
 		if (_noOfSpheres < 0)
-			throw new std::runtime_error("Spheres::c'tor(): Cannot construct geometry with negative number of spheres.");
+			throw ERROR_REPORT("Cannot construct geometry with negative number of spheres.");
 
 		for (int i=0; i < noOfSpheres; ++i) radii[i] = 0.0;
 	}
@@ -83,7 +83,7 @@ public:
 			REPORT("Ignoring other geometry of type 'undefGeometry'.");
 			break;
 		default:
-			throw new std::runtime_error("Geometry::getDistance(): Not supported combination of shape representations.");
+			throw ERROR_REPORT("Not supported combination of shape representations.");
 		}
 	}
 

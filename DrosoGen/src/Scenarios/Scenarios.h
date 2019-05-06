@@ -63,7 +63,7 @@ public:
 					std::cout << rs << ", ";
 				std::cout << "\n";
 
-				throw new std::runtime_error("Scenarios(): Unmatched scenario requested.");
+				throw ERROR_REPORT("Unmatched scenario requested.");
 			}
 		}
 

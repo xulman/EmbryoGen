@@ -12,7 +12,7 @@ public:
 		NucleusAgent(_ID,_type,shape, _currTime,_incrTime)
 	{
 		if (shape.noOfSpheres != 4)
-			throw new std::runtime_error("Nucleus4SAgent::c'tor(): Cannot construct Nucleus4SAgent on non-four sphere geometry.");
+			throw ERROR_REPORT("Cannot construct Nucleus4SAgent on non-four sphere geometry.");
 
 		//init centreDistances based on the initial geometry
 		centreDistance[0] = (geometryAlias.centres[1] - geometryAlias.centres[0]).len();
