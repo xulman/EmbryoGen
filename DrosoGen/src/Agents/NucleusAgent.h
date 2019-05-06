@@ -171,8 +171,11 @@ protected:
 	}
 
 	// ------------- to implement one round of simulation -------------
-	void advanceAndBuildIntForces(const float) override
+	void advanceAndBuildIntForces(const float futureGlobalTime) override
 	{
+		//call the "texture hook"!
+		advanceAgent(futureGlobalTime);
+
 		//add forces on the list that represent how and where the nucleus would like to move
 		//TRAgen paper, eq (2): Fdesired = weight * drivingForceMagnitude
 		//NB: the forces will act rigidly on the full nucleus
