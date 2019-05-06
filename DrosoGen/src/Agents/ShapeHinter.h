@@ -66,7 +66,7 @@ private:
 	}
 
 	//futureGeometry -> geometryAlias
-	void updateGeometry(void) override
+	void publishGeometry(void) override
 	{
 		//since we're not changing ShadowAgent::geometry (and consequently
 		//not this.geometryAlias), we don't need to update this.futureGeometry

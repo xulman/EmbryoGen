@@ -134,7 +134,7 @@ protected:
 	    the current content of the 'forces'; note that, in this particular agent type,
 	    the 'geometryAlias' is kept synchronized with the 'futureGeometry' so they seem
 	    to be interchangeable, but in general setting the 'futureGeometry' might be more
-	    rich representation of the current geometry that is regularly "exported" via updateGeometry()
+	    rich representation of the current geometry that is regularly "exported" via publishGeometry()
 	    and for which the list of ProximityPairs was built during collectExtForces() */
 	void adjustGeometryByForces(void)
 	{
@@ -367,7 +367,7 @@ protected:
 		adjustGeometryByForces();
 	}
 
-	void updateGeometry(void) override
+	void publishGeometry(void) override
 	{
 		//promote my NucleusAgent::futureGeometry to my ShadowAgent::geometry, which happens
 		//to be overlaid/mapped-over with NucleusAgent::geometryAlias (see the constructor)

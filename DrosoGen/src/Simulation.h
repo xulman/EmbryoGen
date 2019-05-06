@@ -195,7 +195,7 @@ public:
 			for (; c != agents.end(); c++)
 			{
 				(*c)->adjustGeometryByIntForces();
-				(*c)->updateGeometry();
+				(*c)->publishGeometry();
 			}
 
 			updateAndPublishAgents();
@@ -213,7 +213,7 @@ public:
 			for (; c != agents.end(); c++)
 			{
 				(*c)->adjustGeometryByExtForces();
-				(*c)->updateGeometry();
+				(*c)->publishGeometry();
 			}
 
 			updateAndPublishAgents();

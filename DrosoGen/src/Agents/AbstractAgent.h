@@ -179,7 +179,7 @@ public:
 	void advanceAndBuildIntForces(const float futureGlobalTime) =0;
 
 	/** This is where agent's shape (geometry) change is implemented as
-	    a result of the acting of internal forces. Don't call updateGeometry()
+	    a result of the acting of internal forces. Don't call publishGeometry()
 	    as it will be triggered from the outside automatically. */
 	virtual
 	void adjustGeometryByIntForces(void) =0;
@@ -191,7 +191,7 @@ public:
 	void collectExtForces(void) =0;
 
 	/** This is where agent's shape (geometry) change is implemented as
-	    a result of the acting of external forces. Don't call updateGeometry()
+	    a result of the acting of external forces. Don't call publishGeometry()
 	    as it will be triggered from the outside automatically. */
 	virtual
 	void adjustGeometryByExtForces(void) =0;
@@ -203,7 +203,7 @@ public:
 	    a convertor function to "publish" the new geometry to the world. In other words,
 	    to update the (old) this.geometry with the (new) this.futureGeometry. */
 	virtual
-	void updateGeometry(void) =0;
+	void publishGeometry(void) =0;
 
 
 	// ------------- rendering -------------
