@@ -51,6 +51,10 @@ int main(int argc, char** argv)
 
 	//calls destructor for very final clean up, it will also call
 	//the Simulation::close() if it has not been called before...
-	if (s != NULL) delete s;
+	if (s != NULL)
+	{
+		REPORT("trying to close (and save the most from) the simulation");
+		delete s;
+	}
 	return (1);
 }

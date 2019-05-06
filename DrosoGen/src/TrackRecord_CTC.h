@@ -77,6 +77,8 @@ public:
 		// write out the track record:
 		std::map<int,TrackRecord_CTC>::const_iterator itTr;
 		std::ofstream of(filename);
+		if (! of.is_open())
+			throw new std::runtime_error(EREPORT("Cannot write to ").append(filename));
 
 		for (itTr = (*this).begin(); itTr != (*this).end(); itTr++)
 		{
