@@ -47,17 +47,17 @@ class Dot
 public:
 	/** empty/default constructor: inits especially positions to (0,0,0) */
 	Dot():
-		pos(0.f,0.f,0.f), birth(0), refractiveIdx(0) {};
+		pos(0.f,0.f,0.f), cntOfExcitations(0), refractiveIdx(1) {};
 
 	/** "add new dot" constructor: passes its arguments into the class attributes */
-	Dot(Vector3d<float> const & POS, const short BIRTH=0, const float REFRACTIVE=0):
-		pos(POS), birth(BIRTH), refractiveIdx(REFRACTIVE) {};
+	Dot(Vector3d<float> const & POS, const short CNTOFEXCITATIONS=0, const float REFRACTIVE=1):
+		pos(POS), cntOfExcitations(CNTOFEXCITATIONS), refractiveIdx(REFRACTIVE) {};
 
 	/** standard "copy" constructor; use the constructor above to add daughter dots */
 	Dot(Dot const & DOT) {
-		pos           = DOT.pos;
-		birth         = DOT.birth;
-		refractiveIdx = DOT.refractiveIdx;
+		pos              = DOT.pos;
+		cntOfExcitations = DOT.cntOfExcitations;
+		refractiveIdx    = DOT.refractiveIdx;
 	}
 
 	/** destructor: does nothing, currently */
@@ -66,12 +66,14 @@ public:
 	/** the current 3D coordinate of the dot, in microns */
 	Coord3d<float> pos;
 
-	/** time point in units of frames (not real time) when this dot started to exist,
-	    this is mainly used for the simulation of the photobleaching (as an alternative
-	    to storing a remaining dot's photon capacity to emit */
-	short birth;
+	/** assuming dot rendering simulates exposition of the dots to the excitation
+	    light for always the same time period, it is enough to count how many times
+	    this has happened in order to be able to calculate actual (decreasing -- due
+	    to the photobleaching) photon budget; this counter is increased with every
+	    rendering of this dot into some phantom image */
+	short cntOfExcitations = 0;
 
 	/** refractive index of this dot */
-	float refractiveIdx = 0;
+	float refractiveIdx = 1;
 };
 #endif

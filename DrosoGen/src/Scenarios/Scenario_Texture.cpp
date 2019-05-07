@@ -22,7 +22,7 @@ public:
 
 	void drawTexture(i3d::Image3d<float>& phantom, i3d::Image3d<float>&) override
 	{
-		RenderIntoPhantom(phantom,1);
+		RenderIntoPhantom(phantom);
 	}
 };
 

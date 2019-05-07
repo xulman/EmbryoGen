@@ -53,6 +53,7 @@ endif (SEARCH_FOR_STATIC)
 set(SOURCES
 		src/DisplayUnits/SceneryDisplayUnit.cpp
 		src/DisplayUnits/SceneryBufferedDisplayUnit.cpp
+		src/Agents/util/Texture.cpp
 		src/util/rnd_generators.cpp
 		src/util/flowfields.cpp
 		src/util/report.cpp
