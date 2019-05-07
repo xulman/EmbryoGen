@@ -15,7 +15,7 @@
  *
  * A class responsible for generation of random walk
  */
-template <typename FLOAT>
+template <typename FT>
 class RandomWalk
 {
   public:
@@ -31,7 +31,7 @@ class RandomWalk
 		if (!rnd_StateAng || !rnd_StateZ || !rnd_StateDisp)
 			throw ERROR_REPORT("Couldn't initialize random number generators.");
 
-		unsigned long seed=-1 * (int)time(NULL) * (int)getpid();
+		unsigned long seed=(unsigned long)(-1 * time(NULL) * getpid());
 		gsl_rng_set(rnd_StateAng,seed);
 		gsl_rng_set(rnd_StateZ,seed+1);
 		gsl_rng_set(rnd_StateDisp,seed+2);
@@ -82,7 +82,7 @@ class RandomWalk
 	 * Note that it influences only the 2D portion (within the XY-plane) of a 3D walking.
 	 * Note the (in principle) similar attribute RandomWalk::displacementStepSizeDistribution.
 	 */
-	std::map<FLOAT,FLOAT> turningAngleDistribution;
+	std::map<FT,FT> turningAngleDistribution;
 
 	/**
 	 * Sets the RandomWalk::turningAngleDistribution such that generated random
@@ -111,8 +111,8 @@ class RandomWalk
 		turningAngleDistribution.clear();
 		for (int i=0; i < 180; ++i)
 		{
-			turningAngleDistribution[FLOAT(i-180)/180.*3.14]=-18.0*(float(i)/180.) +31.0;
-			turningAngleDistribution[    FLOAT(i)/180.*3.14]= 18.0*(float(i)/180.) +13.0;
+			turningAngleDistribution[FT(i-180)/180.*3.14]=-18.0*(float(i)/180.) +31.0;
+			turningAngleDistribution[    FT(i)/180.*3.14]= 18.0*(float(i)/180.) +13.0;
 		}
 	}
 
@@ -130,12 +130,12 @@ class RandomWalk
 	 *
 	 * Note that it influences only the 2D portion (within the XY-plane) of a 3D walking.
 	 */
-	void UseWrappedCauchyDistribution(const FLOAT r)
+	void UseWrappedCauchyDistribution(const FT r)
 	{
 		turningAngleDistribution.clear();
 		for (int i=0; i <= 62; ++i)
 		{
-			const FLOAT angle=FLOAT(i-31)*0.1013;
+			const FT angle=FT(i-31)*0.1013;
 			turningAngleDistribution[angle]=0.159 * ( (1.-r*r) / (1. +r*r -2.*r*cos(angle)) );
 		}
 	}
@@ -154,12 +154,12 @@ class RandomWalk
 	 *
 	 * Note that it influences only the 2D portion (within the XY-plane) of a 3D walking.
 	 */
-	void UseWrappedNormalDistribution(const FLOAT sigma)
+	void UseWrappedNormalDistribution(const FT sigma)
 	{
 		turningAngleDistribution.clear();
 		for (int i=0; i <= 62; ++i)
 		{
-			const FLOAT angle=FLOAT(i-31)*0.1013;
+			const FT angle=FT(i-31)*0.1013;
 			turningAngleDistribution[angle]=1./(sigma*2.506) * (
 			        exp(-0.5*(angle-6.28)*(angle-6.28) / (sigma*sigma))
 			      + exp(-0.5*angle*angle               / (sigma*sigma))
@@ -184,7 +184,7 @@ class RandomWalk
 	 *
 	 * Note that it influences only the 2D portion (within the XY-plane) of a 3D walking.
 	 */
-	std::vector<FLOAT> randomTurningField;
+	std::vector<FT> randomTurningField;
 
   public:
 	/**
@@ -215,7 +215,7 @@ class RandomWalk
 
 		//first:
 		//create and init the local resampled distribution 
-		FLOAT distribution[361];
+		FT distribution[361];
 		for (int i=0; i < 361; ++i) distribution[i]=-1.;
 		distribution[0]=distribution[360]=0.;
 
@@ -223,7 +223,7 @@ class RandomWalk
 		std::ofstream file1("turnAngDist_coarse.dat");
 #endif
 		//fill it where we can
-		typename std::map<FLOAT,FLOAT>::const_iterator it=turningAngleDistribution.begin();
+		typename std::map<FT,FT>::const_iterator it=turningAngleDistribution.begin();
 		while (it != turningAngleDistribution.end())
 		{
 			if (it->first >= -3.14 && it->first <= 3.14)
@@ -246,14 +246,14 @@ class RandomWalk
 		//note that distribution[360] != -1. (which renders the first condition useless)
 
 		//sum over all probabilities...
-		FLOAT Sum=distribution[0]+distribution[360];
+		FT Sum=distribution[0]+distribution[360];
 
 		for (int i=1; i < 360; ++i)
 		{
 			if (distribution[i] == -1.)
 			{
 				//found uninitialized angle, interpolate from lastLeft and lastRight ones
-				distribution[i]=FLOAT(i-lastLeftInited)/FLOAT(lastRightInited-lastLeftInited)
+				distribution[i]=FT(i-lastLeftInited)/FT(lastRightInited-lastLeftInited)
 				                *(distribution[lastRightInited]-distribution[lastLeftInited])
 									 +distribution[lastLeftInited];
 			}
@@ -272,12 +272,12 @@ class RandomWalk
 		//debug: print out the fine-sampled distribution
 		std::ofstream file2("turnAngDist_fine.dat");
 		for (int i=0; i < 361; ++i)
-			file2 << 3.14*FLOAT(i-180)/180. << "\t" << distribution[i] << "\n";
+			file2 << 3.14*FT(i-180)/180. << "\t" << distribution[i] << "\n";
 		file2.close();
 #endif
 
 		//second:
-		const FLOAT Factor=10000. / Sum;
+		const FT Factor=10000. / Sum;
 
 		//third:
 #ifdef RNDWLK_DEBUG
@@ -287,9 +287,9 @@ class RandomWalk
 		{
 			const int length=(int)floor(distribution[i]*Factor);
 			for (int j=0; j < length; ++j)
-				randomTurningField.push_back(3.14*FLOAT(i-180)/180.);
+				randomTurningField.push_back(3.14*FT(i-180)/180.);
 #ifdef RNDWLK_DEBUG
-			file3 << 3.14*FLOAT(i-180)/180. << "\t" << length << "\n";
+			file3 << 3.14*FT(i-180)/180. << "\t" << length << "\n";
 #endif
 		}
 #ifdef RNDWLK_DEBUG
@@ -317,7 +317,7 @@ class RandomWalk
 	 *
 	 * Note the (in principle) similar attribute RandomWalk::turningAngleDistribution.
 	 */
-	std::map<FLOAT,FLOAT> displacementStepSizeDistribution;
+	std::map<FT,FT> displacementStepSizeDistribution;
 
 	/**
 	 * Attempts to create a single-peaked distribution of available displacement
@@ -325,7 +325,7 @@ class RandomWalk
 	 *
 	 * \param[in] dispSize		the position of the peak
 	 */
-	void UseFixedDisplacementStep(const FLOAT dispSize)
+	void UseFixedDisplacementStep(const FT dispSize)
 	{
 		displacementStepSizeDistribution.clear();
 		displacementStepSizeDistribution[0.]=0.;
@@ -337,14 +337,14 @@ class RandomWalk
 		displacementStepSizeDistribution[dispSize+1.0]=0.;
 	}
 
-	void UseNormalDistDisplacementStep(const FLOAT mean,const FLOAT sigma)
+	void UseNormalDistDisplacementStep(const FT mean,const FT sigma)
 	{
 		displacementStepSizeDistribution.clear();
 		int intStart=std::max(int((mean-3.f*sigma)*10.f),0);
 		int intStop =std::max(int((mean+3.f*sigma)*10.f),intStart);
 		for (int i=intStart; i <= intStop; ++i)
 		{
-			const FLOAT step=FLOAT(i)/10.f;
+			const FT step=FT(i)/10.f;
 			displacementStepSizeDistribution[step]= 1./(sigma*2.506)
 			      * exp(-0.5*(step-mean)*(step-mean) / (sigma*sigma));
 		}
@@ -366,7 +366,7 @@ class RandomWalk
 	 * given sampling rate) whose probability is non-zero should be present
 	 * in the array.
 	 */
-	std::vector<FLOAT> randomStepSizeField;
+	std::vector<FT> randomStepSizeField;
 
   public:
 	/**
@@ -386,7 +386,7 @@ class RandomWalk
 	 *
 	 * Note the (in principle) similar method RandomWalk::PrepareRandomTurningField().
 	 */
-	void PrepareRandomStepSizeField(const FLOAT stepSampling=1.)
+	void PrepareRandomStepSizeField(const FT stepSampling=1.)
 	{
 		//see the RandomWalk::PrepareRandomTurningField() for some more comments...
 		if (stepSampling <= 0.)
@@ -397,20 +397,20 @@ class RandomWalk
 		//first:
 		//create and init the local resampled distribution 
 		//for which we need to determine the maximum value
-		typename std::map<FLOAT,FLOAT>::const_iterator it
+		typename std::map<FT,FT>::const_iterator it
 		   =displacementStepSizeDistribution.end();
 		--it;
 
 		//if the last stored probability is not zero, inject ours...
 		if (it->second != 0.)
 		{
-			displacementStepSizeDistribution[std::max(it->first,FLOAT(0.))+stepSampling]=0.;
+			displacementStepSizeDistribution[std::max(it->first,FT(0.))+stepSampling]=0.;
 			++it;
 		}
 
 		//create and init the local resampled distribution 
 		const int distLength=(int)round(it->first/stepSampling) +1;
-		FLOAT distribution[distLength];
+		FT distribution[distLength];
 		for (int i=0; i < distLength; ++i) distribution[i]=-1.;
 		distribution[0]=distribution[distLength-1]=0.;
 
@@ -441,14 +441,14 @@ class RandomWalk
 		//note that distribution[distLength-1] != -1. (which renders the first condition useless)
 
 		//sum over all probabilities...
-		FLOAT Sum=distribution[0]+distribution[distLength-1];
+		FT Sum=distribution[0]+distribution[distLength-1];
 
 		for (int i=1; i < distLength-1; ++i)
 		{
 			if (distribution[i] == -1.)
 			{
 				//found uninitialized value, interpolate from lastLeft and lastRight ones
-				distribution[i]=FLOAT(i-lastLeftInited)/FLOAT(lastRightInited-lastLeftInited)
+				distribution[i]=FT(i-lastLeftInited)/FT(lastRightInited-lastLeftInited)
 				                *(distribution[lastRightInited]-distribution[lastLeftInited])
 									 +distribution[lastLeftInited];
 			}
@@ -472,7 +472,7 @@ class RandomWalk
 #endif
 
 		//second:
-		const FLOAT Factor=10000. / Sum;
+		const FT Factor=10000. / Sum;
 
 		//third:
 #ifdef RNDWLK_DEBUG
@@ -494,7 +494,7 @@ class RandomWalk
 
 
 	///Set bias vector to use.
-	void SetBiasVector(const FLOAT x,const FLOAT y,const FLOAT z=0.)
+	void SetBiasVector(const FT x,const FT y,const FT z=0.)
 	{
 		wlk_displacementBias_x=x; wlk_displacementBias_y=y; wlk_displacementBias_z=z;
 		DEBUG_REPORT("new Bias vector: (" << wlk_displacementBias_x << ","
@@ -503,11 +503,11 @@ class RandomWalk
 	}
 
 	///Get currently used bias 2D vector.
-	void GetBiasVector(FLOAT& x,FLOAT& y) const
+	void GetBiasVector(FT& x,FT& y) const
 	{ x=wlk_displacementBias_x; y=wlk_displacementBias_y; }
 
 	///Get currently used bias 3D vector.
-	void GetBiasVector(FLOAT& x,FLOAT& y,FLOAT& z) const
+	void GetBiasVector(FT& x,FT& y,FT& z) const
 	{ x=wlk_displacementBias_x; y=wlk_displacementBias_y; z=wlk_displacementBias_z; }
 
 	///Indicates whether simulated walks are biased.
@@ -517,7 +517,7 @@ class RandomWalk
 
 
 	///Sets the current 2D heading; should be used only at initialization
-	void ResetXYHeading(FLOAT newHeading)
+	void ResetXYHeading(FT newHeading)
 	{
 		//shift to the kanonical interval <0,2PI>
 		while (newHeading < 0.) newHeading+=6.28318;
@@ -534,7 +534,7 @@ class RandomWalk
 	 * no movement along the z-axis, and value of 1 allows for a movement, e.g.,
 	 * only along the z-axis (no xy-movement).
 	 */
-	void SetZstepLimit(FLOAT zLimit)
+	void SetZstepLimit(FT zLimit)
 	{
 		//make sure the limit is a valid value
 		if (zLimit < 0.) zLimit=0.;
@@ -546,7 +546,7 @@ class RandomWalk
 	}
 
 	///Returns the current 3D walk z-axis anisotropy.
-	FLOAT GetZstepLimit(void) const
+	FT GetZstepLimit(void) const
 	{ return (wlk_z_limit); }
 
 
@@ -567,14 +567,14 @@ class RandomWalk
 	{
 		//choose random turning angle from the underlying distribution
 		//(which is represented in this helper field)
-		const FLOAT deltaHeading=randomTurningField[
+		const FT deltaHeading=randomTurningField[
 		          (int)floor(rnd_GetValueAng(0.,randomTurningField.size()-0.001)) ];
 
 		//update the azimuth (absolute heading)
 		wlk_xy_heading+=deltaHeading;
 
 		//choose random step size from the underlying distribution
-		const FLOAT dispSize=randomStepSizeField[
+		const FT dispSize=randomStepSizeField[
 		          (int)floor(rnd_GetValueDisp(0.,randomStepSizeField.size()-0.001)) ];
 
 		//update the (normalized) position displacement "vector"
@@ -587,7 +587,7 @@ class RandomWalk
 	}
 
 	///Do one step of the 2D random walk and return fresh new generated displacement
-	void DoOneStep2D(FLOAT& x,FLOAT& y)
+	void DoOneStep2D(FT& x,FT& y)
 	{
 		DoOneStep2D();
 		x=wlk_displacement_x; y=wlk_displacement_y;
@@ -599,7 +599,7 @@ class RandomWalk
 	{
 		//choose random 2D turning angle from the underlying distribution
 		//(which is represented in this helper field)
-		const FLOAT deltaHeading=randomTurningField[
+		const FT deltaHeading=randomTurningField[
 		          (int)floor(rnd_GetValueAng(0.,randomTurningField.size()-0.001)) ];
 
 		//update the azimuth (absolute heading)
@@ -607,14 +607,14 @@ class RandomWalk
 
 		//choose random z-value;
 		//it will be a number from interval [-wlk_z_limit ; wlk_z_limit]
-		const FLOAT z_step=rnd_GetValueZ();
+		const FT z_step=rnd_GetValueZ();
 
 		//dumping in order to provide uniform "sphere point picking"
 		//http://mathworld.wolfram.com/SpherePointPicking.html
-		const FLOAT z_xy_dumping=sin(acos(z_step));
+		const FT z_xy_dumping=sin(acos(z_step));
 
 		//choose random step size from the underlying distribution
-		const FLOAT dispSize=randomStepSizeField[
+		const FT dispSize=randomStepSizeField[
 		          (int)floor(rnd_GetValueDisp(0.,randomStepSizeField.size()-0.001)) ];
 
 		//update the (normalized) position displacement "vector"
@@ -629,7 +629,7 @@ class RandomWalk
 	}
 
 	///Do one step of the 3D random walk and return fresh new generated displacement
-	void DoOneStep3D(FLOAT& x,FLOAT& y,FLOAT& z)
+	void DoOneStep3D(FT& x,FT& y,FT& z)
 	{
 		DoOneStep3D();
 		x=wlk_displacement_x; y=wlk_displacement_y; z=wlk_displacement_z;
@@ -637,36 +637,36 @@ class RandomWalk
 
 
 	///Get the last 2D generated displacement; does no simulation (see RandomWalk::DoOneStep2D())
-	void GetLastWalkedDisplacement(FLOAT& dx,FLOAT& dy) const
+	void GetLastWalkedDisplacement(FT& dx,FT& dy) const
 	{ dx=wlk_displacement_x; dy=wlk_displacement_y; }
 
 	///Get the last 3D generated displacement; does no simulation (see RandomWalk::DoOneStep3D())
-	void GetLastWalkedDisplacement(FLOAT& dx,FLOAT& dy,FLOAT& dz) const
+	void GetLastWalkedDisplacement(FT& dx,FT& dy,FT& dz) const
 	{ dx=wlk_displacement_x; dy=wlk_displacement_y; dz=wlk_displacement_z; }
 
 
   protected:
 	///Current bias vector (if _WithBias mode is used)
-	FLOAT wlk_displacementBias_x,wlk_displacementBias_y,wlk_displacementBias_z;
+	FT wlk_displacementBias_x,wlk_displacementBias_y,wlk_displacementBias_z;
 
 	///Current heading/azimuth (in radians, in the XY-plane) of this random walk.
-	FLOAT wlk_xy_heading;
+	FT wlk_xy_heading;
 
 	///Current limit for the z-values in the 3D walk. This imposses anisotropy of the 3D walk. Value must be in [0,1].
-	FLOAT wlk_z_limit;
+	FT wlk_z_limit;
 
 	///last position coordinate update
-	FLOAT wlk_displacement_x,wlk_displacement_y,wlk_displacement_z;
+	FT wlk_displacement_x,wlk_displacement_y,wlk_displacement_z;
 
 
 	// ================= RND GENERATORS STUFF ================= 
 
 	///helper random number generator: Flat/uniform distribution within [\e A,\e B]
-	FLOAT rnd_GetValueAng(const FLOAT A, const FLOAT B)
+	FT rnd_GetValueAng(const FT A, const FT B)
 	{
 		if (rnd_UseCounterAng == rnd_ForceNewSeedsAng)
 		{
-			unsigned long seed=-1 * (int)time(NULL) * (int)getpid();
+			unsigned long seed=(unsigned long)(-1 * time(NULL) * getpid());
 			gsl_rng_set(rnd_StateAng,seed);
 			rnd_UseCounterAng=0;
 		}
@@ -676,11 +676,11 @@ class RandomWalk
 	}
 
 	///helper random number generator: Flat/uniform distribution within [ -this->wlk_z_limit, this->wlk_z_limit ]
-	FLOAT rnd_GetValueZ(void)
+	FT rnd_GetValueZ(void)
 	{
 		if (rnd_UseCounterZ == rnd_ForceNewSeedsZ)
 		{
-			unsigned long seed=-1 * (int)time(NULL) * (int)getpid();
+			unsigned long seed=(unsigned long)(-1 * time(NULL) * getpid());
 			gsl_rng_set(rnd_StateZ,seed);
 			rnd_UseCounterZ=0;
 		}
@@ -690,11 +690,11 @@ class RandomWalk
 	}
 
 	///helper random number generator: Flat/uniform distribution within [\e A,\e B]
-	FLOAT rnd_GetValueDisp(const FLOAT A, const FLOAT B)
+	FT rnd_GetValueDisp(const FT A, const FT B)
 	{
 		if (rnd_UseCounterDisp == rnd_ForceNewSeedsDisp)
 		{
-			unsigned long seed=-1 * (int)time(NULL) * (int)getpid();
+			unsigned long seed=(unsigned long)(-1 * time(NULL) * getpid());
 			gsl_rng_set(rnd_StateDisp,seed);
 			rnd_UseCounterDisp=0;
 		}
