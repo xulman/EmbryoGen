@@ -2,6 +2,7 @@
 #define REPORT_H
 
 #include <iostream>
+#include <chrono>
 
 /** this macro is essentially what `basename __FILE__` would do on UNIX prompt/console */
 #define __SHORTFILE__ (strrchr(__FILE__,'/') ? strrchr(__FILE__,'/')+1 : __FILE__)
@@ -29,4 +30,12 @@
 #define SIGN    agentType << ": "
 #define IDSIGN  ID << "-" << agentType << ": "
 
+
+/** profiling aiders: starts stopwatch and returns "session handler",
+    which is actually the current system time */
+const std::chrono::time_point<std::chrono::system_clock> tic(void);
+
+/** profiling aiders: stops stopwatch and reports the elapsed time,
+    requires some counter-part earlier time (e.g. the "session handler") */
+std::string toc(const std::chrono::time_point<std::chrono::system_clock>& ticTime);
 #endif

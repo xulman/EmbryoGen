@@ -55,6 +55,7 @@ set(SOURCES
 		src/DisplayUnits/SceneryBufferedDisplayUnit.cpp
 		src/util/rnd_generators.cpp
 		src/util/flowfields.cpp
+		src/util/report.cpp
 		src/main.cpp)
 
 file(GLOB SCENARIOSOURCES src/Scenarios/*.cpp)
