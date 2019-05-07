@@ -542,11 +542,11 @@ private:
 
 		sprintf(fn,"phantom%03d.tif",frameCnt);
 		REPORT("Saving " << fn << ", hold on...");
-		imgMask.SaveImage(fn);
+		imgPhantom.SaveImage(fn);
 
 		sprintf(fn,"optics%03d.tif",frameCnt);
 		REPORT("Saving " << fn << ", hold on...");
-		imgMask.SaveImage(fn);
+		imgOptics.SaveImage(fn);
 #endif
 		++frameCnt;
 

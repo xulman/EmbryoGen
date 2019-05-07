@@ -560,10 +560,5 @@ protected:
 			}
 		}
 	}
-
-	void drawForDebug(i3d::Image3d<i3d::GRAY16>& img) override
-	{
-		drawMask(img);
-	}
 };
 #endif
