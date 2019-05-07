@@ -199,6 +199,42 @@ public:
 		return pxOut;
 	}
 
+	/** converts this coordinate into an image offset/index given the size of the image */
+	size_t toImgIndex(const Vector3d<size_t>& imgSize) const
+	{
+		return ( (size_t)x + imgSize.x*( (size_t)y + imgSize.y*(size_t)z ) );
+	}
+
+	/** converts this coordinate into an image offset/index given the size of the image */
+	size_t toImgIndex(const i3d::Vector3d<size_t>& imgSize) const
+	{
+		return ( (size_t)x + imgSize.x*( (size_t)y + imgSize.y*(size_t)z ) );
+	}
+
+	/** converts image offset/index into this image coordinate given the image size */
+	Vector3d<size_t>& fromImgIndex(size_t idx, const Vector3d<size_t>& imgSize)
+	{
+		z    = idx / (imgSize.x*imgSize.y);
+		idx -=  z  * (imgSize.x*imgSize.y);
+		y    = idx /  imgSize.x;
+		z    = idx -  imgSize.x * y;
+
+		return *this;
+	}
+
+	/** converts image offset/index into the output image coordinate 'imgPos'
+	    given the image size stored in this vector
+	Vector3d<size_t>& fromImgIndex(size_t idx, const Vector3d<size_t>& imgPos)
+	{
+		imgPos.z  =    idx     / (x*y);
+		idx      -= imgPos.z  * (x*y);
+		imgPos.y  =    idx     /  x;
+		imgPos.z  =    idx     -  x * imgPos.y;
+
+		return *this;
+	}
+	*/
+
 	void fromI3dVector3d(const i3d::Vector3d<T>& iv3d)
 	{
 		x = iv3d.x;
