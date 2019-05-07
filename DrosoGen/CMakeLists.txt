@@ -56,6 +56,9 @@ set(SOURCES
 		src/util/rnd_generators.cpp
 		src/util/flowfields.cpp
 		src/util/report.cpp
+		src/util/texture/perlin.cpp
+		src/util/texture/myround.cpp
+		src/util/texture/texture.cpp
 		src/main.cpp)
 
 file(GLOB SCENARIOSOURCES src/Scenarios/*.cpp)

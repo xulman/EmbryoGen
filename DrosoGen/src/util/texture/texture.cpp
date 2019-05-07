@@ -32,11 +32,10 @@ Description: Manipulation with procedural texture (Perlin noise).
 #include <i3d/histogram.h>
 #include <i3d/transform.h>
 
+#include "../report.h"
 #include "perlin.h"
-#include "myrandom.h"
 #include "texture.h"
 #include "myround.h"
-#include "sim_macros.h"
 
 using namespace i3d;
 using namespace std;
@@ -51,7 +50,7 @@ void DoPerlin3D(Image3d<float> &fimg,
 {
 	 if (!fimg.GetResolution().IsDefined())
 	 {
-		  throw ERROR_DETAILS("DoPerlin3D: Image resolution is not set.");
+		  throw ERROR_REPORT("Image resolution is not set.");
 	 }
 
 	 // 'var' is in microns - function PerlinNoise3D requires pixels as
@@ -93,8 +92,7 @@ template <class VOXEL> void AddPerlin(
 		)
 {
 #ifdef DEBUG
-	echo("perlin (" << variance << "," << alpha << "," <<
-		  beta << "," << skew << ")");
+	REPORT("perlin (" << variance << "," << alpha << "," << beta << "," << skew << ")");
 #endif
 		
 	  Image3d<float> fimg;
@@ -145,7 +143,7 @@ template <class VOXEL> void Stretch(i3d::Image3d<VOXEL> &img,
 {
 	if (max_value < min_value)
 	{
-		throw ERROR_DETAILS("Incorrect stretching range!");
+		throw ERROR_REPORT("Incorrect stretching range!");
 	}
 
 	size_t num = img.GetImageSize();
