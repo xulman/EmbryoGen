@@ -11,9 +11,13 @@ int main(int argc, char** argv)
 	{
 		s = Scenarios(argc,argv).getSimulation();
 
+		auto timeHandle = tic();
+
 		s->init();    //init the simulation, and render the first frame
 		s->execute(); //execute the simulation, and render frames
 		s->close();   //close the simulation, deletes agents, and save tracks.txt
+
+		REPORT("simulation required " << toc(timeHandle));
 
 		std::cout << "Happy end.\n\n";
 
