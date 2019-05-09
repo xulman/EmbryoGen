@@ -4,6 +4,7 @@
 #include <iostream>
 #include <cmath>
 #include <i3d/vector3d.h>
+#include <functional>
 
 /** simply a 3D vector... */
 template <typename T>
@@ -97,55 +98,7 @@ public:
 		return (x*x + y*y + z*z);
 	}
 
-	/** element-wise minimum is stored in this vector */
-	void elemMin(const Vector3d<T>& v)
-	{
-		x = x < v.x ? x : v.x;
-		y = y < v.y ? y : v.y;
-		z = z < v.z ? z : v.z;
-	}
-
-	/** element-wise maximum is stored in this vector */
-	void elemMax(const Vector3d<T>& v)
-	{
-		x = x > v.x ? x : v.x;
-		y = y > v.y ? y : v.y;
-		z = z > v.z ? z : v.z;
-	}
-
-	/** element-wise multiplication is stored in this vector */
-	void elemMult(const Vector3d<T>& v)
-	{
-		x *= v.x;
-		y *= v.y;
-		z *= v.z;
-	}
-
-	/** element-wise division is stored in this vector */
-	void elemDivBy(const Vector3d<T>& v)
-	{
-		x /= v.x;
-		y /= v.y;
-		z /= v.z;
-	}
-
-	/** change this vector with element-wise absolute values */
-	void elemAbs(void)
-	{
-		x = std::abs(x);
-		y = std::abs(y);
-		z = std::abs(z);
-	}
-
-	/** change this vector with element-wise squared values */
-	void elemSquare(void)
-	{
-		x *= x;
-		y *= y;
-		z *= z;
-	}
-
-	void changeToUnitOrZero(void)
+	Vector3d<T>& changeToUnitOrZero(void)
 	{
 		T l = this->len2();
 		if (l > 0)
@@ -156,6 +109,112 @@ public:
 			z /= l;
 		}
 		//or l == 0 which means x == y == z == 0
+		return *this;
+	}
+
+	/** element-wise minimum is stored in this vector */
+	Vector3d<T>& elemMin(const Vector3d<T>& v)
+	{
+		x = x < v.x ? x : v.x;
+		y = y < v.y ? y : v.y;
+		z = z < v.z ? z : v.z;
+		return *this;
+	}
+
+	/** element-wise maximum is stored in this vector */
+	Vector3d<T>& elemMax(const Vector3d<T>& v)
+	{
+		x = x > v.x ? x : v.x;
+		y = y > v.y ? y : v.y;
+		z = z > v.z ? z : v.z;
+		return *this;
+	}
+
+	/** element-wise multiplication is stored in this vector */
+	Vector3d<T>& elemMult(const Vector3d<T>& v)
+	{
+		x *= v.x;
+		y *= v.y;
+		z *= v.z;
+		return *this;
+	}
+
+	/** element-wise division is stored in this vector */
+	Vector3d<T>& elemDivBy(const Vector3d<T>& v)
+	{
+		x /= v.x;
+		y /= v.y;
+		z /= v.z;
+		return *this;
+	}
+
+	/** change this vector with element-wise absolute values */
+	Vector3d<T>& elemAbs(void)
+	{
+		x = std::abs(x);
+		y = std::abs(y);
+		z = std::abs(z);
+		return *this;
+	}
+
+	/** change this vector with element-wise squared values */
+	Vector3d<T>& elemSquare(void)
+	{
+		x *= x;
+		y *= y;
+		z *= z;
+		return *this;
+	}
+
+	bool elemIsLessThan(const Vector3d<T>& v) const
+	{
+		if (x >= v.x) return false;
+		if (y >= v.y) return false;
+		if (z >= v.z) return false;
+		return true;
+	}
+
+	bool elemIsLessOrEqualThan(const Vector3d<T>& v) const
+	{
+		if (x > v.x) return false;
+		if (y > v.y) return false;
+		if (z > v.z) return false;
+		return true;
+	}
+
+	bool elemIsGreaterThan(const Vector3d<T>& v) const
+	{
+		if (x <= v.x) return false;
+		if (y <= v.y) return false;
+		if (z <= v.z) return false;
+		return true;
+	}
+
+	bool elemIsGreaterOrEqualThan(const Vector3d<T>& v) const
+	{
+		if (x < v.x) return false;
+		if (y < v.y) return false;
+		if (z < v.z) return false;
+		return true;
+	}
+
+	bool elemIsPredicateTrue(const std::function<bool(const T)>& unaryPredicate)
+	const
+	{
+		if (!unaryPredicate(x)) return false;
+		if (!unaryPredicate(y)) return false;
+		if (!unaryPredicate(z)) return false;
+		return true;
+	}
+
+	bool elemIsPredicateTrue(const Vector3d<T>& v,
+	                         const std::function<bool(const T,const T)>& binaryPredicate)
+	const
+	{
+		if (!binaryPredicate(x,v.x)) return false;
+		if (!binaryPredicate(y,v.y)) return false;
+		if (!binaryPredicate(z,v.z)) return false;
+		return true;
 	}
 
 	/** converts this pixel coordinate into this micron coordinate,
@@ -219,6 +278,7 @@ public:
 		y    = idx /  imgSize.x;
 		z    = idx -  imgSize.x * y;
 
+		//compiler should complain when using this function when *this is non-size_t Vector3d
 		return *this;
 	}
 
@@ -235,11 +295,14 @@ public:
 	}
 	*/
 
-	void fromI3dVector3d(const i3d::Vector3d<T>& iv3d)
+	/** type converts from i3d::Vector3d<> into this vector, also returns
+	    this vector to allow for operations chaining */
+	Vector3d<T>& fromI3dVector3d(const i3d::Vector3d<T>& iv3d)
 	{
 		x = iv3d.x;
 		y = iv3d.y;
 		z = iv3d.z;
+		return *this;
 	}
 
 	void toI3dVector3d(i3d::Vector3d<T>& iv3d) const
@@ -253,7 +316,7 @@ public:
 	    are of another type (e.g., size_t -> float conversion),
 	    creates and returns the converted vector */
 	template <typename FT> //FT = foreign type
-	Vector3d<FT>& to(void) const
+	Vector3d<FT> to(void) const
 	{
 		return Vector3d<FT>( (FT)x, (FT)y, (FT)z );
 	}
