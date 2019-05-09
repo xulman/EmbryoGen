@@ -60,6 +60,7 @@ set(SOURCES
 		src/util/texture/perlin.cpp
 		src/util/texture/myround.cpp
 		src/util/texture/texture.cpp
+		src/util/synthoscopy/finalpreview.cpp
 		src/main.cpp)
 
 file(GLOB SCENARIOSOURCES src/Scenarios/*.cpp)
