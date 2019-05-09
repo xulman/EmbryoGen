@@ -5,14 +5,14 @@
 #include "../Agents/NucleusAgent.h"
 #include "../Agents/util/Texture.h"
 
-class myTexturedNucleus: public NucleusAgent, Texture
+class myTexturedNucleus: public NucleusAgent, TextureQuantized
 {
 public:
 	myTexturedNucleus(const int _ID, const std::string& _type,
 	          const Spheres& shape,
 	          const float _currTime, const float _incrTime):
 		NucleusAgent(_ID,_type, shape, _currTime,_incrTime),
-		Texture(20000)
+		TextureQuantized(20000, Vector3d<float>(2.0f,2.0f,2.0f), 27)
 	{
 		//define the fl. dots
 		Vector3d<float> axis = shape.getCentres()[1] - shape.getCentres()[0];
