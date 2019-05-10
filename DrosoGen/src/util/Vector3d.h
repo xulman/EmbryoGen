@@ -312,6 +312,11 @@ public:
 		iv3d.z = z;
 	}
 
+	i3d::Vector3d<T> toI3dVector3d(void) const
+	{
+		return i3d::Vector3d<T>(x,y,z);
+	}
+
 	/** converts this vector into the "same" vector whose elements
 	    are of another type (e.g., size_t -> float conversion),
 	    creates and returns the converted vector */
