@@ -30,7 +30,10 @@ public:
 	size_t checkAndIncreaseCapacity(const unsigned int expectedNoOfNewDots = 10000)
 	{
 		if (dots.capacity() - dots.size() < expectedNoOfNewDots)
+		{
 			dots.reserve(dots.capacity() + expectedNoOfNewDots);
+			DEBUG_REPORT("increased capacity to " << dots.capacity());
+		}
 
 		return dots.capacity();
 	}
