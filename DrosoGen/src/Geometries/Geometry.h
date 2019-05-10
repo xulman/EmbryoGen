@@ -55,6 +55,33 @@ public:
 		maxCorner   += minCorner;
 	}
 
+	/** adjusts the image's resolution, offset and size to represent
+	    this AABB extended with the optional outer frame of the given
+	    pixel width */
+	template <typename T>
+	void adaptImage(i3d::Image3d<T>& img,
+	                const Vector3d<float>& res,                                //px/um
+	                const Vector3d<short>& pxFrameWidth = Vector3d<short>(2))  //px
+	const
+	{
+		const Vector3d<float> umFrameWidth( Vector3d<float>().from(pxFrameWidth).elemDivBy(res) );
+
+		Vector3d<float> tmp(minCorner.to<float>());
+		tmp -= umFrameWidth;
+
+		img.SetResolution( i3d::Resolution(res.toI3dVector3d()) );
+		img.SetOffset( tmp.toI3dVector3d() );
+
+		tmp.from(maxCorner-minCorner);
+		tmp += 2.0f * umFrameWidth;
+		tmp.elemMult(res).elemCeil();
+		img.MakeRoom( tmp.to<size_t>().toI3dVector3d() );
+
+		DEBUG_REPORT("from AABB: minCorner=" << minCorner << " --> maxCorner=" << maxCorner);
+		DEBUG_REPORT(" to image: imgOffset=" << img.GetOffset() << ", imgSize="
+		             << img.GetSize() << ", imgRes=" << res);
+	}
+
 	/** exports this AABB as a "sweeping" box that is given
 	    with the output 'minSweep' and 'maxSweep' corners and
 	    that is appropriate for (that is, intersected with)
