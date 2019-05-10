@@ -166,6 +166,38 @@ public:
 		return *this;
 	}
 
+	Vector3d<T>& elemFloor(void)
+	{
+		x = std::floor(x);
+		y = std::floor(y);
+		z = std::floor(z);
+		return *this;
+	}
+
+	Vector3d<T>& elemRound(void)
+	{
+		x = std::round(x);
+		y = std::round(y);
+		z = std::round(z);
+		return *this;
+	}
+
+	Vector3d<T>& elemCeil(void)
+	{
+		x = std::ceil(x);
+		y = std::ceil(y);
+		z = std::ceil(z);
+		return *this;
+	}
+
+	Vector3d<T>& elemMathOp(const std::function<T(const T)>& mathOp)
+	{
+		x = mathOp(x);
+		y = mathOp(y);
+		z = mathOp(z);
+		return *this;
+	}
+
 	bool elemIsLessThan(const Vector3d<T>& v) const
 	{
 		if (x >= v.x) return false;
