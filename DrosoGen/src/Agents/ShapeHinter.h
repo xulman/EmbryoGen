@@ -103,8 +103,8 @@ private:
 	void drawForDebug(i3d::Image3d<i3d::GRAY16>& img) override
 	{
 		//shortcuts to the mask image parameters
-		const i3d::Vector3d<float>& res = img.GetResolution().GetRes();
-		const Vector3d<FLOAT>       off(img.GetOffset().x,img.GetOffset().y,img.GetOffset().z);
+		const Vector3d<FLOAT> res(img.GetResolution().GetRes());
+		const Vector3d<FLOAT> off(img.GetOffset().x,img.GetOffset().y,img.GetOffset().z);
 
 		//shortcuts to our own geometry
 		const i3d::Image3d<float>&   distImg = geometryAlias.getDistImg();
@@ -132,25 +132,16 @@ private:
 		{
 			//get micron coordinate of the current voxel's centre
 			//NB: AABB.exportInPixelCoords() assures that voxel centres fall into AABB
-			centre.x = ((FLOAT)curPos.x +0.5f) / res.x;
-			centre.y = ((FLOAT)curPos.y +0.5f) / res.y;
-			centre.z = ((FLOAT)curPos.z +0.5f) / res.z;
-			centre += off;
+			centre.toMicronsFrom(curPos, res,off);
 
 			//project the voxel's 'centre' to the geometryAlias.distImg
-			centre -= distImgOff;
-			centre.elemMult(distImgRes); //in px & in real coords
+			centre.fromMicronsTo(centrePX, distImgRes,distImgOff);
 
 #ifdef DEBUG
-			if (centre.x < 0 || centre.y < 0 || centre.z < 0
-			 || centre.x >= distImg.GetSizeX() || centre.y >= distImg.GetSizeY() || centre.z >= distImg.GetSizeZ())
-				REPORT(ID << " gives counter-voxel " << centre << " outside of the distImg");
+			if (centrePX.x >= distImg.GetSizeX() || centrePX.y >= distImg.GetSizeY() || centrePX.z >= distImg.GetSizeZ())
+				REPORT(IDSIGN << " gives counter-voxel " << centrePX << " (to voxel " << curPos << ") outside of the distImg");
 #endif
 
-			//down-round to find the voxel that holds this (real)coordinate
-			centrePX.x = (size_t)centre.x;
-			centrePX.y = (size_t)centre.y;
-			centrePX.z = (size_t)centre.z;
 			//extract the value from the distImg
 			const float dist = distImg.GetVoxel(centrePX.x,centrePX.y,centrePX.z);
 
@@ -159,7 +150,7 @@ private:
 #ifdef DEBUG
 				i3d::GRAY16 val = img.GetVoxel(curPos.x,curPos.y,curPos.z);
 				if (val > 0 && val != (i3d::GRAY16)ID)
-					REPORT(ID << " overwrites mask at " << curPos);
+					REPORT(IDSIGN << " overwrites mask at " << curPos);
 #endif
 				img.SetVoxel(curPos.x,curPos.y,curPos.z, (i3d::GRAY16)ID);
 				//NB: should dilate by 1px for model == GradIN_ZeroOUT

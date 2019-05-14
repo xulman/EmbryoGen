@@ -259,6 +259,16 @@ public:
 		return *this;
 	}
 
+	/** converts this pixel coordinate into this micron coordinate,
+	    returns *this to allow for concatenating of commands... */
+	Vector3d<T>& toMicrons(const i3d::Vector3d<T>& res, const i3d::Vector3d<T>& off)
+	{
+		x = x/res.x +off.x;
+		y = y/res.y +off.y;
+		z = z/res.z +off.z;
+		return *this;
+	}
+
 	/** converts this micron coordinate into this pixel coordinate,
 	    returns *this to allow for concatenating of commands... */
 	Vector3d<T>& toPixels(const Vector3d<T>& res, const Vector3d<T>& off)
@@ -266,6 +276,48 @@ public:
 		x = (x-off.x) *res.x;
 		y = (y-off.y) *res.y;
 		z = (z-off.z) *res.z;
+		return *this;
+	}
+
+	/** converts this micron coordinate into this pixel coordinate,
+	    returns *this to allow for concatenating of commands... */
+	Vector3d<T>& toPixels(const i3d::Vector3d<T>& res, const i3d::Vector3d<T>& off)
+	{
+		x = (x-off.x) *res.x;
+		y = (y-off.y) *res.y;
+		z = (z-off.z) *res.z;
+		return *this;
+	}
+
+	/** converts from floating-point pixel coordinate 'floatPxPos' into this integer pixel coordinate
+	    (which is still stored with floating-point precision/type), the down-rounding implements
+	    the same real-px-coord-to-int-px-coord policy as in the fromMicronsTo(),
+	    returns *this to allow for concatenating of commands... */
+	template <typename FT> //FT = foreign type
+	Vector3d<T>& toPixels(const Vector3d<FT>& floatPxPos)
+	{
+		x = (T)std::floor( floatPxPos.x );
+		y = (T)std::floor( floatPxPos.y );
+		z = (T)std::floor( floatPxPos.z );
+		return *this;
+
+		//or just:
+		//return from(floatPxPos).elemFloor();
+		//NB: this would, however, complain when template parameter T is some integer type
+		//    because std::floor(), used inside elemFloor(), does not exist for integer types
+		//    and so std::floor<double>() is used returning double implicitly converted into
+		//    the integer type (and producing a warning about the possibly-lossy conversion)
+	}
+
+	/** converts this floating-point pixel coordinate into this integer pixel coordinate (which
+	    is still stored with floating-point precision/type), the down-rounding implements the same
+	    real-px-coord-to-int-px-coord policy as in the fromMicronsTo(),
+	    returns *this to allow for concatenating of commands... */
+	Vector3d<T>& toPixels(void)
+	{
+		x = (T)std::floor( x );
+		y = (T)std::floor( y );
+		z = (T)std::floor( z );
 		return *this;
 	}
 
@@ -279,14 +331,15 @@ public:
 		return *this;
 	}
 
-	/** converts this micron coordinate into _nearest_ pxOut coordinate,
-	    returns pxOut to allow for concatenating of commands... */
-	Vector3d<size_t>& toPixels(Vector3d<size_t>& pxOut, const Vector3d<T>& res, const Vector3d<T>& off) const
+	/** converts this micron coordinate into a containing voxel, whose coordinate
+	    is stored into pxOut; returns pxOut to allow for concatenating of commands... */
+	Vector3d<size_t>& fromMicronsTo(Vector3d<size_t>& pxOut, const Vector3d<T>& res, const Vector3d<T>& off)
+	const
 	{
-		//NB: +0.5 is to achieve proper-rounding when casting to size_t does down-rounding
-		pxOut.x = (size_t)( ((x-off.x) *res.x) +(T)0.5 );
-		pxOut.y = (size_t)( ((y-off.y) *res.y) +(T)0.5 );
-		pxOut.z = (size_t)( ((z-off.z) *res.z) +(T)0.5 );
+		//the real-px-coord-to-int-px-coord policy
+		pxOut.x = (size_t)((x -off.x) *res.x);
+		pxOut.y = (size_t)((y -off.y) *res.y);
+		pxOut.z = (size_t)((z -off.z) *res.z);
 		return pxOut;
 	}
 

@@ -46,7 +46,7 @@ void Texture::RenderIntoPhantom(i3d::Image3d<float> &phantoms)
 		++(dot.cntOfExcitations);
 
 		// turn micron position to phantom pixel one
-		dot.pos.toPixels(imgPos, res,off);
+		dot.pos.fromMicronsTo(imgPos, res,off);
 
 		// is the pixel inside the input image?
 		//stdandard way:
@@ -85,8 +85,8 @@ void TextureQuantized::RenderIntoPhantom(i3d::Image3d<float> &phantoms)
 	DEBUG_REPORT("going to render " << dots.size() << " quantum dots");
 
 	//cache some output image params
-	const Vector3d<float>  res(phantoms.GetResolution().GetRes());     //in px/um
-	const Vector3d<float>  off(phantoms.GetOffset());                  //in um
+	const Vector3d<float> res(phantoms.GetResolution().GetRes());      //in px/um
+	const Vector3d<float> off(phantoms.GetOffset());                   //in um
 
 	//sweeping-related vars
 	const int xLine   = (signed)phantoms.GetSizeX();                   //in px
@@ -141,18 +141,18 @@ void TextureQuantized::RenderIntoPhantom(i3d::Image3d<float> &phantoms)
 			// populate the "quantum cube":
 			for (short iz=0; iz < qCounts.z; ++iz)
 			{
-				//NB: +0.5 is to achieve proper-rounding when casting to int does down-rounding
-				const int Z = int(imgPos.z + (float)iz*boxStep.z +0.5f);
+				//NB: the Vector3d<>::fromMicronsTo()'s real-px-coord-to-int-px-coord policy
+				const int Z = int(imgPos.z + (float)iz*boxStep.z);
 
 				for (short iy=0; iy < qCounts.y; ++iy)
 				{
-					const int Y = int(imgPos.y + (float)iy*boxStep.y +0.5f);
+					const int Y = int(imgPos.y + (float)iy*boxStep.y);
 
 					float* const T = paddr + Z*xyPlane + Y*xLine;
 					for (short ix=0; ix < qCounts.x; ++ix)
 					{
-						const int X = int(imgPos.x + (float)ix*boxStep.x +0.5f);
-						T[X] += fval;;
+						const int X = int(imgPos.x + (float)ix*boxStep.x);
+						T[X] += fval;
 
 						//std::cout << "populating at [" << X << "," << Y << "," << Z << "] px because "
 						//          << ( imgPos+Vector3d<float>(ix,iy,iz).elemMult(boxStep) ) << " um\n";

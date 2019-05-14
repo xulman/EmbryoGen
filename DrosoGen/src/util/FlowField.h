@@ -166,27 +166,24 @@ public:
 		int elemCnt = 0;
 
 		//offset and resolution of the flow field images/containers
-		const Vector3d<float> off(x->GetOffset().x,x->GetOffset().y,x->GetOffset().z);
-		const Vector3d<float> res(x->GetResolution().GetRes().x,
-		                          x->GetResolution().GetRes().y,
-		                          x->GetResolution().GetRes().z);
+		const Vector3d<float> off(x->GetOffset());
+		const Vector3d<float> res(x->GetResolution().GetRes());
 
 		//any position in microns, and some vector
 		Vector3d<float> pos,vec;
 
 		//sweep the FF, voxel by voxel
-		for (size_t Z = 0; Z < x->GetSizeZ(); Z += sparsity.z)
-		for (size_t Y = 0; Y < x->GetSizeY(); Y += sparsity.y)
-		for (size_t X = 0; X < x->GetSizeX(); X += sparsity.x)
+		Vector3d<size_t> pxPos;
+		for (pxPos.z = 0; pxPos.z < x->GetSizeZ(); pxPos.z += sparsity.z)
+		for (pxPos.y = 0; pxPos.y < x->GetSizeY(); pxPos.y += sparsity.y)
+		for (pxPos.x = 0; pxPos.x < x->GetSizeX(); pxPos.x += sparsity.x)
 		{
 			//translate px coord into micron (real world) one
-			pos.x = X +0.5f; pos.y = Y +0.5f; pos.z = Z +0.5f;
-			pos.elemDivBy(res);
-			pos += off;
+			pos.toMicronsFrom(pxPos, res,off);
 
-			vec.x = x->GetVoxel(X,Y,Z);
-			vec.y = y->GetVoxel(X,Y,Z);
-			vec.z = z->GetVoxel(X,Y,Z);
+			vec.x = x->GetVoxel(pxPos.x, pxPos.y, pxPos.z);
+			vec.y = y->GetVoxel(pxPos.x, pxPos.y, pxPos.z);
+			vec.z = z->GetVoxel(pxPos.x, pxPos.y, pxPos.z);
 
 			//display only non-zero vectors
 			if (vec.len2() > 0)
