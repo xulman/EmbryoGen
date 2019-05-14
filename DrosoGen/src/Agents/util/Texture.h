@@ -66,7 +66,7 @@ public:
 	// rendering
 
 	/** renders the current content of the this->dots list into the given phantom image */
-	void RenderIntoPhantom(i3d::Image3d<float> &phantoms);
+	void RenderIntoPhantom(i3d::Image3d<float> &phantoms, const float quantization = 1);
 };
 
 /**
@@ -121,6 +121,7 @@ public:
 		counts.x = (short)std::ceil(quantum * boxSize.x);
 		counts.y = (short)std::ceil(quantum * boxSize.y);
 		counts.z = (short)std::ceil(quantum * boxSize.z);
+		//or: counts.from( (quantum * boxSize).elemCeil() );
 		//should hold x*y*z >= original input quantum, ideally closest possible to the equality
 
 		return counts;

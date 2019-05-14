@@ -21,7 +21,7 @@ inline float GetBleachFactor(const short)
 #endif
 
 
-void Texture::RenderIntoPhantom(i3d::Image3d<float> &phantoms)
+void Texture::RenderIntoPhantom(i3d::Image3d<float> &phantoms, const float quantization)
 {
 	DEBUG_REPORT("going to render " << dots.size() << " dots");
 
@@ -58,7 +58,7 @@ void Texture::RenderIntoPhantom(i3d::Image3d<float> &phantoms)
 		//plus upper bound (tests also underflows... "negative" coordinates)
 		if (imgPos.elemIsLessThan(imgSize))
 		{
-			const float fval = GetBleachFactor(dot.cntOfExcitations);
+			const float fval = quantization * GetBleachFactor(dot.cntOfExcitations);
 #ifdef DEBUG
 			meanIntContribution += fval;
 			++meanIntContCounter;
