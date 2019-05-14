@@ -259,9 +259,29 @@ public:
 		return *this;
 	}
 
+	/** converts this pixel coordinate into this micron coordinate,
+	    returns *this to allow for concatenating of commands... */
+	Vector3d<T>& toMicrons(const i3d::Vector3d<T>& res, const i3d::Vector3d<T>& off)
+	{
+		x = x/res.x +off.x;
+		y = y/res.y +off.y;
+		z = z/res.z +off.z;
+		return *this;
+	}
+
 	/** converts this micron coordinate into this pixel coordinate,
 	    returns *this to allow for concatenating of commands... */
 	Vector3d<T>& toPixels(const Vector3d<T>& res, const Vector3d<T>& off)
+	{
+		x = (x-off.x) *res.x;
+		y = (y-off.y) *res.y;
+		z = (z-off.z) *res.z;
+		return *this;
+	}
+
+	/** converts this micron coordinate into this pixel coordinate,
+	    returns *this to allow for concatenating of commands... */
+	Vector3d<T>& toPixels(const i3d::Vector3d<T>& res, const i3d::Vector3d<T>& off)
 	{
 		x = (x-off.x) *res.x;
 		y = (y-off.y) *res.y;
