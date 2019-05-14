@@ -279,14 +279,15 @@ public:
 		return *this;
 	}
 
-	/** converts this micron coordinate into _nearest_ pxOut coordinate,
-	    returns pxOut to allow for concatenating of commands... */
-	Vector3d<size_t>& toPixels(Vector3d<size_t>& pxOut, const Vector3d<T>& res, const Vector3d<T>& off) const
+	/** converts this micron coordinate into a containing voxel, whose coordinate
+	    is stored into pxOut; returns pxOut to allow for concatenating of commands... */
+	Vector3d<size_t>& fromMicronsTo(Vector3d<size_t>& pxOut, const Vector3d<T>& res, const Vector3d<T>& off)
+	const
 	{
-		//NB: +0.5 is to achieve proper-rounding when casting to size_t does down-rounding
-		pxOut.x = (size_t)( ((x-off.x) *res.x) +(T)0.5 );
-		pxOut.y = (size_t)( ((y-off.y) *res.y) +(T)0.5 );
-		pxOut.z = (size_t)( ((z-off.z) *res.z) +(T)0.5 );
+		//the real-px-coord-to-int-px-coord policy
+		pxOut.x = (size_t)((x -off.x) *res.x);
+		pxOut.y = (size_t)((y -off.y) *res.y);
+		pxOut.z = (size_t)((z -off.z) *res.z);
 		return pxOut;
 	}
 
