@@ -126,6 +126,7 @@ public:
 #ifdef DEBUG
 		REPORT("there are " << missedDots << " (" << 100.f*missedDots/dots.size()
 		       << " %) dots placed outside its original voxel");
+		REPORT("there are currently " << dots.size() << " registered dots");
 #endif
 	}
 

@@ -1,22 +1,38 @@
 #include "../util/Vector3d.h"
 #include "../Geometries/Spheres.h"
-#include "../Geometries/ScalarImg.h"
-#include "../Geometries/VectorImg.h"
 #include "../Simulation.h"
 #include "../Agents/Nucleus4SAgent.h"
-#include "../Agents/ShapeHinter.h"
-#include "../Agents/TrajectoriesHinter.h"
+#include "../Agents/util/Texture.h"
+#include "../util/texture/texture.h"
 #include "Scenarios.h"
 
-class myDragAndTextureNucleus: public Nucleus4SAgent
+class myDragAndTextureNucleus: public Nucleus4SAgent, TextureQuantized
 {
 public:
 	myDragAndTextureNucleus(const int _ID, const std::string& _type,
 	          const Spheres& shape,
 	          const float _currTime, const float _incrTime):
-		Nucleus4SAgent(_ID,_type, shape, _currTime,_incrTime)
-		{ cytoplasmWidth = 0.0f; }
+		Nucleus4SAgent(_ID,_type, shape, _currTime,_incrTime),
+		TextureQuantized(60000, Vector3d<float>(2.0f,2.0f,2.0f), 125)
+	{
+		cytoplasmWidth = 0.0f;
 
+		//texture img: resolution -- makes sense to match it with the phantom img resolution
+		i3d::Image3d<float> img;
+		SetupImageForRasterizingTexture(img,Vector3d<float>(2.0f), futureGeometry);
+
+		DoPerlin3D(img,5.0);
+		img.GetVoxelData() += 0.6f;
+		SampleDotsFromImage(img,futureGeometry,0.1f);
+
+		const int dotOutliers = CollectOutlyingDots(futureGeometry);
+		DEBUG_REPORT(dotOutliers << " (" << 100.f*dotOutliers/dots.size()
+		             << " %) dots had to be moved inside the initial geometry");
+
+		//img.GetVoxelData() = 0;
+		//RenderIntoPhantom(img);
+		//img.SaveImage("test.tif");
+	}
 
 	void advanceAndBuildIntForces(const float) override
 	{
@@ -41,6 +57,11 @@ public:
 
 		//call the original method... takes care of own velocity, spheres mis-alignments, etc.
 		Nucleus4SAgent::advanceAndBuildIntForces(0.f);
+	}
+
+	void drawTexture(i3d::Image3d<float>& phantom, i3d::Image3d<float>&) override
+	{
+		if (Officer->isProducingOutput(phantom)) RenderIntoPhantom(phantom);
 	}
 };
 
@@ -85,4 +106,12 @@ void Scenario_dragRotateAndTexture::initializeAgents(void)
 		ag->setDetailedDrawingMode(true);
 		startNewAgent(ag);
 	}
+
+	//override the output images
+	setOutputImgSpecs( Vector3d<float>(220,30,30), Vector3d<float>(40,160,160));
+	enableProducingOutput( imgMask );
+	enableProducingOutput( imgPhantom );
+
+	//override the default stop time
+	stopTime = 1.2f;
 }

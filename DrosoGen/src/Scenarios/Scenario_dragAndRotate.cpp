@@ -1,11 +1,7 @@
 #include "../util/Vector3d.h"
 #include "../Geometries/Spheres.h"
-#include "../Geometries/ScalarImg.h"
-#include "../Geometries/VectorImg.h"
 #include "../Simulation.h"
 #include "../Agents/Nucleus4SAgent.h"
-#include "../Agents/ShapeHinter.h"
-#include "../Agents/TrajectoriesHinter.h"
 #include "Scenarios.h"
 
 class myNucleus: public Nucleus4SAgent
