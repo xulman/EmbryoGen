@@ -22,7 +22,8 @@ class Scenario_pseudoDivision            CLASS_DECLARATION
 class Scenario_dragAndRotate             CLASS_DECLARATION
 class Scenario_withCellCycle             CLASS_DECLARATION
 class Scenario_withTexture               CLASS_DECLARATION
-//  ---> ADD NEW SCENARIO HERE (and bellow) <---
+class Scenario_dragRotateAndTexture      CLASS_DECLARATION
+//  ---> ADD NEW SCENARIO HERE AND ALSO BELOW <---
 
 class Scenarios
 {
@@ -57,6 +58,7 @@ public:
 			AVAILABLE_SCENARIO( "dragAndRotate",     Scenario_dragAndRotate )
 			AVAILABLE_SCENARIO( "cellCycle",         Scenario_withCellCycle )
 			AVAILABLE_SCENARIO( "fluoTexture",       Scenario_withTexture )
+			AVAILABLE_SCENARIO( "dragFluoTexture",   Scenario_dragRotateAndTexture )
 			//  ---> ADD NEW SCENARIO HERE (and add definition *cpp file, re-run cmake!) <---
 
 			if (simulation == NULL)
