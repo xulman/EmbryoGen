@@ -7,6 +7,8 @@
 #include "../../util/report.h"
 #include "../../util/rnd_generators.h"
 #include "../../util/Dots.h"
+#include "../../Geometries/Geometry.h"
+#include "../../Geometries/Spheres.h"
 
 /**
  * Utility class that maintains texture particles, e.g. fluorescence dots.
@@ -54,8 +56,76 @@ public:
 	// --------------------------------------------------
 	// initializing the texture
 
-	/** Perlin in a box */
-	/** crop to the geometry */
+	/** setup the output image to wrap around the given geometry, respecting
+	    the given outer frame (in pixels) and the wanted resolution of the image */
+	template <typename VT>
+	void SetupImageForRasterizingTexture( i3d::Image3d<VT>& img,
+	               const Vector3d<float>& imgRes,
+	               const Geometry& geom,
+	               const Vector3d<short>& pxFrameWidth = Vector3d<short>(2) )
+	const
+	{
+		geom.AABB.adaptImage(img, imgRes,pxFrameWidth);
+	}
+
+	/** populate (actually add, not reset) the dot list by sampling the rasterized
+	    texture (stored in 'img') respecting the actual shape of the agent ('geom'),
+	    and considering given 'quantization' */
+	template <typename VT>
+	void SampleDotsFromImage(const i3d::Image3d<VT>& img,
+	                         const Spheres& geom,
+	                         const VT quantization = 1)
+	{
+		const Vector3d<float> res( img.GetResolution().GetRes() );
+		const Vector3d<float> off( img.GetOffset() );
+
+		//sigmas such that Gaussian will spread just across one voxel
+		const Vector3d<float> chaossSigma( Vector3d<float>(1.0f/6.0f).elemDivBy(res) );
+		rndGeneratorHandle chaossState;
+#ifdef DEBUG
+		long missedDots = 0;
+#endif
+
+		//sweeping stuff...
+		const VT* imgPtr = img.GetFirstVoxelAddr();
+		Vector3d<size_t> pxPos;
+		Vector3d<float>  umPos;
+
+		for (pxPos.z = 0; pxPos.z < img.GetSizeZ(); ++pxPos.z)
+		for (pxPos.y = 0; pxPos.y < img.GetSizeY(); ++pxPos.y)
+		for (pxPos.x = 0; pxPos.x < img.GetSizeX(); ++pxPos.x, ++imgPtr)
+		{
+			umPos.toMicronsFrom(pxPos, res,off);
+
+			if (geom.collideWithPoint(umPos) >= 0)
+			{
+				checkAndIncreaseCapacity();
+
+				//displace randomly within this voxel
+				for (int i = int(*imgPtr/quantization); i > 0; --i)
+				{
+					dots.push_back(umPos);
+					dots.back().pos += Vector3d<float>(
+					       GetRandomGauss(0.f,chaossSigma.x, chaossState),
+					       GetRandomGauss(0.f,chaossSigma.y, chaossState),
+					       GetRandomGauss(0.f,chaossSigma.z, chaossState) );
+
+#ifdef DEBUG
+					//test if the new position still fits inside the original voxel
+					Vector3d<size_t> pxBackPos;
+					dots.back().pos.fromMicronsTo(pxBackPos, res,off);
+					if (! pxBackPos.elemIsPredicateTrue(pxPos, [](float l,float r){ return l==r; }))
+						++missedDots;
+#endif
+				}
+			}
+		}
+
+#ifdef DEBUG
+		REPORT("there are " << missedDots << " (" << 100.f*missedDots/dots.size()
+		       << "%) dots placed outside its original voxel");
+#endif
+	}
 
 
 	// --------------------------------------------------
