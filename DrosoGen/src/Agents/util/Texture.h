@@ -19,6 +19,9 @@ public:
 	/** the main container of the dots for this texture */
 	std::vector<Dot> dots;
 
+	/** state of the random number generator that is associated with this texture instance */
+	rndGeneratorHandle rngState;
+
 	Texture(const unsigned int expectedNoOfDots)
 	{
 		dots.reserve(expectedNoOfDots);
@@ -81,7 +84,6 @@ public:
 
 		//sigmas such that Gaussian will spread just across one voxel
 		const Vector3d<float> chaossSigma( Vector3d<float>(1.0f/6.0f).elemDivBy(res) );
-		rndGeneratorHandle chaossState;
 #ifdef DEBUG
 		long missedDots = 0;
 #endif
@@ -106,9 +108,9 @@ public:
 				{
 					dots.push_back(umPos);
 					dots.back().pos += Vector3d<float>(
-					       GetRandomGauss(0.f,chaossSigma.x, chaossState),
-					       GetRandomGauss(0.f,chaossSigma.y, chaossState),
-					       GetRandomGauss(0.f,chaossSigma.z, chaossState) );
+					       GetRandomGauss(0.f,chaossSigma.x, rngState),
+					       GetRandomGauss(0.f,chaossSigma.y, rngState),
+					       GetRandomGauss(0.f,chaossSigma.z, rngState) );
 
 #ifdef DEBUG
 					//test if the new position still fits inside the original voxel
@@ -123,14 +125,89 @@ public:
 
 #ifdef DEBUG
 		REPORT("there are " << missedDots << " (" << 100.f*missedDots/dots.size()
-		       << "%) dots placed outside its original voxel");
+		       << " %) dots placed outside its original voxel");
 #endif
 	}
 
+	// --------------------------------------------------
+	// manipulating the texture
+
+	/** find dots that are outside the given geometry and "put them back",
+	    which is randomly close to the centre of the closest sphere,
+	    returns the number of such processed dots (for statistics purposes) */
+	int CollectOutlyingDots(const Spheres& geom)
+	{
+		int count = 0;
+#ifdef DEBUG
+		double outDist = 0;
+		double inDist  = 0;
+		int postCorrectionsCnt = 0;
+#endif
+
+		Vector3d<FLOAT> tmp;
+		FLOAT tmpLen;
+
+		for (auto& dot : dots)
+		{
+			bool foundInside = false;
+			FLOAT nearestDist = TOOFAR;
+			int nearestIdx  = -1;
+
+			for (int i=0; i < geom.noOfSpheres && !foundInside; ++i)
+			{
+				//test against the i-th sphere
+				tmp  = geom.centres[i];
+				tmp -= dot.pos;
+				tmpLen = tmp.len() - geom.radii[i];
+
+				foundInside = tmpLen <= 0;
+
+				if (!foundInside && tmpLen < nearestDist)
+				{
+					//update nearest distance
+					nearestDist = tmpLen;
+					nearestIdx  = i;
+				}
+			}
+
+			if (!foundInside)
+			{
+				//correct dot's position according to the nearestIdx:
+				//random position inside the (zero-centered) sphere
+				dot.pos.x = GetRandomGauss(0.f,geom.radii[nearestIdx]/2.f, rngState);
+				dot.pos.y = GetRandomGauss(0.f,geom.radii[nearestIdx]/2.f, rngState);
+				dot.pos.z = GetRandomGauss(0.f,geom.radii[nearestIdx]/2.f, rngState);
+
+				//make sure we're inside this sphere
+				if (dot.pos.len() > geom.radii[nearestIdx])
+				{
+					dot.pos.changeToUnitOrZero() *= 0.9f * geom.radii[nearestIdx];
+					//NB: it held and holds for sure: dot.pos.len() > 0
+#ifdef DEBUG
+					++postCorrectionsCnt;
+#endif
+				}
+
+#ifdef DEBUG
+				outDist += nearestDist;
+				inDist  += dot.pos.len();
+#endif
+				dot.pos += geom.centres[nearestIdx];
+				++count;
+			}
+		}
+
+#ifdef DEBUG
+		REPORT("average outside-to-surface distance " << (count > 0 ? outDist/(double)count : -1) << " microns");
+		REPORT("average new-pos-to-centre  distance " << (count > 0 ?  inDist/(double)count : -1) << " microns");
+		REPORT("secondary corrections " << postCorrectionsCnt << "/" << count
+		       << " (" << 100.f*postCorrectionsCnt/count << " %)");
+#endif
+		return count;
+	}
 
 	// --------------------------------------------------
 	// statistics about the texture
-
 
 	// --------------------------------------------------
 	// rendering
