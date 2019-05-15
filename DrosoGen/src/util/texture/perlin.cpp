@@ -4,11 +4,29 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include "../rnd_generators.h"
 #include "perlin.h"
 
 #ifdef _MSC_VER
   #define random() rand()
 #endif
+
+#define B 0x100
+#define BM 0xff
+#define N 0x1000
+#define NP 12   /* 2^N */
+#define NM 0xfff
+
+#define s_curve(t) ( t * t * (3. - 2. * t) )
+#define lerp(t, a, b) ( a + t * (b - a) )
+#define setup(i,b0,b1,r0,r1)\
+        t = vec[i] + N;\
+        b0 = ((int)t) & BM;\
+        b1 = (b0+1) & BM;\
+        r0 = t - (int)t;\
+        r1 = r0 - 1.;
+#define at2(rx,ry) ( rx * q[0] + ry * q[1] )
+#define at3(rx,ry,rz) ( rx * q[0] + ry * q[1] + rz * q[2] )
 
 static int p[B + B + 2];
 static double g3[B + B + 2][3];
@@ -143,6 +161,10 @@ void normalize3(double v[3])
 
 void init(void)
 {
+	//reset the random() with some random seed,
+	//which must come from some different generator...
+	srandom( (unsigned int)GetRandomUniform(0,32000) );
+
    int i, j, k;
 
    for (i = 0 ; i < B ; i++) {

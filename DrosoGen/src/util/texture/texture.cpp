@@ -33,12 +33,15 @@ Description: Manipulation with procedural texture (Perlin noise).
 #include <i3d/transform.h>
 
 #include "../report.h"
+#include "../rnd_generators.h"
 #include "perlin.h"
 #include "texture.h"
 #include "myround.h"
 
 using namespace i3d;
 using namespace std;
+
+rndGeneratorHandle textureOwnRng;
 
 /***************************************************************************/
 /** Generate 3D Perlin noise and store the result **/
@@ -63,9 +66,9 @@ void DoPerlin3D(Image3d<float> &fimg,
 	 // First, place the image in the random position within the space.
 	 // This guarantee that the result won't be the same in all the cases!
  
-	 float shift_x = 1000*(static_cast<float>(rand())/RAND_MAX);
-	 float shift_y = 1000*(static_cast<float>(rand())/RAND_MAX);
-	 float shift_z = 1000*(static_cast<float>(rand())/RAND_MAX);
+	 float shift_x = GetRandomUniform(0,1000, textureOwnRng);
+	 float shift_y = GetRandomUniform(0,1000, textureOwnRng);
+	 float shift_z = GetRandomUniform(0,1000, textureOwnRng);
 
 	 for (size_t i=0; i<fimg.GetImageSize(); i++)
 			 {
