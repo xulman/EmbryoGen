@@ -37,7 +37,7 @@ public:
 		if (dots.capacity() - dots.size() < expectedNoOfNewDots)
 		{
 			dots.reserve(dots.capacity() + expectedNoOfNewDots);
-			DEBUG_REPORT("increased capacity to " << dots.capacity());
+			DEBUG_REPORT("increased capacity to " << dots.capacity() << " dots");
 		}
 
 		return dots.capacity();
@@ -198,10 +198,10 @@ public:
 		}
 
 #ifdef DEBUG
-		REPORT("average outside-to-surface distance " << (count > 0 ? outDist/(double)count : -1) << " microns");
-		REPORT("average new-pos-to-centre  distance " << (count > 0 ?  inDist/(double)count : -1) << " microns");
-		REPORT("secondary corrections " << postCorrectionsCnt << "/" << count
-		       << " (" << 100.f*postCorrectionsCnt/count << " %)");
+		REPORT("average outside-to-surface distance " << (count > 0 ? outDist/(double)count : -1) << " um");
+		REPORT("average new-pos-to-centre  distance " << (count > 0 ?  inDist/(double)count : -1) << " um");
+		REPORT("secondary corrections of " << postCorrectionsCnt << "/" << count
+		       << " (" << 100.f*postCorrectionsCnt/count << " %) dots");
 #endif
 		return count;
 	}
@@ -248,7 +248,7 @@ public:
 		boxSize(1.0f/imgRes.x, 1.0f/imgRes.y, 1.0f/imgRes.z),
 		qCounts( getCountsPerAxis(imgRes,quantumGain) )
 	{
-		DEBUG_REPORT("Converting inputs to: boxSize=" << boxSize <<", qCounts=" << qCounts);
+		DEBUG_REPORT("Converting inputs to: boxSize=" << boxSize <<" um, qCounts=" << qCounts << " sub-dots");
 		checkCountsPerAxis();
 	}
 

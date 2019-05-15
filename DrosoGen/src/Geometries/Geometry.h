@@ -67,9 +67,9 @@ public:
 		tmp.elemMult(res).elemCeil();
 		img.MakeRoom( tmp.to<size_t>().toI3dVector3d() );
 
-		DEBUG_REPORT("from AABB: minCorner=" << minCorner << " --> maxCorner=" << maxCorner);
-		DEBUG_REPORT(" to image: imgOffset=" << img.GetOffset() << ", imgSize="
-		             << img.GetSize() << ", imgRes=" << res);
+		DEBUG_REPORT("from AABB: minCorner=" << minCorner << " um --> maxCorner=" << maxCorner << " um");
+		DEBUG_REPORT(" to image: imgOffset=" << img.GetOffset() << " um, imgSize="
+		             << img.GetSize() << " px, imgRes=" << res << " px/um");
 	}
 
 	/** exports this AABB as a "sweeping" box that is given
