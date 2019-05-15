@@ -4,6 +4,7 @@
 #include "Scenarios.h"
 #include "../Agents/NucleusAgent.h"
 #include "../Agents/util/Texture.h"
+#include "../util/texture/texture.h"
 
 class myTexturedNucleus: public NucleusAgent, TextureQuantized
 {
@@ -12,12 +13,19 @@ public:
 	          const Spheres& shape,
 	          const float _currTime, const float _incrTime):
 		NucleusAgent(_ID,_type, shape, _currTime,_incrTime),
-		TextureQuantized(20000, Vector3d<float>(2.0f,2.0f,2.0f), 27)
+		TextureQuantized(60000, Vector3d<float>(2.0f,2.0f,2.0f), 125)
 	{
-		//define the fl. dots
-		Vector3d<float> axis = shape.getCentres()[1] - shape.getCentres()[0];
-		for (int i=0; i < 100; ++i)
-			dots.emplace_back( (float)i/100.f *axis +shape.getCentres()[0] );
+		//texture img: resolution -- makes sense to match it with the phantom img resolution
+		i3d::Image3d<float> img;
+		SetupImageForRasterizingTexture(img,Vector3d<float>(2.0f), futureGeometry);
+
+		DoPerlin3D(img,5.0);
+		img.GetVoxelData() += 0.6f;
+		SampleDotsFromImage(img,futureGeometry,0.1f);
+
+		const int dotOutliers = CollectOutlyingDots(futureGeometry);
+		DEBUG_REPORT(dotOutliers << " (" << 100.f*dotOutliers/dots.size()
+		             << " %) dots had to be moved inside the initial geometry");
 	}
 
 	void drawTexture(i3d::Image3d<float>& phantom, i3d::Image3d<float>&) override
