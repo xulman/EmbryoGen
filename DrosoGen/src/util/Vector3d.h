@@ -432,11 +432,20 @@ std::ostream& operator<<(std::ostream& s,const Vector3d<T>& v)
 	return s;
 }
 
-/** function for dot product of two vectors */
+/** function for dot (scalar) product of two vectors */
 template <typename T>
 T dotProduct(const Vector3d<T>& u, const Vector3d<T>& v)
 {
 	return (u.x*v.x + u.y*v.y + u.z*v.z);
+}
+
+/** function for cross (vector) product of two vectors */
+template <typename T>
+Vector3d<T> crossProduct(const Vector3d<T>& u, const Vector3d<T>& v)
+{
+	return Vector3d<T>(u.y*v.z - u.z*v.y,
+	                   u.z*v.x - u.x*v.z,
+	                   u.x*v.y - u.y*v.x);
 }
 
 /** calculates addition of two vectors: vecA + vecB */
@@ -445,7 +454,7 @@ Vector3d<T> operator+(const Vector3d<T>& vecA, const Vector3d<T>& vecB)
 {
 	Vector3d<T> res(vecA);
 	res+=vecB;
-	return (res);
+	return res;
 }
 
 /** calculates difference of two vectors: vecA - vecB */
@@ -454,7 +463,7 @@ Vector3d<T> operator-(const Vector3d<T>& vecA, const Vector3d<T>& vecB)
 {
 	Vector3d<T> res(vecA);
 	res-=vecB;
-	return (res);
+	return res;
 }
 
 /** calculates scalar multiplication with vector: scal * vec */
@@ -463,7 +472,7 @@ Vector3d<T> operator*(const T scal, const Vector3d<T>& vec)
 {
 	Vector3d<T> res(vec);
 	res *= scal;
-	return (res);
+	return res;
 }
 // ----------------------------------------------------------------------------
 
