@@ -17,9 +17,6 @@
 #include "DisplayUnits/SceneryBufferedDisplayUnit.h"
 #include "DisplayUnits/BroadcasterDisplayUnit.h"
 
-//uncomment this macro to enable the system to generate images
-//#define PRODUCE_IMAGES
-
 /**
  * This class contains all simulation agents, scene and simulation
  * parameters, and takes care of the iterations of the simulation.
@@ -55,19 +52,6 @@ protected:
 	const Vector3d<float> sceneOffset;
 	/** set up the environment: size of the scene [micrometer] */
 	const Vector3d<float> sceneSize;
-
-	// --------------------------------------------------
-
-	//original res
-	//const Vector3d<float>  imgRes(2.46f,2.46f,0.49f); //[pixels per micrometer]
-	//
-	//my res
-	/** resolution of the output (phantom & mask) images [pixels per micrometer] */
-	const Vector3d<float>  imgRes;
-
-	/** size of the output (phantom & mask) images, [pixels]
-	    it is a function of this->sceneSize and this->imgRes */
-	const Vector3d<size_t> imgSize;
 
 	/** output image into which the simulation will be iteratively rasterized/rendered: instance masks */
 	i3d::Image3d<i3d::GRAY16> imgMask;
@@ -122,17 +106,17 @@ protected:
 public:
 	/** initializes the simulation parameters */
 	Simulation(void)
-		: sceneOffset(0.f),             //[micrometer]
-		  sceneSize(480.f,220.f,220.f), //[micrometer]
-		  imgRes(2.0f,2.0f,2.0f),       //[pixels per micrometer]
-		  imgSize((size_t)ceil(sceneSize.x * imgRes.x), //[pixels]
-                (size_t)ceil(sceneSize.y * imgRes.y),
-                (size_t)ceil(sceneSize.z * imgRes.z))
+		: sceneOffset(0.f),                     //[micrometer]
+		  sceneSize(480.f,220.f,220.f)          //[micrometer]
 	{
+		Vector3d<float> imgRes(2.0f,2.0f,2.0f); //[pixels per micrometer]
+		setOutputImgSpecs(sceneOffset,sceneSize, imgRes);
+
+		imgRes.elemMult(sceneSize);
 		REPORT("scene size will be: "
 		  << sceneSize.x << " x " << sceneSize.y << " x " << sceneSize.z
-		  << " um =  "
-		  << imgSize.x << " x " << imgSize.y << " x " << imgSize.z << " px");
+		  << " um -> "
+		  << imgRes.x << " x " << imgRes.y << " x " << imgRes.z << " px");
 
 		//init display/export units
 		//displayUnit.RegisterUnit( new ConsoleDisplayUnit() );
@@ -140,21 +124,82 @@ public:
 		//displayUnit.RegisterUnit( new SceneryBufferedDisplayUnit("192.168.3.110:8765") );
 	}
 
+private:
+	/** internal (private) memory of the input of setOutputImgSpecs() for the enableProducingOutput() */
+	Vector3d<size_t> lastUsedImgSize;
+public:
+	/** util method to setup all output images at once, disables all of them for the output,
+	    and hence does not allocate memory for the images */
+	void setOutputImgSpecs(const Vector3d<float>& imgOffsetInMicrons,
+	                       const Vector3d<float>& imgSizeInMicrons)
+	{
+		setOutputImgSpecs(imgOffsetInMicrons,imgSizeInMicrons,
+		                  Vector3d<float>(imgMask.GetResolution().GetRes()));
+	}
+
+	/** util method to setup all output images at once, disables all of them for the output,
+	    and hence does not allocate memory for the images */
+	void setOutputImgSpecs(const Vector3d<float>& imgOffsetInMicrons,
+	                       const Vector3d<float>& imgSizeInMicrons,
+	                       const Vector3d<float>& imgResolutionInPixelsPerMicron)
+	{
+		//sanity checks:
+		if (!imgSizeInMicrons.elemIsGreaterThan(Vector3d<float>(0)))
+			throw ERROR_REPORT("image dimensions (size) cannot be zero or negative along any axis");
+		if (!imgResolutionInPixelsPerMicron.elemIsGreaterThan(Vector3d<float>(0)))
+			throw ERROR_REPORT("image resolution cannot be zero or negative along any axis");
+
+		//metadata...
+		imgMask.SetResolution(i3d::Resolution( imgResolutionInPixelsPerMicron.toI3dVector3d() ));
+		imgMask.SetOffset( imgOffsetInMicrons.toI3dVector3d() );
+
+		//disable usage of this image (for now)
+		disableProducingOutput(imgMask);
+
+		//but remember what the correct pixel size would be
+		lastUsedImgSize.from(
+		  Vector3d<float>(imgSizeInMicrons).elemMult(imgResolutionInPixelsPerMicron).elemCeil() );
+
+		//propagate also the same setting onto the remaining images
+		imgPhantom.CopyMetaData(imgMask);
+		imgOptics.CopyMetaData(imgMask);
+	}
+
+	/** util method to enable the given image for the output, the method
+	    immediately allocated the necessary memory for the image */
+	template <typename T>
+	void enableProducingOutput(i3d::Image3d<T>& img)
+	{
+		DEBUG_REPORT("allocating "
+		  << ((double)lastUsedImgSize.x*lastUsedImgSize.y*lastUsedImgSize.z/(1 << 20))*sizeof(*img.GetFirstVoxelAddr())
+		  << " MB of memory for image of size " << lastUsedImgSize << " px");
+		img.MakeRoom( lastUsedImgSize.toI3dVector3d() );
+	}
+
+	/** util method to disable the given image for the output, the method
+	    immediately frees the allocated memory of the image */
+	template <typename T>
+	void disableProducingOutput(i3d::Image3d<T>& img)
+	{
+		//image size flags if this image should be iteratively filled and saved:
+		//zero image size signals "don't use this image"
+		img.MakeRoom(0,0,0);
+	}
+
+	/** util method to report if the given image is enabled for the output */
+	template <typename T>
+	bool isProducingOutput(const i3d::Image3d<T>& img) const
+	{
+		return (img.GetImageSize() > 0);
+	}
+
 
 	/** allocates output images, adds agents, renders the first frame */
 	void init(void)
 	{
-#ifdef PRODUCE_IMAGES
-		//output images that will be iteratively re-rendered
-		imgMask.MakeRoom(imgSize.x,imgSize.y,imgSize.z);
-		imgMask.SetResolution(i3d::Resolution(imgRes.x,imgRes.y,imgRes.z));
-
-		imgPhantom.MakeRoom(imgSize.x,imgSize.y,imgSize.z);
-		imgPhantom.SetResolution(i3d::Resolution(imgRes.x,imgRes.y,imgRes.z));
-
-		imgOptics.MakeRoom(imgSize.x,imgSize.y,imgSize.z);
-		imgOptics.SetResolution(i3d::Resolution(imgRes.x,imgRes.y,imgRes.z));
-#endif
+		//enableProducingOutput(imgMask);
+		//enableProducingOutput(imgPhantom);
+		//enableProducingOutput(imgOptics);
 
 		initializeAgents();
 		updateAndPublishAgents();
@@ -505,12 +550,10 @@ private:
 	void renderNextFrame(void)
 	{
 		// ----------- OUTPUT EVENTS -----------
-#ifdef PRODUCE_IMAGES
 		//clear the output images
 		imgMask.GetVoxelData()    = 0;
 		imgPhantom.GetVoxelData() = 0;
 		imgOptics.GetVoxelData()  = 0;
-#endif
 
 		//go over all cells, and render them
 		std::list<AbstractAgent*>::const_iterator c=agents.begin();
@@ -521,33 +564,39 @@ private:
 			if (renderingDebug)
 				(*c)->drawForDebug(displayUnit);
 
-#ifdef PRODUCE_IMAGES
 			(*c)->drawTexture(imgPhantom,imgOptics);
 			(*c)->drawMask(imgMask);
 			if (renderingDebug)
 				(*c)->drawForDebug(imgMask); //TODO, should go into its own separate image
-#endif
 		}
 
 		//render the current frame
 		displayUnit.Flush();
 		displayUnit.Tick( ("Time: "+std::to_string(currTime)).c_str() );
 
-#ifdef PRODUCE_IMAGES
 		//save the images
 		static char fn[1024];
-		sprintf(fn,"mask%03d.tif",frameCnt);
-		REPORT("Saving " << fn << ", hold on...");
-		imgMask.SaveImage(fn);
+		if (isProducingOutput(imgMask))
+		{
+			sprintf(fn,"mask%03d.tif",frameCnt);
+			REPORT("Saving " << fn << ", hold on...");
+			imgMask.SaveImage(fn);
+		}
 
-		sprintf(fn,"phantom%03d.tif",frameCnt);
-		REPORT("Saving " << fn << ", hold on...");
-		imgPhantom.SaveImage(fn);
+		if (isProducingOutput(imgPhantom))
+		{
+			sprintf(fn,"phantom%03d.tif",frameCnt);
+			REPORT("Saving " << fn << ", hold on...");
+			imgPhantom.SaveImage(fn);
+		}
 
-		sprintf(fn,"optics%03d.tif",frameCnt);
-		REPORT("Saving " << fn << ", hold on...");
-		imgOptics.SaveImage(fn);
-#endif
+		if (isProducingOutput(imgOptics))
+		{
+			sprintf(fn,"optics%03d.tif",frameCnt);
+			REPORT("Saving " << fn << ", hold on...");
+			imgOptics.SaveImage(fn);
+		}
+
 		++frameCnt;
 
 		// ----------- INPUT EVENTS -----------

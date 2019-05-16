@@ -30,7 +30,7 @@ public:
 
 	void drawTexture(i3d::Image3d<float>& phantom, i3d::Image3d<float>&) override
 	{
-		RenderIntoPhantom(phantom);
+		if (Officer->isProducingOutput(phantom)) RenderIntoPhantom(phantom);
 	}
 };
 
@@ -67,4 +67,5 @@ void Scenario_withTexture::initializeAgents(void)
 	}
 
 	stopTime = 0.2f;
+	enableProducingOutput(imgPhantom);
 }
