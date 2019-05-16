@@ -59,9 +59,31 @@ public:
 		Nucleus4SAgent::advanceAndBuildIntForces(0.f);
 	}
 
+	void adjustGeometryByIntForces(void) override
+	{
+		Nucleus4SAgent::adjustGeometryByIntForces();
+		adjustTextureAfterGeometryChange();
+	}
+	void adjustGeometryByExtForces(void) override
+	{
+		Nucleus4SAgent::adjustGeometryByExtForces();
+		adjustTextureAfterGeometryChange();
+	}
+
+	void adjustTextureAfterGeometryChange()
+	{
+		//NB: this->velocities[]*this->incrTime contains the most recent displacement
+		//NB: there's even still geometryAlias (old state) and futureGeometry (new state)
+	}
+
+
 	void drawTexture(i3d::Image3d<float>& phantom, i3d::Image3d<float>&) override
 	{
-		if (Officer->isProducingOutput(phantom)) RenderIntoPhantom(phantom);
+		if (Officer->isProducingOutput(phantom))
+		{
+			RenderIntoPhantom(phantom);
+			DEBUG_REPORT(ID << " finished rendering into the phantom");
+		}
 	}
 };
 
@@ -113,5 +135,5 @@ void Scenario_dragRotateAndTexture::initializeAgents(void)
 	enableProducingOutput( imgPhantom );
 
 	//override the default stop time
-	stopTime = 1.2f;
+	stopTime = 10.2f;
 }
