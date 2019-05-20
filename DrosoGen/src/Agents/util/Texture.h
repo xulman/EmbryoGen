@@ -143,6 +143,8 @@ public:
 		double outDist = 0;
 		double inDist  = 0;
 		int postCorrectionsCnt = 0;
+
+		auto stopWatch = tic();
 #endif
 
 		Vector3d<FLOAT> tmp;
@@ -199,10 +201,17 @@ public:
 		}
 
 #ifdef DEBUG
-		REPORT("average outside-to-surface distance " << (count > 0 ? outDist/(double)count : -1) << " um");
-		REPORT("average new-pos-to-centre  distance " << (count > 0 ?  inDist/(double)count : -1) << " um");
-		REPORT("secondary corrections of " << postCorrectionsCnt << "/" << count
-		       << " (" << 100.f*postCorrectionsCnt/count << " %) dots");
+		if (count > 0)
+		{
+			REPORT("average outside-to-surface distance " << outDist/(double)count << " um (in " << toc(stopWatch) << ")");
+			REPORT("average new-pos-to-centre  distance " <<  inDist/(double)count << " um");
+			REPORT("secondary corrections of " << postCorrectionsCnt << "/" << count
+			       << " (" << 100.f*postCorrectionsCnt/count << " %) dots");
+		}
+		else
+		{
+			REPORT("no corrections were necessary (in " << toc(stopWatch) << ")");
+		}
 #endif
 		return count;
 	}
@@ -244,19 +253,19 @@ public:
 	    a phantom image intensity increase/gain */
 	TextureQuantized(const unsigned int expectedNoOfQuantumDots,
 	                 const Vector3d<float>& imgRes,
-	                 const short quantumGain):
+	                 const short quantumGainPerVoxel):
 		Texture(expectedNoOfQuantumDots),
 		boxSize(1.0f/imgRes.x, 1.0f/imgRes.y, 1.0f/imgRes.z),
-		qCounts( getCountsPerAxis(imgRes,quantumGain) )
+		qCounts( getCountsPerAxis(imgRes,quantumGainPerVoxel) )
 	{
 		DEBUG_REPORT("Converting inputs to: boxSize=" << boxSize <<" um, qCounts=" << qCounts << " sub-dots");
 		checkCountsPerAxis();
 	}
 
-	Vector3d<short> getCountsPerAxis(const Vector3d<float>& imgRes, const short quantumGain) const
+	Vector3d<short> getCountsPerAxis(const Vector3d<float>& imgRes, const short quantumGainPerVoxel) const
 	{
 		//dots per voxel
-		float quantum = quantumGain;
+		float quantum = quantumGainPerVoxel;
 
 		//density in dots/um^3
 		quantum *= imgRes.x*imgRes.y*imgRes.z;
