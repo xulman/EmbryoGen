@@ -217,7 +217,9 @@ public:
 		//run the simulation rounds, one after another one
 		while (currTime < stopTime)
 		{
-			//one simulation round is happening here
+			//one simulation round is happening here,
+			//will this one end with rendering?
+			willRenderNextFrameFlag = currTime+incrTime >= frameCnt*expoTime;
 
 			//after this simulation round is done, all agents should
 			//reach local times greater than this global time
@@ -277,7 +279,7 @@ public:
 			  << shadowAgents.size() << " shadow agents) ---------------");
 
 			// is this the right time to export data?
-			if (currTime >= frameCnt*expoTime) renderNextFrame();
+			if (willRenderNextFrameFlag) renderNextFrame();
 		}
 	}
 
@@ -501,6 +503,11 @@ public:
 		}
 	}
 
+	/** returns the state of the 'willRenderNextFrame' flag, that is if the
+	    current simulation round with end up with the call to renderNextFrame() */
+	bool willRenderNextFrame(void)
+	{ return willRenderNextFrameFlag; }
+
 	// --------------------------------------------------
 	// stats:  reportOverlap()
 
@@ -543,6 +550,9 @@ protected:
 	virtual void initializeAgents(void) =0;
 
 private:
+	/** flag if the renderNextFrame() will be called after this simulation round */
+	bool willRenderNextFrameFlag = false;
+
 	/** Flags if agents' drawForDebug() should be called with every this->renderNextFrame() */
 	bool renderingDebug = false;
 

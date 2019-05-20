@@ -549,7 +549,7 @@ protected:
 #ifdef DEBUG
 					i3d::GRAY16 val = img.GetVoxel(curPos.x,curPos.y,curPos.z);
 					if (val > 0 && val != (i3d::GRAY16)ID)
-						REPORT(IDSIGN << " overwrites mask at " << curPos);
+						REPORT(IDSIGN << " overwrites mask of " << val << " at " << curPos);
 #endif
 					img.SetVoxel(curPos.x,curPos.y,curPos.z, (i3d::GRAY16)ID);
 				}
