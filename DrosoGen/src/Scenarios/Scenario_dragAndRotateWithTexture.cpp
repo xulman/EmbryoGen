@@ -74,15 +74,13 @@ public:
 		adjustTextureAfterGeometryChange();
 	}
 
-	int counter = 0;
 	void adjustTextureAfterGeometryChange()
 	{
 		//NB: this->velocities[]*this->incrTime contains the most recent displacement
 		//NB: there's even still geometryAlias (old state) and futureGeometry (new state)
 
 		//update only just before the texture rendering event... (to save some comp. time)
-		++counter;
-		if (counter == 5)
+		if (Officer->willRenderNextFrame())
 		{
 			//backup the geometry for which the texture dots are valid
 			Vector3d<FLOAT> prevCentre[4];
@@ -92,7 +90,6 @@ public:
 				prevCentre[i] = dotsCoordUpdater[i].prevCentre;
 				prevRadius[i] = dotsCoordUpdater[i].prevRadius;
 			}
-			counter = 0;
 
 			//prepare the updating routines...
 			dotsCoordUpdater[0].prepareUpdating( futureGeometry,0,
