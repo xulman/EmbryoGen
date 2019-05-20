@@ -110,6 +110,11 @@ public:
 			float sum;
 			Vector3d<float> tmp,newPos;
 
+#ifdef DEBUG
+			int outsideDots = 0;
+#endif
+
+			//shift texture particles
 			for (auto& dot : dots)
 			{
 				//determine the weights
@@ -136,7 +141,23 @@ public:
 					}
 					dot.pos = newPos;
 				}
+				else
+				{
+#ifdef DEBUG
+					++outsideDots;
+#endif
+				}
 			}
+
+#ifdef DEBUG
+			if (outsideDots > 0)
+				REPORT(outsideDots << " could not be updated (no matching sphere found, weird...)");
+#endif
+
+			//correct for outlying texture particles
+			const int dotOutliers = CollectOutlyingDots(futureGeometry);
+			DEBUG_REPORT(dotOutliers << " (" << 100.f*dotOutliers/dots.size()
+							 << " %) dots had to be moved inside the initial geometry");
 		}
 	}
 
