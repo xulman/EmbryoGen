@@ -59,11 +59,11 @@ public:
 		forces.emplace_back(
 			(weights[3]/velocity_PersistenceTime) * rotationVelocity,
 			futureGeometry.getCentres()[3],3, ftype_drive );
-/*
+
 		//define own velocity
 		velocity_CurrentlyDesired.x = 1.0f* std::cos(currTime/10.f * 6.28f);
 		velocity_CurrentlyDesired.z = 1.0f* std::sin(currTime/10.f * 6.28f);
-*/
+
 		//call the original method... takes care of own velocity, spheres mis-alignments, etc.
 		Nucleus4SAgent::advanceAndBuildIntForces(0.f);
 	}
@@ -84,6 +84,14 @@ public:
 		++counter;
 		if (counter == 5)
 		{
+			//backup the geometry for which the texture dots are valid
+			Vector3d<FLOAT> prevCentre[4];
+			FLOAT           prevRadius[4];
+			for (unsigned int i=0; i < 4; ++i)
+			{
+				prevCentre[i] = dotsCoordUpdater[i].prevCentre;
+				prevRadius[i] = dotsCoordUpdater[i].prevRadius;
+			}
 			counter = 0;
 
 			//prepare the updating routines...
@@ -100,6 +108,38 @@ public:
 		         futureGeometry.getCentres()[2] - futureGeometry.getCentres()[3] );
 
 
+			//aux variables
+			float weights[4];             //4 because we're Nucleus4SAgent
+			float sum;
+			Vector3d<float> tmp,newPos;
+
+			for (auto& dot : dots)
+			{
+				//determine the weights
+				for (unsigned int i=0; i < 4; ++i)
+				{
+					tmp  = dot.pos;
+					tmp -= prevCentre[i];
+					weights[i] = std::max(prevRadius[i] - tmp.len(), (FLOAT)0);
+				}
+
+				//normalization factor
+				sum = weights[0] + weights[1] + weights[2] + weights[3];
+
+				if (sum > 0)
+				{
+					//apply the weights
+					newPos = 0;
+					for (unsigned int i=0; i < 4; ++i)
+					if (weights[i] > 0)
+					{
+						tmp = dot.pos;
+						dotsCoordUpdater[i].updateCoord(tmp);
+						newPos += (weights[i]/sum) * tmp;
+					}
+					dot.pos = newPos;
+				}
+			}
 		}
 	}
 
@@ -171,8 +211,8 @@ void Scenario_dragRotateAndTexture::initializeAgents(void)
 
 	//override the output images
 	setOutputImgSpecs( Vector3d<float>(220,30,30), Vector3d<float>(40,160,160));
-	//enableProducingOutput( imgMask );
-	//enableProducingOutput( imgPhantom );
+	enableProducingOutput( imgMask );
+	enableProducingOutput( imgPhantom );
 
 	//override the default stop time
 	stopTime = 40.2f;
