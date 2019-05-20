@@ -1,8 +1,6 @@
 #include "../util/Vector3d.h"
 #include "../Geometries/Spheres.h"
 #include "../Geometries/util/SpheresFunctions.h"
-#include "../Geometries/util/InnerAxes.h"            //indication points
-#include <vector>                                    //indication points
 #include "../Simulation.h"
 #include "../Agents/Nucleus4SAgent.h"
 #include "../Agents/util/Texture.h"
@@ -42,32 +40,9 @@ public:
 		dotsCoordUpdater.emplace_back(shape,1,shape.getCentres()[0] - shape.getCentres()[2]);
 		dotsCoordUpdater.emplace_back(shape,2,shape.getCentres()[1] - shape.getCentres()[3]);
 		dotsCoordUpdater.emplace_back(shape,3,shape.getCentres()[2] - shape.getCentres()[3]);
-
-		//setup indication points
-		InnerAxes<FLOAT> ia;
-		ia.setFromSkeletonAxis( futureGeometry.getCentres()[0] - futureGeometry.getCentres()[1] );
-		indicationPoints[0] = futureGeometry.getCentres()[0] + ia.mA;
-		indicationPoints[1] = futureGeometry.getCentres()[0] + ia.sA;
-		indicationPoints[2] = futureGeometry.getCentres()[0] + ia.tA;
-
-		ia.setFromSkeletonAxis( futureGeometry.getCentres()[0] - futureGeometry.getCentres()[2] );
-		indicationPoints[3] = futureGeometry.getCentres()[1] + ia.mA;
-		indicationPoints[4] = futureGeometry.getCentres()[1] + ia.sA;
-		indicationPoints[5] = futureGeometry.getCentres()[1] + ia.tA;
-
-		ia.setFromSkeletonAxis( futureGeometry.getCentres()[1] - futureGeometry.getCentres()[3] );
-		indicationPoints[6] = futureGeometry.getCentres()[2] + ia.mA;
-		indicationPoints[7] = futureGeometry.getCentres()[2] + ia.sA;
-		indicationPoints[8] = futureGeometry.getCentres()[2] + ia.tA;
-
-		ia.setFromSkeletonAxis( futureGeometry.getCentres()[2] - futureGeometry.getCentres()[3] );
-		indicationPoints[9]  = futureGeometry.getCentres()[3] + ia.mA;
-		indicationPoints[10] = futureGeometry.getCentres()[3] + ia.sA;
-		indicationPoints[11] = futureGeometry.getCentres()[3] + ia.tA;
 	}
 
 	std::vector< SpheresFunctions::CoordsUpdater<FLOAT> > dotsCoordUpdater;
-	Coord3d<FLOAT> indicationPoints[12];
 
 	void advanceAndBuildIntForces(const float) override
 	{
@@ -124,22 +99,7 @@ public:
 			dotsCoordUpdater[3].prepareUpdating( futureGeometry,3,
 		         futureGeometry.getCentres()[2] - futureGeometry.getCentres()[3] );
 
-			//now update the "indication points" one by one
-			dotsCoordUpdater[0].updateCoord(indicationPoints[0]);
-			dotsCoordUpdater[0].updateCoord(indicationPoints[1]);
-			dotsCoordUpdater[0].updateCoord(indicationPoints[2]);
 
-			dotsCoordUpdater[1].updateCoord(indicationPoints[3]);
-			dotsCoordUpdater[1].updateCoord(indicationPoints[4]);
-			dotsCoordUpdater[1].updateCoord(indicationPoints[5]);
-
-			dotsCoordUpdater[2].updateCoord(indicationPoints[6]);
-			dotsCoordUpdater[2].updateCoord(indicationPoints[7]);
-			dotsCoordUpdater[2].updateCoord(indicationPoints[8]);
-
-			dotsCoordUpdater[3].updateCoord(indicationPoints[ 9]);
-			dotsCoordUpdater[3].updateCoord(indicationPoints[10]);
-			dotsCoordUpdater[3].updateCoord(indicationPoints[11]);
 		}
 	}
 
@@ -164,23 +124,6 @@ public:
 		//draw skeletons
 		for (int i=1; i < futureGeometry.getNoOfSpheres(); ++i)
 			du.DrawLine(dID++,futureGeometry.getCentres()[i-1],futureGeometry.getCentres()[i],2);
-
-		//draw indication points as lines from the respective sphere's centre
-		du.DrawVector(dID++, futureGeometry.getCentres()[0], indicationPoints[0] -futureGeometry.getCentres()[0], 4);
-		du.DrawVector(dID++, futureGeometry.getCentres()[0], indicationPoints[1] -futureGeometry.getCentres()[0], 5);
-		du.DrawVector(dID++, futureGeometry.getCentres()[0], indicationPoints[2] -futureGeometry.getCentres()[0], 6);
-
-		du.DrawVector(dID++, futureGeometry.getCentres()[1], indicationPoints[3] -futureGeometry.getCentres()[1], 4);
-		du.DrawVector(dID++, futureGeometry.getCentres()[1], indicationPoints[4] -futureGeometry.getCentres()[1], 5);
-		du.DrawVector(dID++, futureGeometry.getCentres()[1], indicationPoints[5] -futureGeometry.getCentres()[1], 6);
-
-		du.DrawVector(dID++, futureGeometry.getCentres()[2], indicationPoints[6] -futureGeometry.getCentres()[2], 4);
-		du.DrawVector(dID++, futureGeometry.getCentres()[2], indicationPoints[7] -futureGeometry.getCentres()[2], 5);
-		du.DrawVector(dID++, futureGeometry.getCentres()[2], indicationPoints[8] -futureGeometry.getCentres()[2], 6);
-
-		du.DrawVector(dID++, futureGeometry.getCentres()[3], indicationPoints[ 9]-futureGeometry.getCentres()[3], 4);
-		du.DrawVector(dID++, futureGeometry.getCentres()[3], indicationPoints[10]-futureGeometry.getCentres()[3], 5);
-		du.DrawVector(dID++, futureGeometry.getCentres()[3], indicationPoints[11]-futureGeometry.getCentres()[3], 6);
 	}
 };
 
