@@ -114,6 +114,13 @@ void PhaseII(i3d::Image3d<float>& fimg,
 
 ///------------------------------------------------------------------------
 
+const int reseedPeriod = 4000000;
+rndGeneratorHandle rngExcessNoiseFactor(reseedPeriod);
+rndGeneratorHandle rngPhotonNoise(reseedPeriod);
+rndGeneratorHandle rngDarkCurrent(reseedPeriod);
+rndGeneratorHandle rngReadoutNoise(reseedPeriod);
+rndGeneratorHandle rngSKIP(reseedPeriod);
+
 void PhaseIII(i3d::Image3d<float>& blurred,
               i3d::Image3d<i3d::GRAY16>& texture)
 {
@@ -121,6 +128,9 @@ void PhaseIII(i3d::Image3d<float>& blurred,
 	i3d::Image3d<float> bgImg;
 	bgImg.CopyMetaData(blurred);
 	DoPerlin3D(bgImg,10.0,7.0,1.0,10); // very smooth a wide coherent noise
+
+	DEBUG_REPORT("BG Perlin done.");
+	DEBUG_REPORT("Image contains " << blurred.GetImageSize() << " voxels");
 
 	// reset the maximum and minimum intensity levels of the background
 	// to the expected values
@@ -150,17 +160,17 @@ void PhaseIII(i3d::Image3d<float>& blurred,
 		// ENF ... Excess Noise Factor (stochasticity of EMCCD gain)
 		// source of information:
 		// https://www.qimaging.com/resources/pdfs/emccd_technote.pdf
-		const float ENF = GetRandomUniform(1.0f, 1.4f);
+		const float ENF = GetRandomUniform(1.0f, 1.4f, rngExcessNoiseFactor);
 
 		// PHOTON NOISE 
 		// uncertainty in the number of incoming photons,
 		// from statistics: shot noise mean = sqrt(signal) 
 		const float noiseMean = sqrtf(*p);
-		*p += ENF * ((float)GetRandomPoisson(noiseMean) - noiseMean);
+		*p += ENF * ((float)GetRandomPoisson(noiseMean, rngPhotonNoise) - noiseMean);
 
 		// avoid strong discretization of intensity histogram due
 		// to the Poisson probability function (aka SKIP)
-		*p += GetRandomUniform(0.0, 1.0);
+		*p += GetRandomUniform(0.0, 1.0, rngSKIP);
 
 		// EMCCD GAIN
        // amplification of signal (and inevitably also the noise)
@@ -168,7 +178,7 @@ void PhaseIII(i3d::Image3d<float>& blurred,
 
 		// DARK CURRENT
 		// constants are parameters of Andor iXon camera provided from vendor:
-		*p += ENF*EMCCDgain*(float)GetRandomPoisson(0.06f);
+		*p += ENF*EMCCDgain*(float)GetRandomPoisson(0.06f, rngDarkCurrent);
 
 		// BASELINE (camera electron level)
 		*p += 400.0f;
@@ -176,7 +186,7 @@ void PhaseIII(i3d::Image3d<float>& blurred,
 		// READOUT NOISE
 		// variance up to 25.f (old camera on ILBIT)
 		// variance about 1.f (for the new camera on ILBIT)
-		*p += GetRandomGauss(0.0f,1.0f);
+		*p += GetRandomGauss(0.0f,1.0f, rngReadoutNoise);
 
 		// ADC (analogue-digital converter)
 		// ADCgain ... how many electrons correspond one intensity level
