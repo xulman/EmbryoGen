@@ -47,7 +47,6 @@ namespace filogen
 {
 
 #define SQR(x) ((x)*(x))
-#define SKIP GetRandomUniform(0.0, 1.0)
 
 ///------------------------------------------------------------------------
 
@@ -154,13 +153,14 @@ void PhaseIII(i3d::Image3d<float>& blurred,
 		const float ENF = GetRandomUniform(1.0f, 1.4f);
 
 		// PHOTON NOISE 
-		// uncertainty in the number of incoming photons
+		// uncertainty in the number of incoming photons,
 		// from statistics: shot noise mean = sqrt(signal) 
 		const float noiseMean = sqrtf(*p);
+		*p += ENF * ((float)GetRandomPoisson(noiseMean) - noiseMean);
 
-		// SKIP avoid strong discretization of intensity histogram due
-		// to the Poisson probability function
- 		*p += ENF * ((float)GetRandomPoisson(noiseMean) - noiseMean + SKIP);
+		// avoid strong discretization of intensity histogram due
+		// to the Poisson probability function (aka SKIP)
+		*p += GetRandomUniform(0.0, 1.0);
 
 		// EMCCD GAIN
        // amplification of signal (and inevitably also the noise)
