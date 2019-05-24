@@ -17,6 +17,19 @@
 #include "DisplayUnits/SceneryBufferedDisplayUnit.h"
 #include "DisplayUnits/BroadcasterDisplayUnit.h"
 
+//#define ENABLE_MITOGEN_FINALPREVIEW
+#define ENABLE_FILOGEN_PHASEIIandIII
+#define ENABLE_FILOGEN_REALPSF
+
+#if defined ENABLE_MITOGEN_FINALPREVIEW
+  #include "util/synthoscopy/finalpreview.h"
+#elif defined ENABLE_FILOGEN_PHASEIIandIII
+  #include "util/synthoscopy/Filogen_VM.h"
+#endif
+#ifndef ENABLE_FILOGEN_REALPSF
+  #include <i3d/filters.h>
+#endif
+
 /**
  * This class contains all simulation agents, scene and simulation
  * parameters, and takes care of the iterations of the simulation.
@@ -61,6 +74,10 @@ protected:
 	//
 	/** output image into which the simulation will be iteratively rasterized/rendered: optical indices image */
 	i3d::Image3d<float> imgOptics;
+
+#ifdef ENABLE_FILOGEN_REALPSF
+	i3d::Image3d<float> imgPSF;
+#endif
 
 	/** output display unit into which the simulation will be iteratively rendered */
 	BroadcasterDisplayUnit displayUnit;
@@ -122,6 +139,12 @@ public:
 		//displayUnit.RegisterUnit( new ConsoleDisplayUnit() );
 		displayUnit.RegisterUnit( new SceneryBufferedDisplayUnit("localhost:8765") );
 		//displayUnit.RegisterUnit( new SceneryBufferedDisplayUnit("192.168.3.110:8765") );
+
+#ifdef ENABLE_FILOGEN_REALPSF
+		char psfFilename[] = "/Users/ulman/devel/FiloGen/40_VirtualMicroscope/psf/2013-07-25_1_1_9_0_2_0_0_1_0_0_0_0_9_12.ics";
+		REPORT("reading this PSF image " << psfFilename);
+		imgPSF.ReadImage(psfFilename);
+#endif
 	}
 
 private:
@@ -598,6 +621,44 @@ private:
 			sprintf(fn,"phantom%03d.tif",frameCnt);
 			REPORT("Saving " << fn << ", hold on...");
 			imgPhantom.SaveImage(fn);
+
+#if defined ENABLE_MITOGEN_FINALPREVIEW
+			sprintf(fn,"finalPreview%03d.tif",frameCnt);
+			REPORT("Creating MitoGen " << fn << ", hold on...");
+			//
+			// phase II & III
+			i3d::Image3d<i3d::GRAY16> imgFinal;
+			mitogen::PrepareFinalPreviewImage(imgPhantom,imgFinal);
+			//
+			REPORT("Saving " << fn << ", hold on...");
+			imgFinal.SaveImage(fn);
+#elif defined ENABLE_FILOGEN_PHASEIIandIII
+			sprintf(fn,"finalPreview%03d.tif",frameCnt);
+			REPORT("Creating FiloGen " << fn << ", hold on...");
+			//
+			// phase II
+	#ifdef ENABLE_FILOGEN_REALPSF
+			filogen::PhaseII(imgPhantom, imgPSF);
+	#else
+			const float xySigma = 0.6f; //can also be 0.9
+			const float  zSigma = 1.8f; //can also be 2.7
+			DEBUG_REPORT("fake PSF is used for PhaseII, with sigmas: "
+				<< xySigma * imgPhantom.GetResolution().GetX() << " x "
+				<< xySigma * imgPhantom.GetResolution().GetY() << " x "
+				<<  zSigma * imgPhantom.GetResolution().GetZ() << " pixels");
+			i3d::GaussIIR<float>(imgPhantom,
+				xySigma * imgPhantom.GetResolution().GetX(),
+				xySigma * imgPhantom.GetResolution().GetY(),
+				 zSigma * imgPhantom.GetResolution().GetZ());
+	#endif
+			//
+			// phase III
+			i3d::Image3d<i3d::GRAY16> imgFinal;
+			filogen::PhaseIII(imgPhantom,imgFinal);
+			//
+			REPORT("Saving " << fn << ", hold on...");
+			imgFinal.SaveImage(fn);
+#endif
 		}
 
 		if (isProducingOutput(imgOptics))
