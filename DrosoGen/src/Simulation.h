@@ -17,6 +17,8 @@
 #include "DisplayUnits/SceneryBufferedDisplayUnit.h"
 #include "DisplayUnits/BroadcasterDisplayUnit.h"
 
+//choose either ENABLE_MITOGEN_FINALPREVIEW or ENABLE_FILOGEN_PHASEIIandIII,
+//if ENABLE_FILOGEN_PHASEIIandIII is choosen, one can enable ENABLE_FILOGEN_REALPSF
 //#define ENABLE_MITOGEN_FINALPREVIEW
 #define ENABLE_FILOGEN_PHASEIIandIII
 #define ENABLE_FILOGEN_REALPSF
@@ -74,6 +76,9 @@ protected:
 	//
 	/** output image into which the simulation will be iteratively rasterized/rendered: optical indices image */
 	i3d::Image3d<float> imgOptics;
+
+	/** output image into which the simulation will be iteratively rasterized/rendered: final output image */
+	i3d::Image3d<i3d::GRAY16> imgFinal;
 
 #ifdef ENABLE_FILOGEN_REALPSF
 	i3d::Image3d<float> imgPSF;
@@ -186,6 +191,7 @@ public:
 		//propagate also the same setting onto the remaining images
 		imgPhantom.CopyMetaData(imgMask);
 		imgOptics.CopyMetaData(imgMask);
+		imgFinal.CopyMetaData(imgMask);
 	}
 
 	/** util method to enable the given image for the output, the method
@@ -193,6 +199,9 @@ public:
 	template <typename T>
 	void enableProducingOutput(i3d::Image3d<T>& img)
 	{
+		if ((long)&img == (long)&imgFinal && !isProducingOutput(imgPhantom))
+			REPORT("WARNING: Requested synthoscopy but phantoms may not be produced.");
+
 		DEBUG_REPORT("allocating "
 		  << ((double)lastUsedImgSize.x*lastUsedImgSize.y*lastUsedImgSize.z/(1 << 20))*sizeof(*img.GetFirstVoxelAddr())
 		  << " MB of memory for image of size " << lastUsedImgSize << " px");
@@ -621,44 +630,6 @@ private:
 			sprintf(fn,"phantom%03d.tif",frameCnt);
 			REPORT("Saving " << fn << ", hold on...");
 			imgPhantom.SaveImage(fn);
-
-#if defined ENABLE_MITOGEN_FINALPREVIEW
-			sprintf(fn,"finalPreview%03d.tif",frameCnt);
-			REPORT("Creating MitoGen " << fn << ", hold on...");
-			//
-			// phase II & III
-			i3d::Image3d<i3d::GRAY16> imgFinal;
-			mitogen::PrepareFinalPreviewImage(imgPhantom,imgFinal);
-			//
-			REPORT("Saving " << fn << ", hold on...");
-			imgFinal.SaveImage(fn);
-#elif defined ENABLE_FILOGEN_PHASEIIandIII
-			sprintf(fn,"finalPreview%03d.tif",frameCnt);
-			REPORT("Creating FiloGen " << fn << ", hold on...");
-			//
-			// phase II
-	#ifdef ENABLE_FILOGEN_REALPSF
-			filogen::PhaseII(imgPhantom, imgPSF);
-	#else
-			const float xySigma = 0.6f; //can also be 0.9
-			const float  zSigma = 1.8f; //can also be 2.7
-			DEBUG_REPORT("fake PSF is used for PhaseII, with sigmas: "
-				<< xySigma * imgPhantom.GetResolution().GetX() << " x "
-				<< xySigma * imgPhantom.GetResolution().GetY() << " x "
-				<<  zSigma * imgPhantom.GetResolution().GetZ() << " pixels");
-			i3d::GaussIIR<float>(imgPhantom,
-				xySigma * imgPhantom.GetResolution().GetX(),
-				xySigma * imgPhantom.GetResolution().GetY(),
-				 zSigma * imgPhantom.GetResolution().GetZ());
-	#endif
-			//
-			// phase III
-			i3d::Image3d<i3d::GRAY16> imgFinal;
-			filogen::PhaseIII(imgPhantom,imgFinal);
-			//
-			REPORT("Saving " << fn << ", hold on...");
-			imgFinal.SaveImage(fn);
-#endif
 		}
 
 		if (isProducingOutput(imgOptics))
@@ -666,6 +637,15 @@ private:
 			sprintf(fn,"optics%03d.tif",frameCnt);
 			REPORT("Saving " << fn << ", hold on...");
 			imgOptics.SaveImage(fn);
+		}
+
+		if (isProducingOutput(imgFinal))
+		{
+			sprintf(fn,"finalPreview%03d.tif",frameCnt);
+			REPORT("Creating " << fn << ", hold on...");
+			doPhaseIIandIII();
+			REPORT("Saving " << fn << ", hold on...");
+			imgFinal.SaveImage(fn);
 		}
 
 		++frameCnt;
@@ -766,6 +746,42 @@ private:
 			}
 		}
 		while (key != 0);
+	}
+
+	/** initializes (allocates, sets resolution, etc.) and populates (fills content)
+	    the Simulation::imgFinal, which will be saved as the final testing image,
+	    based on the current content of the phantom and/or optics and/or mask image */
+	virtual void doPhaseIIandIII(void)
+	{
+#if defined ENABLE_MITOGEN_FINALPREVIEW
+		REPORT("using default MitoGen synthoscopy");
+		mitogen::PrepareFinalPreviewImage(imgPhantom,imgFinal);
+
+#elif defined ENABLE_FILOGEN_PHASEIIandIII
+		REPORT("using default FiloGen synthoscopy");
+		//
+		// phase II
+	#ifdef ENABLE_FILOGEN_REALPSF
+		filogen::PhaseII(imgPhantom, imgPSF);
+	#else
+		const float xySigma = 0.6f; //can also be 0.9
+		const float  zSigma = 1.8f; //can also be 2.7
+		DEBUG_REPORT("fake PSF is used for PhaseII, with sigmas: "
+			<< xySigma * imgPhantom.GetResolution().GetX() << " x "
+			<< xySigma * imgPhantom.GetResolution().GetY() << " x "
+			<<  zSigma * imgPhantom.GetResolution().GetZ() << " pixels");
+		i3d::GaussIIR<float>(imgPhantom,
+			xySigma * imgPhantom.GetResolution().GetX(),
+			xySigma * imgPhantom.GetResolution().GetY(),
+			 zSigma * imgPhantom.GetResolution().GetZ());
+	#endif
+		//
+		// phase III
+		filogen::PhaseIII(imgPhantom, imgFinal);
+
+#else
+		REPORT("WARNING: Empty function, no synthoscopy is going on.");
+#endif
 	}
 };
 #endif

@@ -4,6 +4,9 @@
 #include "../Simulation.h"
 
 #define CLASS_DECLARATION : public Simulation { void initializeAgents(void) override; };
+#define CLASS_DECLARATION_WithSYNTHOSCOPY : public Simulation {               \
+	void initializeAgents(void) override; void doPhaseIIandIII(void) override; };
+
 #define AVAILABLE_SCENARIO(n,c) \
 	availableScenarios.emplace_back(std::string((n)));                         \
 	if (simulation == NULL &&                                                  \
