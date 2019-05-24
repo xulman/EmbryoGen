@@ -35,42 +35,26 @@
 #include <i3d/image3d.h>
 #include <ini/iniparser.h>
 
+namespace mitogen
+{
+
 /**
  * \ingroup toolbox
  *
- * Just computes preview of final image, which is to simulate
- * transmission of the phantom image \e phantom through optical system
+ * Computes preview of final image, which is to simulate transmission
+ * of the phantom image \e phantom through optical system
  * and its acquisition in the sensor device.
  *
- * The level of noise is a bit different in the region of \e mask
- * in order to outline cell shape. The texture stored in the
- * phantom image \e phantom often does not spread over the whole \e mask
- * giving false impression of what is the real size of the cell.
- *
- * If the GTGEN_WITH_ANISOTROPIC_GT is defined, both \e phantom and
- * \e mask images are resampled to meet the resolution supplied in the
- * \e configIni file. The \e final image always meets this resolution
- * regardless of the GTGEN_WITH_ANISOTROPIC_GT state. If the macro is
- * not defined, both \e phantom and \e mask images not resampled.
- *
- * If the GTGEN_WITH_CHRCENTRESINPHANTHOMS is defined, the chromocentres
- * are removed from the phantom image (before it is turned into a final
- * image, ofcourse). So the \e phantom image is changed in this particular case.
- *
- * \param[in,out] phantom	phantom image
- * \param[in,out] mask		cell mask
+ * \param[in,out] phantom	phantom image (the input phantom image can be modified!)
  * \param[out] final			finale preview image
  * \param[in] configIni		configuration of the simulation
  *
  * The \e phantom and \e mask images must be of the same size and resolution.
- * It is expected that both of them be isotropic, but it is not required.
- *
- * The \e configIni is a reference to parameters for the Stage II and III
- * simulation routines.
+ * It is expected that both of them be isotropic, but it is technically not required.
  */
-template <class MV, class PV>
+template <class PV, class FV>
 void PrepareFinalPreviewImage(i3d::Image3d<PV> &phantom,
-										i3d::Image3d<MV> &mask,
-										i3d::Image3d<PV> &final,
-										const IniHandler configIni);
+										i3d::Image3d<FV> &final);
+
+}
 #endif

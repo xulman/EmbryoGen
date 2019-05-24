@@ -68,4 +68,10 @@ void Scenario_withTexture::initializeAgents(void)
 
 	stopTime = 0.2f;
 	enableProducingOutput(imgPhantom);
+	enableProducingOutput(imgFinal);
+}
+
+void Scenario_withTexture::doPhaseIIandIII(void)
+{
+	REPORT("hello");
 }
