@@ -63,9 +63,9 @@ void PhaseII(i3d::Image3d<float>& fimg,
 		fimg.SetVoxel(i, fimg.GetVoxel(i) * factor);
 	}
 
-	// If the PSF has different resolution from the processed image, 
+	// If the PSF has different resolution from the processed image,
 	// resampling is required.
-	i3d::Vector3d<float> 
+	i3d::Vector3d<float>
 			  res_psf = psf.GetResolution().GetRes(),
 			  res_fimg = fimg.GetResolution().GetRes();
 
@@ -103,7 +103,7 @@ void PhaseII(i3d::Image3d<float>& fimg,
 			  for (int x=0; x < (signed)blurred_texture.GetSizeX(); ++x, ++f, ++p)
 			  {
 				// background signal (inverted parabola)
-				float distSq = 
+				float distSq =
 						  -(SQR((float)(x-xC)) + SQR((float)(y-yC)))/maxDist + 1.f;
 				*f = *p * distSq;
 			  }
@@ -162,9 +162,9 @@ void PhaseIII(i3d::Image3d<float>& blurred,
 		// https://www.qimaging.com/resources/pdfs/emccd_technote.pdf
 		const float ENF = GetRandomUniform(1.0f, 1.4f, rngExcessNoiseFactor);
 
-		// PHOTON NOISE 
+		// PHOTON NOISE
 		// uncertainty in the number of incoming photons,
-		// from statistics: shot noise mean = sqrt(signal) 
+		// from statistics: shot noise mean = sqrt(signal)
 		const float noiseMean = sqrtf(*p);
 		*p += ENF * ((float)GetRandomPoisson(noiseMean, rngPhotonNoise) - noiseMean);
 
@@ -174,7 +174,7 @@ void PhaseIII(i3d::Image3d<float>& blurred,
 
 		// EMCCD GAIN
        // amplification of signal (and inevitably also the noise)
-	   *p *= EMCCDgain; 
+	   *p *= EMCCDgain;
 
 		// DARK CURRENT
 		// constants are parameters of Andor iXon camera provided from vendor:
@@ -191,7 +191,7 @@ void PhaseIII(i3d::Image3d<float>& blurred,
 		// ADC (analogue-digital converter)
 		// ADCgain ... how many electrons correspond one intensity level
 		// ADCoffset ... how many intensity levels are globally added to each pixel
-		const float ADCgain = 28.0f; 
+		const float ADCgain = 28.0f;
 		*p /= ADCgain;
 
 		const float ADCoffset = 400.0f;
