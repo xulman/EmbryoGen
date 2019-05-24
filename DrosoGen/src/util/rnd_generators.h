@@ -1,21 +1,29 @@
-#ifndef RNDGENERATORS_H
-#define RNDGENERATORS_H
+#ifndef _RNDGENERATORS_H_
+#define _RNDGENERATORS_H_
 
 #include <gsl/gsl_rng.h>
-
-/// random generators period before re-seeding is required
-#define UsageBeforeReseed 100000
 
 typedef struct rndGeneratorHandle_t
 {
 	//constructor to create uninitialized yet valid handle
 	rndGeneratorHandle_t(void)
 	{
-		usageCnt = UsageBeforeReseed;
+		reseedPeriod = 1000000;
+
+		usageCnt = reseedPeriod; //will trigger seeding immediately
 		rngState = NULL;
 	}
 
-	int usageCnt;
+	//constructor to create uninitialized yet valid handle
+	rndGeneratorHandle_t(const int _reseedPeriod)
+	{
+		reseedPeriod = _reseedPeriod;
+
+		usageCnt = reseedPeriod; //will trigger seeding immediately
+		rngState = NULL;
+	}
+
+	int reseedPeriod, usageCnt;
 	gsl_rng* rngState;
 } rndGeneratorHandle;
 

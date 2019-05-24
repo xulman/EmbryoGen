@@ -29,7 +29,7 @@ void inline PossiblyReSeed(rndGeneratorHandle& rngHandle)
 {
 	static unsigned long seedExtraDiversity = 0;
 
-	if (rngHandle.usageCnt == UsageBeforeReseed)
+	if (rngHandle.usageCnt == rngHandle.reseedPeriod)
 	{
 		//this is a bit dangerous in general to hide this test inside here,
 		//but if world around is consistent... we are saving one 'if-test' per call
