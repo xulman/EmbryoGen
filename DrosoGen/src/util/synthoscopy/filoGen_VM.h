@@ -36,16 +36,15 @@ namespace filogen
 //------------------------------------------------------------------------
 // simulation of microscope
 //------------------------------------------------------------------------
-void PhaseII(const i3d::Image3d<i3d::GRAY16>& texture,
-				 i3d::Image3d<float>& blurred_texture,
-				 const i3d::Image3d<float> &psf,
-				 float factor);
+void PhaseII(i3d::Image3d<float>& fimg,
+             const i3d::Image3d<float> &psf,
+             float factor = 1.0f);
 
 //------------------------------------------------------------------------
 // simulation of acquisition device
 //------------------------------------------------------------------------
 void PhaseIII(i3d::Image3d<float>& blurred,
-				  i3d::Image3d<i3d::GRAY16>& texture);
+              i3d::Image3d<i3d::GRAY16>& texture);
 
 }
 #endif

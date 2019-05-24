@@ -39,6 +39,7 @@
 #include <i3d/convolution.h>
 #include "../rnd_generators.h"
 #include "../texture/texture.h"
+#include "../report.h"
 #include "Filogen_VM.h"
 
 ///------------------------------------------------------------------------
@@ -48,81 +49,14 @@ namespace filogen
 #define SQR(x) ((x)*(x))
 #define SKIP GetRandomUniform(0.0, 1.0)
 
-
 ///------------------------------------------------------------------------
 
-#ifdef __EXAMPLE_CODE__
-int main(int argc, char **argv)
+void PhaseII(i3d::Image3d<float>& fimg,
+             const i3d::Image3d<float> &psf,
+             float factor)
 {
-	if (argc != 4)
-	{
-		 //Usage(argv[0]);
-		 exit(-1);
-	}
-
-	Params params;
-	std::cout << "Reading the configuration file '" << argv[1] << "'..." << std::endl;
-	if (!LoadParams(argv[1], params))
-	{
-		return -1;
-	}
-
-	const char *in_path = argv[2];
-	const char *out_path = argv[3];
-	char fileName[1024];
-		
-	i3d::Image3d<i3d::GRAY16> imgPhantom, imgFinal;
-	i3d::Image3d<float> imgBlurred;
-	i3d::Image3d<float> psf(params.m_psf_fname.c_str());
- 
-	// we read the first image (in hope that all the other have
-	// the same properties) to get the expected resolution 
-	sprintf(fileName,"%s/mask_t%03d.tif",in_path,0);
-	i3d::Image3d<i3d::GRAY16> imgMask(fileName);
-	i3d::Vector3d<float> res = imgMask.GetResolution().GetRes();
-
-	// loop through all the images in the sequence
-	for (int idx = 0; idx < params.m_num_frames; ++idx)
-	{
-		sprintf(fileName,"%s/phantom_t%03d.tif",in_path,idx);
-		imgPhantom.ReadImage(fileName);
-	
-		// Do phase II 
-		std::cout << "Performing Phase II #" << idx << "\n";
-		PhaseII(imgPhantom, imgBlurred, psf, params.m_factor);
-		std::cout << "Phase II done" << std::endl;
-
-		if (imgBlurred.GetResolution().GetRes() != res)
-		{
-			 i3d::ResampleToDesiredResolution(imgBlurred, res, i3d::LANCZOS);
-		}
-
-		// Do phase III 
-		std::cout << "Performing Phase III #" << idx << "\n";
-		PhaseIII(imgBlurred, imgFinal);
-
-		// Save the final image and that is all!
-		std::cout << "Saving final image #" << idx << "\n";
-		sprintf(fileName,"%s/img_t%03d.tif",out_path,idx);
-		imgFinal.SaveImage(fileName);
-
-		std::cout << "Phase III done" << std::endl;
-	}
-
-	return 0;
-}
-#endif
-
-///------------------------------------------------------------------------
-
-void PhaseII(const i3d::Image3d<i3d::GRAY16>& texture,
-				 i3d::Image3d<float>& blurred_texture,
-				 const i3d::Image3d<float> &psf, float factor)
-{
-	// convert the image into the float data type (to enable convolution
-	// with PSF)
-	i3d::Image3d<float> fimg;
-	i3d::GrayToFloat(texture, fimg);
+	// note: the phantom image is already of the float
+	// data type (to enable convolution with PSF)
 
 	// perform intensity scaling of the phantom by the given factor
 	for (size_t i = 0; i < fimg.GetImageSize(); ++i)
@@ -136,48 +70,56 @@ void PhaseII(const i3d::Image3d<i3d::GRAY16>& texture,
 			  res_psf = psf.GetResolution().GetRes(),
 			  res_fimg = fimg.GetResolution().GetRes();
 
-	std::cout << "* res img: " << res_fimg << std::endl;
-	std::cout << "* res psf: " << res_psf << std::endl;
+	DEBUG_REPORT("res img: " << res_fimg);
+	DEBUG_REPORT("res psf: " << res_psf);
 
 	i3d::Image3d<float> psfII(psf);
 
 	if (res_fimg != res_psf)
 	{
-		std::cout << "resampling psf" <<  std::endl;
+		DEBUG_REPORT("resampling psf");
 		i3d::ResampleToDesiredResolution(psfII, res_fimg, i3d::LANCZOS);
 	}
 
-	std::cout << "* image size: " << fimg.GetSize() << std::endl;
-	std::cout << "* psf size: " << psfII.GetSize() << std::endl;
+	DEBUG_REPORT("image size: " << fimg.GetSize());
+	DEBUG_REPORT("psf size: " << psfII.GetSize());
 
 	// convolution with real confocal PSF
-	i3d::Convolution<double>(fimg, psfII, blurred_texture);
+	i3d::Image3d<float> blurred_texture;
+	i3d::Convolution<double,float,float>(fimg, psfII, blurred_texture);
+
+	DEBUG_REPORT("convolution done.");
 
 	// Let us add the uneven illumination (with its brightest loci in the cell
 	// centre, which happens to be in the image centre)
-	const int xC=(int)(texture.GetSizeX()/2);
-	const int yC=(int)(texture.GetSizeY()/2);
+	const int xC=(int)(blurred_texture.GetSizeX()/2);
+	const int yC=(int)(blurred_texture.GetSizeY()/2);
+	// max distance
+	const float maxDist = SQR((float)xC) + SQR((float)yC);
+
+	float* f=fimg.GetFirstVoxelAddr();
 	float* p=blurred_texture.GetFirstVoxelAddr();
 	for (int z=0; z < (signed)blurred_texture.GetSizeZ(); ++z)
 		 for (int y=0; y < (signed)blurred_texture.GetSizeY(); ++y)
-			  for (int x=0; x < (signed)blurred_texture.GetSizeX(); ++x, ++p)
+			  for (int x=0; x < (signed)blurred_texture.GetSizeX(); ++x, ++f, ++p)
 			  {
-			   // max distance
-				float maxDist = SQR((float)xC) + SQR((float)yC);
 				// background signal (inverted parabola)
 				float distSq = 
 						  -(SQR((float)(x-xC)) + SQR((float)(y-yC)))/maxDist + 1.f;
-				*p *= distSq;
+				*f = *p * distSq;
 			  }
+
+	//fimg = blurred_texture;
+	DEBUG_REPORT("all done.");
 }
 
 ///------------------------------------------------------------------------
 
 void PhaseIII(i3d::Image3d<float>& blurred,
-	                       i3d::Image3d<i3d::GRAY16>& texture)
+              i3d::Image3d<i3d::GRAY16>& texture)
 {
 	// NONSPECIFIC BACKGROUND
-    i3d::Image3d<float> bgImg;
+	i3d::Image3d<float> bgImg;
 	bgImg.CopyMetaData(blurred);
 	DoPerlin3D(bgImg,10.0,7.0,1.0,10); // very smooth a wide coherent noise
 
@@ -204,7 +146,7 @@ void PhaseIII(i3d::Image3d<float>& blurred,
 	{
 		// shift the signal (simulates non-ideal black background)
 		// ?reflection of medium?
-		*p+=bgImg.GetVoxel(i);
+		*p += bgImg.GetVoxel(i);
 
 		// ENF ... Excess Noise Factor (stochasticity of EMCCD gain)
 		// source of information:
@@ -234,20 +176,21 @@ void PhaseIII(i3d::Image3d<float>& blurred,
 		// READOUT NOISE
 		// variance up to 25.f (old camera on ILBIT)
 		// variance about 1.f (for the new camera on ILBIT)
-		*p+=GetRandomGauss(0.0f,1.0f);
+		*p += GetRandomGauss(0.0f,1.0f);
 
 		// ADC (analogue-digital converter)
 		// ADCgain ... how many electrons correspond one intensity level
 		// ADCoffset ... how many intensity levels are globally added to each pixel
 		const float ADCgain = 28.0f; 
-		*p/=ADCgain;
+		*p /= ADCgain;
 
 		const float ADCoffset = 400.0f;
-		*p+=ADCoffset;
+		*p += ADCoffset;
 	}
 
 	//obtain final GRAY16 image
 	i3d::FloatToGrayNoWeight(blurred,texture);
+	DEBUG_REPORT("all done.");
 }
 
 ///------------------------------------------------------------------------
