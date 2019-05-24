@@ -24,7 +24,7 @@ class Scenario_DrosophilaRandom          CLASS_DECLARATION
 class Scenario_pseudoDivision            CLASS_DECLARATION
 class Scenario_dragAndRotate             CLASS_DECLARATION
 class Scenario_withCellCycle             CLASS_DECLARATION
-class Scenario_withTexture               CLASS_DECLARATION
+class Scenario_withTexture               CLASS_DECLARATION_WithSYNTHOSCOPY
 class Scenario_dragRotateAndTexture      CLASS_DECLARATION
 //  ---> ADD NEW SCENARIO HERE AND ALSO BELOW <---
 
