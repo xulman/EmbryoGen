@@ -7,14 +7,15 @@
 #include "../util/texture/texture.h"
 #include "Scenarios.h"
 
-class myDragAndTextureNucleus: public Nucleus4SAgent, TextureQuantized
+class myDragAndTextureNucleus: public Nucleus4SAgent, TextureQuantized, TextureUpdater4S
 {
 public:
 	myDragAndTextureNucleus(const int _ID, const std::string& _type,
 	          const Spheres& shape,
 	          const float _currTime, const float _incrTime):
 		Nucleus4SAgent(_ID,_type, shape, _currTime,_incrTime),
-		TextureQuantized(60000, Vector3d<float>(2.0f,2.0f,2.0f), 125)
+		TextureQuantized(60000, Vector3d<float>(2.0f,2.0f,2.0f), 125),
+		TextureUpdater4S(shape)
 	{
 		cytoplasmWidth = 0.0f;
 
@@ -29,20 +30,7 @@ public:
 		const int dotOutliers = CollectOutlyingDots(futureGeometry);
 		DEBUG_REPORT(dotOutliers << " (" << 100.f*dotOutliers/dots.size()
 		             << " %) dots had to be moved inside the initial geometry");
-
-		//img.GetVoxelData() = 0;
-		//RenderIntoPhantom(img);
-		//img.SaveImage("test.tif");
-
-		//init the dotsCoordUpdater
-		dotsCoordUpdater.reserve(4);
-		dotsCoordUpdater.emplace_back(shape,0,shape.getCentres()[0] - shape.getCentres()[1]);
-		dotsCoordUpdater.emplace_back(shape,1,shape.getCentres()[0] - shape.getCentres()[2]);
-		dotsCoordUpdater.emplace_back(shape,2,shape.getCentres()[1] - shape.getCentres()[3]);
-		dotsCoordUpdater.emplace_back(shape,3,shape.getCentres()[2] - shape.getCentres()[3]);
 	}
-
-	std::vector< SpheresFunctions::CoordsUpdater<FLOAT> > dotsCoordUpdater;
 
 	void advanceAndBuildIntForces(const float) override
 	{
@@ -71,88 +59,11 @@ public:
 	void adjustGeometryByExtForces(void) override
 	{
 		Nucleus4SAgent::adjustGeometryByExtForces();
-		adjustTextureAfterGeometryChange();
-	}
-
-	void adjustTextureAfterGeometryChange()
-	{
-		//NB: this->velocities[]*this->incrTime contains the most recent displacement
-		//NB: there's even still geometryAlias (old state) and futureGeometry (new state)
 
 		//update only just before the texture rendering event... (to save some comp. time)
 		if (Officer->willRenderNextFrame())
 		{
-			//backup the geometry for which the texture dots are valid
-			Vector3d<FLOAT> prevCentre[4];
-			FLOAT           prevRadius[4];
-			for (unsigned int i=0; i < 4; ++i)
-			{
-				prevCentre[i] = dotsCoordUpdater[i].prevCentre;
-				prevRadius[i] = dotsCoordUpdater[i].prevRadius;
-			}
-
-			//prepare the updating routines...
-			dotsCoordUpdater[0].prepareUpdating( futureGeometry,0,
-			      futureGeometry.getCentres()[0] - futureGeometry.getCentres()[1] );
-
-			dotsCoordUpdater[1].prepareUpdating( futureGeometry,1,
-		         futureGeometry.getCentres()[0] - futureGeometry.getCentres()[2] );
-
-			dotsCoordUpdater[2].prepareUpdating( futureGeometry,2,
-		         futureGeometry.getCentres()[1] - futureGeometry.getCentres()[3] );
-
-			dotsCoordUpdater[3].prepareUpdating( futureGeometry,3,
-		         futureGeometry.getCentres()[2] - futureGeometry.getCentres()[3] );
-
-
-			//aux variables
-			float weights[4];             //4 because we're Nucleus4SAgent
-			float sum;
-			Vector3d<float> tmp,newPos;
-
-#ifdef DEBUG
-			int outsideDots = 0;
-#endif
-
-			//shift texture particles
-			for (auto& dot : dots)
-			{
-				//determine the weights
-				for (unsigned int i=0; i < 4; ++i)
-				{
-					tmp  = dot.pos;
-					tmp -= prevCentre[i];
-					weights[i] = std::max(prevRadius[i] - tmp.len(), (FLOAT)0);
-				}
-
-				//normalization factor
-				sum = weights[0] + weights[1] + weights[2] + weights[3];
-
-				if (sum > 0)
-				{
-					//apply the weights
-					newPos = 0;
-					for (unsigned int i=0; i < 4; ++i)
-					if (weights[i] > 0)
-					{
-						tmp = dot.pos;
-						dotsCoordUpdater[i].updateCoord(tmp);
-						newPos += (weights[i]/sum) * tmp;
-					}
-					dot.pos = newPos;
-				}
-				else
-				{
-#ifdef DEBUG
-					++outsideDots;
-#endif
-				}
-			}
-
-#ifdef DEBUG
-			if (outsideDots > 0)
-				REPORT(outsideDots << " could not be updated (no matching sphere found, weird...)");
-#endif
+			updateTextureCoords(dots, futureGeometry);
 
 			//correct for outlying texture particles
 			const int dotOutliers = CollectOutlyingDots(futureGeometry);
