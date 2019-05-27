@@ -7,8 +7,9 @@ class SpheresFunctions
 {
 public:
 	/** grow 4 sphere geometry 's' in radius by 'dR', and in diameter by 'dD' */
+	template <typename FT>
 	static
-	void grow4SpheresBy(Spheres& s, const FLOAT dR, const FLOAT dD)
+	void grow4SpheresBy(Spheres& s, const FT dR, const FT dD)
 	{
 		if (s.noOfSpheres != 4)
 			throw ERROR_REPORT("Cannot grow non-four sphere geometry.");
@@ -17,7 +18,7 @@ public:
 		for (int i=0; i < 4; ++i) s.radii[i] += dR;
 
 		//offset the centres as well
-		Vector3d<FLOAT> dispL1,dispL2;
+		Vector3d<FT> dispL1,dispL2;
 
 		dispL1  = s.centres[2];
 		dispL1 -= s.centres[1];
