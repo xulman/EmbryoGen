@@ -225,10 +225,11 @@ public:
 	}
 
 
+	friend class SpheresFunctions;
 	friend class NucleusAgent;
 	friend class Nucleus4SAgent;
-	friend class SpheresFunctions;
 	friend class Texture;
 	friend class TextureQuantized;
+	friend class TextureUpdater4S;
 };
 #endif

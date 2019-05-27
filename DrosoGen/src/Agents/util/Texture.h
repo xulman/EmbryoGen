@@ -9,6 +9,7 @@
 #include "../../util/Dots.h"
 #include "../../Geometries/Geometry.h"
 #include "../../Geometries/Spheres.h"
+#include "../../Geometries/util/SpheresFunctions.h"
 
 /**
  * Utility class that maintains texture particles, e.g. fluorescence dots.
@@ -301,5 +302,126 @@ public:
 	    the contributed intensity to the image should be 'quantum'-times greater than what would provide
 		 the upstream, non-quantum Texture::RenderIntoPhantom() */
 	void RenderIntoPhantom(i3d::Image3d<float> &phantoms);
+};
+
+
+/**
+ * This class can update coordinates of the texture dots on-the-go as the underlying "4S"
+ * geometry is developing. This class is dedicated specifically to the Nucleus4SAgent --
+ * it is based on the same geometry assumptions. It is an utility class wrapped around
+ * four pieces of the SpheresFunctions::CoordsUpdater that implements weighted displacement
+ * of any texture dots based on their intersection(s) with the "4S" spheres (and the depths
+ * of the dots inside these spheres).
+ */
+class TextureUpdater4S
+{
+public:
+	/** init the class with the current 4S geometry */
+	TextureUpdater4S(const Spheres& geom)
+		: objectIsReady( testNoOfSpheres(geom) ),
+		  cu{ SpheresFunctions::CoordsUpdater<FLOAT>(geom.centres[0],geom.radii[0], geom.centres[0] - geom.centres[1]),
+		      SpheresFunctions::CoordsUpdater<FLOAT>(geom.centres[1],geom.radii[1], geom.centres[0] - geom.centres[2]),
+		      SpheresFunctions::CoordsUpdater<FLOAT>(geom.centres[2],geom.radii[2], geom.centres[1] - geom.centres[3]),
+		      SpheresFunctions::CoordsUpdater<FLOAT>(geom.centres[3],geom.radii[3], geom.centres[2] - geom.centres[3]) }
+	{}
+
+	/** this method tracks the 4S geometry changes and updates, in accord, the coordinates
+	    of the given list of texture dots */
+	void updateTextureCoords(std::vector<Dot>& dots, const Spheres& newGeom)
+	{
+#ifdef DEBUG
+		if (newGeom.noOfSpheres != 4)
+			throw ERROR_REPORT("Cannot update coordinates for non-four sphere geometry.");
+#endif
+		// backup: last geometry for which user coordinates were valid
+		for (unsigned int i=0; i < 4; ++i)
+		{
+			prevCentre[i] = cu[i].prevCentre;
+			prevRadius[i] = cu[i].prevRadius;
+		}
+
+		//prepare the updating routines...
+		cu[0].prepareUpdating( newGeom.centres[0], newGeom.radii[0],
+		                       newGeom.centres[0] - newGeom.centres[1] );
+
+		cu[1].prepareUpdating( newGeom.centres[1], newGeom.radii[1],
+		                       newGeom.centres[0] - newGeom.centres[2] );
+
+		cu[2].prepareUpdating( newGeom.centres[2], newGeom.radii[2],
+		                       newGeom.centres[1] - newGeom.centres[3] );
+
+		cu[3].prepareUpdating( newGeom.centres[3], newGeom.radii[3],
+		                       newGeom.centres[2] - newGeom.centres[3] );
+
+		//aux variables
+		float weights[4];
+		float sum;
+		Vector3d<float> tmp,newPos;
+#ifdef DEBUG
+		int outsideDots = 0;
+#endif
+		//shift texture particles
+		for (auto& dot : dots)
+		{
+			//determine the weights
+			for (unsigned int i=0; i < 4; ++i)
+			{
+				tmp  = dot.pos;
+				tmp -= prevCentre[i];
+				weights[i] = std::max(prevRadius[i] - tmp.len(), (FLOAT)0);
+			}
+
+			//normalization factor
+			sum = weights[0] + weights[1] + weights[2] + weights[3];
+
+			if (sum > 0)
+			{
+				//apply the weights
+				newPos = 0;
+				for (unsigned int i=0; i < 4; ++i)
+				if (weights[i] > 0)
+				{
+					tmp = dot.pos;
+					cu[i].updateCoord(tmp);
+					newPos += (weights[i]/sum) * tmp;
+				}
+				dot.pos = newPos;
+			}
+			else
+			{
+#ifdef DEBUG
+				++outsideDots;
+#endif
+			}
+		}
+
+#ifdef DEBUG
+		if (outsideDots > 0)
+			REPORT(outsideDots << " could not be updated (no matching sphere found, weird...)");
+#endif
+	}
+
+private:
+	/** a flag whose existence allows us to trigger the testNoOfSpheres() method during
+	    this class construction; officially, however, this is a flag to signal if the
+	    class is initialized */
+	const bool objectIsReady;
+
+	/** this method can be regarded as a container of a code that is executed as the first
+	    when an object of this class is constructed, the purpose here is to test if the input
+	    geometry is valid for this class */
+	bool testNoOfSpheres(const Spheres& geom)
+	{
+		if (geom.noOfSpheres != 4)
+			throw ERROR_REPORT("Cannot init updating of coordinates for non-four sphere geometry.");
+		return true;
+	}
+
+	/** coordinate updaters, one per sphere */
+	SpheresFunctions::CoordsUpdater<FLOAT> cu[4];
+
+	/** aux arrays for the updateTextureCoords() */
+	Vector3d<FLOAT> prevCentre[4];
+	FLOAT           prevRadius[4];
 };
 #endif
