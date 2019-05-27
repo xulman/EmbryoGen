@@ -3,9 +3,11 @@
 
 #include "../Simulation.h"
 
-#define CLASS_DECLARATION : public Simulation { void initializeAgents(void) override; };
+#define CLASS_DECLARATION : public Simulation {                               \
+	void initializeScenario(void) override; };
+//
 #define CLASS_DECLARATION_WithOwnSynthoscopy : public Simulation {            \
-	void initializeAgents(void) override; void doPhaseIIandIII(void) override; };
+	void initializeScenario(void) override; void doPhaseIIandIII(void) override; };
 
 #define AVAILABLE_SCENARIO(n,c) \
 	availableScenarios.emplace_back(std::string((n)));                         \
@@ -77,7 +79,7 @@ public:
 		}
 
 		//pass the CLI params inside, to be
-		//possibly considered by initializeAgents()
+		//possibly considered by initializeScenario()
 		simulation->setArgs(argc,argv);
 	}
 

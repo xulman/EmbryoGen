@@ -229,11 +229,7 @@ public:
 	/** allocates output images, adds agents, renders the first frame */
 	void init(void)
 	{
-		//enableProducingOutput(imgMask);
-		//enableProducingOutput(imgPhantom);
-		//enableProducingOutput(imgOptics);
-
-		initializeAgents();
+		initializeScenario();
 		updateAndPublishAgents();
 		REPORT("--------------- " << currTime << " min ("
 		  << agents.size() << " local and "
@@ -560,9 +556,9 @@ public:
 	}
 
 	// --------------------------------------------------
-	// input & output:  initializeAgents() & renderNextFrame()
+	// input & output:  initializeScenario() & renderNextFrame()
 
-	/** setter for the argc & argv CLI params for initializeAgents() */
+	/** setter for the argc & argv CLI params for initializeScenario() */
 	void setArgs(int argc, char** argv)
 	{
 		this->argc = argc;
@@ -570,16 +566,16 @@ public:
 	}
 
 protected:
-	/** CLI params that might be considered by initializeAgents() */
+	/** CLI params that might be considered by initializeScenario() */
 	int argc;
-	/** CLI params that might be considered by initializeAgents() */
+	/** CLI params that might be considered by initializeScenario() */
 	char** argv;
 
 	/** Just initializes all agents: positions, weights, etc.,
 	    and adds them into the this->agents, and into the this->tracks.
 	    Additional command-line parameters may be available
 	    as this->argc and this->argv. */
-	virtual void initializeAgents(void) =0;
+	virtual void initializeScenario(void) =0;
 
 private:
 	/** flag if the renderNextFrame() will be called after this simulation round */

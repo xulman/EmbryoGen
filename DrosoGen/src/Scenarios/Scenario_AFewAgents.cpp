@@ -6,7 +6,7 @@
 #include "../Agents/ShapeHinter.h"
 #include "Scenarios.h"
 
-void Scenario_AFewAgents::initializeAgents(void)
+void Scenario_AFewAgents::initializeScenario(void)
 {
 	//to obtain a sequence of IDs for new agents...
 	int ID=1;

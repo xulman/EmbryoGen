@@ -40,7 +40,7 @@ public:
 	}
 };
 
-void Scenario_dragAndRotate::initializeAgents(void)
+void Scenario_dragAndRotate::initializeScenario(void)
 {
 	//to obtain a sequence of IDs for new agents...
 	int ID=1;

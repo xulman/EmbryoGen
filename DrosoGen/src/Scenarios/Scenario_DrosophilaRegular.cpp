@@ -46,7 +46,7 @@ protected:
 	}
 };
 
-void Scenario_DrosophilaRegular::initializeAgents(void)
+void Scenario_DrosophilaRegular::initializeScenario(void)
 {
 	//stepping in all directions -> influences the final number of nuclei
 	const float dx = 14.0f;

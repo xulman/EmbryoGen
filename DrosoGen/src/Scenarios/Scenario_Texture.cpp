@@ -34,7 +34,7 @@ public:
 	}
 };
 
-void Scenario_withTexture::initializeAgents(void)
+void Scenario_withTexture::initializeScenario(void)
 {
 	//to obtain a sequence of IDs for new agents...
 	int ID=1;
