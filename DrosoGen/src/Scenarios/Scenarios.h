@@ -4,7 +4,7 @@
 #include "../Simulation.h"
 
 #define CLASS_DECLARATION : public Simulation { void initializeAgents(void) override; };
-#define CLASS_DECLARATION_WithSYNTHOSCOPY : public Simulation {               \
+#define CLASS_DECLARATION_WithOwnSynthoscopy : public Simulation {            \
 	void initializeAgents(void) override; void doPhaseIIandIII(void) override; };
 
 #define AVAILABLE_SCENARIO(n,c) \
@@ -24,7 +24,7 @@ class Scenario_DrosophilaRandom          CLASS_DECLARATION
 class Scenario_pseudoDivision            CLASS_DECLARATION
 class Scenario_dragAndRotate             CLASS_DECLARATION
 class Scenario_withCellCycle             CLASS_DECLARATION
-class Scenario_withTexture               CLASS_DECLARATION_WithSYNTHOSCOPY
+class Scenario_withTexture               CLASS_DECLARATION_WithOwnSynthoscopy
 class Scenario_dragRotateAndTexture      CLASS_DECLARATION
 //  ---> ADD NEW SCENARIO HERE AND ALSO BELOW <---
 
