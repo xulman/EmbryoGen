@@ -7,6 +7,7 @@
 #include "../../util/report.h"
 #include "../../util/rnd_generators.h"
 #include "../../util/Dots.h"
+#include "../../util/texture/texture.h"
 #include "../../Geometries/Geometry.h"
 #include "../../Geometries/Spheres.h"
 #include "../../Geometries/util/SpheresFunctions.h"
@@ -129,6 +130,73 @@ public:
 		       << " %) dots placed outside its original voxel");
 		REPORT("there are currently " << dots.size() << " registered dots");
 #endif
+	}
+
+	/** Populates the given 'geom' union of spheres with a Perlin texture. The texture
+	    will be sampled/rendered at the given 'textureResolution' (in pixels/micron),
+	    will be intensity-shifted to obtain the given 'textureAverageIntensity', and
+	    will be created according to the four Perlin texture parameters ('var', 'alpha',
+	    'beta', 'n'). The rendered texture will be sampled (converted into this->dots)
+	    using the given 'quantization' factor. That means, the number of dots that occupy any
+	    texture voxel is given by the voxel's intensity over the 'quantization': the higher
+	    the parameter is, the fewer dots are created. If 'shouldCollectOutlyingDots' is true,
+	    the created dots (incl. any possibly already present dots) are checked against
+	    the given 'geom' and shifted if necessary to assure that they are always within
+	    the given union of spheres (the 'geom').
+
+	    Note that the Perlin noise created with the default parameters typically creates
+	    images with intensities within the range [-0.5;+0.5]. The 'textureAverageIntensity'
+	    is only shifting the range into [textureAverageIntensity-0.5,textureAverageIntensity+0.5].
+	    Hence, with the higher value of the 'textureAverageIntensity', the contrast (ratio of
+	    the highest over smallest intensity value) of the texture is essentially worsened. */
+	void CreatePerlinTexture(const Spheres& geom,
+	                         const Vector3d<FLOAT> textureResolution,
+	                         const double var,
+	                         const double alpha = 8,
+	                         const double beta = 4,
+	                         const int n = 6,
+	                         const float textureAverageIntensity = 1.0f,
+	                         const float quantization = 0.1f,
+	                         const bool shouldCollectOutlyingDots = true)
+	{
+		//setup the aux texture image
+		i3d::Image3d<float> img;
+		SetupImageForRasterizingTexture(img,textureResolution, geom);
+
+		//sanity check... if the 'geom' is "empty", no texture image is "wrapped" around it,
+		//we do no creation of the texture then...
+		if (img.GetImageSize() == 0)
+		{
+			DEBUG_REPORT("WARNING: Wrapping texture image is of zero size... stopping here.");
+			return;
+		}
+
+		//fill the aux image
+		DoPerlin3D(img, var,alpha,beta,n);
+
+		//get the current average intensity and adjust to the desired one
+		double sum = 0;
+		float* i = img.GetFirstVoxelAddr();
+		float* const iL = i + img.GetImageSize();
+		for (; i != iL; ++i) sum += *i;
+		sum /= (double)img.GetImageSize();
+		//
+		const float textureIntShift = textureAverageIntensity - (float)sum;
+		for (i = img.GetFirstVoxelAddr(); i != iL; ++i)
+		{
+			*i += textureIntShift;
+			//*i  = std::max( *i, 0.f );
+		}
+		SampleDotsFromImage(img,geom, quantization);
+		//NB: the function ignores any negative-valued texture image voxels,
+		//    no dots are created for such voxels
+
+		if (shouldCollectOutlyingDots)
+		{
+			const int dotOutliers = CollectOutlyingDots(geom);
+			DEBUG_REPORT(dotOutliers << " (" << 100.f*dotOutliers/dots.size()
+			             << " %) dots had to be moved inside the initial geometry");
+		}
 	}
 
 	// --------------------------------------------------
@@ -300,7 +368,7 @@ public:
 
 	/** renders (quantum-wise) the current content of the this->dots list into the given phantom image,
 	    the contributed intensity to the image should be 'quantum'-times greater than what would provide
-		 the upstream, non-quantum Texture::RenderIntoPhantom() */
+		 the upstream, non-quantum Texture::RenderIntoPhantom(phantoms,1.0) */
 	void RenderIntoPhantom(i3d::Image3d<float> &phantoms);
 };
 
