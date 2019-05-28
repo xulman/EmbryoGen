@@ -41,7 +41,7 @@ namespace mitogen
  *
  * The SNR is computed as:
  * \verbatim
- * (avg(fg region) - avg(bg region)) / std_dev(fg region)
+ * (avg(fg region) - avg(bg region)) / std_dev(bg region)
  * \endverbatim
  *
  * This function, however, uses two-pass algorithms for 'compensated'
@@ -87,7 +87,7 @@ namespace mitogen
  */
 template <class MV, class PV>
 double ComputeSNR(i3d::Image3d<PV> const &img,
-                 i3d::Image3d<MV> const &mask);
+                  i3d::Image3d<MV> const &mask);
 
 }
 #endif

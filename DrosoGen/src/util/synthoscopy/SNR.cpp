@@ -32,7 +32,7 @@ namespace mitogen
 
 template <class MV, class PV>
 double ComputeSNR(i3d::Image3d<PV> const &img,
-                 i3d::Image3d<MV> const &mask)
+                  i3d::Image3d<MV> const &mask)
 {
 	if (img.GetSize() != mask.GetSize())
 		throw ERROR_REPORT("Phantom and mask images do not match in size.");
@@ -129,19 +129,17 @@ double ComputeSNR(i3d::Image3d<PV> const &img,
 		}
 	}
 
-	const double devFg=sqrt( (sum2Fg - sumFg*sumFg/(double)sizeFg)
-								/ (double)sizeFg );
-	const double devBg=sqrt( (sum2Bg - sumBg*sumBg/(double)sizeBg)
-								/ (double)sizeBg );
+	const double devFg=sqrt( (sum2Fg - sumFg*sumFg/(double)sizeFg) / (double)sizeFg );
+	const double devBg=sqrt( (sum2Bg - sumBg*sumBg/(double)sizeBg) / (double)sizeBg );
 
-	const double SNR=(meanFg - meanBg) / devFg;
+	const double SNR=(meanFg - meanBg) / devBg;
 
-	DEBUG_REPORT("fg / bg sizes ratio: " << (double)sizeFg / (double)sizeBg
+	DEBUG_REPORT("fg / bg volume ratio: " << (double)sizeFg / (double)sizeBg
 			<< ", fg constitues " << (double)sizeFg/(double)mask.GetImageSize()*100.f
 			<< "% of the image volume");
 	DEBUG_REPORT("fg signal is " << meanFg << " +- " << devFg
 			<< ", bg signal is " << meanBg << " +- " << devBg);
-	DEBUG_REPORT("SNR=" << SNR);
+	DEBUG_REPORT("SNR=" << SNR << ", CR=" << meanFg/meanBg);
 
 	//tagged and formated for machine processing of the SNR related data...
 	REPORT("SNR " << SNR << " " << meanFg << " "
