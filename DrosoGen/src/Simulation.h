@@ -108,6 +108,7 @@ protected:
 
 	// --------------------------------------------------
 
+private:
 	/** list of all agents currently active in the simulation
 	    and calculated on this node (managed by this officer) */
 	std::list<AbstractAgent*> agents;
@@ -120,7 +121,7 @@ protected:
 	TrackRecords_CTC tracks;
 
 	/** flag to run-once the closing routines */
-	bool simulationProperlyClosed = false;
+	bool simulationProperlyClosedFlag = false;
 
 	// --------------------------------------------------
 	// execute and maintenance methods:  init(), execute(), close()
@@ -316,7 +317,7 @@ public:
 	void close(void)
 	{
 		//mark before closing is attempted...
-		simulationProperlyClosed = true;
+		simulationProperlyClosedFlag = true;
 
 		//delete all agents... also from newAgents & deadAgents, note that the
 		//same agent may exist on the agents and deadAgents lists simultaneously
@@ -363,8 +364,8 @@ public:
 	/** tries to save tracks.txt at least, if not done earlier */
 	virtual ~Simulation(void)
 	{
-		DEBUG_REPORT("simulation already closed? " << (simulationProperlyClosed ? "yes":"no"));
-		if (!simulationProperlyClosed) this->close();
+		DEBUG_REPORT("simulation already closed? " << (simulationProperlyClosedFlag ? "yes":"no"));
+		if (!simulationProperlyClosedFlag) this->close();
 	}
 
 	// --------------------------------------------------
