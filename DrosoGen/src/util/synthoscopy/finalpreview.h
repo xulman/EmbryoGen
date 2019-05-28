@@ -1,3 +1,6 @@
+#ifndef _UTIL_SYNTHOSCOPY_FINALPREVIEW_H_
+#define _UTIL_SYNTHOSCOPY_FINALPREVIEW_H_
+
 /**********************************************************************
 *
 * finalpreview.h
@@ -29,11 +32,7 @@
 *
 ***********************************************************************/
 
-#ifndef UTIL_SYNTHOSCOPY_FINALPREVIEW_H
-#define UTIL_SYNTHOSCOPY_FINALPREVIEW_H
-
 #include <i3d/image3d.h>
-#include <ini/iniparser.h>
 
 namespace mitogen
 {

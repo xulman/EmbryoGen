@@ -1,3 +1,6 @@
+#ifndef _UTIL_SYNTHOSCOPY_FILOGEN_H_
+#define _UTIL_SYNTHOSCOPY_FILOGEN_H_
+
 /*
  * Virtual Microscope - simulation engine
  *
@@ -27,9 +30,6 @@
  * Martin Maska <xmaskaa@fi.muni.cz> 2018
  */
 
-
-#ifndef _UTIL_SYNTHOSCOPY_FILOGEN_H_
-#define _UTIL_SYNTHOSCOPY_FILOGEN_H_
 namespace filogen
 {
 
