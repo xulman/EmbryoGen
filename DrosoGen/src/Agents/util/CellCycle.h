@@ -1,6 +1,7 @@
-#ifndef CELLCYCLE_H
-#define CELLCYCLE_H
+#ifndef _CELLCYCLE_H_
+#define _CELLCYCLE_H_
 
+#include "../../util/report.h"
 #include "../../util/rnd_generators.h"
 
 /** A datatype enumerating the particular phases of cell cycle in their order */
@@ -46,6 +47,13 @@ public:
 	CellCycle(const CellCycle& refCellCycle, const float spreadFactor = 0.17f):
 		CellCycle( GetRandomGauss(refCellCycle.fullCycleDuration,
 		                          spreadFactor * refCellCycle.fullCycleDuration) ) {}
+
+	/** an exact-copy constructor - useful when two instances that act exactly the same
+	    are used in one agent (e.g. one cycle to control geometry changes, one cycle
+	    to control texture development); note that one has to provide the second
+	    parameter (with any value) to reach out for this particular c'tor */
+	CellCycle(const CellCycle& refCellCycle, const bool):
+		CellCycle( refCellCycle.fullCycleDuration ) {}
 
 	/** constructor with (in minutes) given cycle length */
 	CellCycle(const float _fullCycleDuration):
