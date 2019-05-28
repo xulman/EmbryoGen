@@ -14,22 +14,17 @@ public:
 	          const Spheres& shape,
 	          const float _currTime, const float _incrTime):
 		Nucleus4SAgent(_ID,_type, shape, _currTime,_incrTime),
-		TextureQuantized(60000, Vector3d<float>(2.0f,2.0f,2.0f), 125),
+		TextureQuantized(60000, Vector3d<float>(2.0f,2.0f,2.0f), 8), //does not tear the texture in phantoms  (5x slower)
+		//Texture(60000), //tears the texture a bit in phantom images but it is not apparent in finalPreviews (5x faster)
 		TextureUpdater4S(shape)
 	{
 		cytoplasmWidth = 0.0f;
 
 		//texture img: resolution -- makes sense to match it with the phantom img resolution
-		i3d::Image3d<float> img;
-		SetupImageForRasterizingTexture(img,Vector3d<float>(2.0f), futureGeometry);
-
-		DoPerlin3D(img,5.0);
-		img.GetVoxelData() += 0.6f;
-		SampleDotsFromImage(img,futureGeometry,0.1f);
-
-		const int dotOutliers = CollectOutlyingDots(futureGeometry);
-		DEBUG_REPORT(dotOutliers << " (" << 100.f*dotOutliers/dots.size()
-		             << " %) dots had to be moved inside the initial geometry");
+		CreatePerlinTexture(futureGeometry, Vector3d<float>(2.0f),
+		                    5.0,8,4,6,    //Perlin
+		                    1.0f,         //texture intensity range centre
+		                    0.1f, true);  //quantization and shouldCollectOutlyingDots
 	}
 
 	void advanceAndBuildIntForces(const float) override
@@ -75,11 +70,7 @@ public:
 
 	void drawTexture(i3d::Image3d<float>& phantom, i3d::Image3d<float>&) override
 	{
-		if (Officer->isProducingOutput(phantom))
-		{
-			RenderIntoPhantom(phantom);
-			DEBUG_REPORT(ID << " finished rendering into the phantom");
-		}
+		if (Officer->isProducingOutput(phantom)) RenderIntoPhantom(phantom);
 	}
 
 	void drawMask(DisplayUnit& du) override
