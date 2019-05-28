@@ -744,9 +744,20 @@ private:
 		while (key != 0);
 	}
 
-	/** initializes (allocates, sets resolution, etc.) and populates (fills content)
+protected:
+	/** Initializes (allocates, sets resolution, etc.) and populates (fills content)
 	    the Simulation::imgFinal, which will be saved as the final testing image,
-	    based on the current content of the phantom and/or optics and/or mask image */
+	    based on the current content of the phantom and/or optics and/or mask image.
+
+	    Depending on the scenario used, some of these (phantom, optics, mask) images
+	    might be empty (voxels are zero), or their image size may be actually be zero.
+	    This really depends on what agents are used and how they are designed. Which
+	    is why this method has became "virtual" and over-ridable in every scenario
+	    to suit its needs.
+
+	    The content of the Simulation::imgPhantom or other "scene" images can be
+	    altered in this method because the said variable shall not be used anymore
+	    in the (just finishing) simulation round. */
 	virtual void doPhaseIIandIII(void)
 	{
 #if defined ENABLE_MITOGEN_FINALPREVIEW
