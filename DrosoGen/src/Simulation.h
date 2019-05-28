@@ -9,6 +9,7 @@
 #include "util/report.h"
 #include "TrackRecord_CTC.h"
 #include "util/Vector3d.h"
+#include "util/synthoscopy/SNR.h"
 
 #include "Agents/AbstractAgent.h"
 
@@ -662,6 +663,8 @@ private:
 			doPhaseIIandIII();
 			REPORT("Saving " << fn << ", hold on...");
 			imgFinal.SaveImage(fn);
+
+			if (isProducingOutput(imgMask)) mitogen::ComputeSNR(imgFinal,imgMask);
 		}
 
 		++frameCnt;
@@ -778,9 +781,10 @@ protected:
 	    is why this method has became "virtual" and over-ridable in every scenario
 	    to suit its needs.
 
-	    The content of the Simulation::imgPhantom or other "scene" images can be
-	    altered in this method because the said variable shall not be used anymore
-	    in the (just finishing) simulation round. */
+	    The content of the Simulation::imgPhantom and/or imgOptics images can be
+	    altered in this method because the said variables shall not be used anymore
+	    in the (just finishing) simulation round. Don't change Simulation::imgMask
+	    because this one is used for computation of the SNR. */
 	virtual void doPhaseIIandIII(void)
 	{
 #if defined ENABLE_MITOGEN_FINALPREVIEW
