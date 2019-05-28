@@ -531,7 +531,7 @@ public:
 		}
 	}
 
-	/** returns the state of the 'willRenderNextFrame' flag, that is if the
+	/** returns the state of the 'willRenderNextFrameFlag', that is if the
 	    current simulation round with end up with the call to renderNextFrame() */
 	bool willRenderNextFrame(void)
 	{ return willRenderNextFrameFlag; }
@@ -577,9 +577,28 @@ protected:
 	    as this->argc and this->argv. */
 	virtual void initializeScenario(void) =0;
 
+	/** returns the state of the 'shallWaitForUserPromptFlag', that is if an
+	    user will be prompted (and the simulation would stop and wait) at
+	    the end of the renderNextFrame() */
+	bool willWaitForUserPrompt(void)
+	{ return shallWaitForUserPromptFlag; }
+
+	/** sets the 'shallWaitForUserPromptFlag', making renderNextFrame() to prompt
+	    the user (and stop the simulation and wait... and also become "command-able") */
+	void enableWaitForUserPrompt(void)
+	{ shallWaitForUserPromptFlag = true; }
+
+	/** the opposite of the Simulation::enableWaitForUserPrompt() */
+	void disableWaitForUserPrompt(void)
+	{ shallWaitForUserPromptFlag = false; }
+
 private:
 	/** flag if the renderNextFrame() will be called after this simulation round */
 	bool willRenderNextFrameFlag = false;
+
+	/** flag whether an user will be prompted (and the simulation would stop
+	    and wait) at the end of the renderNextFrame() */
+	bool shallWaitForUserPromptFlag = true;
 
 	/** Flags if agents' drawForDebug() should be called with every this->renderNextFrame() */
 	bool renderingDebug = false;
@@ -655,6 +674,9 @@ private:
 			std::this_thread::sleep_for((std::chrono::milliseconds)1000);
 			return;
 		}
+
+		//finish up here, if user should not be prompted
+		if (!shallWaitForUserPromptFlag) return;
 
 		//wait for key...
 		char key;
