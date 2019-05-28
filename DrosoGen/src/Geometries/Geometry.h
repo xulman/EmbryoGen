@@ -32,27 +32,44 @@ public:
 
 	/** construct a copy of the given 'aabb' */
 	AxisAlignedBoundingBox(const AxisAlignedBoundingBox& aabb)
-	{
-		minCorner = aabb.minCorner;
-		maxCorner = aabb.maxCorner;
-	}
+		: minCorner( aabb.minCorner ),
+		  maxCorner( aabb.maxCorner )
+	{}
 
 	/** construct an AABB that represents the entire 'img'*/
 	template <typename T>
 	AxisAlignedBoundingBox(const i3d::Image3d<T>& img)
+		: minCorner( img.GetOffset() ),
+		  maxCorner( Vector3d<size_t>(img.GetSize()).to<FLOAT>() )
 	{
-		minCorner.x = img.GetOffset().x; //in mu
-		minCorner.y = img.GetOffset().y;
-		minCorner.z = img.GetOffset().z;
+		maxCorner.toMicrons(Vector3d<FLOAT>(img.GetResolution().GetRes()),minCorner);
+	}
 
-		maxCorner.x = (FLOAT)img.GetSizeX(); //in px
-		maxCorner.y = (FLOAT)img.GetSizeY();
-		maxCorner.z = (FLOAT)img.GetSizeZ();
+	/** adjusts the image's resolution, offset and size to represent
+	    this AABB extended with the optional outer frame of the given
+	    pixel width */
+	template <typename T>
+	void adaptImage(i3d::Image3d<T>& img,
+	                const Vector3d<float>& res,                                //px/um
+	                const Vector3d<short>& pxFrameWidth = Vector3d<short>(2))  //px
+	const
+	{
+		const Vector3d<float> umFrameWidth( Vector3d<float>().from(pxFrameWidth).elemDivBy(res) );
 
-		maxCorner.x /= img.GetResolution().GetRes().x; //in mu
-		maxCorner.y /= img.GetResolution().GetRes().y;
-		maxCorner.z /= img.GetResolution().GetRes().z;
-		maxCorner   += minCorner;
+		Vector3d<float> tmp(minCorner.to<float>());
+		tmp -= umFrameWidth;
+
+		img.SetResolution( i3d::Resolution(res.toI3dVector3d()) );
+		img.SetOffset( tmp.toI3dVector3d() );
+
+		tmp.from(maxCorner-minCorner);
+		tmp += 2.0f * umFrameWidth;
+		tmp.elemMult(res).elemCeil();
+		img.MakeRoom( tmp.to<size_t>().toI3dVector3d() );
+
+		DEBUG_REPORT("from AABB: minCorner=" << minCorner << " um --> maxCorner=" << maxCorner << " um");
+		DEBUG_REPORT(" to image: imgOffset=" << img.GetOffset() << " um, imgSize="
+		             << img.GetSize() << " px, imgRes=" << res << " px/um");
 	}
 
 	/** exports this AABB as a "sweeping" box that is given
@@ -67,51 +84,27 @@ public:
 	                         Vector3d<size_t>& minSweep,
 	                         Vector3d<size_t>& maxSweep) const
 	{
-		//minCorner's offset within the world coordinate system
+		//p is minCorner in img's px coordinates
 		Vector3d<FLOAT> p(minCorner);
+		p.toPixels(img.GetResolution().GetRes(),img.GetOffset());
 
-		//offset within the image in microns
-		p.x -= img.GetOffset().x; //in mu
-		p.y -= img.GetOffset().y;
-		p.z -= img.GetOffset().z;
-
-		//offset within the image in pixels
-		p.x *= img.GetResolution().GetRes().x; //in px
-		p.y *= img.GetResolution().GetRes().y;
-		p.z *= img.GetResolution().GetRes().z;
-
-		//to avoid underflow when converting to unsigned integer
+		//make sure minCorner is within the image
 		p.elemMax(Vector3d<FLOAT>(0));
+		p.elemMin(Vector3d<FLOAT>(img.GetSize()));
 
-		//round to integer px coordinate (already intersect with image coordinate)
-		//NB: round() essentially considers whether voxel's centre falls into the AABB:
-		//    if AABB boundary falls into [q.0; q.5), the voxel's centre (q.5) is in the AABB,
-		//    so the 'q' voxel should be swept through
-		minSweep.x = (size_t)std::round(p.x);
-		minSweep.y = (size_t)std::round(p.y);
-		minSweep.z = (size_t)std::round(p.z);
+		//obtain integer px coordinate that is already intersected with image dimensions
+		minSweep.toPixels(p);
 
-		//
-		//maxCorner's offset within the world coordinate system
+		//p is maxCorner in img's px coordinates
 		p = maxCorner;
+		p.toPixels(img.GetResolution().GetRes(),img.GetOffset());
 
-		//offset within the image in microns
-		p.x -= img.GetOffset().x; //in mu
-		p.y -= img.GetOffset().y;
-		p.z -= img.GetOffset().z;
-
-		//offset within the image in pixels
-		p.x *= img.GetResolution().GetRes().x; //in px
-		p.y *= img.GetResolution().GetRes().y;
-		p.z *= img.GetResolution().GetRes().z;
-
-		//to avoid underflow when converting to unsigned integer
+		//make sure minCorner is within the image
 		p.elemMax(Vector3d<FLOAT>(0));
+		p.elemMin(Vector3d<FLOAT>(img.GetSize()));
 
-		//round to integer px coordinate & intersect with image coordinate
-		maxSweep.x = std::min( img.GetSizeX(),(size_t)std::round(p.x) );
-		maxSweep.y = std::min( img.GetSizeY(),(size_t)std::round(p.y) );
-		maxSweep.z = std::min( img.GetSizeZ(),(size_t)std::round(p.z) );
+		//obtain integer px coordinate that is already intersected with image dimensions
+		maxSweep.toPixels(p);
 	}
 
 

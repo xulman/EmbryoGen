@@ -52,7 +52,7 @@ public:
 	}
 };
 
-void Scenario_pseudoDivision::initializeAgents(void)
+void Scenario_pseudoDivision::initializeScenario(void)
 {
 	//to obtain a sequence of IDs for new agents...
 	int ID=1;

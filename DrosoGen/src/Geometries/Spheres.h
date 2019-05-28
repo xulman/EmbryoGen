@@ -156,6 +156,7 @@ public:
 	    ignoreIdx is -1, which means to consider all spheres for the test) */
 	int collideWithPoint(const Vector3d<FLOAT>& point,
 	                     const int ignoreIdx = -1)
+	const
 	{
 		bool collision = false;
 
@@ -224,8 +225,11 @@ public:
 	}
 
 
+	friend class SpheresFunctions;
 	friend class NucleusAgent;
 	friend class Nucleus4SAgent;
-	friend class SpheresFunctions;
+	friend class Texture;
+	friend class TextureQuantized;
+	friend class TextureUpdater4S;
 };
 #endif

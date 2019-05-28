@@ -204,10 +204,7 @@ public:
 		{
 			//we are now visiting voxels where some sphere can be seen,
 			//get micron coordinate of the current voxel's centre
-			centre.x = ((FLOAT)curPos.x +0.5f) / distImgRes.x;
-			centre.y = ((FLOAT)curPos.y +0.5f) / distImgRes.y;
-			centre.z = ((FLOAT)curPos.z +0.5f) / distImgRes.z;
-			centre += distImgOff;
+			centre.toMicronsFrom(curPos, distImgRes,distImgOff);
 
 			//check the current voxel against all spheres
 			for (int i = 0; i < io; ++i)
@@ -298,10 +295,7 @@ public:
 			//NB: grad now points always away towards the collision surface
 
 			//determine the exact point on the sphere surface, use again the voxel's centre
-			surfPoint.x = ((FLOAT)hints[i].x +0.5f) / distImgRes.x; //coordinate within in the image, in microns
-			surfPoint.y = ((FLOAT)hints[i].y +0.5f) / distImgRes.y;
-			surfPoint.z = ((FLOAT)hints[i].z +0.5f) / distImgRes.z;
-			surfPoint += distImgOff;  //now real world coordinate of the pixel's centre
+			surfPoint.toMicronsFrom(hints[i], distImgRes,distImgOff); //now real world coordinate of the pixel's centre
 			surfPoint -= centresO[i]; //now vector from sphere's centre
 			surfPoint *= radiiO[i] / surfPoint.len(); //stretch the vector
 			surfPoint += centresO[i]; //now point on the surface...
@@ -345,34 +339,27 @@ public:
 			AABB.reset();
 
 			//micrometer [X,Y,Z] coordinates of pixels at [x,y,z]
-			FLOAT X,Y,Z;
+			Vector3d<FLOAT> umPos;
 
 			//micrometer size of one voxel
-			const FLOAT dx=1.0f / distImgRes.x;
-			const FLOAT dy=1.0f / distImgRes.y;
-			const FLOAT dz=1.0f / distImgRes.z;
+			const Vector3d<FLOAT> oneVxSize( Vector3d<FLOAT>(1).elemDivBy(distImgRes) );
 
+			Vector3d<size_t> pxPos;
 			const float* f = distImg.GetFirstVoxelAddr();
-			for (size_t z = 0; z < distImg.GetSizeZ(); ++z)
-			for (size_t y = 0; y < distImg.GetSizeY(); ++y)
-			for (size_t x = 0; x < distImg.GetSizeX(); ++x)
+			for (pxPos.z = 0; pxPos.z < distImg.GetSizeZ(); ++pxPos.z)
+			for (pxPos.y = 0; pxPos.y < distImg.GetSizeY(); ++pxPos.y)
+			for (pxPos.x = 0; pxPos.x < distImg.GetSizeX(); ++pxPos.x)
 			{
 				if (*f < 0)
 				{
 					//get micrometers coordinate
-					X = (FLOAT)x/distImgRes.x + distImgOff.x;
-					Y = (FLOAT)y/distImgRes.y + distImgOff.y;
-					Z = (FLOAT)z/distImgRes.z + distImgOff.z;
+					umPos.from(pxPos).toMicrons(distImgRes,distImgOff);
 
 					//update the AABB
-					AABB.minCorner.x = std::min(AABB.minCorner.x, X);
-					AABB.maxCorner.x = std::max(AABB.maxCorner.x, X+dx);
+					AABB.minCorner.elemMin(umPos);
 
-					AABB.minCorner.y = std::min(AABB.minCorner.y, Y);
-					AABB.maxCorner.y = std::max(AABB.maxCorner.y, Y+dy);
-
-					AABB.minCorner.z = std::min(AABB.minCorner.z, Z);
-					AABB.maxCorner.z = std::max(AABB.maxCorner.z, Z+dz);
+					umPos += oneVxSize;
+					AABB.maxCorner.elemMax(umPos);
 				}
 				++f;
 			}
@@ -487,21 +474,14 @@ private:
 	    to the current ScalarImg::distImg */
 	void updateDistImgResOffFarEnd(void)
 	{
-		distImgRes.x = distImg.GetResolution().GetRes().x;
-		distImgRes.y = distImg.GetResolution().GetRes().y;
-		distImgRes.z = distImg.GetResolution().GetRes().z;
+		distImgRes.fromI3dVector3d( distImg.GetResolution().GetRes() );
 
 		//"min" corner
-		distImgOff.x = distImg.GetOffset().x;
-		distImgOff.y = distImg.GetOffset().y;
-		distImgOff.z = distImg.GetOffset().z;
+		distImgOff.fromI3dVector3d( distImg.GetOffset() );
 
 		//this mask image's "max" corner in micrometers
-		distImgFarEnd.x = (FLOAT)distImg.GetSizeX();
-		distImgFarEnd.y = (FLOAT)distImg.GetSizeY();
-		distImgFarEnd.z = (FLOAT)distImg.GetSizeZ();
-		distImgFarEnd.elemDivBy(distImgRes); //in mu
-		distImgFarEnd += distImgOff;         //max/far end in mu
+		distImgFarEnd.from( Vector3d<size_t>(distImg.GetSize()) )
+		             .toMicrons(distImgRes,distImgOff);
 	}
 };
 #endif

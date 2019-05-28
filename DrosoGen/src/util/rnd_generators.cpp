@@ -27,15 +27,16 @@
 /// re-seed if necessary (and init at all if necessary too)
 void inline PossiblyReSeed(rndGeneratorHandle& rngHandle)
 {
-	if (rngHandle.usageCnt == UsageBeforeReseed)
+	static unsigned long seedExtraDiversity = 0;
+
+	if (rngHandle.usageCnt == rngHandle.reseedPeriod)
 	{
 		//this is a bit dangerous in general to hide this test inside here,
 		//but if world around is consistent... we are saving one 'if-test' per call
 		if (rngHandle.rngState == NULL)
 			rngHandle.rngState = gsl_rng_alloc(gsl_rng_default);
 
-		//const unsigned long s = -1 * (int)time(NULL) * (int)getpid() * ((int)thrID+1) * 1000;
-		const unsigned long s = (unsigned)(-1 * time(NULL) * getpid());
+		const unsigned long s = (unsigned)(-1 * time(NULL) * getpid()) + ++seedExtraDiversity;
 		gsl_rng_set(rngHandle.rngState,s);
 		DEBUG_REPORT("randomness started with seed " << s);
 

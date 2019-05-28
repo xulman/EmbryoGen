@@ -9,10 +9,10 @@
 #include "../Geometries/util/SpheresFunctions.h"
 #include "Scenarios.h"
 
-class GrowableNucleus: public Nucleus4SAgent
+class GrowableNucleusRand: public Nucleus4SAgent
 {
 public:
-	GrowableNucleus(const int _ID, const std::string& _type,
+	GrowableNucleusRand(const int _ID, const std::string& _type,
 	                const Spheres& shape,
 	                const float _currTime, const float _incrTime):
 		Nucleus4SAgent(_ID,_type, shape, _currTime,_incrTime) {}
@@ -47,7 +47,7 @@ protected:
 	}
 };
 
-void Scenario_DrosophilaRandom::initializeAgents(void)
+void Scenario_DrosophilaRandom::initializeScenario(void)
 {
 	//stepping in all directions -> influences the final number of nuclei
 	const float dx = 14.0f;
@@ -105,7 +105,7 @@ void Scenario_DrosophilaRandom::initializeAgents(void)
 			s.updateCentre(3,pos +18.0f*axis);
 			s.updateRadius(3,3.0f);
 
-			GrowableNucleus* ag = new GrowableNucleus(ID++,"nucleus",s,currTime,incrTime);
+			GrowableNucleusRand* ag = new GrowableNucleusRand(ID++,"nucleus growable random",s,currTime,incrTime);
 			ag->startGrowTime=10.0f;
 			startNewAgent(ag);
 		}

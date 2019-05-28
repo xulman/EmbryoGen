@@ -73,7 +73,7 @@ public:
 };
 
 
-void Scenario_withCellCycle::initializeAgents(void)
+void Scenario_withCellCycle::initializeScenario(void)
 {
 	//to obtain a sequence of IDs for new agents...
 	int ID=1;

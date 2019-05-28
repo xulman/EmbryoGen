@@ -260,10 +260,7 @@ public:
 		{
 			//we are now visiting voxels where some sphere can be seen,
 			//get micron coordinate of the current voxel's centre
-			centre.x = ((FLOAT)curPos.x +0.5f) / imgRes.x;
-			centre.y = ((FLOAT)curPos.y +0.5f) / imgRes.y;
-			centre.z = ((FLOAT)curPos.z +0.5f) / imgRes.z;
-			centre += imgOff;
+			centre.toMicronsFrom(curPos, imgRes,imgOff);
 
 			//check the current voxel against all spheres
 			for (int i = 0; i < io; ++i)
@@ -341,10 +338,7 @@ public:
 			{
 				//found one
 				//calculate exact point on the sphere's surface (using hints[i])
-				surfPoint.x = ((FLOAT)hints[i].x +0.5f) / imgRes.x;
-				surfPoint.y = ((FLOAT)hints[i].y +0.5f) / imgRes.y;
-				surfPoint.z = ((FLOAT)hints[i].z +0.5f) / imgRes.z;
-				surfPoint += imgOff;
+				surfPoint.toMicronsFrom(hints[i], imgRes,imgOff);
 				surfPoint -= centresO[i];
 				surfPoint *= radiiO[i]/surfPoint.len();
 				surfPoint += centresO[i];
@@ -363,10 +357,7 @@ public:
 			{
 				//found one
 				//calculate exact point on the sphere's surface (using hints[i])
-				surfPoint.x = ((FLOAT)hints[i].x +0.5f) / imgRes.x;
-				surfPoint.y = ((FLOAT)hints[i].y +0.5f) / imgRes.y;
-				surfPoint.z = ((FLOAT)hints[i].z +0.5f) / imgRes.z;
-				surfPoint += imgOff;
+				surfPoint.toMicronsFrom(hints[i], imgRes,imgOff);
 				surfPoint -= centresO[i];
 				surfPoint *= radiiO[i]/surfPoint.len();
 				surfPoint += centresO[i];
@@ -485,21 +476,14 @@ private:
 	    to the current VectorImg::x */
 	void updateResOffFarEnd(void)
 	{
-		imgRes.x = X.GetResolution().GetRes().x;
-		imgRes.y = X.GetResolution().GetRes().y;
-		imgRes.z = X.GetResolution().GetRes().z;
+		imgRes.fromI3dVector3d( X.GetResolution().GetRes() );
 
 		//"min" corner
-		imgOff.x = X.GetOffset().x;
-		imgOff.y = X.GetOffset().y;
-		imgOff.z = X.GetOffset().z;
+		imgOff.fromI3dVector3d( X.GetOffset() );
 
 		//this mask image's "max" corner in micrometers
-		imgFarEnd.x = (FLOAT)X.GetSizeX();
-		imgFarEnd.y = (FLOAT)X.GetSizeY();
-		imgFarEnd.z = (FLOAT)X.GetSizeZ();
-		imgFarEnd.elemDivBy(imgRes); //in mu
-		imgFarEnd += imgOff;         //max/far end in mu
+		imgFarEnd.from( Vector3d<size_t>(X.GetSize()) )
+		         .toMicrons(imgRes,imgOff);
 	}
 };
 #endif

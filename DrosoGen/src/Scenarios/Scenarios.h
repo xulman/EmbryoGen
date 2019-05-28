@@ -3,7 +3,12 @@
 
 #include "../Simulation.h"
 
-#define CLASS_DECLARATION : public Simulation { void initializeAgents(void) override; };
+#define CLASS_DECLARATION : public Simulation {                               \
+	void initializeScenario(void) override; };
+//
+#define CLASS_DECLARATION_WithOwnSynthoscopy : public Simulation {            \
+	void initializeScenario(void) override; void doPhaseIIandIII(void) override; };
+
 #define AVAILABLE_SCENARIO(n,c) \
 	availableScenarios.emplace_back(std::string((n)));                         \
 	if (simulation == NULL &&                                                  \
@@ -21,7 +26,10 @@ class Scenario_DrosophilaRandom          CLASS_DECLARATION
 class Scenario_pseudoDivision            CLASS_DECLARATION
 class Scenario_dragAndRotate             CLASS_DECLARATION
 class Scenario_withCellCycle             CLASS_DECLARATION
-//  ---> ADD NEW SCENARIO HERE (and bellow) <---
+class Scenario_withTexture               CLASS_DECLARATION_WithOwnSynthoscopy
+class Scenario_dragRotateAndTexture      CLASS_DECLARATION
+class Scenario_phaseIIandIII             CLASS_DECLARATION
+//  ---> ADD NEW SCENARIO HERE AND ALSO BELOW <---
 
 class Scenarios
 {
@@ -55,6 +63,9 @@ public:
 			AVAILABLE_SCENARIO( "pseudoDivision",    Scenario_pseudoDivision )
 			AVAILABLE_SCENARIO( "dragAndRotate",     Scenario_dragAndRotate )
 			AVAILABLE_SCENARIO( "cellCycle",         Scenario_withCellCycle )
+			AVAILABLE_SCENARIO( "fluoTexture",       Scenario_withTexture )
+			AVAILABLE_SCENARIO( "dragFluoTexture",   Scenario_dragRotateAndTexture )
+			AVAILABLE_SCENARIO( "synthoscopy",       Scenario_phaseIIandIII )
 			//  ---> ADD NEW SCENARIO HERE (and add definition *cpp file, re-run cmake!) <---
 
 			if (simulation == NULL)
@@ -70,7 +81,7 @@ public:
 		}
 
 		//pass the CLI params inside, to be
-		//possibly considered by initializeAgents()
+		//possibly considered by initializeScenario()
 		simulation->setArgs(argc,argv);
 	}
 

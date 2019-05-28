@@ -515,8 +515,8 @@ protected:
 	void drawMask(i3d::Image3d<i3d::GRAY16>& img) override
 	{
 		//shortcuts to the mask image parameters
-		const i3d::Vector3d<float>& res = img.GetResolution().GetRes();
-		const Vector3d<FLOAT>       off(img.GetOffset().x,img.GetOffset().y,img.GetOffset().z);
+		const Vector3d<FLOAT> res(img.GetResolution().GetRes());
+		const Vector3d<FLOAT> off(img.GetOffset());
 
 		//shortcuts to our Own spheres
 		const Vector3d<FLOAT>* const centresO = futureGeometry.getCentres();
@@ -539,31 +539,22 @@ protected:
 		for (curPos.x = minSweepPX.x; curPos.x < maxSweepPX.x; curPos.x++)
 		{
 			//get micron coordinate of the current voxel's centre
-			centre.x = ((FLOAT)curPos.x +0.5f) / res.x;
-			centre.y = ((FLOAT)curPos.y +0.5f) / res.y;
-			centre.z = ((FLOAT)curPos.z +0.5f) / res.z;
-			centre += off;
+			centre.toMicronsFrom(curPos, res,off);
 
 			//check the current voxel against all spheres
 			for (int i = 0; i < iO; ++i)
 			{
-				//if sphere's surface would be 2*lenPXhd thick, would the voxel's center be in?
 				if ((centre-centresO[i]).len() <= radiiO[i])
 				{
 #ifdef DEBUG
 					i3d::GRAY16 val = img.GetVoxel(curPos.x,curPos.y,curPos.z);
 					if (val > 0 && val != (i3d::GRAY16)ID)
-						REPORT(ID << " overwrites mask at " << curPos);
+						REPORT(IDSIGN << " overwrites mask of " << val << " at " << curPos);
 #endif
 					img.SetVoxel(curPos.x,curPos.y,curPos.z, (i3d::GRAY16)ID);
 				}
 			}
 		}
-	}
-
-	void drawForDebug(i3d::Image3d<i3d::GRAY16>& img) override
-	{
-		drawMask(img);
 	}
 };
 #endif

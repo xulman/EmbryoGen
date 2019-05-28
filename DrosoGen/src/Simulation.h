@@ -9,6 +9,7 @@
 #include "util/report.h"
 #include "TrackRecord_CTC.h"
 #include "util/Vector3d.h"
+#include "util/synthoscopy/SNR.h"
 
 #include "Agents/AbstractAgent.h"
 
@@ -17,8 +18,20 @@
 #include "DisplayUnits/SceneryBufferedDisplayUnit.h"
 #include "DisplayUnits/BroadcasterDisplayUnit.h"
 
-//uncomment this macro to enable the system to generate images
-//#define PRODUCE_IMAGES
+//choose either ENABLE_MITOGEN_FINALPREVIEW or ENABLE_FILOGEN_PHASEIIandIII,
+//if ENABLE_FILOGEN_PHASEIIandIII is choosen, one can enable ENABLE_FILOGEN_REALPSF
+//#define ENABLE_MITOGEN_FINALPREVIEW
+#define ENABLE_FILOGEN_PHASEIIandIII
+#define ENABLE_FILOGEN_REALPSF
+
+#if defined ENABLE_MITOGEN_FINALPREVIEW
+  #include "util/synthoscopy/finalpreview.h"
+#elif defined ENABLE_FILOGEN_PHASEIIandIII
+  #include "util/synthoscopy/Filogen_VM.h"
+#endif
+#ifndef ENABLE_FILOGEN_REALPSF
+  #include <i3d/filters.h>
+#endif
 
 /**
  * This class contains all simulation agents, scene and simulation
@@ -56,19 +69,6 @@ protected:
 	/** set up the environment: size of the scene [micrometer] */
 	const Vector3d<float> sceneSize;
 
-	// --------------------------------------------------
-
-	//original res
-	//const Vector3d<float>  imgRes(2.46f,2.46f,0.49f); //[pixels per micrometer]
-	//
-	//my res
-	/** resolution of the output (phantom & mask) images [pixels per micrometer] */
-	const Vector3d<float>  imgRes;
-
-	/** size of the output (phantom & mask) images, [pixels]
-	    it is a function of this->sceneSize and this->imgRes */
-	const Vector3d<size_t> imgSize;
-
 	/** output image into which the simulation will be iteratively rasterized/rendered: instance masks */
 	i3d::Image3d<i3d::GRAY16> imgMask;
 
@@ -77,6 +77,13 @@ protected:
 	//
 	/** output image into which the simulation will be iteratively rasterized/rendered: optical indices image */
 	i3d::Image3d<float> imgOptics;
+
+	/** output image into which the simulation will be iteratively rasterized/rendered: final output image */
+	i3d::Image3d<i3d::GRAY16> imgFinal;
+
+#ifdef ENABLE_FILOGEN_REALPSF
+	i3d::Image3d<float> imgPSF;
+#endif
 
 	/** output display unit into which the simulation will be iteratively rendered */
 	BroadcasterDisplayUnit displayUnit;
@@ -102,6 +109,7 @@ protected:
 
 	// --------------------------------------------------
 
+private:
 	/** list of all agents currently active in the simulation
 	    and calculated on this node (managed by this officer) */
 	std::list<AbstractAgent*> agents;
@@ -114,7 +122,7 @@ protected:
 	TrackRecords_CTC tracks;
 
 	/** flag to run-once the closing routines */
-	bool simulationProperlyClosed = false;
+	bool simulationProperlyClosedFlag = false;
 
 	// --------------------------------------------------
 	// execute and maintenance methods:  init(), execute(), close()
@@ -122,41 +130,108 @@ protected:
 public:
 	/** initializes the simulation parameters */
 	Simulation(void)
-		: sceneOffset(0.f),             //[micrometer]
-		  sceneSize(480.f,220.f,220.f), //[micrometer]
-		  imgRes(2.0f,2.0f,2.0f),       //[pixels per micrometer]
-		  imgSize((size_t)ceil(sceneSize.x * imgRes.x), //[pixels]
-                (size_t)ceil(sceneSize.y * imgRes.y),
-                (size_t)ceil(sceneSize.z * imgRes.z))
+		: sceneOffset(0.f),                     //[micrometer]
+		  sceneSize(480.f,220.f,220.f)          //[micrometer]
 	{
+		Vector3d<float> imgRes(2.0f,2.0f,2.0f); //[pixels per micrometer]
+		setOutputImgSpecs(sceneOffset,sceneSize, imgRes);
+
+		imgRes.elemMult(sceneSize);
 		REPORT("scene size will be: "
 		  << sceneSize.x << " x " << sceneSize.y << " x " << sceneSize.z
-		  << " um =  "
-		  << imgSize.x << " x " << imgSize.y << " x " << imgSize.z << " px");
+		  << " um -> "
+		  << imgRes.x << " x " << imgRes.y << " x " << imgRes.z << " px");
 
 		//init display/export units
 		//displayUnit.RegisterUnit( new ConsoleDisplayUnit() );
 		displayUnit.RegisterUnit( new SceneryBufferedDisplayUnit("localhost:8765") );
 		//displayUnit.RegisterUnit( new SceneryBufferedDisplayUnit("192.168.3.110:8765") );
+
+#ifdef ENABLE_FILOGEN_REALPSF
+		char psfFilename[] = "/Users/ulman/devel/FiloGen/40_VirtualMicroscope/psf/2013-07-25_1_1_9_0_2_0_0_1_0_0_0_0_9_12.ics";
+		REPORT("reading this PSF image " << psfFilename);
+		imgPSF.ReadImage(psfFilename);
+#endif
+	}
+
+private:
+	/** internal (private) memory of the input of setOutputImgSpecs() for the enableProducingOutput() */
+	Vector3d<size_t> lastUsedImgSize;
+public:
+	/** util method to setup all output images at once, disables all of them for the output,
+	    and hence does not allocate memory for the images */
+	void setOutputImgSpecs(const Vector3d<float>& imgOffsetInMicrons,
+	                       const Vector3d<float>& imgSizeInMicrons)
+	{
+		setOutputImgSpecs(imgOffsetInMicrons,imgSizeInMicrons,
+		                  Vector3d<float>(imgMask.GetResolution().GetRes()));
+	}
+
+	/** util method to setup all output images at once, disables all of them for the output,
+	    and hence does not allocate memory for the images */
+	void setOutputImgSpecs(const Vector3d<float>& imgOffsetInMicrons,
+	                       const Vector3d<float>& imgSizeInMicrons,
+	                       const Vector3d<float>& imgResolutionInPixelsPerMicron)
+	{
+		//sanity checks:
+		if (!imgSizeInMicrons.elemIsGreaterThan(Vector3d<float>(0)))
+			throw ERROR_REPORT("image dimensions (size) cannot be zero or negative along any axis");
+		if (!imgResolutionInPixelsPerMicron.elemIsGreaterThan(Vector3d<float>(0)))
+			throw ERROR_REPORT("image resolution cannot be zero or negative along any axis");
+
+		//metadata...
+		imgMask.SetResolution(i3d::Resolution( imgResolutionInPixelsPerMicron.toI3dVector3d() ));
+		imgMask.SetOffset( imgOffsetInMicrons.toI3dVector3d() );
+
+		//disable usage of this image (for now)
+		disableProducingOutput(imgMask);
+
+		//but remember what the correct pixel size would be
+		lastUsedImgSize.from(
+		  Vector3d<float>(imgSizeInMicrons).elemMult(imgResolutionInPixelsPerMicron).elemCeil() );
+
+		//propagate also the same setting onto the remaining images
+		imgPhantom.CopyMetaData(imgMask);
+		imgOptics.CopyMetaData(imgMask);
+		imgFinal.CopyMetaData(imgMask);
+	}
+
+	/** util method to enable the given image for the output, the method
+	    immediately allocated the necessary memory for the image */
+	template <typename T>
+	void enableProducingOutput(i3d::Image3d<T>& img)
+	{
+		if ((long)&img == (long)&imgFinal && !isProducingOutput(imgPhantom))
+			REPORT("WARNING: Requested synthoscopy but phantoms may not be produced.");
+
+		DEBUG_REPORT("allocating "
+		  << ((double)lastUsedImgSize.x*lastUsedImgSize.y*lastUsedImgSize.z/(1 << 20))*sizeof(*img.GetFirstVoxelAddr())
+		  << " MB of memory for image of size " << lastUsedImgSize << " px");
+		img.MakeRoom( lastUsedImgSize.toI3dVector3d() );
+	}
+
+	/** util method to disable the given image for the output, the method
+	    immediately frees the allocated memory of the image */
+	template <typename T>
+	void disableProducingOutput(i3d::Image3d<T>& img)
+	{
+		//image size flags if this image should be iteratively filled and saved:
+		//zero image size signals "don't use this image"
+		img.MakeRoom(0,0,0);
+	}
+
+	/** util method to report if the given image is enabled for the output */
+	template <typename T>
+	bool isProducingOutput(const i3d::Image3d<T>& img) const
+	{
+		return (img.GetImageSize() > 0);
 	}
 
 
 	/** allocates output images, adds agents, renders the first frame */
 	void init(void)
 	{
-#ifdef PRODUCE_IMAGES
-		//output images that will be iteratively re-rendered
-		imgMask.MakeRoom(imgSize.x,imgSize.y,imgSize.z);
-		imgMask.SetResolution(i3d::Resolution(imgRes.x,imgRes.y,imgRes.z));
-
-		imgPhantom.MakeRoom(imgSize.x,imgSize.y,imgSize.z);
-		imgPhantom.SetResolution(i3d::Resolution(imgRes.x,imgRes.y,imgRes.z));
-
-		imgOptics.MakeRoom(imgSize.x,imgSize.y,imgSize.z);
-		imgOptics.SetResolution(i3d::Resolution(imgRes.x,imgRes.y,imgRes.z));
-#endif
-
-		initializeAgents();
+		initializeScenario();
 		updateAndPublishAgents();
 		REPORT("--------------- " << currTime << " min ("
 		  << agents.size() << " local and "
@@ -172,7 +247,9 @@ public:
 		//run the simulation rounds, one after another one
 		while (currTime < stopTime)
 		{
-			//one simulation round is happening here
+			//one simulation round is happening here,
+			//will this one end with rendering?
+			willRenderNextFrameFlag = currTime+incrTime >= frameCnt*expoTime;
 
 			//after this simulation round is done, all agents should
 			//reach local times greater than this global time
@@ -232,7 +309,7 @@ public:
 			  << shadowAgents.size() << " shadow agents) ---------------");
 
 			// is this the right time to export data?
-			if (currTime >= frameCnt*expoTime) renderNextFrame();
+			if (willRenderNextFrameFlag) renderNextFrame();
 		}
 	}
 
@@ -241,7 +318,7 @@ public:
 	void close(void)
 	{
 		//mark before closing is attempted...
-		simulationProperlyClosed = true;
+		simulationProperlyClosedFlag = true;
 
 		//delete all agents... also from newAgents & deadAgents, note that the
 		//same agent may exist on the agents and deadAgents lists simultaneously
@@ -288,8 +365,8 @@ public:
 	/** tries to save tracks.txt at least, if not done earlier */
 	virtual ~Simulation(void)
 	{
-		DEBUG_REPORT("simulation already closed? " << (simulationProperlyClosed ? "yes":"no"));
-		if (!simulationProperlyClosed) this->close();
+		DEBUG_REPORT("simulation already closed? " << (simulationProperlyClosedFlag ? "yes":"no"));
+		if (!simulationProperlyClosedFlag) this->close();
 	}
 
 	// --------------------------------------------------
@@ -456,6 +533,11 @@ public:
 		}
 	}
 
+	/** returns the state of the 'willRenderNextFrameFlag', that is if the
+	    current simulation round with end up with the call to renderNextFrame() */
+	bool willRenderNextFrame(void)
+	{ return willRenderNextFrameFlag; }
+
 	// --------------------------------------------------
 	// stats:  reportOverlap()
 
@@ -476,9 +558,9 @@ public:
 	}
 
 	// --------------------------------------------------
-	// input & output:  initializeAgents() & renderNextFrame()
+	// input & output:  initializeScenario() & renderNextFrame()
 
-	/** setter for the argc & argv CLI params for initializeAgents() */
+	/** setter for the argc & argv CLI params for initializeScenario() */
 	void setArgs(int argc, char** argv)
 	{
 		this->argc = argc;
@@ -486,18 +568,40 @@ public:
 	}
 
 protected:
-	/** CLI params that might be considered by initializeAgents() */
+	/** CLI params that might be considered by initializeScenario() */
 	int argc;
-	/** CLI params that might be considered by initializeAgents() */
+	/** CLI params that might be considered by initializeScenario() */
 	char** argv;
 
 	/** Just initializes all agents: positions, weights, etc.,
 	    and adds them into the this->agents, and into the this->tracks.
 	    Additional command-line parameters may be available
 	    as this->argc and this->argv. */
-	virtual void initializeAgents(void) =0;
+	virtual void initializeScenario(void) =0;
+
+	/** returns the state of the 'shallWaitForUserPromptFlag', that is if an
+	    user will be prompted (and the simulation would stop and wait) at
+	    the end of the renderNextFrame() */
+	bool willWaitForUserPrompt(void)
+	{ return shallWaitForUserPromptFlag; }
+
+	/** sets the 'shallWaitForUserPromptFlag', making renderNextFrame() to prompt
+	    the user (and stop the simulation and wait... and also become "command-able") */
+	void enableWaitForUserPrompt(void)
+	{ shallWaitForUserPromptFlag = true; }
+
+	/** the opposite of the Simulation::enableWaitForUserPrompt() */
+	void disableWaitForUserPrompt(void)
+	{ shallWaitForUserPromptFlag = false; }
 
 private:
+	/** flag if the renderNextFrame() will be called after this simulation round */
+	bool willRenderNextFrameFlag = false;
+
+	/** flag whether an user will be prompted (and the simulation would stop
+	    and wait) at the end of the renderNextFrame() */
+	bool shallWaitForUserPromptFlag = true;
+
 	/** Flags if agents' drawForDebug() should be called with every this->renderNextFrame() */
 	bool renderingDebug = false;
 
@@ -505,12 +609,10 @@ private:
 	void renderNextFrame(void)
 	{
 		// ----------- OUTPUT EVENTS -----------
-#ifdef PRODUCE_IMAGES
 		//clear the output images
 		imgMask.GetVoxelData()    = 0;
 		imgPhantom.GetVoxelData() = 0;
 		imgOptics.GetVoxelData()  = 0;
-#endif
 
 		//go over all cells, and render them
 		std::list<AbstractAgent*>::const_iterator c=agents.begin();
@@ -521,33 +623,50 @@ private:
 			if (renderingDebug)
 				(*c)->drawForDebug(displayUnit);
 
-#ifdef PRODUCE_IMAGES
 			(*c)->drawTexture(imgPhantom,imgOptics);
 			(*c)->drawMask(imgMask);
 			if (renderingDebug)
 				(*c)->drawForDebug(imgMask); //TODO, should go into its own separate image
-#endif
 		}
 
 		//render the current frame
 		displayUnit.Flush();
 		displayUnit.Tick( ("Time: "+std::to_string(currTime)).c_str() );
 
-#ifdef PRODUCE_IMAGES
 		//save the images
 		static char fn[1024];
-		sprintf(fn,"mask%03d.tif",frameCnt);
-		REPORT("Saving " << fn << ", hold on...");
-		imgMask.SaveImage(fn);
+		if (isProducingOutput(imgMask))
+		{
+			sprintf(fn,"mask%03d.tif",frameCnt);
+			REPORT("Saving " << fn << ", hold on...");
+			imgMask.SaveImage(fn);
+		}
 
-		sprintf(fn,"phantom%03d.tif",frameCnt);
-		REPORT("Saving " << fn << ", hold on...");
-		imgMask.SaveImage(fn);
+		if (isProducingOutput(imgPhantom))
+		{
+			sprintf(fn,"phantom%03d.tif",frameCnt);
+			REPORT("Saving " << fn << ", hold on...");
+			imgPhantom.SaveImage(fn);
+		}
 
-		sprintf(fn,"optics%03d.tif",frameCnt);
-		REPORT("Saving " << fn << ", hold on...");
-		imgMask.SaveImage(fn);
-#endif
+		if (isProducingOutput(imgOptics))
+		{
+			sprintf(fn,"optics%03d.tif",frameCnt);
+			REPORT("Saving " << fn << ", hold on...");
+			imgOptics.SaveImage(fn);
+		}
+
+		if (isProducingOutput(imgFinal))
+		{
+			sprintf(fn,"finalPreview%03d.tif",frameCnt);
+			REPORT("Creating " << fn << ", hold on...");
+			doPhaseIIandIII();
+			REPORT("Saving " << fn << ", hold on...");
+			imgFinal.SaveImage(fn);
+
+			if (isProducingOutput(imgMask)) mitogen::ComputeSNR(imgFinal,imgMask);
+		}
+
 		++frameCnt;
 
 		// ----------- INPUT EVENTS -----------
@@ -559,6 +678,9 @@ private:
 			std::this_thread::sleep_for((std::chrono::milliseconds)1000);
 			return;
 		}
+
+		//finish up here, if user should not be prompted
+		if (!shallWaitForUserPromptFlag) return;
 
 		//wait for key...
 		char key;
@@ -646,6 +768,54 @@ private:
 			}
 		}
 		while (key != 0);
+	}
+
+protected:
+	/** Initializes (allocates, sets resolution, etc.) and populates (fills content)
+	    the Simulation::imgFinal, which will be saved as the final testing image,
+	    based on the current content of the phantom and/or optics and/or mask image.
+
+	    Depending on the scenario used, some of these (phantom, optics, mask) images
+	    might be empty (voxels are zero), or their image size may be actually be zero.
+	    This really depends on what agents are used and how they are designed. Which
+	    is why this method has became "virtual" and over-ridable in every scenario
+	    to suit its needs.
+
+	    The content of the Simulation::imgPhantom and/or imgOptics images can be
+	    altered in this method because the said variables shall not be used anymore
+	    in the (just finishing) simulation round. Don't change Simulation::imgMask
+	    because this one is used for computation of the SNR. */
+	virtual void doPhaseIIandIII(void)
+	{
+#if defined ENABLE_MITOGEN_FINALPREVIEW
+		REPORT("using default MitoGen synthoscopy");
+		mitogen::PrepareFinalPreviewImage(imgPhantom,imgFinal);
+
+#elif defined ENABLE_FILOGEN_PHASEIIandIII
+		REPORT("using default FiloGen synthoscopy");
+		//
+		// phase II
+	#ifdef ENABLE_FILOGEN_REALPSF
+		filogen::PhaseII(imgPhantom, imgPSF);
+	#else
+		const float xySigma = 0.6f; //can also be 0.9
+		const float  zSigma = 1.8f; //can also be 2.7
+		DEBUG_REPORT("fake PSF is used for PhaseII, with sigmas: "
+			<< xySigma * imgPhantom.GetResolution().GetX() << " x "
+			<< xySigma * imgPhantom.GetResolution().GetY() << " x "
+			<<  zSigma * imgPhantom.GetResolution().GetZ() << " pixels");
+		i3d::GaussIIR<float>(imgPhantom,
+			xySigma * imgPhantom.GetResolution().GetX(),
+			xySigma * imgPhantom.GetResolution().GetY(),
+			 zSigma * imgPhantom.GetResolution().GetZ());
+	#endif
+		//
+		// phase III
+		filogen::PhaseIII(imgPhantom, imgFinal);
+
+#else
+		REPORT("WARNING: Empty function, no synthoscopy is going on.");
+#endif
 	}
 };
 #endif

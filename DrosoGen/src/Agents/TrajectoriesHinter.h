@@ -7,7 +7,7 @@
 #include "../Geometries/VectorImg.h"
 #include "../TrackRecord.h"
 #include "../util/flowfields.h"
-#include "util/optionalRenderings.h"
+#include "../DisplayUnits/util/RenderingFunctions.h"
 
 class TrajectoriesHinter: public AbstractAgent
 {
@@ -153,8 +153,9 @@ private:
 
 #ifdef DRAW_VOXEL_GRID_AROUND_TRAJECTORIES
 				//also draw a (local debug) pixel grid around the ball centre
-				createdLines += drawPixelCentresGrid(du, DBG+createdLines, 1, geometryAlias.getImgX(),
-				                                     pos.toPixels(centrePx, res,off), Vector3d<size_t>(3));
+				createdLines += RenderingFunctions::drawPixelCentresGrid(du,
+				  DBG+createdLines, 1, geometryAlias.getImgX(),
+				  pos.toPixels(centrePx, res,off), Vector3d<size_t>(3));
 #endif
 			}
 			DEBUG_REPORT(IDSIGN << "trajectories: " << createdLines

@@ -221,20 +221,16 @@ private:
 		}
 
 		//offset and resolution of the flow field images/containers
-		const Vector3d<float> off(FF.x->GetOffset().x,FF.x->GetOffset().y,FF.x->GetOffset().z);
-		const Vector3d<float> res(FF.x->GetResolution().GetRes().x,
-		                          FF.x->GetResolution().GetRes().y,
-		                          FF.x->GetResolution().GetRes().z);
+		const Vector3d<float> off(FF.x->GetOffset());
+		const Vector3d<float> res(FF.x->GetResolution().GetRes());
+
 		//any position in pixels
 		Vector3d<float> pos;
 		Vector3d<int> posI;
 
 		//pixels size of the 'propagationRadius' w.r.t. resolution
 		pos = res;
-		pos.elemMult(propagationRadius);
-		pos.x = std::ceil(pos.x);
-		pos.y = std::ceil(pos.y);
-		pos.z = std::ceil(pos.z);
+		pos.elemMult(propagationRadius).elemCeil();
 		const Vector3d<int> halfBoxSize((int)pos.x,(int)pos.y,(int)pos.z);
 		int x,y,z;
 
@@ -269,14 +265,10 @@ private:
 
 			//insert the displacement vector into a box of 'propagationRadius'
 			//around the position A (projected into the FF's images)
-			pos  = A;
-			pos -= off;
-			pos.elemMult(res); //in px within the FF's images
+			pos.from(A).toPixels(res,off); //in px within the FF's images
 
 			//round to the nearest pixel (integer) coordinate
-			posI.x = (int)(pos.x +0.5f);
-			posI.y = (int)(pos.y +0.5f);
-			posI.z = (int)(pos.z +0.5f);
+			posI.toPixels(pos);
 
 			//sweep the box
 			for (z = posI.z - halfBoxSize.z; z <= posI.z + halfBoxSize.z; ++z)

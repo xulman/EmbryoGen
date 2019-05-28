@@ -51,10 +51,19 @@ endif (SEARCH_FOR_STATIC)
 #-----------------------------------
 
 set(SOURCES
-		src/DisplayUnits/SceneryDisplayUnit.cpp
-		src/DisplayUnits/SceneryBufferedDisplayUnit.cpp
+		src/util/Vector3d.cpp
 		src/util/rnd_generators.cpp
 		src/util/flowfields.cpp
+		src/util/report.cpp
+		src/util/texture/perlin.cpp
+		src/util/texture/myround.cpp
+		src/util/texture/texture.cpp
+		src/util/synthoscopy/finalpreview.cpp
+		src/util/synthoscopy/Filogen_VM.cpp
+		src/util/synthoscopy/SNR.cpp
+		src/DisplayUnits/SceneryDisplayUnit.cpp
+		src/DisplayUnits/SceneryBufferedDisplayUnit.cpp
+		src/Agents/util/Texture.cpp
 		src/main.cpp)
 
 file(GLOB SCENARIOSOURCES src/Scenarios/*.cpp)
