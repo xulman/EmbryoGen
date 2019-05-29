@@ -74,9 +74,9 @@ void DoPerlin3D(Image3d<float> &fimg,
 			 {
 				 double x,y,z;
 
-				 x = shift_x + fimg.GetX(i);
-				 y = shift_y + fimg.GetY(i);
-				 z = shift_z + fimg.GetZ(i);
+				 x = shift_x + (float)fimg.GetX(i);
+				 y = shift_y + (float)fimg.GetY(i);
+				 z = shift_z + (float)fimg.GetZ(i);
 				 
 				 float noise = (float) PerlinNoise3D(x/v_x, y/v_y, z/v_z, alpha, beta, n);
 
@@ -122,7 +122,7 @@ template <class VOXEL> void AddPerlin(
 			  // power the value, forget the sign and compute the n-th root.
 			  float value_powered = pow(abs(value_minus1_to_plus1), 1.0f/skew);
 			  // keep the sign
-			  int sign = (value_minus1_to_plus1 > 0) ? 1 : -1;
+			  float sign = (value_minus1_to_plus1 > 0) ? 1.f : -1.f;
 			  float value_powered_with_sign = sign * value_powered;
 			  // remap back to the range <0;1>
 			  float new_val = (value_powered_with_sign + 1.0f) / 2.0f;

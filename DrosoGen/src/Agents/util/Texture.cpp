@@ -107,7 +107,7 @@ void TextureQuantized::renderIntoPhantom(i3d::Image3d<float> &phantoms)
 
 	// a variable for debugging the photobleaching
 	double meanIntContribution = 0.0f;
-	const float quantumElems = qCounts.x * qCounts.y * qCounts.z;
+	const float quantumElems = (float)qCounts.x * (float)qCounts.y * (float)qCounts.z;
 	long meanIntContCounter = 0;
 #endif
 

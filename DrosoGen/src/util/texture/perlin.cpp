@@ -182,7 +182,7 @@ void init(void)
 
    while (--i) {
       k = p[i];
-      p[i] = p[j = random() % B];
+      p[i] = p[j = (int)(random() % B)];
       p[j] = k;
    }
 

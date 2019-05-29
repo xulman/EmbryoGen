@@ -206,7 +206,7 @@ public:
 			REPORT("WARNING: Requested synthoscopy but phantoms may not be produced.");
 
 		DEBUG_REPORT("allocating "
-		  << ((double)lastUsedImgSize.x*lastUsedImgSize.y*lastUsedImgSize.z/(1 << 20))*sizeof(*img.GetFirstVoxelAddr())
+		  << (lastUsedImgSize.x*lastUsedImgSize.y*lastUsedImgSize.z/(1 << 20))*sizeof(*img.GetFirstVoxelAddr())
 		  << " MB of memory for image of size " << lastUsedImgSize << " px");
 		img.MakeRoom( lastUsedImgSize.toI3dVector3d() );
 	}
@@ -250,7 +250,7 @@ public:
 		{
 			//one simulation round is happening here,
 			//will this one end with rendering?
-			willRenderNextFrameFlag = currTime+incrTime >= frameCnt*expoTime;
+			willRenderNextFrameFlag = currTime+incrTime >= (float)frameCnt*expoTime;
 
 			//after this simulation round is done, all agents should
 			//reach local times greater than this global time

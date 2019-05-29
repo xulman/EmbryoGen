@@ -60,9 +60,13 @@ public:
 			updateTextureCoords(dots, futureGeometry);
 
 			//correct for outlying texture particles
+#ifndef DEBUG
+			collectOutlyingDots(futureGeometry);
+#else
 			const int dotOutliers = collectOutlyingDots(futureGeometry);
-			DEBUG_REPORT(dotOutliers << " (" << 100.f*dotOutliers/dots.size()
+			DEBUG_REPORT(dotOutliers << " (" << (float)(100*dotOutliers)/(float)dots.size()
 							 << " %) dots had to be moved inside the initial geometry");
+#endif
 		}
 	}
 

@@ -126,7 +126,7 @@ public:
 		}
 
 #ifdef DEBUG
-		REPORT("there are " << missedDots << " (" << 100.f*missedDots/dots.size()
+		REPORT("there are " << missedDots << " (" << (float)(100*missedDots)/(float)dots.size()
 		       << " %) dots placed outside its original voxel");
 		REPORT("there are currently " << dots.size() << " registered dots");
 #endif
@@ -193,9 +193,13 @@ public:
 
 		if (shouldCollectOutlyingDots)
 		{
+#ifndef DEBUG
+			collectOutlyingDots(geom);
+#else
 			const int dotOutliers = collectOutlyingDots(geom);
-			DEBUG_REPORT(dotOutliers << " (" << 100.f*dotOutliers/dots.size()
+			DEBUG_REPORT(dotOutliers << " (" << (float)(100*dotOutliers)/(float)dots.size()
 			             << " %) dots had to be moved inside the initial geometry");
+#endif
 		}
 	}
 
@@ -275,7 +279,7 @@ public:
 			REPORT("average outside-to-surface distance " << outDist/(double)count << " um (in " << toc(stopWatch) << ")");
 			REPORT("average new-pos-to-centre  distance " <<  inDist/(double)count << " um");
 			REPORT("secondary corrections of " << postCorrectionsCnt << "/" << count
-			       << " (" << 100.f*postCorrectionsCnt/count << " %) dots");
+			       << " (" << (float)(100*postCorrectionsCnt)/(float)count << " %) dots");
 		}
 		else
 		{
