@@ -148,7 +148,7 @@ public:
 		//displayUnit.RegisterUnit( new SceneryBufferedDisplayUnit("192.168.3.110:8765") );
 
 #ifdef ENABLE_FILOGEN_REALPSF
-		char psfFilename[] = "/Users/ulman/devel/FiloGen/40_VirtualMicroscope/psf/2013-07-25_1_1_9_0_2_0_0_1_0_0_0_0_9_12.ics";
+		char psfFilename[] = "../2013-07-25_1_1_9_0_2_0_0_1_0_0_0_0_9_12.ics";
 		REPORT("reading this PSF image " << psfFilename);
 		imgPSF.ReadImage(psfFilename);
 #endif
