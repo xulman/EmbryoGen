@@ -30,11 +30,16 @@ Description: Manipulation with procedural texture (Perlin noise).
 
 #include <i3d/image3d.h>
 
-/** Generate Perlin noise and put the results into image3d<float> image.
- * var ... variability of the ouput
- * alpha ... smoothness
- * beta ... flickering
- * n ... fineness */
+/**
+ * Generate Perlin noise and put the results into image3d<float> image:
+ *
+ * var ... variability of the output: larger -> larger blobs
+ * alpha ... smoothness:              larger -> secondary frequencies less strong
+ *                                    larger -> smoother edges
+ * beta ... flickering                larger -> secondary frequencies less similar (more distant)
+ *                                    larger -> more of the "speckle noise"
+ * n ... fineness                     larger -> more of the secondary frequencies
+ */
 
 //------------------------------------------------------------------------
 
