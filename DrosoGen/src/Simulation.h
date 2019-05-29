@@ -27,7 +27,7 @@
 #if defined ENABLE_MITOGEN_FINALPREVIEW
   #include "util/synthoscopy/finalpreview.h"
 #elif defined ENABLE_FILOGEN_PHASEIIandIII
-  #include "util/synthoscopy/Filogen_VM.h"
+  #include "util/synthoscopy/FiloGen_VM.h"
 #endif
 #ifndef ENABLE_FILOGEN_REALPSF
   #include <i3d/filters.h>

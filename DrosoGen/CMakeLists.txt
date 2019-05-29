@@ -59,7 +59,7 @@ set(SOURCES
 		src/util/texture/myround.cpp
 		src/util/texture/texture.cpp
 		src/util/synthoscopy/finalpreview.cpp
-		src/util/synthoscopy/Filogen_VM.cpp
+		src/util/synthoscopy/FiloGen_VM.cpp
 		src/util/synthoscopy/SNR.cpp
 		src/DisplayUnits/SceneryDisplayUnit.cpp
 		src/DisplayUnits/SceneryBufferedDisplayUnit.cpp
