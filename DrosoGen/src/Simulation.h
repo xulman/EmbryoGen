@@ -145,7 +145,8 @@ public:
 		//init display/export units
 		//displayUnit.RegisterUnit( new ConsoleDisplayUnit() );
 		displayUnit.RegisterUnit( new SceneryBufferedDisplayUnit("localhost:8765") );
-		//displayUnit.RegisterUnit( new SceneryBufferedDisplayUnit("192.168.3.110:8765") );
+		//displayUnit.RegisterUnit( new SceneryBufferedDisplayUnit("10.1.202.7:8765") );     //laptop @ Vlado's office
+		//displayUnit.RegisterUnit( new SceneryBufferedDisplayUnit("192.168.3.110:8765") );  //PC     @ Vlado's home
 
 #ifdef ENABLE_FILOGEN_REALPSF
 		char psfFilename[] = "../2013-07-25_1_1_9_0_2_0_0_1_0_0_0_0_9_12.ics";
