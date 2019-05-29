@@ -11,7 +11,7 @@
 
 #define AVAILABLE_SCENARIO(n,c) \
 	availableScenarios.emplace_back(std::string((n)));                         \
-	if (simulation == NULL &&                                                  \
+	if (argc > 1 && simulation == NULL &&                                      \
 	    availableScenarios.back().find(argv[1]) != std::string::npos)          \
 	{                                                                          \
 		REPORT("Going to use the scenario: " << availableScenarios.back());     \
@@ -45,41 +45,35 @@ public:
 	/** find the right scenario to initialize the simulation with */
 	Scenarios(int argc, char** argv)
 	{
-		//initiates this->registeredScenarios, defined in Scenario.h
+		//                   nickname            regular class name
+		AVAILABLE_SCENARIO( "aFewAgents",        Scenario_AFewAgents )
+		AVAILABLE_SCENARIO( "regularDrosophila", Scenario_DrosophilaRegular )
+		AVAILABLE_SCENARIO( "randomDrosophila",  Scenario_DrosophilaRandom )
+		AVAILABLE_SCENARIO( "pseudoDivision",    Scenario_pseudoDivision )
+		AVAILABLE_SCENARIO( "dragAndRotate",     Scenario_dragAndRotate )
+		AVAILABLE_SCENARIO( "cellCycle",         Scenario_withCellCycle )
+		AVAILABLE_SCENARIO( "fluoTexture",       Scenario_withTexture )
+		AVAILABLE_SCENARIO( "dragFluoTexture",   Scenario_dragRotateAndTexture )
+		AVAILABLE_SCENARIO( "synthoscopy",       Scenario_phaseIIandIII )
+		AVAILABLE_SCENARIO( "PerlinShowCase",    Scenario_PerlinShowCase )
+		//  ---> ADD NEW SCENARIO HERE (and add definition *cpp file, re-run cmake!) <---
 
-		if (argc == 1)
+		if (simulation == NULL)
 		{
-			//no args given, not even a scenario... going for default one
-			REPORT("Going to use the default scenario: regularDrosophila");
-			simulation = new Scenario_DrosophilaRegular();
-		}
-		else
-		{
-			//NB: argc > 1
-			//
-			//                   nickname            regular class name
-			AVAILABLE_SCENARIO( "aFewAgents",        Scenario_AFewAgents )
-			AVAILABLE_SCENARIO( "regularDrosophila", Scenario_DrosophilaRegular )
-			AVAILABLE_SCENARIO( "randomDrosophila",  Scenario_DrosophilaRandom )
-			AVAILABLE_SCENARIO( "pseudoDivision",    Scenario_pseudoDivision )
-			AVAILABLE_SCENARIO( "dragAndRotate",     Scenario_dragAndRotate )
-			AVAILABLE_SCENARIO( "cellCycle",         Scenario_withCellCycle )
-			AVAILABLE_SCENARIO( "fluoTexture",       Scenario_withTexture )
-			AVAILABLE_SCENARIO( "dragFluoTexture",   Scenario_dragRotateAndTexture )
-			AVAILABLE_SCENARIO( "synthoscopy",       Scenario_phaseIIandIII )
-			AVAILABLE_SCENARIO( "PerlinShowCase",    Scenario_PerlinShowCase )
-			//  ---> ADD NEW SCENARIO HERE (and add definition *cpp file, re-run cmake!) <---
-
-			if (simulation == NULL)
+			if (argc == 1)
 			{
-				REPORT("Couldn't match command-line scenario '" << argv[1] << "' to any known scenario.");
-				std::cout << "Currently known scenarios are: ";
-				for (auto rs : availableScenarios)
-					std::cout << rs << ", ";
-				std::cout << "\n";
-
-				throw ERROR_REPORT("Unmatched scenario requested.");
+				REPORT("Please run again and choose some of the available scenarios, e.g. as");
+				REPORT(argv[0] << " regularDrosophila");
 			}
+			else
+				REPORT("Couldn't match command-line scenario '" << argv[1] << "' to any known scenario.");
+
+			std::cout << "Currently known scenarios are: ";
+			for (auto rs : availableScenarios)
+				std::cout << rs << ", ";
+			std::cout << "\n";
+
+			throw ERROR_REPORT("Unmatched scenario.");
 		}
 
 		//pass the CLI params inside, to be
