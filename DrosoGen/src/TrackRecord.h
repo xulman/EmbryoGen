@@ -288,7 +288,7 @@ private:
 					if (FF.x->Include(x,y,z))
 					{
 						attenuation += (pos.x-x)*(pos.x-x) /sigmaSq.x;
-						attenuation  = smoothExpansion? std::expf(-0.5f*attenuation) : 1.0f;
+						attenuation  = smoothExpansion? std::exp(-0.5f*attenuation) : 1.0f;
 
 						if (doReset)
 						{

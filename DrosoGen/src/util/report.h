@@ -2,10 +2,11 @@
 #define REPORT_H
 
 #include <iostream>
+#include <cstring>
 #include <chrono>
 
 /** this macro is essentially what `basename __FILE__` would do on UNIX prompt/console */
-#define __SHORTFILE__ (strrchr(__FILE__,'/') ? strrchr(__FILE__,'/')+1 : __FILE__)
+#define __SHORTFILE__ (std::strrchr(__FILE__,'/') ? std::strrchr(__FILE__,'/')+1 : __FILE__)
 
 /** helper macros to unify reports: */
 #define REPORT(x)        std::cout << __SHORTFILE__ << "::" << __FUNCTION__ << "(): " << x << std::endl;
