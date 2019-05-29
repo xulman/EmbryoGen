@@ -13,10 +13,13 @@
 
 #include "Agents/AbstractAgent.h"
 
+#include "DisplayUnits/BroadcasterDisplayUnit.h"
 #include "DisplayUnits/VoidDisplayUnit.h"
 #include "DisplayUnits/ConsoleDisplayUnit.h"
+#include "DisplayUnits/SceneryDisplayUnit.h"
 #include "DisplayUnits/SceneryBufferedDisplayUnit.h"
-#include "DisplayUnits/BroadcasterDisplayUnit.h"
+#include "DisplayUnits/FileDisplayUnit.h"
+#include "DisplayUnits/FlightRecorderDisplayUnit.h"
 
 //choose either ENABLE_MITOGEN_FINALPREVIEW or ENABLE_FILOGEN_PHASEIIandIII,
 //if ENABLE_FILOGEN_PHASEIIandIII is choosen, one can enable ENABLE_FILOGEN_REALPSF
@@ -144,6 +147,8 @@ public:
 
 		//init display/export units
 		//displayUnit.RegisterUnit( new ConsoleDisplayUnit() );
+		//displayUnit.RegisterUnit( new FileDisplayUnit("debugLog.txt") );
+		displayUnit.RegisterUnit( new FlightRecorderDisplayUnit("FlightRecording.txt") );
 		displayUnit.RegisterUnit( new SceneryBufferedDisplayUnit("localhost:8765") );
 		//displayUnit.RegisterUnit( new SceneryBufferedDisplayUnit("10.1.202.7:8765") );     //laptop @ Vlado's office
 		//displayUnit.RegisterUnit( new SceneryBufferedDisplayUnit("192.168.3.110:8765") );  //PC     @ Vlado's home
