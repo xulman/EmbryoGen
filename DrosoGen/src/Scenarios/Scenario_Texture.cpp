@@ -17,7 +17,7 @@ public:
 		//TextureQuantized(60000, Vector3d<float>(2.0f,2.0f,2.0f), 8)
 	{
 		//texture img: resolution -- makes sense to match it with the phantom img resolution
-		CreatePerlinTexture(futureGeometry, Vector3d<float>(2.0f),
+		createPerlinTexture(futureGeometry, Vector3d<float>(2.0f),
 		                    5.0,8,4,6,    //Perlin
 		                    1.0f,         //texture intensity range centre
 		                    0.1f, true);  //quantization and shouldCollectOutlyingDots
@@ -25,7 +25,7 @@ public:
 
 	void drawTexture(i3d::Image3d<float>& phantom, i3d::Image3d<float>&) override
 	{
-		if (Officer->isProducingOutput(phantom)) RenderIntoPhantom(phantom);
+		if (Officer->isProducingOutput(phantom)) renderIntoPhantom(phantom);
 	}
 };
 

@@ -40,7 +40,7 @@
 #include "../rnd_generators.h"
 #include "../texture/texture.h"
 #include "../report.h"
-#include "Filogen_VM.h"
+#include "FiloGen_VM.h"
 
 ///------------------------------------------------------------------------
 namespace filogen

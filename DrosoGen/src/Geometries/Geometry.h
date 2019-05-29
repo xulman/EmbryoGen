@@ -10,7 +10,7 @@
 #define FLOAT float
 
 /** a coordinate value that is way far outside of any scene... [micrometers] */
-#define TOOFAR 999999999
+#define TOOFAR 999999999.f
 
 /** An x,y,z-axes aligned 3D bounding box for approximate representation of agent's geometry */
 class AxisAlignedBoundingBox

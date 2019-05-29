@@ -274,8 +274,8 @@ private:
 			for (z = posI.z - halfBoxSize.z; z <= posI.z + halfBoxSize.z; ++z)
 			for (y = posI.y - halfBoxSize.y; y <= posI.y + halfBoxSize.y; ++y)
 			{
-				float attenuation  = (pos.z-z)*(pos.z-z) /sigmaSq.z;
-				      attenuation += (pos.y-y)*(pos.y-y) /sigmaSq.y;
+				float attenuation  = (pos.z-(float)z)*(pos.z-(float)z) /sigmaSq.z;
+				      attenuation += (pos.y-(float)y)*(pos.y-(float)y) /sigmaSq.y;
 
 				//voxel offset at [0, y,z] in the image
 				long index = z*(signed)FF.x->GetSliceSize() + y*(signed)FF.x->GetWidth();
@@ -287,8 +287,8 @@ private:
 				{
 					if (FF.x->Include(x,y,z))
 					{
-						attenuation += (pos.x-x)*(pos.x-x) /sigmaSq.x;
-						attenuation  = smoothExpansion? std::expf(-0.5f*attenuation) : 1.0f;
+						attenuation += (pos.x-(float)x)*(pos.x-(float)x) /sigmaSq.x;
+						attenuation  = smoothExpansion? std::exp(-0.5f*attenuation) : 1.0f;
 
 						if (doReset)
 						{
@@ -316,9 +316,9 @@ private:
 			for (size_t index=0; index < FFcnts.GetImageSize(); ++index)
 			if (*(FFc+index) > 0)
 			{
-				*(FFx+index) /= *(FFc+index);
-				*(FFy+index) /= *(FFc+index);
-				*(FFz+index) /= *(FFc+index);
+				*(FFx+index) /= (float)*(FFc+index);
+				*(FFy+index) /= (float)*(FFc+index);
+				*(FFz+index) /= (float)*(FFc+index);
 			}
 		}
 	}

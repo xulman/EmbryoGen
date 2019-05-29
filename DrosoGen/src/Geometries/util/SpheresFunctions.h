@@ -132,7 +132,7 @@ public:
 				//NB: should not become zero as the input orientations do differ
 
 				//quaternion params
-				rotAng /= 2.0;
+				rotAng /= (FT)2.0;
 				const FT q0 = std::cos(rotAng);
 				const FT q1 = std::sin(rotAng) * rotAxis.x;
 				const FT q2 = std::sin(rotAng) * rotAxis.y;

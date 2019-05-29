@@ -9,19 +9,19 @@
     decreasing photon budget, or just always returns 1.0 iff photobleaching
     shall be ignored (photobleaching feature is disabled */
 #ifdef ENABLED_PHOTOBLEACHING
-inline float GetBleachFactor(const short cntOfExcitations)
+inline float getBleachFactor(const short cntOfExcitations)
 {
 	return std::exp((float)-cntOfExcitations);
 }
 #else
-inline float GetBleachFactor(const short)
+inline float getBleachFactor(const short)
 {
 	return 1.0f;
 }
 #endif
 
 
-void Texture::RenderIntoPhantom(i3d::Image3d<float> &phantoms, const float quantization)
+void Texture::renderIntoPhantom(i3d::Image3d<float> &phantoms, const float quantization)
 {
 	DEBUG_REPORT("going to render " << dots.size() << " dots");
 
@@ -58,7 +58,7 @@ void Texture::RenderIntoPhantom(i3d::Image3d<float> &phantoms, const float quant
 		//plus upper bound (tests also underflows... "negative" coordinates)
 		if (imgPos.elemIsLessThan(imgSize))
 		{
-			const float fval = quantization * GetBleachFactor(dot.cntOfExcitations);
+			const float fval = quantization * getBleachFactor(dot.cntOfExcitations);
 #ifdef DEBUG
 			meanIntContribution += fval;
 			++meanIntContCounter;
@@ -80,7 +80,7 @@ void Texture::RenderIntoPhantom(i3d::Image3d<float> &phantoms, const float quant
 }
 
 
-void TextureQuantized::RenderIntoPhantom(i3d::Image3d<float> &phantoms)
+void TextureQuantized::renderIntoPhantom(i3d::Image3d<float> &phantoms)
 {
 	DEBUG_REPORT("going to render " << dots.size() << " quantum dots");
 
@@ -107,7 +107,7 @@ void TextureQuantized::RenderIntoPhantom(i3d::Image3d<float> &phantoms)
 
 	// a variable for debugging the photobleaching
 	double meanIntContribution = 0.0f;
-	const float quantumElems = qCounts.x * qCounts.y * qCounts.z;
+	const float quantumElems = (float)qCounts.x * (float)qCounts.y * (float)qCounts.z;
 	long meanIntContCounter = 0;
 #endif
 
@@ -128,7 +128,7 @@ void TextureQuantized::RenderIntoPhantom(i3d::Image3d<float> &phantoms)
 		if (imgPos.elemIsGreaterOrEqualThan(halfBoxSize)
 		 && imgPos.elemIsLessThan(imgSize))
 		{
-			const float fval = GetBleachFactor(dot.cntOfExcitations);
+			const float fval = getBleachFactor(dot.cntOfExcitations);
 #ifdef DEBUG
 			meanIntContribution += quantumElems * fval;
 			++meanIntContCounter;

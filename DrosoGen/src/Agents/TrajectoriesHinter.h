@@ -93,7 +93,9 @@ private:
 			lastUpdatedTime = currTime;
 		}
 		else
+		{
 			DEBUG_REPORT(IDSIGN << "skipping update now");
+		}
 	}
 
 	// ------------- rendering -------------

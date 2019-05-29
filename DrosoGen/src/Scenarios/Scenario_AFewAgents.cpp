@@ -62,10 +62,13 @@ void Scenario_AFewAgents::initializeScenario(void)
 	Img.SetResolution( i3d::Resolution(xRes,yRes,zRes) );
 	DEBUG_REPORT("Shape hinter image offset [um]: " << size);
 
-	//fill the actual shape
-	for (size_t z=(size_t)(0.1*Img.GetSizeZ()); z <= (size_t)(0.9*Img.GetSizeZ()); ++z)
-	for (size_t y=(size_t)(0.2*Img.GetSizeY()); y <= (size_t)(0.8*Img.GetSizeY()); ++y)
-	for (size_t x=(size_t)(0.1*Img.GetSizeX()); x <= (size_t)(0.9*Img.GetSizeX()); ++x)
+	//fill the actual shape (except for a dX x dY x dZ frame at the border)
+	const size_t dZ = (size_t)(0.1*(double)Img.GetSizeZ());
+	const size_t dY = (size_t)(0.2*(double)Img.GetSizeY());
+	const size_t dX = (size_t)(0.1*(double)Img.GetSizeX());
+	for (size_t z=dZ; z <= Img.GetSizeZ()-dZ; ++z)
+	for (size_t y=dY; y <= Img.GetSizeY()-dY; ++y)
+	for (size_t x=dX; x <= Img.GetSizeX()-dX; ++x)
 		Img.SetVoxel(x,y,z,20);
 	//Img.SaveImage("GradIN_ZeroOUT__original.tif");
 

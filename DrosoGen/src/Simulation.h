@@ -13,10 +13,13 @@
 
 #include "Agents/AbstractAgent.h"
 
+#include "DisplayUnits/BroadcasterDisplayUnit.h"
 #include "DisplayUnits/VoidDisplayUnit.h"
 #include "DisplayUnits/ConsoleDisplayUnit.h"
+#include "DisplayUnits/SceneryDisplayUnit.h"
 #include "DisplayUnits/SceneryBufferedDisplayUnit.h"
-#include "DisplayUnits/BroadcasterDisplayUnit.h"
+#include "DisplayUnits/FileDisplayUnit.h"
+#include "DisplayUnits/FlightRecorderDisplayUnit.h"
 
 //choose either ENABLE_MITOGEN_FINALPREVIEW or ENABLE_FILOGEN_PHASEIIandIII,
 //if ENABLE_FILOGEN_PHASEIIandIII is choosen, one can enable ENABLE_FILOGEN_REALPSF
@@ -27,7 +30,7 @@
 #if defined ENABLE_MITOGEN_FINALPREVIEW
   #include "util/synthoscopy/finalpreview.h"
 #elif defined ENABLE_FILOGEN_PHASEIIandIII
-  #include "util/synthoscopy/Filogen_VM.h"
+  #include "util/synthoscopy/FiloGen_VM.h"
 #endif
 #ifndef ENABLE_FILOGEN_REALPSF
   #include <i3d/filters.h>
@@ -144,11 +147,14 @@ public:
 
 		//init display/export units
 		//displayUnit.RegisterUnit( new ConsoleDisplayUnit() );
+		//displayUnit.RegisterUnit( new FileDisplayUnit("debugLog.txt") );
+		displayUnit.RegisterUnit( new FlightRecorderDisplayUnit("FlightRecording.txt") );
 		displayUnit.RegisterUnit( new SceneryBufferedDisplayUnit("localhost:8765") );
-		//displayUnit.RegisterUnit( new SceneryBufferedDisplayUnit("192.168.3.110:8765") );
+		//displayUnit.RegisterUnit( new SceneryBufferedDisplayUnit("10.1.202.7:8765") );     //laptop @ Vlado's office
+		//displayUnit.RegisterUnit( new SceneryBufferedDisplayUnit("192.168.3.110:8765") );  //PC     @ Vlado's home
 
 #ifdef ENABLE_FILOGEN_REALPSF
-		char psfFilename[] = "/Users/ulman/devel/FiloGen/40_VirtualMicroscope/psf/2013-07-25_1_1_9_0_2_0_0_1_0_0_0_0_9_12.ics";
+		char psfFilename[] = "../2013-07-25_1_1_9_0_2_0_0_1_0_0_0_0_9_12.ics";
 		REPORT("reading this PSF image " << psfFilename);
 		imgPSF.ReadImage(psfFilename);
 #endif
@@ -205,7 +211,7 @@ public:
 			REPORT("WARNING: Requested synthoscopy but phantoms may not be produced.");
 
 		DEBUG_REPORT("allocating "
-		  << ((double)lastUsedImgSize.x*lastUsedImgSize.y*lastUsedImgSize.z/(1 << 20))*sizeof(*img.GetFirstVoxelAddr())
+		  << (lastUsedImgSize.x*lastUsedImgSize.y*lastUsedImgSize.z/(1 << 20))*sizeof(*img.GetFirstVoxelAddr())
 		  << " MB of memory for image of size " << lastUsedImgSize << " px");
 		img.MakeRoom( lastUsedImgSize.toI3dVector3d() );
 	}
@@ -249,7 +255,7 @@ public:
 		{
 			//one simulation round is happening here,
 			//will this one end with rendering?
-			willRenderNextFrameFlag = currTime+incrTime >= frameCnt*expoTime;
+			willRenderNextFrameFlag = currTime+incrTime >= (float)frameCnt*expoTime;
 
 			//after this simulation round is done, all agents should
 			//reach local times greater than this global time
@@ -630,8 +636,8 @@ private:
 		}
 
 		//render the current frame
-		displayUnit.Flush();
 		displayUnit.Tick( ("Time: "+std::to_string(currTime)).c_str() );
+		displayUnit.Flush();
 
 		//save the images
 		static char fn[1024];

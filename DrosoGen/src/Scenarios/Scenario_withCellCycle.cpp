@@ -39,37 +39,37 @@ public:
 	}
 
 	//cycle debug reports -- proofs of being called
-	void startG1Phase(void) override { DEBUG_REPORT("q"); }
-	void runG1Phase(const float time) override { DEBUG_REPORT("time=" << time); }
-	void closeG1Phase(void) override { DEBUG_REPORT("q"); }
+	void startG1Phase(void) override { REPORT("do some work"); }
+	void runG1Phase(const float time) override { REPORT("time=" << time); }
+	void closeG1Phase(void) override { REPORT("do some work"); }
 
-	void startSPhase(void) override { DEBUG_REPORT("q"); }
-	void runSPhase(const float time) override { DEBUG_REPORT("time=" << time); }
-	void closeSPhase(void) override { DEBUG_REPORT("q"); }
+	void startSPhase(void) override { REPORT("do some work"); }
+	void runSPhase(const float time) override { REPORT("time=" << time); }
+	void closeSPhase(void) override { REPORT("do some work"); }
 
-	void startG2Phase(void) override { DEBUG_REPORT("q"); }
-	void runG2Phase(const float time) override { DEBUG_REPORT("time=" << time); }
-	void closeG2Phase(void) override { DEBUG_REPORT("q"); }
+	void startG2Phase(void) override { REPORT("do some work"); }
+	void runG2Phase(const float time) override { REPORT("time=" << time); }
+	void closeG2Phase(void) override { REPORT("do some work"); }
 
-	void startProphase(void) override { DEBUG_REPORT("q"); }
-	void runProphase(const float time) override { DEBUG_REPORT("time=" << time); }
-	void closeProphase(void) override { DEBUG_REPORT("q"); }
+	void startProphase(void) override { REPORT("do some work"); }
+	void runProphase(const float time) override { REPORT("time=" << time); }
+	void closeProphase(void) override { REPORT("do some work"); }
 
-	void startMetaphase(void) override { DEBUG_REPORT("q"); }
-	void runMetaphase(const float time) override { DEBUG_REPORT("time=" << time); }
-	void closeMetaphase(void) override { DEBUG_REPORT("q"); }
+	void startMetaphase(void) override { REPORT("do some work"); }
+	void runMetaphase(const float time) override { REPORT("time=" << time); }
+	void closeMetaphase(void) override { REPORT("do some work"); }
 
-	void startAnaphase(void) override { DEBUG_REPORT("q"); }
-	void runAnaphase(const float time) override { DEBUG_REPORT("time=" << time); }
-	void closeAnaphase(void) override { DEBUG_REPORT("q"); }
+	void startAnaphase(void) override { REPORT("do some work"); }
+	void runAnaphase(const float time) override { REPORT("time=" << time); }
+	void closeAnaphase(void) override { REPORT("do some work"); }
 
-	void startTelophase(void) override { DEBUG_REPORT("q"); }
-	void runTelophase(const float time) override { DEBUG_REPORT("time=" << time); }
-	void closeTelophase(void) override { DEBUG_REPORT("q"); }
+	void startTelophase(void) override { REPORT("do some work"); }
+	void runTelophase(const float time) override { REPORT("time=" << time); }
+	void closeTelophase(void) override { REPORT("do some work"); }
 
-	void startCytokinesis(void) override { DEBUG_REPORT("q"); }
-	void runCytokinesis(const float time) override { DEBUG_REPORT("time=" << time); }
-	void closeCytokinesis(void) override { DEBUG_REPORT("q"); }
+	void startCytokinesis(void) override { REPORT("do some work"); }
+	void runCytokinesis(const float time) override { REPORT("time=" << time); }
+	void closeCytokinesis(void) override { REPORT("do some work"); }
 };
 
 

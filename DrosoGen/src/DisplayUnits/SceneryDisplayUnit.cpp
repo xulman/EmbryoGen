@@ -21,8 +21,7 @@ void SceneryDisplayUnit::DrawPoint(const int ID,
 	    << radius << " " << color;
 
 	std::string msgString(msg.str());
-	socket->send(msgString.c_str(),msgString.size());
-	//socket->send(msgString.c_str(),msgString.size(),ZMQ_SNDMORE);
+	socket->send( zmq::const_buffer(msgString.c_str(),msgString.size()) );
 }
 
 
@@ -48,7 +47,7 @@ void SceneryDisplayUnit::DrawLine(const int ID,
 	    << color;
 
 	std::string msgString(msg.str());
-	socket->send(msgString.c_str(),msgString.size());
+	socket->send( zmq::const_buffer(msgString.c_str(),msgString.size()) );
 }
 
 
@@ -77,7 +76,7 @@ void SceneryDisplayUnit::DrawVector(const int ID,
 	    << color;
 
 	std::string msgString(msg.str());
-	socket->send(msgString.c_str(),msgString.size());
+	socket->send( zmq::const_buffer(msgString.c_str(),msgString.size()) );
 }
 
 
@@ -106,14 +105,14 @@ void SceneryDisplayUnit::DrawTriangle(const int ID,
 	    << color;
 
 	std::string msgString(msg.str());
-	socket->send(msgString.c_str(),msgString.size());
+	socket->send( zmq::const_buffer(msgString.c_str(),msgString.size()) );
 }
 
 
 void SceneryDisplayUnit::Tick(const char* msg)
 {
 	std::string msgString = std::string("v1 tick ") + (msg != NULL ? msg : "");
-	socket->send(msgString.c_str(),msgString.size());
+	socket->send( zmq::const_buffer(msgString.c_str(),msgString.size()) );
 }
 
 
