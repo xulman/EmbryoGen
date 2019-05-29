@@ -636,8 +636,8 @@ private:
 		}
 
 		//render the current frame
-		displayUnit.Flush();
 		displayUnit.Tick( ("Time: "+std::to_string(currTime)).c_str() );
+		displayUnit.Flush();
 
 		//save the images
 		static char fn[1024];
