@@ -93,8 +93,8 @@ private:
 	T stepSize;
 
 	T climberRad, climberRadStep;
-	T radiusYZ;
-	T rad, radStep;
+	T radiusYZ = 0;
+	T rad, radStep = 7;
 
 	void theCommonInit(void)
 	{
