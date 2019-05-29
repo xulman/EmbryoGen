@@ -64,7 +64,7 @@ public:
 	/** setup the output image to wrap around the given geometry, respecting
 	    the given outer frame (in pixels) and the wanted resolution of the image */
 	template <typename VT>
-	void SetupImageForRasterizingTexture( i3d::Image3d<VT>& img,
+	void setupImageForRasterizingTexture( i3d::Image3d<VT>& img,
 	               const Vector3d<float>& imgRes,
 	               const Geometry& geom,
 	               const Vector3d<short>& pxFrameWidth = Vector3d<short>(2) )
@@ -77,7 +77,7 @@ public:
 	    texture (stored in 'img') respecting the actual shape of the agent ('geom'),
 	    and considering given 'quantization' */
 	template <typename VT>
-	void SampleDotsFromImage(const i3d::Image3d<VT>& img,
+	void sampleDotsFromImage(const i3d::Image3d<VT>& img,
 	                         const Spheres& geom,
 	                         const VT quantization = 1)
 	{
@@ -149,7 +149,7 @@ public:
 	    is only shifting the range into [textureAverageIntensity-0.5,textureAverageIntensity+0.5].
 	    Hence, with the higher value of the 'textureAverageIntensity', the contrast (ratio of
 	    the highest over smallest intensity value) of the texture is essentially worsened. */
-	void CreatePerlinTexture(const Spheres& geom,
+	void createPerlinTexture(const Spheres& geom,
 	                         const Vector3d<FLOAT> textureResolution,
 	                         const double var,
 	                         const double alpha = 8,
@@ -161,7 +161,7 @@ public:
 	{
 		//setup the aux texture image
 		i3d::Image3d<float> img;
-		SetupImageForRasterizingTexture(img,textureResolution, geom);
+		setupImageForRasterizingTexture(img,textureResolution, geom);
 
 		//sanity check... if the 'geom' is "empty", no texture image is "wrapped" around it,
 		//we do no creation of the texture then...
@@ -187,13 +187,13 @@ public:
 			*i += textureIntShift;
 			//*i  = std::max( *i, 0.f );
 		}
-		SampleDotsFromImage(img,geom, quantization);
+		sampleDotsFromImage(img,geom, quantization);
 		//NB: the function ignores any negative-valued texture image voxels,
 		//    no dots are created for such voxels
 
 		if (shouldCollectOutlyingDots)
 		{
-			const int dotOutliers = CollectOutlyingDots(geom);
+			const int dotOutliers = collectOutlyingDots(geom);
 			DEBUG_REPORT(dotOutliers << " (" << 100.f*dotOutliers/dots.size()
 			             << " %) dots had to be moved inside the initial geometry");
 		}
@@ -205,7 +205,7 @@ public:
 	/** find dots that are outside the given geometry and "put them back",
 	    which is randomly close to the centre of the closest sphere,
 	    returns the number of such processed dots (for statistics purposes) */
-	int CollectOutlyingDots(const Spheres& geom)
+	int collectOutlyingDots(const Spheres& geom)
 	{
 		int count = 0;
 #ifdef DEBUG
@@ -292,7 +292,7 @@ public:
 	// rendering
 
 	/** renders the current content of the this->dots list into the given phantom image */
-	void RenderIntoPhantom(i3d::Image3d<float> &phantoms, const float quantization = 1);
+	void renderIntoPhantom(i3d::Image3d<float> &phantoms, const float quantization = 1);
 };
 
 /**
@@ -368,8 +368,8 @@ public:
 
 	/** renders (quantum-wise) the current content of the this->dots list into the given phantom image,
 	    the contributed intensity to the image should be 'quantum'-times greater than what would provide
-		 the upstream, non-quantum Texture::RenderIntoPhantom(phantoms,1.0) */
-	void RenderIntoPhantom(i3d::Image3d<float> &phantoms);
+		 the upstream, non-quantum Texture::renderIntoPhantom(phantoms,1.0) */
+	void renderIntoPhantom(i3d::Image3d<float> &phantoms);
 };
 
 

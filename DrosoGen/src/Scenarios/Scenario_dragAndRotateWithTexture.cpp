@@ -4,7 +4,6 @@
 #include "../Simulation.h"
 #include "../Agents/Nucleus4SAgent.h"
 #include "../Agents/util/Texture.h"
-#include "../util/texture/texture.h"
 #include "Scenarios.h"
 
 class myDragAndTextureNucleus: public Nucleus4SAgent, TextureQuantized, TextureUpdater4S
@@ -21,7 +20,7 @@ public:
 		cytoplasmWidth = 0.0f;
 
 		//texture img: resolution -- makes sense to match it with the phantom img resolution
-		CreatePerlinTexture(futureGeometry, Vector3d<float>(2.0f),
+		createPerlinTexture(futureGeometry, Vector3d<float>(2.0f),
 		                    5.0,8,4,6,    //Perlin
 		                    1.0f,         //texture intensity range centre
 		                    0.1f, true);  //quantization and shouldCollectOutlyingDots
@@ -61,7 +60,7 @@ public:
 			updateTextureCoords(dots, futureGeometry);
 
 			//correct for outlying texture particles
-			const int dotOutliers = CollectOutlyingDots(futureGeometry);
+			const int dotOutliers = collectOutlyingDots(futureGeometry);
 			DEBUG_REPORT(dotOutliers << " (" << 100.f*dotOutliers/dots.size()
 							 << " %) dots had to be moved inside the initial geometry");
 		}
@@ -70,7 +69,7 @@ public:
 
 	void drawTexture(i3d::Image3d<float>& phantom, i3d::Image3d<float>&) override
 	{
-		if (Officer->isProducingOutput(phantom)) RenderIntoPhantom(phantom);
+		if (Officer->isProducingOutput(phantom)) renderIntoPhantom(phantom);
 	}
 
 	void drawMask(DisplayUnit& du) override
