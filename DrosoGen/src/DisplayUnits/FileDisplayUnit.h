@@ -15,7 +15,31 @@ class FileDisplayUnit : public DisplayUnit
 public:
 	FileDisplayUnit(const char* filename)
 	{
-		logger.open(filename);
+		char fn[1024];
+
+		int tryCnt = 0;
+		std::ifstream testingFile(filename);
+
+		while (testingFile.is_open() && tryCnt < 100)
+		{
+			//try another "version" of the filename
+			++tryCnt;
+			sprintf(fn,"%s~%d", filename, tryCnt);
+
+			testingFile.close();
+			testingFile.open(fn);
+		}
+
+		if (testingFile.is_open())
+		{
+			testingFile.close();
+			throw ERROR_REPORT("Refusing to create 101st flight record, please clean up your disk.");
+		}
+
+		if (tryCnt == 0)
+			logger.open(filename);  //the original filename
+		else
+			logger.open(fn);        //the last "versioned" filename
 	}
 
 	~FileDisplayUnit()
