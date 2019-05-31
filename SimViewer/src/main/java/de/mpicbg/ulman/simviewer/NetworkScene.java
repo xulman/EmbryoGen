@@ -94,7 +94,7 @@ public class NetworkScene implements Runnable
 	}
 
 
-	private
+	//not private, so anyone around can use it (esp. the FlightRecorder)
 	void processMsg(final String msg)
 	{
 		try {
