@@ -84,6 +84,7 @@ public class CommandFromCLI implements Runnable
 			System.out.println("q - Quits the program");
 			System.out.println("o - Overviews the current settings");
 			System.out.println("p - Toggles usage of the rendering push mode");
+			System.out.println();
 
 			System.out.println("A - Toggles display of the axes in the scene centre");
 			System.out.println("B - Toggles display of the scene border");
@@ -92,11 +93,13 @@ public class CommandFromCLI implements Runnable
 			System.out.println("r,R - Asks Scenery to re-render only-update-signalling/all objects");
 			System.out.println("s - Saves the current content as a screenshot image");
 			System.out.println("S - Toggles automatic saving of screenshots (always after vectors update)");
+			System.out.println();
 
 			System.out.println("P - Adds some cells to have something to display");
 			System.out.println("W - Deletes (Wipes away) all objects (even if not displayed)");
 			System.out.println("d - Deletes old/not-recently-updated objects (even if not displayed)");
 			System.out.println("D - Toggle \"garbage collection\" of old/not-recently-updated objects");
+			System.out.println();
 
 			System.out.println("c,C - Toggles display of the cell/general-debug spheres (shape)");
 			System.out.println("l,L - Toggles display of the cell/general-debug lines");
@@ -104,6 +107,11 @@ public class CommandFromCLI implements Runnable
 			System.out.println("g,G - Toggles display of the cell-debug/general-debug");
 			System.out.println("m,M - Disable/Enable culling of front faces (Display/Hide)");
 			System.out.println("v,V - Decreases/Increases the vector display stretch");
+			System.out.println();
+
+			System.out.println("O filename - Open FlightRecording saved in the given file");
+			System.out.println("7,0 - Replays the first/last time point from the current FlightRecording");
+			System.out.println("8,9 - Replays previous/next time point from the current FlightRecording");
 			break;
 		case 'o':
 			scene.reportSettings();
@@ -203,6 +211,60 @@ public class CommandFromCLI implements Runnable
 
 		case 'p':
 			System.out.println("Push node is now: "+scene.TogglePushMode());
+			break;
+
+		case 'O':
+			if (flightRecorder != null)
+			{
+				try {
+					final String fnString = console.readLine().trim();
+					if (!fnString.isEmpty())
+					{
+						flightRecorder.open(fnString);
+						System.out.println("Opened this FlightRecording: "+fnString);
+						flightRecorder.sendNextTimepointMessages();
+					}
+					else
+						System.out.println("Please, specify also the filename, e.g. as \"O flightRecord.dat\"");
+				}
+				catch (IOException e) {
+					System.out.println("Problem opening a FlightRecording, but still continue running....");
+					e.printStackTrace();
+				}
+			}
+			else System.out.println("FlightRecording is not available.");
+			break;
+		case '7':
+			if (flightRecorder != null)
+			{
+				if (!flightRecorder.rewindAndSendFirstTimepoint())
+					System.out.println("No FlightRecording file is opened.");
+			}
+			else System.out.println("FlightRecording is not available.");
+			break;
+		case '8':
+			if (flightRecorder != null)
+			{
+				if (!flightRecorder.sendPrevTimepointMessages())
+					System.out.println("No FlightRecording file is opened.");
+			}
+			else System.out.println("FlightRecording is not available.");
+			break;
+		case '9':
+			if (flightRecorder != null)
+			{
+				if (!flightRecorder.sendNextTimepointMessages())
+					System.out.println("No FlightRecording file is opened.");
+			}
+			else System.out.println("FlightRecording is not available.");
+			break;
+		case '0':
+			if (flightRecorder != null)
+			{
+				if (!flightRecorder.rewindAndSendLastTimepoint())
+					System.out.println("No FlightRecording file is opened.");
+			}
+			else System.out.println("FlightRecording is not available.");
 			break;
 
 		case 'q':

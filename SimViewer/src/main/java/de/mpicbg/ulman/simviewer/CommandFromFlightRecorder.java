@@ -53,7 +53,6 @@ public class CommandFromFlightRecorder
 		//NB: stays null if the consequent operations should fail
 
 		nextMsgs = Files.readAllLines(Paths.get(FRfilename)).listIterator();
-		sendNextTimepointMessages();
 	}
 
 	/** should always point just before the first message of a time point,
