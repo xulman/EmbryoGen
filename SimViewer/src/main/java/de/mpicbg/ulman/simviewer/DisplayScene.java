@@ -5,6 +5,7 @@ import graphics.scenery.*;
 import graphics.scenery.backends.Renderer;
 import graphics.scenery.Material.CullingMode;
 import graphics.scenery.controls.InputHandler;
+import org.scijava.ui.behaviour.ClickBehaviour;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -174,6 +175,21 @@ public class DisplayScene extends SceneryBase implements Runnable
 		ToggleFixedLights(); //both ramps
 	}
 
+	/** additionally promotes SimViewer's own hot keys;
+	    call this method only when the Scenery is ready... */
+	void setupOwnHotkeys()
+	{
+		final InputHandler ih = this.getInputHandler();
+		ih.addBehaviour( "SV_7", new BehaviourForFlightRecorder('7'));
+		ih.addKeyBinding("SV_7", "7");
+		ih.addBehaviour( "SV_8", new BehaviourForFlightRecorder('8'));
+		ih.addKeyBinding("SV_8", "8");
+		ih.addBehaviour( "SV_9", new BehaviourForFlightRecorder('9'));
+		ih.addKeyBinding("SV_9", "9");
+		ih.addBehaviour( "SV_0", new BehaviourForFlightRecorder('0'));
+		ih.addKeyBinding("SV_0", "0");
+	}
+
 	/** runs the scenery rendering backend in a separate thread */
 	public
 	void run()
@@ -203,6 +219,8 @@ public class DisplayScene extends SceneryBase implements Runnable
 		while (scene == null)            Thread.sleep(1000);
 		//this condition used to work alone...
 		while (!scene.getInitialized())  Thread.sleep(1000);
+		//also wait until InputHandler is available...
+		while (this.getInputHandler() == null) Thread.sleep(1000);
 	}
 
 	/** exposes the InputHandler outside this class */
@@ -229,7 +247,13 @@ public class DisplayScene extends SceneryBase implements Runnable
 	private int tickCounter = 0;
 	//
 	public
-	void increaseTickCounter() { ++tickCounter; }
+	void increaseTickCounter()
+	{
+	 synchronized (lockOnChangingSceneContent)
+	 {
+		++tickCounter;
+	 }
+	}
 
 	/** attempts to turn on/off the "push mode", and reports the state */
 	public
@@ -418,6 +442,14 @@ public class DisplayScene extends SceneryBase implements Runnable
 	//----------------------------------------------------------------------------
 
 
+	/** A handle on a lock (synchronization subject) that shall be used when a caller
+	    wants to modify any of the pointNodes, lineNodes, vectorNodes or tickCounter.
+
+	    Since the DisplayScene's API for updating the displayed graphics was not
+	    designed for concurrent access, the callers have to synchronize explicitly
+	    among themselves. And they shall do it precisely around this attribute. */
+	public final Object lockOnChangingSceneContent = new Object();
+
 	/** these points are registered with the display, but not necessarily always visible */
 	private final Map<Integer,Point> pointNodes = new HashMap<>();
 	/** these lines are registered with the display, but not necessarily always visible */
@@ -430,6 +462,8 @@ public class DisplayScene extends SceneryBase implements Runnable
 	public
 	void addUpdateOrRemovePoint(final int ID,final Point p)
 	{
+	 synchronized (lockOnChangingSceneContent)
+	 {
 		//attempt to retrieve node of this ID
 		Point n = pointNodes.get(ID);
 
@@ -465,6 +499,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 		n.lastSeenTick = tickCounter;
 
 		this.nodeSetNeedsUpdate(n.node);
+	 }
 	}
 
 
@@ -472,6 +507,8 @@ public class DisplayScene extends SceneryBase implements Runnable
 	public
 	void addUpdateOrRemoveLine(final int ID,final Line l)
 	{
+	 synchronized (lockOnChangingSceneContent)
+	 {
 		//attempt to retrieve node of this ID
 		Line n = lineNodes.get(ID);
 
@@ -510,6 +547,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 		n.node.setMaterial(materials[n.color % materials.length]);
 
 		n.lastSeenTick = tickCounter;
+	 }
 	}
 
 
@@ -517,6 +555,8 @@ public class DisplayScene extends SceneryBase implements Runnable
 	public
 	void addUpdateOrRemoveVector(final int ID,final Vector v)
 	{
+	 synchronized (lockOnChangingSceneContent)
+	 {
 		//attempt to retrieve node of this ID
 		Vector n = vectorNodes.get(ID);
 
@@ -563,14 +603,18 @@ public class DisplayScene extends SceneryBase implements Runnable
 		n.lastSeenTick = tickCounter;
 
 		this.nodeSetNeedsUpdate(n.node);
+	 }
 	}
 
 
 	public
 	void removeAllObjects()
 	{
+	 synchronized (lockOnChangingSceneContent)
+	 {
 		tickCounter = Integer.MAX_VALUE;
 		garbageCollect(-1);
+	 }
 	}
 
 	public
@@ -583,6 +627,8 @@ public class DisplayScene extends SceneryBase implements Runnable
 	public
 	void garbageCollect(int tolerance)
 	{
+	 synchronized (lockOnChangingSceneContent)
+	 {
 		//NB: HashMap may be modified while being swept through only via iterator
 		//    (and iterator must remove the elements actually)
 		Iterator<Integer> i = pointNodes.keySet().iterator();
@@ -621,6 +667,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 				i.remove();
 			}
 		}
+	 }
 	}
 	//
 	/** flag for external modules to see if they should call garbageCollect() */
@@ -646,7 +693,10 @@ public class DisplayScene extends SceneryBase implements Runnable
 	public
 	void suspendNodesUpdating()
 	{
+	 synchronized (lockOnChangingSceneContent)
+	 {
 		updateNodesImmediately = false;
+	 }
 	}
 
 	/** calls processNodesYetToBeSmth() and switches back to the 'online process' mode,
@@ -654,8 +704,11 @@ public class DisplayScene extends SceneryBase implements Runnable
 	public
 	void resumeNodesUpdating()
 	{
+	 synchronized (lockOnChangingSceneContent)
+	 {
 		updateNodesImmediately = true;
 		processNodesYetToBeSmth();
+	 }
 	}
 
 	/** processes (ideally at the same time) and clears the content of
@@ -718,12 +771,15 @@ public class DisplayScene extends SceneryBase implements Runnable
 
 	void setVectorsStretch(final float vs)
 	{
+	 synchronized (lockOnChangingSceneContent)
+	 {
 		//update the stretch factor...
 		vectorsStretch = vs;
 		vectorsStretchGLvec = new GLVector(vectorsStretch,3);
 
 		//...and rescale all vectors presently existing in the system
 		vectorNodes.values().forEach( n -> n.node.setScale(vectorsStretchGLvec) );
+	 }
 	}
 
 	/** shortcut zero vector to prevent from coding "new GLVector(0.f,3)" where needed */
@@ -757,6 +813,8 @@ public class DisplayScene extends SceneryBase implements Runnable
 	public
 	boolean ToggleDisplayCellSpheres()
 	{
+	 synchronized (lockOnChangingSceneContent)
+	 {
 		//toggle the flag
 		spheresShown.g_Mode ^= true;
 
@@ -766,33 +824,42 @@ public class DisplayScene extends SceneryBase implements Runnable
 			showOrHideMe(ID,pointNodes.get(ID).node,spheresShown);
 
 		return spheresShown.g_Mode;
+	 }
 	}
 
 	public
 	boolean ToggleDisplayCellLines()
 	{
+	 synchronized (lockOnChangingSceneContent)
+	 {
 		linesShown.g_Mode ^= true;
 
 		for (Integer ID : lineNodes.keySet())
 			showOrHideMe(ID,lineNodes.get(ID).node,linesShown);
 
 		return linesShown.g_Mode;
+	 }
 	}
 
 	public
 	boolean ToggleDisplayCellVectors()
 	{
+	 synchronized (lockOnChangingSceneContent)
+	 {
 		vectorsShown.g_Mode ^= true;
 
 		for (Integer ID : vectorNodes.keySet())
 			showOrHideMe(ID,vectorNodes.get(ID).node,vectorsShown);
 
 		return vectorsShown.g_Mode;
+	 }
 	}
 
 	public
 	boolean ToggleDisplayCellDebug()
 	{
+	 synchronized (lockOnChangingSceneContent)
+	 {
 		cellDebugShown ^= true;
 
 		//"debug" objects might be present in any shape primitive
@@ -804,12 +871,15 @@ public class DisplayScene extends SceneryBase implements Runnable
 			showOrHideMe(ID,vectorNodes.get(ID).node,vectorsShown);
 
 		return cellDebugShown;
+	 }
 	}
 
 
 	public
 	boolean ToggleDisplayGeneralDebugSpheres()
 	{
+	 synchronized (lockOnChangingSceneContent)
+	 {
 		//toggle the flag
 		spheresShown.G_Mode ^= true;
 
@@ -819,33 +889,42 @@ public class DisplayScene extends SceneryBase implements Runnable
 			showOrHideMe(ID,pointNodes.get(ID).node,spheresShown);
 
 		return spheresShown.G_Mode;
+	 }
 	}
 
 	public
 	boolean ToggleDisplayGeneralDebugLines()
 	{
+	 synchronized (lockOnChangingSceneContent)
+	 {
 		linesShown.G_Mode ^= true;
 
 		for (Integer ID : lineNodes.keySet())
 			showOrHideMe(ID,lineNodes.get(ID).node,linesShown);
 
 		return linesShown.G_Mode;
+	 }
 	}
 
 	public
 	boolean ToggleDisplayGeneralDebugVectors()
 	{
+	 synchronized (lockOnChangingSceneContent)
+	 {
 		vectorsShown.G_Mode ^= true;
 
 		for (Integer ID : vectorNodes.keySet())
 			showOrHideMe(ID,vectorNodes.get(ID).node,vectorsShown);
 
 		return vectorsShown.G_Mode;
+	 }
 	}
 
 	public
 	boolean ToggleDisplayGeneralDebug()
 	{
+	 synchronized (lockOnChangingSceneContent)
+	 {
 		generalDebugShown ^= true;
 
 		//"debug" objects might be present in any shape primitive
@@ -857,6 +936,7 @@ public class DisplayScene extends SceneryBase implements Runnable
 			showOrHideMe(ID,vectorNodes.get(ID).node,vectorsShown);
 
 		return generalDebugShown;
+	 }
 	}
 
 
@@ -993,5 +1073,52 @@ public class DisplayScene extends SceneryBase implements Runnable
 		currentNormalizedOrientVec.minusAssign(currentNormalizedOrientVec);
 		currentNormalizedOrientVec.plusAssign(newOrientVec);
 		currentNormalizedOrientVec.normalize();
+	}
+	//----------------------------------------------------------------------------
+
+
+	/** reference on the currently available FlightRecording: the object
+	    must initialized outside and reference on it is given here, otherwise
+	    the reference must be null */
+	CommandFromFlightRecorder flightRecorder = null;
+
+	private class BehaviourForFlightRecorder implements ClickBehaviour
+	{
+		BehaviourForFlightRecorder(final char key) { actionKey = key; }
+		final char actionKey;
+
+		@Override
+		public void click( final int x, final int y )
+		{
+			if (flightRecorder != null)
+			{
+				try {
+					boolean status = false;
+					switch (actionKey)
+					{
+					case '7':
+						status = flightRecorder.rewindAndSendFirstTimepoint();
+						break;
+					case '8':
+						status = flightRecorder.sendPrevTimepointMessages();
+						break;
+					case '9':
+						status = flightRecorder.sendNextTimepointMessages();
+						break;
+					case '0':
+						status = flightRecorder.rewindAndSendLastTimepoint();
+						break;
+					}
+
+					if (!status)
+						System.out.println("No FlightRecording file is opened.");
+				}
+				catch (InterruptedException e) {
+					System.out.println("DisplayScene: Interrupted and stopping...");
+					stop();
+				}
+			}
+			else System.out.println("FlightRecording is not available.");
+		}
 	}
 }

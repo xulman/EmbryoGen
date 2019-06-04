@@ -1,102 +1,40 @@
-package de.mpicbg.ulman.simviewer;
+package de.mpicbg.ulman.simviewer.aux;
 
 import java.util.Locale;
 import java.util.Scanner;
 
-import org.zeromq.SocketType;
-import org.zeromq.ZMQ;
-import org.zeromq.ZMQException;
-
-import de.mpicbg.ulman.simviewer.aux.Point;
-import de.mpicbg.ulman.simviewer.aux.Line;
-import de.mpicbg.ulman.simviewer.aux.Vector;
+import de.mpicbg.ulman.simviewer.DisplayScene;
 
 /**
- * Adapted from TexturedCubeJavaExample.java from the scenery project,
- * originally created by kharrington on 7/6/16.
+ * A class to parse the messages according the "network-protocol" and
+ * to command the SimViewer consequently. The "network-protocol" consists
+ * of commands to draw, update, or delete primitive graphics such as points
+ * or lines. The protocol is the best defined in the EmbryoGen simulator's
+ * code, see the file DisplayUnits/SceneryDisplayUnit.cpp in there. The protocol
+ * is utilized, e.g., in the CommandFromNetwork and CommandFromFlightRecorder
+ * classes.
  *
- * This file was created and is being developed by Vladimir Ulman, 2018.
+ * This file was created and is being developed by Vladimir Ulman, 2019.
  */
-public class NetworkScene implements Runnable
+public class NetMessagesProcessor
 {
-	final int listenOnPort;
-
-	/** constructor to create connection (listening at the 8765 port) to a displayed window */
-	public NetworkScene(final DisplayScene _scene)
+	/** constructor to store the connection to a displayed window
+	    that shall be commanded from the incoming messages */
+	public NetMessagesProcessor(final DisplayScene _scene)
 	{
 		scene = _scene;
-		listenOnPort = 8765;
 	}
 
-	/** constructor to create connection (listening at the given port) to a displayed window */
-	public NetworkScene(final DisplayScene _scene, final int _port)
-	{
-		scene = _scene;
-		listenOnPort = _port;
-	}
-
-	/** reference on the controlled rendering display */
-	private final DisplayScene scene;
-
-
-	/** reads the console and dispatches the commands */
-	public void run()
-	{
-		//start receiver in an infinite loop
-		System.out.println("Network listener: Started on port "+listenOnPort+".");
-
-		//init the communication side
-		final ZMQ.Context zmqContext = ZMQ.context(1);
-		ZMQ.Socket socket = null;
-		try {
-			//socket = zmqContext.socket(ZMQ.PAIR); //NB: CLIENT/SERVER from v4.2 is not available yet
-			socket = zmqContext.socket(SocketType.PAIR);
-			if (socket == null)
-				throw new Exception("Network listener: Cannot obtain local socket.");
-
-			//port to listen for incoming data
-			//socket.subscribe(new byte[] {});
-			socket.bind("tcp://*:"+listenOnPort);
-
-			//the incoming data buffer
-			String msg = null;
-
-			while (true)
-			{
-				msg = socket.recvStr(ZMQ.NOBLOCK);
-				if (msg != null)
-					processMsg(msg);
-				else
-					Thread.sleep(1000);
-			}
-		}
-		catch (ZMQException e) {
-			System.out.println("Network listener: Crashed with ZeroMQ error: " + e.getMessage());
-		}
-		catch (InterruptedException e) {
-			//System.out.println("Network listener: Stopped.");
-		}
-		catch (Exception e) {
-			System.out.println("Network listener: Error: " + e.getMessage());
-			e.printStackTrace();
-		}
-		finally {
-			if (socket != null)
-			{
-				socket.unbind("tcp://*:8765");
-				socket.close();
-			}
-			//zmqContext.close();
-			//zmqContext.term();
-
-			System.out.println("Network listener: Stopped.");
-		}
-	}
-
-
-	private
+	/** the entry function to process the incoming message; since the "tick" message
+	    may trigger a short waiting before a screen shot of the commanding window is
+	    requested (see the code of the processTickMessage()) and the waiting can be
+	    interrupted, this method may throw an InterruptedException */
+	public
 	void processMsg(final String msg)
+	throws InterruptedException
 	{
+	 synchronized (scene.lockOnChangingSceneContent)
+	 {
 		try {
 			if (msg.startsWith("v1 points")) processPoints(msg);
 			else
@@ -108,12 +46,18 @@ public class NetworkScene implements Runnable
 			else
 			if (msg.startsWith("v1 tick")) processTickMessage(msg.substring(8));
 			else
-				System.out.println("Don't understand this msg: "+msg);
+				System.out.println("NetMessagesProcessor: Don't understand this msg: "+msg);
 		}
 		catch (java.util.InputMismatchException e) {
-			System.out.println("Parsing error: " + e.getMessage());
+			System.out.println("NetMessagesProcessor: Parsing error: " + e.getMessage());
 		}
+	 }
 	}
+	//----------------------------------------------------------------------------
+
+	/** reference on the controlled rendering display */
+	private final DisplayScene scene;
+
 
 	private
 	void processPoints(final String msg)
@@ -132,7 +76,7 @@ public class NetworkScene implements Runnable
 		//is the next token 'dim'?
 		if (s.next("dim").startsWith("dim") == false)
 		{
-			System.out.println("Don't understand this msg: "+msg);
+			System.out.println("NetMessagesProcessor: Don't understand this msg: "+msg);
 			s.close();
 			return;
 		}
@@ -169,6 +113,7 @@ public class NetworkScene implements Runnable
 		if (N > 10) scene.resumeNodesUpdating();
 	}
 
+
 	private
 	void processLines(final String msg)
 	{
@@ -186,7 +131,7 @@ public class NetworkScene implements Runnable
 		//is the next token 'dim'?
 		if (s.next("dim").startsWith("dim") == false)
 		{
-			System.out.println("Don't understand this msg: "+msg);
+			System.out.println("NetMessagesProcessor: Don't understand this msg: "+msg);
 			s.close();
 			return;
 		}
@@ -225,6 +170,7 @@ public class NetworkScene implements Runnable
 		if (N > 10) scene.resumeNodesUpdating();
 	}
 
+
 	private
 	void processVectors(final String msg)
 	{
@@ -242,7 +188,7 @@ public class NetworkScene implements Runnable
 		//is the next token 'dim'?
 		if (s.next("dim").startsWith("dim") == false)
 		{
-			System.out.println("Don't understand this msg: "+msg);
+			System.out.println("NetMessagesProcessor: Don't understand this msg: "+msg);
 			s.close();
 			return;
 		}
@@ -281,18 +227,21 @@ public class NetworkScene implements Runnable
 		if (N > 10) scene.resumeNodesUpdating();
 	}
 
+
 	private
 	void processTriangles(final String msg)
 	{
-		System.out.println("not implemented yet: "+msg);
+		System.out.println("NetMessagesProcessor: not implemented yet: "+msg);
 	}
+
 
 	/** this is a general (free format) message, which is assumed
 	    to be sent typically after one simulation round is over */
 	private
 	void processTickMessage(final String msg)
+	throws InterruptedException
 	{
-		System.out.println("Got tick message: "+msg);
+		System.out.println("NetMessagesProcessor: Got tick message: "+msg);
 
 		//check if we should save the screen
 		if (scene.savingScreenshots)
@@ -301,8 +250,10 @@ public class NetworkScene implements Runnable
 			try {
 				Thread.sleep(2000);
 			} catch (InterruptedException e) {
+				//a bit unexpected to be stopped here, so we leave a note and forward the exception upstream
+				System.out.println("NetMessagesProcessor: Interrupted just before requesting a screen shot:");
 				e.printStackTrace();
-				System.out.println("But continuing with the processing....");
+				throw e;
 			}
 
 			scene.saveNextScreenshot();

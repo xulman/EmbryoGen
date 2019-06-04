@@ -1,5 +1,7 @@
 package de.mpicbg.ulman.simviewer;
 
+import de.mpicbg.ulman.simviewer.aux.NetMessagesProcessor;
+
 /**
  * Opens the scenery window, starts the listening server, maintains
  * lightweight vector-graphics representation of cells and force vectors
@@ -12,18 +14,29 @@ package de.mpicbg.ulman.simviewer;
  * - one to interact on console with the user to control Scenery
  * - one to host the ZeroMQ server to listen for stuff,
  *   and update the data structures
- * 
+ *
+ * Adapted from TexturedCubeJavaExample.java from the scenery project,
+ * originally created by kharrington on 7/6/16.
+ *
  * This file was created and is being developed by Vladimir Ulman, 2018.
  */
 public class StartUpScene
 {
 	public static void main(String... args)
 	{
+		//setup the SimViewer's GUI window and start it
 		DisplayScene scene = new DisplayScene(new float[] {  0.f,  0.f,  0.f},
 		                                      new float[] {480.f,220.f,220.f});
 
-		final Thread GUIwindow  = new Thread(scene);
+		final Thread GUIwindow = new Thread(scene);
+		GUIwindow.start();
+
 		try {
+			//try to understand the command line options if there are some,
+			//the options can be (in any order):
+			// - single integer port number not smaller than 1025
+			// - sequence of (initial) "commands" that CommandFromCLI can
+			//   recognize with no white spaces inbetween
 			String initSequence = null;
 			int receivingPort = 8765;
 
@@ -50,18 +63,42 @@ public class StartUpScene
 			}
 			else if (args.length > 0) initSequence = args[0];
 
-			//start the rendering window first
-			GUIwindow.start();
-
 			//give the GUI window some time to settle down, and populate it
 			scene.waitUntilSceneIsReady();
 			System.out.println("SimViewer is ready!");
 
-			//only now start the both window controls (console and network)
-			final Thread GUIcontrol = new Thread(new CommandScene(scene, initSequence));
-			final Thread Network    = new Thread(new NetworkScene(scene, receivingPort));
-			GUIcontrol.start();
-			Network.start();
+			//init the remaining controls:
+			//extra hot keys to be registered with the 'scene'
+			scene.setupOwnHotkeys();
+
+			//the shared, messages processor and its "wrapping classes"
+			final NetMessagesProcessor netMsgProcessor = new NetMessagesProcessor(scene);
+			//
+			final CommandFromNetwork        cmdNet = new CommandFromNetwork(netMsgProcessor, receivingPort);
+			final CommandFromFlightRecorder cmdFR  = new CommandFromFlightRecorder(netMsgProcessor);
+
+			//the user-commands processor
+			final CommandFromCLI            cmdCLI = new CommandFromCLI(scene, initSequence);
+
+			//notes:
+			//cmdNet recieves its messages from a network and it is this event that triggers its activity
+			//cmdFR recieves its messages from a file and it the user ('scene' or cmdCLI) that triggers its activity
+			//
+			//cmdCLI interacts with the 'scene' directly for some of its functionalities, however,
+			//functionality related to the FlightRecording is outsourced to the cmdFR
+			//
+			//cmdNet and cmdCLI are therefore "living" in separate threads (coded later)
+			//
+			//the cmdCLI as well as the 'scene' itself can also influence/command the cmdFR (they trigger its activity),
+			//and so we "inject" the reference on it
+			cmdCLI.flightRecorder = cmdFR;
+			 scene.flightRecorder = cmdFR;
+
+			//only now start the additional controls (console and network)
+			final Thread CLIcontrol = new Thread( cmdCLI );
+			final Thread NETcontrol = new Thread( cmdNet );
+			CLIcontrol.start();
+			NETcontrol.start();
 
 			//how this can be stopped?
 			//network shall never stop by itself, it should keep reading and updating structures
@@ -72,9 +109,10 @@ public class StartUpScene
 			GUIwindow.join();
 
 			//signal the remaining threads to stop
-			if (GUIcontrol.isAlive()) GUIcontrol.interrupt();
-			if (Network.isAlive())    Network.interrupt();
-		} catch (InterruptedException e) {
+			if (CLIcontrol.isAlive()) CLIcontrol.interrupt();
+			if (NETcontrol.isAlive()) NETcontrol.interrupt();
+		}
+		catch (InterruptedException e) {
 			System.out.println("We've been interrupted while waiting for our threads to close...");
 			e.printStackTrace();
 		}

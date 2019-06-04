@@ -1,29 +1,32 @@
 package de.mpicbg.ulman.simviewer;
 
 import java.io.InputStreamReader;
+import java.io.BufferedReader;
 import java.io.IOException;
 
 import de.mpicbg.ulman.simviewer.aux.Point;
 
 /**
- * Adapted from TexturedCubeJavaExample.java from the scenery project,
- * originally created by kharrington on 7/6/16.
+ * Operates on a command line and recognizes a list of commands, try
+ * 'h<ENTER>' to get a full listing of the commands. The commands
+ * typically show/hide some type of the recognized graphics that
+ * the SimViewer can display.
  *
  * This file was created and is being developed by Vladimir Ulman, 2018.
  */
-public class CommandScene implements Runnable
+public class CommandFromCLI implements Runnable
 {
-	final String initialCommands;
+	private final String initialCommands;
 
 	/** constructor to create connection to a displayed window */
-	public CommandScene(final DisplayScene _scene)
+	public CommandFromCLI(final DisplayScene _scene)
 	{
 		scene = _scene;
 		initialCommands = null;
 	}
 
 	/** constructor to create connection to a displayed window */
-	public CommandScene(final DisplayScene _scene, final String initCmds)
+	public CommandFromCLI(final DisplayScene _scene, final String initCmds)
 	{
 		scene = _scene;
 		initialCommands = initCmds;
@@ -32,12 +35,18 @@ public class CommandScene implements Runnable
 	/** reference on the controlled rendering display */
 	private final DisplayScene scene;
 
+	/** reference on the console input */
+	private final BufferedReader console = new BufferedReader( new InputStreamReader(System.in) );
+
+	/** reference on the currently available FlightRecording: the object
+	    must initialized outside and reference on it is given here, otherwise
+	    the reference must be null */
+	CommandFromFlightRecorder flightRecorder = null;
 
 	/** reads the console and dispatches the commands */
 	public void run()
 	{
 		System.out.println("Key listener: Started.");
-		final InputStreamReader console = new InputStreamReader(System.in);
 		try {
 			if (initialCommands != null)
 			{
@@ -58,13 +67,14 @@ public class CommandScene implements Runnable
 			e.printStackTrace();
 		}
 		catch (InterruptedException e) {
-			System.out.println("Key listener: Stopped.");
+			System.out.println("Key listener: Interrupted and Stopped.");
 		}
 	}
 
 
 	private
-	void processKey(final int key) throws InterruptedException
+	void processKey(final int key)
+	throws InterruptedException
 	{
 		switch (key)
 		{
@@ -74,6 +84,7 @@ public class CommandScene implements Runnable
 			System.out.println("q - Quits the program");
 			System.out.println("o - Overviews the current settings");
 			System.out.println("p - Toggles usage of the rendering push mode");
+			System.out.println();
 
 			System.out.println("A - Toggles display of the axes in the scene centre");
 			System.out.println("B - Toggles display of the scene border");
@@ -82,11 +93,13 @@ public class CommandScene implements Runnable
 			System.out.println("r,R - Asks Scenery to re-render only-update-signalling/all objects");
 			System.out.println("s - Saves the current content as a screenshot image");
 			System.out.println("S - Toggles automatic saving of screenshots (always after vectors update)");
+			System.out.println();
 
 			System.out.println("P - Adds some cells to have something to display");
 			System.out.println("W - Deletes (Wipes away) all objects (even if not displayed)");
 			System.out.println("d - Deletes old/not-recently-updated objects (even if not displayed)");
 			System.out.println("D - Toggle \"garbage collection\" of old/not-recently-updated objects");
+			System.out.println();
 
 			System.out.println("c,C - Toggles display of the cell/general-debug spheres (shape)");
 			System.out.println("l,L - Toggles display of the cell/general-debug lines");
@@ -94,6 +107,11 @@ public class CommandScene implements Runnable
 			System.out.println("g,G - Toggles display of the cell-debug/general-debug");
 			System.out.println("m,M - Disable/Enable culling of front faces (Display/Hide)");
 			System.out.println("v,V - Decreases/Increases the vector display stretch");
+			System.out.println();
+
+			System.out.println("O filename - Open FlightRecording saved in the given file");
+			System.out.println("7,0 - Replays the first/last time point from the current FlightRecording");
+			System.out.println("8,9 - Replays previous/next time point from the current FlightRecording");
 			break;
 		case 'o':
 			scene.reportSettings();
@@ -195,10 +213,64 @@ public class CommandScene implements Runnable
 			System.out.println("Push node is now: "+scene.TogglePushMode());
 			break;
 
+		case 'O':
+			if (flightRecorder != null)
+			{
+				try {
+					final String fnString = console.readLine().trim();
+					if (!fnString.isEmpty())
+					{
+						flightRecorder.open(fnString);
+						System.out.println("Opened this FlightRecording: "+fnString);
+						flightRecorder.sendNextTimepointMessages();
+					}
+					else
+						System.out.println("Please, specify also the filename, e.g. as \"O flightRecord.dat\"");
+				}
+				catch (IOException e) {
+					System.out.println("Problem opening a FlightRecording, but still continue running....");
+					e.printStackTrace();
+				}
+			}
+			else System.out.println("FlightRecording is not available.");
+			break;
+		case '7':
+			if (flightRecorder != null)
+			{
+				if (!flightRecorder.rewindAndSendFirstTimepoint())
+					System.out.println("No FlightRecording file is opened.");
+			}
+			else System.out.println("FlightRecording is not available.");
+			break;
+		case '8':
+			if (flightRecorder != null)
+			{
+				if (!flightRecorder.sendPrevTimepointMessages())
+					System.out.println("No FlightRecording file is opened.");
+			}
+			else System.out.println("FlightRecording is not available.");
+			break;
+		case '9':
+			if (flightRecorder != null)
+			{
+				if (!flightRecorder.sendNextTimepointMessages())
+					System.out.println("No FlightRecording file is opened.");
+			}
+			else System.out.println("FlightRecording is not available.");
+			break;
+		case '0':
+			if (flightRecorder != null)
+			{
+				if (!flightRecorder.rewindAndSendLastTimepoint())
+					System.out.println("No FlightRecording file is opened.");
+			}
+			else System.out.println("FlightRecording is not available.");
+			break;
+
 		case 'q':
 			scene.stop();
 			//don't wait for GUI to tell me to stop
-			throw new InterruptedException("Stop myself now.");
+			throw new InterruptedException("Key listener: Stopping myself now.");
 		default:
 			if (key != '\n') //do not respond to Enter keystrokes
 				System.out.println("Not recognized command, no action taken");
@@ -208,6 +280,8 @@ public class CommandScene implements Runnable
 
 	void CreateFakeCells()
 	{
+	 synchronized (scene.lockOnChangingSceneContent)
+	 {
 		final float xStep = scene.sceneSize[0] / 6.0f;
 		final float yStep = scene.sceneSize[1] / 6.0f;
 
@@ -245,5 +319,6 @@ public class CommandScene implements Runnable
 				scene.addUpdateOrRemovePoint(ID,c);
 			}
 		}
+	 }
 	}
 }
