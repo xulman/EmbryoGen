@@ -1,29 +1,32 @@
 package de.mpicbg.ulman.simviewer;
 
 import java.io.InputStreamReader;
+import java.io.BufferedReader;
 import java.io.IOException;
 
 import de.mpicbg.ulman.simviewer.aux.Point;
 
 /**
- * Adapted from TexturedCubeJavaExample.java from the scenery project,
- * originally created by kharrington on 7/6/16.
+ * Operates on a command line and recognizes a list of commands, try
+ * 'h<ENTER>' to get a full listing of the commands. The commands
+ * typically show/hide some type of the recognized graphics that
+ * the SimViewer can display.
  *
  * This file was created and is being developed by Vladimir Ulman, 2018.
  */
-public class CommandScene implements Runnable
+public class CommandFromCLI implements Runnable
 {
-	final String initialCommands;
+	private final String initialCommands;
 
 	/** constructor to create connection to a displayed window */
-	public CommandScene(final DisplayScene _scene)
+	public CommandFromCLI(final DisplayScene _scene)
 	{
 		scene = _scene;
 		initialCommands = null;
 	}
 
 	/** constructor to create connection to a displayed window */
-	public CommandScene(final DisplayScene _scene, final String initCmds)
+	public CommandFromCLI(final DisplayScene _scene, final String initCmds)
 	{
 		scene = _scene;
 		initialCommands = initCmds;
@@ -32,12 +35,18 @@ public class CommandScene implements Runnable
 	/** reference on the controlled rendering display */
 	private final DisplayScene scene;
 
+	/** reference on the console input */
+	private final BufferedReader console = new BufferedReader( new InputStreamReader(System.in) );
+
+	/** reference on the currently available FlightRecording: the object
+	    must initialized outside and reference on it is given here, otherwise
+	    the reference must be null */
+	CommandFromFlightRecorder flightRecorder = null;
 
 	/** reads the console and dispatches the commands */
 	public void run()
 	{
 		System.out.println("Key listener: Started.");
-		final InputStreamReader console = new InputStreamReader(System.in);
 		try {
 			if (initialCommands != null)
 			{
@@ -58,13 +67,14 @@ public class CommandScene implements Runnable
 			e.printStackTrace();
 		}
 		catch (InterruptedException e) {
-			System.out.println("Key listener: Stopped.");
+			System.out.println("Key listener: Interrupted and Stopped.");
 		}
 	}
 
 
 	private
-	void processKey(final int key) throws InterruptedException
+	void processKey(final int key)
+	throws InterruptedException
 	{
 		switch (key)
 		{

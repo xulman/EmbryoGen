@@ -994,4 +994,11 @@ public class DisplayScene extends SceneryBase implements Runnable
 		currentNormalizedOrientVec.plusAssign(newOrientVec);
 		currentNormalizedOrientVec.normalize();
 	}
+	//----------------------------------------------------------------------------
+
+
+	/** reference on the currently available FlightRecording: the object
+	    must initialized outside and reference on it is given here, otherwise
+	    the reference must be null */
+	CommandFromFlightRecorder flightRecorder = null;
 }
