@@ -68,6 +68,9 @@ public class StartUpScene
 			System.out.println("SimViewer is ready!");
 
 			//init the remaining controls:
+			//extra hot keys to be registered with the 'scene'
+			scene.setupOwnHotkeys();
+
 			//the shared, messages processor and its "wrapping classes"
 			final NetMessagesProcessor netMsgProcessor = new NetMessagesProcessor(scene);
 			//
@@ -108,7 +111,8 @@ public class StartUpScene
 			//signal the remaining threads to stop
 			if (CLIcontrol.isAlive()) CLIcontrol.interrupt();
 			if (NETcontrol.isAlive()) NETcontrol.interrupt();
-		} catch (InterruptedException e) {
+		}
+		catch (InterruptedException e) {
 			System.out.println("We've been interrupted while waiting for our threads to close...");
 			e.printStackTrace();
 		}

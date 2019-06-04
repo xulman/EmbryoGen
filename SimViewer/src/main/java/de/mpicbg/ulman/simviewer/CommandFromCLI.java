@@ -270,7 +270,7 @@ public class CommandFromCLI implements Runnable
 		case 'q':
 			scene.stop();
 			//don't wait for GUI to tell me to stop
-			throw new InterruptedException("Stop myself now.");
+			throw new InterruptedException("Key listener: Stopping myself now.");
 		default:
 			if (key != '\n') //do not respond to Enter keystrokes
 				System.out.println("Not recognized command, no action taken");

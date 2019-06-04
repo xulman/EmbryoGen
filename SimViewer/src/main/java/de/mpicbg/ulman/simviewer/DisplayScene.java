@@ -5,6 +5,7 @@ import graphics.scenery.*;
 import graphics.scenery.backends.Renderer;
 import graphics.scenery.Material.CullingMode;
 import graphics.scenery.controls.InputHandler;
+import org.scijava.ui.behaviour.ClickBehaviour;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -174,6 +175,21 @@ public class DisplayScene extends SceneryBase implements Runnable
 		ToggleFixedLights(); //both ramps
 	}
 
+	/** additionally promotes SimViewer's own hot keys;
+	    call this method only when the Scenery is ready... */
+	void setupOwnHotkeys()
+	{
+		final InputHandler ih = this.getInputHandler();
+		ih.addBehaviour( "SV_7", new BehaviourForFlightRecorder('7'));
+		ih.addKeyBinding("SV_7", "7");
+		ih.addBehaviour( "SV_8", new BehaviourForFlightRecorder('8'));
+		ih.addKeyBinding("SV_8", "8");
+		ih.addBehaviour( "SV_9", new BehaviourForFlightRecorder('9'));
+		ih.addKeyBinding("SV_9", "9");
+		ih.addBehaviour( "SV_0", new BehaviourForFlightRecorder('0'));
+		ih.addKeyBinding("SV_0", "0");
+	}
+
 	/** runs the scenery rendering backend in a separate thread */
 	public
 	void run()
@@ -203,6 +219,8 @@ public class DisplayScene extends SceneryBase implements Runnable
 		while (scene == null)            Thread.sleep(1000);
 		//this condition used to work alone...
 		while (!scene.getInitialized())  Thread.sleep(1000);
+		//also wait until InputHandler is available...
+		while (this.getInputHandler() == null) Thread.sleep(1000);
 	}
 
 	/** exposes the InputHandler outside this class */
@@ -1063,4 +1081,44 @@ public class DisplayScene extends SceneryBase implements Runnable
 	    must initialized outside and reference on it is given here, otherwise
 	    the reference must be null */
 	CommandFromFlightRecorder flightRecorder = null;
+
+	private class BehaviourForFlightRecorder implements ClickBehaviour
+	{
+		BehaviourForFlightRecorder(final char key) { actionKey = key; }
+		final char actionKey;
+
+		@Override
+		public void click( final int x, final int y )
+		{
+			if (flightRecorder != null)
+			{
+				try {
+					boolean status = false;
+					switch (actionKey)
+					{
+					case '7':
+						status = flightRecorder.rewindAndSendFirstTimepoint();
+						break;
+					case '8':
+						status = flightRecorder.sendPrevTimepointMessages();
+						break;
+					case '9':
+						status = flightRecorder.sendNextTimepointMessages();
+						break;
+					case '0':
+						status = flightRecorder.rewindAndSendLastTimepoint();
+						break;
+					}
+
+					if (!status)
+						System.out.println("No FlightRecording file is opened.");
+				}
+				catch (InterruptedException e) {
+					System.out.println("DisplayScene: Interrupted and stopping...");
+					stop();
+				}
+			}
+			else System.out.println("FlightRecording is not available.");
+		}
+	}
 }
