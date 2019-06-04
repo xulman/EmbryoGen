@@ -5,31 +5,49 @@ import java.nio.file.Paths;
 import java.io.IOException;
 import java.util.ListIterator;
 
+import de.mpicbg.ulman.simviewer.aux.NetMessagesProcessor;
+
 /**
  * Operates on a given file that consists of messages that could be normally
  * transferred over the network but were instead saved into this file.
  * Owing to this class, the messages can be extracted from the file, and
- * can be injected to the NetworkScene as if the messages would come over
- * the network. This way, a simulation can be replayed (even backwards!)
+ * be processed with the NetMessagesProcessor to update the SimViewer's
+ * displayed content. This way, a simulation can be replayed (even backwards!)
  * provided the file's content shows a history of some simulation -- in
  * which case the individual time points are separated with the "tick"
  * messages.
  *
+ * The class's API is synchronized on this object so multiple callers may
+ * operate (request to replay previous or next time point) on this object.
+ *
+ * Most of the API here may throw InterruptedException which is because all
+ * the code here boils down to calling NetMessagesProcessor's processMsg(),
+ * which may want to wait a little while under some circumstances and may
+ * get interrupted while doing so -- this gets propagated upstream.
+ *
  * This file was created and is being developed by Vladimir Ulman, 2019.
  */
-public class FlightRecorder
+public class CommandFromFlightRecorder
 {
-	/** constructor to create connection to a displayed window */
-	public FlightRecorder(final NetworkScene ns)
+	/** constructor to link to a shared NetMessagesProcessor
+	    (that connects this 'commander' to the displayed window */
+	public
+	CommandFromFlightRecorder(final NetMessagesProcessor nmp)
 	{
 		//keep the reference
-		netCommandsProcessor = ns;
+		netMsgProcessor = nmp;
 	}
+
+	/** reference on the messages processor */
+	private
+	final NetMessagesProcessor netMsgProcessor;
+
+	//--------------------------------------------
 
 	/** setup the reading of the FRfilename  (FR = Flight Recording) */
 	public synchronized
 	void open(final String FRfilename)
-	throws IOException
+	throws IOException, InterruptedException
 	{
 		nextMsgs = null;
 		//NB: stays null if the consequent operations should fail
@@ -37,10 +55,6 @@ public class FlightRecorder
 		nextMsgs = Files.readAllLines(Paths.get(FRfilename)).listIterator();
 		sendNextTimepointMessages();
 	}
-
-	/** reference on the processor of the network (display) commands */
-	private
-	final NetworkScene netCommandsProcessor;
 
 	/** should always point just before the first message of a time point,
 	    this time point is termed as the "next time point"; that often
@@ -51,10 +65,11 @@ public class FlightRecorder
 	//--------------------------------------------
 
 	/** extracts the messages from the current timepoint up to the next one,
-	    and sends the messages to the associated NetworkScene; returns true
+	    and sends the messages to the associated NetMessagesProcessor; returns true
 	    if the operation was successful */
 	public synchronized
 	boolean sendNextTimepointMessages()
+	throws InterruptedException
 	{
 		if (nextMsgs == null) return false; //stop if the no file is opened
 
@@ -63,7 +78,7 @@ public class FlightRecorder
 		while (nextMsgs.hasNext() && readNextMsg)
 		{
 			final String msg = nextMsgs.next();
-			netCommandsProcessor.processMsg(msg);
+			netMsgProcessor.processMsg(msg);
 
 			if (msg.startsWith("v1 tick")) readNextMsg = false;
 		}
@@ -73,9 +88,10 @@ public class FlightRecorder
 
 	/** extracts the messages from the previous timepoint (that is the time point
 	    that is just before this one, which was just replayed), and sends the messages
-	    to the associated NetworkScene; returns true if the operation was successful */
+	    to the associated NetMessagesProcessor; returns true if the operation was successful */
 	public synchronized
 	boolean sendPrevTimepointMessages()
+	throws InterruptedException
 	{
 		if (nextMsgs == null) return false; //stop if the no file is opened
 
@@ -98,6 +114,7 @@ public class FlightRecorder
 	    returns true if the operation was successful */
 	public synchronized
 	boolean rewindAndSendFirstTimepoint()
+	throws InterruptedException
 	{
 		if (nextMsgs == null) return false; //stop if the no file is opened
 
@@ -111,6 +128,7 @@ public class FlightRecorder
 	    returns true if the operation was successful */
 	public synchronized
 	boolean rewindAndSendLastTimepoint()
+	throws InterruptedException
 	{
 		if (nextMsgs == null) return false; //stop if the no file is opened
 
