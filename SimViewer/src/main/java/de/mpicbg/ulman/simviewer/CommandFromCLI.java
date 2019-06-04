@@ -218,6 +218,8 @@ public class CommandFromCLI implements Runnable
 
 	void CreateFakeCells()
 	{
+	 synchronized (scene.lockOnChangingSceneContent)
+	 {
 		final float xStep = scene.sceneSize[0] / 6.0f;
 		final float yStep = scene.sceneSize[1] / 6.0f;
 
@@ -255,5 +257,6 @@ public class CommandFromCLI implements Runnable
 				scene.addUpdateOrRemovePoint(ID,c);
 			}
 		}
+	 }
 	}
 }

@@ -14,11 +14,6 @@ import de.mpicbg.ulman.simviewer.DisplayScene;
  * is utilized, e.g., in the CommandFromNetwork and CommandFromFlightRecorder
  * classes.
  *
- * Since the DisplayScene's API for updating the displayed graphics was not
- * designed for concurrent access, the callers have to synchronize explicitly
- * among themselves. This is why, the methods of this class are synchronized
- * on this object.
- *
  * This file was created and is being developed by Vladimir Ulman, 2019.
  */
 public class NetMessagesProcessor
@@ -34,10 +29,12 @@ public class NetMessagesProcessor
 	    may trigger a short waiting before a screen shot of the commanding window is
 	    requested (see the code of the processTickMessage()) and the waiting can be
 	    interrupted, this method may throw an InterruptedException */
-	public synchronized
+	public
 	void processMsg(final String msg)
 	throws InterruptedException
 	{
+	 synchronized (scene.lockOnChangingSceneContent)
+	 {
 		try {
 			if (msg.startsWith("v1 points")) processPoints(msg);
 			else
@@ -54,6 +51,7 @@ public class NetMessagesProcessor
 		catch (java.util.InputMismatchException e) {
 			System.out.println("NetMessagesProcessor: Parsing error: " + e.getMessage());
 		}
+	 }
 	}
 	//----------------------------------------------------------------------------
 
