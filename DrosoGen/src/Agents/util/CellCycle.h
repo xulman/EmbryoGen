@@ -1,6 +1,7 @@
 #ifndef _CELLCYCLE_H_
 #define _CELLCYCLE_H_
 
+#include <cmath>
 #include "../../util/report.h"
 #include "../../util/rnd_generators.h"
 
@@ -78,13 +79,13 @@ protected:
 	/** the durations of individual cell cycle phases [min] */
 	float phaseDurations[8] = {0,0,0,0,0,0,0,0};
 
-	/** override-able pie-slicing of the fullCycleDuration, this
-	    method is called from every constructor
+	/** Override-able pie-slicing of the fullCycleDuration, this
+	    method is called from the startCycling() method.
 
-	    the method must define durations (in minutes) of all eight
+	    The method must define durations (in minutes) of all eight
 	    phases of this->phaseDurations[] and it must hold
 	    afterwards that the sum of the individual durations is
-	    exactly the value of this->fullCycleDuration */
+	    exactly the value of this->fullCycleDuration. */
 	virtual
 	void determinePhaseDurations(void)
 	{
@@ -178,7 +179,8 @@ public:
 	}
 
 	/** this one calls the phase_methods (see docs of this class) in the correct order,
-	    until the cycle progresses to the given "wall time" (in 'currentGlobalTime') */
+	    until the cycle progresses to the given "wall time" (in 'currentGlobalTime'),
+	    it makes sure that no run_phase_method is called with zero progress ratio */
 	void triggerCycleMethods(const float currentGlobalTime)
 	{
 		if (curPhase == newBorn)
@@ -190,13 +192,18 @@ public:
 		bool tryNextPhase = true;
 		while (tryNextPhase)
 		{
-			const float progress = (currentGlobalTime - lastPhaseChangeGlobalTime)
-			                     / phaseDurations[curPhase];
+			const float progress = phaseDurations[curPhase] != 0 ?
+			/* normal phase: */    (currentGlobalTime - lastPhaseChangeGlobalTime) / phaseDurations[curPhase]
+			/*  empty phase: */  : (currentGlobalTime == lastPhaseChangeGlobalTime ?
+			   /* |- A: */           0
+			   /*  \ B: */         : std::copysign(1.0f, currentGlobalTime-lastPhaseChangeGlobalTime));
+			//A: the same behaviour as for "normal phase", i.e. prevention from re-running with time=0
+			//B: returns +1 (OK state) or -1 (indication of a sanity check fail, same as for "normal phase")
 			DEBUG_REPORT("progress=" << progress);
 
 			if (progress < 0)
 			{
-				throw ERROR_REPORT("lastPhaseChange is ahead given currentGlobalTime, quitting confusedly");
+				throw ERROR_REPORT("lastPhaseChange is ahead given currentGlobalTime (or phase duration is negative), quitting confusedly");
 			}
 			else if (progress == 0)
 			{
