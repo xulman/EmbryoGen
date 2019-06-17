@@ -26,6 +26,16 @@ static FLOAT fstrength_rep_scale      = (FLOAT)0.6;     // [1/um]      TRAgen: B
 static FLOAT fstrength_slide_scale    = (FLOAT)1.0;     // unitless
 static FLOAT fstrength_hinter_scale   = (FLOAT)0.25;    // [1/um^2]
 
+/** Color coding:
+ 0 - white
+ 1 - red
+ 2 - green
+ 3 - blue
+ 4 - cyan
+ 5 - magenta
+ 6 - yellow
+ */
+
 
 class NucleusAgent: public AbstractAgent
 {

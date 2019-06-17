@@ -191,8 +191,9 @@ void Simulation::renderNextFrame(void)
 	}
 
 	//render the current frame
+	displayUnit.Flush(); //make sure all drawings are sent before the "tick"
 	displayUnit.Tick( ("Time: "+std::to_string(currTime)).c_str() );
-	displayUnit.Flush();
+	displayUnit.Flush(); //make sure the "tick" is sent right away too
 
 	//save the images
 	static char fn[1024];
