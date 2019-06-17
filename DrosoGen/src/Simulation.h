@@ -245,6 +245,10 @@ public:
 	// execute and maintenance methods:  adding and removing agents
 
 private:
+	/** last-used ID from any of the existing or former-existing agents;
+	    with every new agent added, this attribute must always increase */
+	int lastUsedAgentID = 0;
+
 	/** lists of existing agents scheduled for the addition to or
 	    for the removal from the simulation (at the appropriate occasion) */
 	std::list<AbstractAgent*> newAgents, deadAgents;
@@ -301,6 +305,49 @@ private:
 	// service for agents (externals):  add/divide/remove agents
 
 public:
+	/** returns an available, not-yet-used, unique agent ID */
+	int getNextAvailAgentID()
+	{
+		//TODO... lock the lastUsedAgentID on all schedulers and they send
+		//        their confirmation together with their lastUsedAgentID;
+		//        wait for all locks, choose max(lastUsedAgentIDs) + 1;
+		//        unlock lastUsedAgentID on all schedulers (and perhaps
+		//        report the new lastUsedAgentID to keep them synced)
+
+		/* TODO:
+		int getLockAttempts = 0;
+		while (getLockAttempts < 5)
+		{
+			//to prevent from busy-waiting
+			while (lastUsedAgentID_lock.isLocked()) waitSomeRandomTime();
+
+			if (lastUsedAgentID_lock.getLock())
+			{
+				//got the lock
+				//TODO: determine the free lastUsedAgentID
+				lastUsedAgentID++;
+
+				//release the lock and indicate "success stop"
+				lastUsedAgentID_lock.releaseLock();
+				getLockAttempts = 1000;
+			}
+			else
+			{
+				//failed to get the lock
+				++getLockAttempts;
+			}
+		}
+
+		//not ended with the "success stop"?
+		if (getLockAttempts != 1000)
+			throw ERROR_REPORT("failed to obtain lock to retrieve unique agent ID");
+		*/
+		//single thread version
+		++lastUsedAgentID;
+
+		return lastUsedAgentID;
+	}
+
 	/** introduces a new agent into the universe of this simulation, and,
 	    optionally, it can log this event into the CTC tracking file */
 	void startNewAgent(AbstractAgent* ag, const bool wantsToAppearInCTCtracksTXTfile = true)
