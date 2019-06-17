@@ -39,33 +39,42 @@ public:
 	// --------------------------------------------------
 	// construction & phase durations
 
-	/** constructor with default 24h cell cycle */
-	CellCycle():
-		CellCycle( 24*60 ) {}
-
-	/** a randomizing! no-exact-copy constructor */
-	CellCycle(const CellCycle& refCellCycle, const float spreadFactor = 0.17f):
-		CellCycle( GetRandomGauss(refCellCycle.fullCycleDuration,
-		                          spreadFactor * refCellCycle.fullCycleDuration) ) {}
+	/** constructor with default 24 hrs cell cycle */
+	CellCycle()
+		: CellCycle( 24*60 ) {}
 
 	/** an exact-copy constructor - useful when two instances that act exactly the same
 	    are used in one agent (e.g. one cycle to control geometry changes, one cycle
 	    to control texture development); note that one has to provide the second
 	    parameter (with any value) to reach out for this particular c'tor */
-	CellCycle(const CellCycle& refCellCycle, const bool):
-		CellCycle( refCellCycle.fullCycleDuration ) {}
+	CellCycle(const CellCycle& refCellCycle)
+		: CellCycle( refCellCycle.fullCycleDuration ) {}
 
-	/** constructor with (in minutes) given cycle length */
-	CellCycle(const float _fullCycleDuration):
-		fullCycleDuration(_fullCycleDuration) {}
+	/** a randomizing! no-exact-copy constructor, nice default is 'spreadFactor' = 0.17 */
+	CellCycle(const CellCycle& refCellCycle, const float spreadFactor)
+		: CellCycle( RandomizeCellCycleDuration(refCellCycle.fullCycleDuration, spreadFactor) ) {}
+
+	/** a randomizing! constructor with given basis cycle duration (in minutes),
+	    nice default is 'spreadFactor' = 0.17 */
+	CellCycle(const float refCycleDuration, const float spreadFactor)
+		: CellCycle( RandomizeCellCycleDuration(refCycleDuration, spreadFactor) ) {}
+
+	/** constructor with given exact cycle duration (in minutes) */
+	CellCycle(const float _fullCycleDuration)
+		: fullCycleDuration(_fullCycleDuration) {}
 		//NB: overriding determinePhaseDurations() are not-visible in the c'tor,
-		//    hence, this call is postponed into startCycling(), and this method
+		//    hence, this call is postponed into startCycling() -- and this method
 		//    was made unavoidable as it is the only that provides the global time
 
 	/** the (informative) cell cycle duration [min] */
 	const float fullCycleDuration;
 
 protected:
+	float RandomizeCellCycleDuration(const float refDuration, const float spreadFactor)
+	{
+		return ( GetRandomGauss(refDuration, spreadFactor * refDuration) );
+	}
+
 	/** the durations of individual cell cycle phases [min] */
 	float phaseDurations[8] = {0,0,0,0,0,0,0,0};
 
