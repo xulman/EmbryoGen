@@ -62,11 +62,11 @@ public:
 		//    hence, this call is postponed into startCycling(), and this method
 		//    was made unavoidable as it is the only that provides the global time
 
-	/** the (informative) cell cycle length [min] */
+	/** the (informative) cell cycle duration [min] */
 	const float fullCycleDuration;
 
 protected:
-	/** the length of individual cell cycle phases [min] */
+	/** the durations of individual cell cycle phases [min] */
 	float phaseDurations[8] = {0,0,0,0,0,0,0,0};
 
 	/** override-able pie-slicing of the fullCycleDuration, this
@@ -83,7 +83,7 @@ protected:
 	}
 
 public:
-	/** read-only accessor to the lengths of the individual phases */
+	/** read-only accessor to the durations of the individual phases */
 	float getPhaseDuration(const ListOfPhases phase) const
 	{
 		return phaseDurations[phase];
@@ -173,7 +173,7 @@ public:
 	void triggerCycleMethods(const float currentGlobalTime)
 	{
 		if (curPhase == newBorn)
-			throw ERROR_REPORT("Not yet fully initialized cell cycle");
+			throw ERROR_REPORT("Not yet fully initialized cell cycle; did you call startCycling()?");
 
 		//beyond the cell cycle, do nothing
 		if (curPhase == RestInPeace) return;
