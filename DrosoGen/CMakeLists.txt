@@ -64,6 +64,7 @@ set(SOURCES
 		src/DisplayUnits/SceneryDisplayUnit.cpp
 		src/DisplayUnits/SceneryBufferedDisplayUnit.cpp
 		src/Agents/util/Texture.cpp
+		src/Simulation.cpp
 		src/main.cpp)
 
 file(GLOB SCENARIOSOURCES src/Scenarios/*.cpp)
