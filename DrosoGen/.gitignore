@@ -1,6 +1,0 @@
-# Compiled C++ object files #
-*.o
-
-# Various build folders #
-BUILD*
-bin*

@@ -1,13 +1,13 @@
 #------------------------------------------------------------------------
 #
-# Cross platform CMake configure script for 'DrosoGen' simulator
+# Cross platform CMake configure script for 'EmbryoGen' simulator
 #
 # authors: Vladimir Ulman
 #          Max Planck Institute of Cell Biology and Genetics (c) 2018
 #
 #------------------------------------------------------------------------
 
-project(DrosoGen)
+project(EmbryoGen)
 cmake_minimum_required(VERSION 3.1)
 
 include(GNUInstallDirs)
@@ -69,14 +69,14 @@ set(SOURCES
 
 file(GLOB SCENARIOSOURCES src/Scenarios/*.cpp)
 
-add_executable(drosogen ${SOURCES} ${SCENARIOSOURCES})
+add_executable(embryogen ${SOURCES} ${SCENARIOSOURCES})
 
 #--------------------------------------------
 # TARGET LINKING - FIRST-LEVEL REQUIRED LIBS
 #--------------------------------------------
 
 #if (L_REQUEST_STATIC_LINKING)
-#	set_target_properties(drosogen PROPERTIES LINK_SEARCH_START_STATIC ON)
+#	set_target_properties(embryogen PROPERTIES LINK_SEARCH_START_STATIC ON)
 #endif (L_REQUEST_STATIC_LINKING)
 
 # i3dlibs library
@@ -112,7 +112,7 @@ if(NOT ZeroMQ_FOUND)
 endif()
 
 # cppzmq header only (that C++-ish wraps around the original libzmq)
-find_path(INC_CPPZMQ "zmq.hpp" DOC "DrosoGen, being a C++ project, needs cppzmq (zmq.hpp) installed around libzmq.")
+find_path(INC_CPPZMQ "zmq.hpp" DOC "EmbryoGen, being a C++ project, needs cppzmq (zmq.hpp) installed around libzmq.")
 include_directories(${INC_CPPZMQ})
 
 #----------------------------------------------
@@ -158,10 +158,10 @@ if (SEARCH_ALL_DEPLIBS)
 endif (SEARCH_ALL_DEPLIBS)
 
 #if (L_REQUEST_STATIC_LINKING)
-#	set_target_properties(drosogen PROPERTIES LINK_SEARCH_START_STATIC OFF)
+#	set_target_properties(embryogen PROPERTIES LINK_SEARCH_START_STATIC OFF)
 #endif (L_REQUEST_STATIC_LINKING)
 
 #----------------
 # TARGET LINKING
 #----------------
-target_link_libraries(drosogen ${LIBS} libzmq-static)
+target_link_libraries(embryogen ${LIBS} libzmq-static)

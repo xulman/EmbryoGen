@@ -1,3 +1,10 @@
+# Compiled C++ object files #
+*.o
+
+# Various build folders #
+BUILD*
+bin*
+
 # Log file, some documentation material #
 *.log
 doc/Mito*
