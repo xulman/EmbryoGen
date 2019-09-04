@@ -142,7 +142,7 @@ public:
 		//init display/export units
 		//displayUnit.RegisterUnit( new ConsoleDisplayUnit() );
 		//displayUnit.RegisterUnit( new FileDisplayUnit("debugLog.txt") );
-		displayUnit.RegisterUnit( new FlightRecorderDisplayUnit("FlightRecording.txt") );
+		//displayUnit.RegisterUnit( new FlightRecorderDisplayUnit("FlightRecording.txt") );
 		displayUnit.RegisterUnit( new SceneryBufferedDisplayUnit("localhost:8765") );
 		//displayUnit.RegisterUnit( new SceneryBufferedDisplayUnit("10.1.202.7:8765") );     //laptop @ Vlado's office
 		//displayUnit.RegisterUnit( new SceneryBufferedDisplayUnit("192.168.3.110:8765") );  //PC     @ Vlado's home

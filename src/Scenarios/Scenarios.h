@@ -30,6 +30,7 @@ class Scenario_withTexture               CLASS_DECLARATION_WithOwnSynthoscopy
 class Scenario_dragRotateAndTexture      CLASS_DECLARATION
 class Scenario_phaseIIandIII             CLASS_DECLARATION
 class Scenario_PerlinShowCase            CLASS_DECLARATION
+class Scenario_Parallel                  CLASS_DECLARATION
 //  ---> ADD NEW SCENARIO HERE AND ALSO BELOW <---
 
 class Scenarios
@@ -56,6 +57,7 @@ public:
 		AVAILABLE_SCENARIO( "dragFluoTexture",   Scenario_dragRotateAndTexture )
 		AVAILABLE_SCENARIO( "synthoscopy",       Scenario_phaseIIandIII )
 		AVAILABLE_SCENARIO( "PerlinShowCase",    Scenario_PerlinShowCase )
+		AVAILABLE_SCENARIO( "parallel",          Scenario_Parallel )
 		//  ---> ADD NEW SCENARIO HERE (and add definition *cpp file, re-run cmake!) <---
 
 		if (simulation == NULL)
