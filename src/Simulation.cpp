@@ -179,15 +179,24 @@ void Simulation::renderNextFrame(void)
 	std::list<AbstractAgent*>::const_iterator c=agents.begin();
 	for (; c != agents.end(); c++)
 	{
+		//displayUnit should always exists in some form
 		(*c)->drawTexture(displayUnit);
 		(*c)->drawMask(displayUnit);
 		if (renderingDebug)
 			(*c)->drawForDebug(displayUnit);
 
-		(*c)->drawTexture(imgPhantom,imgOptics);
-		(*c)->drawMask(imgMask);
-		if (renderingDebug)
-			(*c)->drawForDebug(imgMask); //TODO, should go into its own separate image
+		//raster images may not necessarily always exist,
+		//always check for their availability first:
+		if (isProducingOutput(imgPhantom) && isProducingOutput(imgOptics))
+		{
+			(*c)->drawTexture(imgPhantom,imgOptics);
+		}
+		if (isProducingOutput(imgMask))
+		{
+			(*c)->drawMask(imgMask);
+			if (renderingDebug)
+				(*c)->drawForDebug(imgMask); //TODO, should go into its own separate image
+		}
 	}
 
 	//render the current frame
