@@ -94,6 +94,14 @@ public:
 
 	void publishGeometry(void)
 	{
+		//some agents fail to update their geometry for some time
+		if (shouldUpdateGeometry && x%18 == 17 && y%18 == 17 && currTime > 0.2 && currTime < 1.9)
+		{
+			DEBUG_REPORT(SIGN << "failed to provide updated geometry");
+			shouldUpdateGeometry = false;
+			return;
+		}
+
 		if (shouldUpdateGeometry)
 		{
 			//translate agent a bit to the right
