@@ -1,8 +1,9 @@
+#include <thread>
 #include <functional>
 #include <i3d/image3d.h>
+#include "../util/rnd_generators.h"
 #include "../util/Vector3d.h"
 #include "../Geometries/Spheres.h"
-#include "../Simulation.h"
 #include "Scenarios.h"
 
 // ------------------ grid placement and related stuff ------------------
@@ -64,8 +65,8 @@ public:
 	/// internal affairs: flag that the agent should move
 	void advanceAndBuildIntForces(const float)
 	{
-		//random duration pause here to pretend "some work"
-		//TODO
+		//random duration (in full 2-10 seconds) pause here to pretend "some work"
+		std::this_thread::sleep_for(std::chrono::seconds( (long long)GetRandomUniform(2,10) ));
 
 		//ask to have the geometry updated as a result of the "some work"
 		shouldUpdateGeometry = true;
