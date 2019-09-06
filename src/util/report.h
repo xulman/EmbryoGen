@@ -28,8 +28,8 @@
 
 /** any AbstractAgent-derived agent can use this to label its own report messages,
     e.g. DEBUG_REPORT(IDSIGN << "reporting signed message"); */
-#define SIGN    agentType << ": "
-#define IDSIGN  ID << "-" << agentType << ": "
+#define SIGN    this->agentType << ": "
+#define IDSIGN  this->ID << "-" << this->agentType << ": "
 
 
 /** profiling aiders: starts stopwatch and returns "session handler",
