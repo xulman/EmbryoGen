@@ -147,7 +147,7 @@ public:
 		//displayUnit.RegisterUnit( new SceneryBufferedDisplayUnit("10.1.202.7:8765") );     //laptop @ Vlado's office
 		//displayUnit.RegisterUnit( new SceneryBufferedDisplayUnit("192.168.3.110:8765") );  //PC     @ Vlado's home
 
-		//setup routing of img transfer, currently two channels are available
+		//setup routing of img transfers, currently two channels are available
 		//transferPhantomImgChannel = &transferImgChannelA;
 		transferOpticsImgChannel  = &transferImgChannelA;
 		//transferMaskImgChannel    = &transferImgChannelB;
@@ -240,17 +240,17 @@ public:
 
 	/** util method to transfer sequence of images over the same connection channel */
 	template <typename T>
-	void transferImgs(const i3d::Image3d<T>& img, ImagesAsEventsSender& channel) const;
+	void transferImgs(const i3d::Image3d<T>& img, DAIS::ImagesAsEventsSender& channel) const;
 
 	/** where to transfer images with defaultImgTransferChannel,
 	    leave set to NULL to prohibit transfers of respective images */
-	ImagesAsEventsSender* transferMaskImgChannel    = NULL;
-	ImagesAsEventsSender* transferPhantomImgChannel = NULL;
-	ImagesAsEventsSender* transferOpticsImgChannel  = NULL;
-	ImagesAsEventsSender* transferFinalImgChannel   = NULL;
+	DAIS::ImagesAsEventsSender* transferMaskImgChannel    = NULL;
+	DAIS::ImagesAsEventsSender* transferPhantomImgChannel = NULL;
+	DAIS::ImagesAsEventsSender* transferOpticsImgChannel  = NULL;
+	DAIS::ImagesAsEventsSender* transferFinalImgChannel   = NULL;
 
 	/** the actual image transfer channels to choose from */
-	ImagesAsEventsSender transferImgChannelA, transferImgChannelB;
+	DAIS::ImagesAsEventsSender transferImgChannelA, transferImgChannelB;
 
 	/** allocates output images, adds agents, renders the first frame */
 	void init(void);
