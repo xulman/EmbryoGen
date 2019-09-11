@@ -1,3 +1,4 @@
+#include <TransferImage.h>
 #include "Simulation.h"
 
 // -----------------------------------------------------------------------------
@@ -211,6 +212,12 @@ void Simulation::renderNextFrame(void)
 		sprintf(fn,"mask%03d.tif",frameCnt);
 		REPORT("Saving " << fn << ", hold on...");
 		imgMask.SaveImage(fn);
+
+		if (transferMaskImgChannel != NULL)
+		{
+			REPORT("Sending " << fn << " on " << transferMaskImgChannel->getURL() << ", hold on...");
+			transferImgs(imgMask,*transferMaskImgChannel);
+		}
 	}
 
 	if (isProducingOutput(imgPhantom))
@@ -218,6 +225,12 @@ void Simulation::renderNextFrame(void)
 		sprintf(fn,"phantom%03d.tif",frameCnt);
 		REPORT("Saving " << fn << ", hold on...");
 		imgPhantom.SaveImage(fn);
+
+		if (transferPhantomImgChannel != NULL)
+		{
+			REPORT("Sending " << fn << " on " << transferPhantomImgChannel->getURL() << ", hold on...");
+			transferImgs(imgPhantom,*transferPhantomImgChannel);
+		}
 	}
 
 	if (isProducingOutput(imgOptics))
@@ -225,6 +238,12 @@ void Simulation::renderNextFrame(void)
 		sprintf(fn,"optics%03d.tif",frameCnt);
 		REPORT("Saving " << fn << ", hold on...");
 		imgOptics.SaveImage(fn);
+
+		if (transferOpticsImgChannel != NULL)
+		{
+			REPORT("Sending " << fn << " on " << transferOpticsImgChannel->getURL() << ", hold on...");
+			transferImgs(imgOptics,*transferOpticsImgChannel);
+		}
 	}
 
 	if (isProducingOutput(imgFinal))
@@ -234,6 +253,12 @@ void Simulation::renderNextFrame(void)
 		doPhaseIIandIII();
 		REPORT("Saving " << fn << ", hold on...");
 		imgFinal.SaveImage(fn);
+
+		if (transferFinalImgChannel != NULL)
+		{
+			REPORT("Sending " << fn << " on " << transferFinalImgChannel->getURL() << ", hold on...");
+			transferImgs(imgFinal,*transferFinalImgChannel);
+		}
 
 		if (isProducingOutput(imgMask)) mitogen::ComputeSNR(imgFinal,imgMask);
 	}
@@ -383,4 +408,79 @@ void Simulation::doPhaseIIandIII(void)
 #else
 	REPORT("WARNING: Empty function, no synthoscopy is going on.");
 #endif
+}
+
+
+// -----------------------------------------------------------------------------
+template <typename T>
+void Simulation::transferImg(const i3d::Image3d<T>& img, const std::string& URL) const
+{
+	if (URL.empty()) return;
+
+	try {
+		imgParams_t imgParams;
+		imgParams.dim = 3;
+		imgParams.sizes = new int[3];
+		imgParams.sizes[0] = (int)img.GetSizeX();
+		imgParams.sizes[1] = (int)img.GetSizeY();
+		imgParams.sizes[2] = (int)img.GetSizeZ();
+		imgParams.voxelType = sizeof(*img.GetFirstVoxelAddr()) == 2 ? "UnsignedShortType" : "FloatType";
+		imgParams.backendType = std::string("PlanarImg"); //IMPORTANT
+
+		connectionParams_t cnnParams;
+		StartSendingOneImage(imgParams,cnnParams,URL.c_str(),30);
+
+		//set and send metadata
+		std::list<std::string> metaData;
+		//IMPORTANT two lines: 'imagename' and 'some name with allowed whitespaces'
+		metaData.push_back(std::string("imagename"));
+		metaData.push_back(std::string("EmbryoGen's Image(s)"));
+		SendMetadata(cnnParams,metaData);
+
+		//send the raw pixel image data
+		//ORIG// TransmitOneImage(cnnParams,imgParams,img.GetFirstVoxelAddr());
+
+		if (sizeof(*img.GetFirstVoxelAddr()) == 2)
+			TransmitOneImage(cnnParams,imgParams,(unsigned short*)img.GetFirstVoxelAddr());
+		else
+			TransmitOneImage(cnnParams,imgParams,(float*)img.GetFirstVoxelAddr());
+
+		//close the connection, calls also cnnParams.clear()
+		FinishSendingOneImage(cnnParams);
+
+		//clean up...
+		imgParams.clear();
+	}
+	catch (std::exception* e)
+	{
+		REPORT("Transmission problem: " << e->what());
+	}
+}
+
+
+template <typename T>
+void Simulation::transferImgs(const i3d::Image3d<T>& img, ImagesAsEventsSender& channel) const
+{
+	try {
+		imgParams_t imgParams;
+		imgParams.dim = 3;
+		imgParams.sizes = new int[3];
+		imgParams.sizes[0] = (int)img.GetSizeX();
+		imgParams.sizes[1] = (int)img.GetSizeY();
+		imgParams.sizes[2] = (int)img.GetSizeZ();
+		imgParams.voxelType = sizeof(*img.GetFirstVoxelAddr()) == 2 ? "UnsignedShortType" : "FloatType";
+		imgParams.backendType = std::string("PlanarImg"); //IMPORTANT
+
+		if (sizeof(*img.GetFirstVoxelAddr()) == 2)
+			channel.sendImage(imgParams,(unsigned short*)img.GetFirstVoxelAddr());
+		else
+			channel.sendImage(imgParams,(float*)img.GetFirstVoxelAddr());
+
+		//clean up...
+		imgParams.clear();
+	}
+	catch (std::exception* e)
+	{
+		REPORT("Transmission problem: " << e->what());
+	}
 }
