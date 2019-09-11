@@ -123,6 +123,13 @@ public:
 	{
 		//set my "grid pixel" to mark I was alive
 		mask.SetVoxel((size_t)x,(size_t)y,0, (i3d::GRAY16)ID);
+
+		//one agent will disable producing mask images after it was created at least once
+		if (ID == 1 && currTime == 0.1f)
+		{
+			DEBUG_REPORT("stopping the production of the maskXXX.tif");
+			Officer->disableProducingOutput(mask);
+		}
 	}
 
 	void drawTexture(i3d::Image3d<float>& phantom, i3d::Image3d<float>& indices)
