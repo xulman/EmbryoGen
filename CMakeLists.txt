@@ -115,6 +115,12 @@ endif()
 find_path(INC_CPPZMQ "zmq.hpp" DOC "EmbryoGen, being a C++ project, needs cppzmq (zmq.hpp) installed around libzmq.")
 include_directories(${INC_CPPZMQ})
 
+# ImgTransfer code
+find_path(INC_DAISwp13 "TransferImage.h" DOC "Locate TransferImage.h from the C++ flavour of the DAIS-wp13 images transfer project.")
+find_library(LIB_DAISwp13 DAIS-wp13.a)
+include_directories(${INC_DAISwp13})
+set(LIBS ${LIBS} ${LIB_DAISwp13})
+
 #----------------------------------------------
 # TARGET LINKING - FURTHER-LEVEL REQUIRED LIBS
 #----------------------------------------------

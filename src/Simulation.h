@@ -5,6 +5,7 @@
 #include <thread>
 #include <list>
 #include <i3d/image3d.h>
+#include <TransferImage.h>
 
 #include "util/report.h"
 #include "TrackRecord_CTC.h"
@@ -125,7 +126,9 @@ public:
 	/** initializes the simulation parameters */
 	Simulation(void)
 		: sceneOffset(0.f),                     //[micrometer]
-		  sceneSize(480.f,220.f,220.f)          //[micrometer]
+		  sceneSize(480.f,220.f,220.f),         //[micrometer]
+		  transferImgChannelA("localhost:54545",30,"EmbryoGen's Image(s)"), //NB: no connection yet
+		  transferImgChannelB("localhost:54546",30,"EmbryoGen's Image(s)")  //NB: no connection yet
 	{
 		Vector3d<float> imgRes(2.0f,2.0f,2.0f); //[pixels per micrometer]
 		setOutputImgSpecs(sceneOffset,sceneSize, imgRes);
@@ -143,6 +146,12 @@ public:
 		displayUnit.RegisterUnit( new SceneryBufferedDisplayUnit("localhost:8765") );
 		//displayUnit.RegisterUnit( new SceneryBufferedDisplayUnit("10.1.202.7:8765") );     //laptop @ Vlado's office
 		//displayUnit.RegisterUnit( new SceneryBufferedDisplayUnit("192.168.3.110:8765") );  //PC     @ Vlado's home
+
+		//setup routing of img transfers, currently two channels are available
+		//transferPhantomImgChannel = &transferImgChannelA;
+		transferOpticsImgChannel  = &transferImgChannelA;
+		//transferMaskImgChannel    = &transferImgChannelB;
+		//transferFinalImgChannel   = &transferImgChannelB;
 
 #ifdef ENABLE_FILOGEN_REALPSF
 		char psfFilename[] = "../2013-07-25_1_1_9_0_2_0_0_1_0_0_0_0_9_12.ics";
@@ -224,6 +233,24 @@ public:
 		return (img.GetImageSize() > 0);
 	}
 
+	/** util method to transfer image to the URL,
+	    no transfer occurs if the URL is not defined */
+	template <typename T>
+	void transferImg(const i3d::Image3d<T>& img, const std::string& URL) const;
+
+	/** util method to transfer sequence of images over the same connection channel */
+	template <typename T>
+	void transferImgs(const i3d::Image3d<T>& img, DAIS::ImagesAsEventsSender& channel) const;
+
+	/** where to transfer images with defaultImgTransferChannel,
+	    leave set to NULL to prohibit transfers of respective images */
+	DAIS::ImagesAsEventsSender* transferMaskImgChannel    = NULL;
+	DAIS::ImagesAsEventsSender* transferPhantomImgChannel = NULL;
+	DAIS::ImagesAsEventsSender* transferOpticsImgChannel  = NULL;
+	DAIS::ImagesAsEventsSender* transferFinalImgChannel   = NULL;
+
+	/** the actual image transfer channels to choose from */
+	DAIS::ImagesAsEventsSender transferImgChannelA, transferImgChannelB;
 
 	/** allocates output images, adds agents, renders the first frame */
 	void init(void);
