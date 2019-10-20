@@ -13,12 +13,24 @@
 #define REPORT(x)        std::cout << __SHORTFILE__ << "::" << __FUNCTION__ << "(): " << x << std::endl;
 #define REPORT_NOENDL(x) std::cout << __SHORTFILE__ << "::" << __FUNCTION__ << "(): " << x;
 
+#define REPORT_NOHEADER(x)         std::cout << x << std::endl;
+#define REPORT_NOHEADER_NOENDL(x)  std::cout << x;
+#define REPORT_NOHEADER_JUSTENDL() std::cout << std::endl;
+
 #ifdef DEBUG
 	#define DEBUG_REPORT(x)         REPORT(x)
 	#define DEBUG_REPORT_NOENDL(x)  REPORT_NOENDL(x)
+
+	#define DEBUG_REPORT_NOHEADER(x)          REPORT_NOHEADER(x)
+	#define DEBUG_REPORT_NOHEADER_NOENDL(x)   REPORT_NOHEADER_NOENDL(x)
+	#define DEBUG_REPORT_NOHEADER_JUSTENDL()  REPORT_NOHEADER_JUSTENDL()
 #else
 	#define DEBUG_REPORT(x)
 	#define DEBUG_REPORT_NOENDL(x)
+
+	#define DEBUG_REPORT_NOHEADER(x)
+	#define DEBUG_REPORT_NOHEADER_NOENDL(x)
+	#define DEBUG_REPORT_NOHEADER_JUSTENDL()
 #endif
 
 /** to be used in constructs such as:  throw new std::runtime_error( EREPORT("refuse to deal with NULL agent.") ); */
