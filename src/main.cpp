@@ -24,11 +24,11 @@ int main(int argc, char** argv)
 		delete s;     //calls also destructor for very final clean up
 		return (0);
 	}
-	catch (const char *e)
+	catch (const char* e)
 	{
 		std::cout << "Got this message: " << e << "\n\n";
 	}
-	catch (std::string &e)
+	catch (std::string& e)
 	{
 		std::cout << "Got this message: " << e << "\n\n";
 	}

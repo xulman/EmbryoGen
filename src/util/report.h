@@ -2,6 +2,7 @@
 #define REPORT_H
 
 #include <iostream>
+#include <sstream>
 #include <cstring>
 #include <chrono>
 
@@ -24,7 +25,7 @@
 #define EREPORT(x) std::string(__SHORTFILE__).append("::").append(__FUNCTION__).append("(): ").append(x)
 
 /** shortcut for the often-used std::runtime_error exception:  throw ERROR_REPORT("refuse to deal with NULL agent."); */
-#define ERROR_REPORT(x)  new std::runtime_error( EREPORT(x) )
+#define ERROR_REPORT(x)  new std::runtime_error( EREPORT( (std::ostringstream() << x).str() ) )
 
 /** any AbstractAgent-derived agent can use this to label its own report messages,
     e.g. DEBUG_REPORT(IDSIGN << "reporting signed message"); */
