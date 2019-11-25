@@ -119,7 +119,7 @@ include_directories(${INC_CPPZMQ})
 
 # ImgTransfer code
 find_path(INC_DAISwp13 "TransferImage.h" DOC "Locate TransferImage.h from the C++ flavour of the DAIS-wp13 images transfer project.")
-find_library(LIB_DAISwp13 DAIS-wp13.a)
+find_library(LIB_DAISwp13 libDAIS-wp13.so)
 include_directories(${INC_DAISwp13})
 set(LIBS ${LIBS} ${LIB_DAISwp13})
 
@@ -173,14 +173,36 @@ endif (SEARCH_ALL_DEPLIBS)
 # TARGET LINKING
 #----------------
 #set(CMAKE_CXX_FLAGS "-ldl -lm -lpthread -pthread")
+
+#OPTION (USE_OpenMP "Use OpenMP for single node parallelization" ON)
+if(USE_OpenMP)
+  find_package(OpenMP)
+  if(NOT TARGET OpenMP::OpenMP_CXX)
+    find_package(Threads REQUIRED)
+    add_library(OpenMP::OpenMP_CXX IMPORTED INTERFACE)
+    set_property(TARGET OpenMP::OpenMP_CXX
+                 PROPERTY INTERFACE_COMPILE_OPTIONS ${OpenMP_CXX_FLAGS})
+    # Only works if the same flag is passed to the linker; use CMake 3.9+ otherwise (Intel, AppleClang)
+    set_property(TARGET OpenMP::OpenMP_CXX
+                 PROPERTY INTERFACE_LINK_LIBRARIES ${OpenMP_CXX_FLAGS} Threads::Threads)
+  endif()
+endif(USE_OpenMP)
+
 if (MPI_VERSION)
 	add_definitions(-DMPI)
 	find_package(MPI REQUIRED)
-	target_link_libraries(embryogen PRIVATE MPI_C ${LIBS} libzmq)
+	if (USE_OpenMP)
+	  target_link_libraries(embryogen PRIVATE ${MPI_C_LIBRARIES} OpenMP::OpenMP_CXX ${LIBS} libzmq)
+	else(USE_OpenMP)
+	  target_link_libraries(embryogen PRIVATE ${MPI_C_LIBRARIES} ${LIBS} libzmq)
+	endif(USE_OpenMP)
 	#target_link_libraries(embryogen PRIVATE ${MPI_C_LIBRARIES})
 	#target_include_directories(SYSTEM ${MPI_INCLUDE_PATH})
 	#add_definitions(-DOMPI_SKIP_MPICXX)
 else (MPI_VERSION)
-	target_link_libraries(embryogen ${LIBS} libzmq)
+	if (USE_OpenMP)
+	  target_link_libraries(embryogen OpenMP::OpenMP_CXX ${LIBS} libzmq)
+	else(USE_OpenMP)
+	  target_link_libraries(embryogen ${LIBS} libzmq)
+	endif(USE_OpenMP)
 endif (MPI_VERSION)
-
