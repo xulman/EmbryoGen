@@ -24,6 +24,8 @@ else (DEBUG_VERSION)
 		set(CMAKE_BUILD_TYPE "RELEASE" CACHE STATIC "" FORCE)
 endif (DEBUG_VERSION)
 
+option(MPI_VERSION "Shall I use MPI?" OFF)
+
 #-------------------------
 # USE STATIC LIBS OR NOT?
 #-------------------------
@@ -170,4 +172,15 @@ endif (SEARCH_ALL_DEPLIBS)
 #----------------
 # TARGET LINKING
 #----------------
-target_link_libraries(embryogen ${LIBS} libzmq-static)
+#set(CMAKE_CXX_FLAGS "-ldl -lm -lpthread -pthread")
+if (MPI_VERSION)
+	add_definitions(-DMPI)
+	find_package(MPI REQUIRED)
+	target_link_libraries(embryogen PRIVATE MPI_C ${LIBS} libzmq)
+	#target_link_libraries(embryogen PRIVATE ${MPI_C_LIBRARIES})
+	#target_include_directories(SYSTEM ${MPI_INCLUDE_PATH})
+	#add_definitions(-DOMPI_SKIP_MPICXX)
+else (MPI_VERSION)
+	target_link_libraries(embryogen ${LIBS} libzmq)
+endif (MPI_VERSION)
+
