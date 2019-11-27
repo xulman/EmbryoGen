@@ -5,6 +5,10 @@
 #include "../../util/Vector3d.h"
 #include "../../util/report.h"
 
+//instead of the #include statement, the FrontOfficer type is only declared to exists,
+//FrontOfficer's definition depends on Scenario and so we'd end up in a definitions loop
+class FrontOfficer;
+
 /**
  * Container of "external", declarative/descriptive parameters of
  * the simulated scene. Some parameters are immutable, some parameters'
@@ -279,7 +283,7 @@ public:
 	    The scenario will be divided into 'noOfAllFractions' and this call
 	    is responsible only for the portion given by this 'fractionNumber'.
 	    This method is called only from all FOs, not from the Direktor. */
-	virtual void initializeAgents(int fractionNumber, int noOfAllFractions) =0;
+	virtual void initializeAgents(FrontOfficer* fo, int fractionNumber, int noOfAllFractions) =0;
 
 	/** A callback that triggers SceneControls::updateControls() after every
 	    full simulation round is over. This method is called from the Direktor
@@ -292,7 +296,7 @@ public:
 	    not from any FO. */
 	virtual void initializePhaseIIandIII()
 	{
-		DEBUG_REPORT("This scenario is not using own specific routine.");
+		DEBUG_REPORT("This scenario is using the default routine.");
 
 #ifdef ENABLE_FILOGEN_REALPSF
 		const char psfFilename[] = "../2013-07-25_1_1_9_0_2_0_0_1_0_0_0_0_9_12.ics";
@@ -306,7 +310,7 @@ public:
 	    their "enabled" states (see SceneControls::isProducingOutput()). */
 	virtual void doPhaseIIandIII()
 	{
-		DEBUG_REPORT("This scenario is not using own specific routine.");
+		DEBUG_REPORT("This scenario is using the default routine.");
 
 		/* TODO
 		if params.isProducingOutput(params.imgFinal)

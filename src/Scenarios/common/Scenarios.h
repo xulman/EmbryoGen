@@ -4,6 +4,10 @@
 #include <list>
 #include "Scenario.h"
 
+//instead of the #include statement, the FrontOfficer type is only declared to exists,
+//FrontOfficer's definition depends on Scenario and so we'd end up in a definitions loop
+class FrontOfficer;
+
 /** template to create a new scenario that has all the required API to allow it
     to be successfully plugged into the simulator, it uses the DEFAULT digital
     phantom to final image conversion routine, which is however disabled by default
@@ -15,7 +19,7 @@
 	c(): Scenario( provideSceneControls() ) {};                                \
 	SceneControls& provideSceneControls();                                     \
 	void initializeScene() override;                                           \
-	void initializeAgents(int,int) override; };
+	void initializeAgents(FrontOfficer*,int,int) override; };
 
 /** template to create a new scenario that has all the required API to allow it
     to be successfully plugged into the simulator, it provides OWN digital
@@ -28,7 +32,7 @@
 	c(): Scenario( provideSceneControls() ) {};                                \
 	SceneControls& provideSceneControls();                                     \
 	void initializeScene() override;                                           \
-	void initializeAgents(int,int) override;                                   \
+	void initializeAgents(FrontOfficer*,int,int) override;                     \
 	void initializePhaseIIandIII(void) override;                               \
 	void doPhaseIIandIII(void) override; };
 
