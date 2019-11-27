@@ -4,7 +4,7 @@
 #include "../Simulation.h"
 #include "../Agents/Nucleus4SAgent.h"
 #include "../Agents/util/Texture.h"
-#include "Scenarios.h"
+#include "common/Scenarios.h"
 
 class myDragAndTextureNucleus: public Nucleus4SAgent, TextureQuantized, TextureUpdater4S
 {

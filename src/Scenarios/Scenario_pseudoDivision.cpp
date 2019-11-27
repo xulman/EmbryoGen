@@ -2,7 +2,7 @@
 #include "../Geometries/Spheres.h"
 #include "../Simulation.h"
 #include "../Agents/NucleusAgent.h"
-#include "Scenarios.h"
+#include "common/Scenarios.h"
 
 class myNucleusB: public NucleusAgent
 {

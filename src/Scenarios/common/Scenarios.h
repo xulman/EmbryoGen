@@ -1,7 +1,7 @@
 #ifndef SCENARIOS_H
 #define SCENARIOS_H
 
-#include "../Simulation.h"
+#include "../../Simulation.h"
 
 #define CLASS_DECLARATION : public Simulation {                               \
 	void initializeScenario(void) override; };

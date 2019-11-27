@@ -4,7 +4,7 @@
 #include "../Simulation.h"
 #include "../Agents/Nucleus4SAgent.h"
 #include "../Agents/ShapeHinter.h"
-#include "Scenarios.h"
+#include "common/Scenarios.h"
 
 void Scenario_AFewAgents::initializeScenario(void)
 {

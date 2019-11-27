@@ -1,5 +1,5 @@
 #include <i3d/image3d.h>
-#include "Scenarios.h"
+#include "common/Scenarios.h"
 #include "../util/texture/texture.h"
 
 void Scenario_PerlinShowCase::initializeScenario(void)
