@@ -1,36 +1,61 @@
 #ifndef SCENARIOS_H
 #define SCENARIOS_H
 
-#include "../../Simulation.h"
+#include <list>
+#include "Scenario.h"
 
-#define CLASS_DECLARATION : public Simulation {                               \
-	void initializeScenario(void) override; };
-//
-#define CLASS_DECLARATION_WithOwnSynthoscopy : public Simulation {            \
-	void initializeScenario(void) override; void doPhaseIIandIII(void) override; };
+/** template to create a new scenario that has all the required API to allow it
+    to be successfully plugged into the simulator, it uses the DEFAULT digital
+    phantom to final image conversion routine, which is however disabled by default
+    (and one has to enable it with this->params.enableProducingOutput()) called
+    from this->initializeScene() */
+#define SCENARIO_DECLARATION_withDefOptSynthoscopy(c) \
+	class c: public Scenario {                                                 \
+	public:                                                                    \
+	c(): Scenario( provideSceneControls() ) {};                                \
+	SceneControls& provideSceneControls();                                     \
+	void initializeScene() override;                                           \
+	void initializeAgents(int,int) override; };
 
-#define AVAILABLE_SCENARIO(n,c) \
+/** template to create a new scenario that has all the required API to allow it
+    to be successfully plugged into the simulator, it provides OWN digital
+    phantom to final image conversion routine, which is however disabled by default
+    (and one has to enable it with this->params.enableProducingOutput()) called
+    from this->initializeScene() */
+#define SCENARIO_DECLARATION_withItsOwnSynthoscopy(c) \
+	class c: public Scenario {                                                 \
+	public:                                                                    \
+	c(): Scenario( provideSceneControls() ) {};                                \
+	SceneControls& provideSceneControls();                                     \
+	void initializeScene() override;                                           \
+	void initializeAgents(int,int) override;                                   \
+	void initializePhaseIIandIII(void) override;                               \
+	void doPhaseIIandIII(void) override; };
+
+/** a boilerplate code to handle pairing of scenarios with their
+    command line names, and to instantiate the appropriate scenario */
+#define SCENARIO_MATCHING(n,c) \
 	availableScenarios.emplace_back(std::string((n)));                         \
-	if (argc > 1 && simulation == NULL &&                                      \
+	if (argc > 1 && scenario == NULL &&                                        \
 	    availableScenarios.back().find(argv[1]) != std::string::npos)          \
 	{                                                                          \
 		REPORT("Going to use the scenario: " << availableScenarios.back());     \
-		simulation = new (c)();                                                 \
+		scenario = new c();                                                     \
 	}
 
 
-//    regular new class name             just copy this
-class Scenario_AFewAgents                CLASS_DECLARATION
-class Scenario_DrosophilaRegular         CLASS_DECLARATION
-class Scenario_DrosophilaRandom          CLASS_DECLARATION
-class Scenario_pseudoDivision            CLASS_DECLARATION
-class Scenario_dragAndRotate             CLASS_DECLARATION
-class Scenario_withCellCycle             CLASS_DECLARATION
-class Scenario_withTexture               CLASS_DECLARATION_WithOwnSynthoscopy
-class Scenario_dragRotateAndTexture      CLASS_DECLARATION
-class Scenario_phaseIIandIII             CLASS_DECLARATION
-class Scenario_PerlinShowCase            CLASS_DECLARATION
-class Scenario_Parallel                  CLASS_DECLARATION
+//                                          regular class name
+SCENARIO_DECLARATION_withDefOptSynthoscopy( Scenario_AFewAgents )
+SCENARIO_DECLARATION_withDefOptSynthoscopy( Scenario_DrosophilaRegular )
+SCENARIO_DECLARATION_withDefOptSynthoscopy( Scenario_DrosophilaRandom )
+SCENARIO_DECLARATION_withDefOptSynthoscopy( Scenario_pseudoDivision )
+SCENARIO_DECLARATION_withDefOptSynthoscopy( Scenario_dragAndRotate )
+SCENARIO_DECLARATION_withDefOptSynthoscopy( Scenario_withCellCycle )
+SCENARIO_DECLARATION_withItsOwnSynthoscopy( Scenario_withTexture )
+SCENARIO_DECLARATION_withDefOptSynthoscopy( Scenario_dragRotateAndTexture )
+SCENARIO_DECLARATION_withDefOptSynthoscopy( Scenario_phaseIIandIII )
+SCENARIO_DECLARATION_withDefOptSynthoscopy( Scenario_PerlinShowCase )
+SCENARIO_DECLARATION_withDefOptSynthoscopy( Scenario_Parallel )
 //  ---> ADD NEW SCENARIO HERE AND ALSO BELOW <---
 
 class Scenarios
@@ -40,27 +65,27 @@ private:
 	std::list<std::string> availableScenarios;
 
 	/** the scenario/simulation that is going to be used */
-	Simulation* simulation = NULL;
+	Scenario* scenario = NULL;
 
 public:
 	/** find the right scenario to initialize the simulation with */
 	Scenarios(int argc, char** argv)
 	{
-		//                   nickname            regular class name
-		AVAILABLE_SCENARIO( "aFewAgents",        Scenario_AFewAgents )
-		AVAILABLE_SCENARIO( "regularDrosophila", Scenario_DrosophilaRegular )
-		AVAILABLE_SCENARIO( "randomDrosophila",  Scenario_DrosophilaRandom )
-		AVAILABLE_SCENARIO( "pseudoDivision",    Scenario_pseudoDivision )
-		AVAILABLE_SCENARIO( "dragAndRotate",     Scenario_dragAndRotate )
-		AVAILABLE_SCENARIO( "cellCycle",         Scenario_withCellCycle )
-		AVAILABLE_SCENARIO( "fluoTexture",       Scenario_withTexture )
-		AVAILABLE_SCENARIO( "dragFluoTexture",   Scenario_dragRotateAndTexture )
-		AVAILABLE_SCENARIO( "synthoscopy",       Scenario_phaseIIandIII )
-		AVAILABLE_SCENARIO( "PerlinShowCase",    Scenario_PerlinShowCase )
-		AVAILABLE_SCENARIO( "parallel",          Scenario_Parallel )
+		//                  nickname            regular class name
+		SCENARIO_MATCHING( "aFewAgents",        Scenario_AFewAgents )
+		SCENARIO_MATCHING( "regularDrosophila", Scenario_DrosophilaRegular )
+		SCENARIO_MATCHING( "randomDrosophila",  Scenario_DrosophilaRandom )
+		SCENARIO_MATCHING( "pseudoDivision",    Scenario_pseudoDivision )
+		SCENARIO_MATCHING( "dragAndRotate",     Scenario_dragAndRotate )
+		SCENARIO_MATCHING( "cellCycle",         Scenario_withCellCycle )
+		SCENARIO_MATCHING( "fluoTexture",       Scenario_withTexture )
+		SCENARIO_MATCHING( "dragFluoTexture",   Scenario_dragRotateAndTexture )
+		SCENARIO_MATCHING( "synthoscopy",       Scenario_phaseIIandIII )
+		SCENARIO_MATCHING( "PerlinShowCase",    Scenario_PerlinShowCase )
+		SCENARIO_MATCHING( "parallel",          Scenario_Parallel )
 		//  ---> ADD NEW SCENARIO HERE (and add definition *cpp file, re-run cmake!) <---
 
-		if (simulation == NULL)
+		if (scenario == NULL)
 		{
 			if (argc == 1)
 			{
@@ -79,14 +104,13 @@ public:
 		}
 
 		//pass the CLI params inside, to be
-		//possibly considered by initializeScenario()
-		simulation->setArgs(argc,argv);
+		//possibly considered by Scenario::initialize...() methods
+		scenario->setArgs(argc,argv);
 	}
 
-
-	Simulation* getSimulation(void)
+	Scenario* getScenario(void)
 	{
-		return simulation;
+		return scenario;
 	}
 };
 #endif
