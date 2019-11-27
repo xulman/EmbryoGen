@@ -1,7 +1,7 @@
 #include "../util/Vector3d.h"
 #include "../Geometries/Spheres.h"
 #include "../Simulation.h"
-#include "Scenarios.h"
+#include "common/Scenarios.h"
 #include "../Agents/NucleusAgent.h"
 #include "../Agents/util/Texture.h"
 #include "../util/texture/texture.h"

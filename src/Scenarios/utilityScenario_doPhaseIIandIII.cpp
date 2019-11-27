@@ -1,5 +1,5 @@
 #include <string>
-#include "Scenarios.h"
+#include "common/Scenarios.h"
 
 void Scenario_phaseIIandIII::initializeScenario(void)
 {

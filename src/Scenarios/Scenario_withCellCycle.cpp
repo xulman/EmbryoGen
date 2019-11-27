@@ -3,7 +3,7 @@
 #include "../Simulation.h"
 #include "../Agents/NucleusAgent.h"
 #include "../Agents/util/CellCycle.h"
-#include "Scenarios.h"
+#include "common/Scenarios.h"
 
 
 class myNucleusC: public NucleusAgent, CellCycle

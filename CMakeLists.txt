@@ -63,6 +63,7 @@ set(SOURCES
 		src/util/synthoscopy/SNR.cpp
 		src/DisplayUnits/SceneryDisplayUnit.cpp
 		src/DisplayUnits/SceneryBufferedDisplayUnit.cpp
+		src/Scenarios/common/Scenario.cpp
 		src/Agents/util/Texture.cpp
 		src/Simulation.cpp
 		src/main.cpp)

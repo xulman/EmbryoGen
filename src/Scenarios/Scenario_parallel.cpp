@@ -4,7 +4,7 @@
 #include "../util/rnd_generators.h"
 #include "../util/Vector3d.h"
 #include "../Geometries/Spheres.h"
-#include "Scenarios.h"
+#include "common/Scenarios.h"
 
 // ------------------ grid placement and related stuff ------------------
 //

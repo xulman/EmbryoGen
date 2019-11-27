@@ -7,7 +7,7 @@
 #include "../Agents/ShapeHinter.h"
 #include "../Agents/TrajectoriesHinter.h"
 #include "../Geometries/util/SpheresFunctions.h"
-#include "Scenarios.h"
+#include "common/Scenarios.h"
 
 class GrowableNucleusRand: public Nucleus4SAgent
 {
