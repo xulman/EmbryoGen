@@ -13,7 +13,9 @@ class FrontOfficer//: public Simulation
 public:
 	FrontOfficer(Scenario& s, const int nextFO, const int myPortion, const int allPortions)
 		: scenario(s), ID(myPortion), nextFOsID(nextFO), FOsCount(allPortions)
-	{}
+	{
+		//create an extra thread to execute the respond_...() methods
+	}
 
 protected:
 	Scenario& scenario;
@@ -31,22 +33,64 @@ public:
 	/** scene heavy inits and adds agents */
 	void init(void)
 	{
+		init1_SMP();
+		init2_SMP();
+	}
+
+	void init1_SMP()
+	{
 		REPORT("FO #" << ID << " initializing now...");
+		currTime = scenario.params.constants.initTime;
 
 		scenario.initializeScene();
 		scenario.initializeAgents(this,ID,FOsCount);
+	}
+	void init2_SMP()
+	{
+#ifdef DISTRIBUTED
+		//in the SMP case, this method will be called explicitly
+		//from the Direktor, and thus the run is synchronized here
+		prepareForUpdateAndPublishAgents();
+		waitHereUntilEveryoneIsHereToo();
 
+		updateAndPublishAgents();
+		waitHereUntilEveryoneIsHereToo();
+#endif
+		reportSituation();
 		REPORT("FO #" << ID << " initialized");
 	}
 
 	/** does the simulation loops, i.e. calls AbstractAgent's methods */
 	void execute(void);
 
+	void reportSituation()
+	{
+		//overlap reports:
+		if (overlapSubmissionsCounter == 0)
+		{
+			DEBUG_REPORT("no overlaps reported at all");
+		}
+		else
+		{
+			DEBUG_REPORT("max overlap: " << overlapMax
+		        << ", avg overlap: " << (overlapSubmissionsCounter > 0 ? overlapAvg/float(overlapSubmissionsCounter) : 0.f)
+		        << ", cnt of overlaps: " << overlapSubmissionsCounter);
+		}
+		overlapMax = overlapAvg = 0.f;
+		overlapSubmissionsCounter = 0;
+
+		REPORT("--------------- " << currTime << " min ("
+		  << agents.size() << " in this FO #" << ID << " / "
+		  << AABBs.size() << " AABBs (entire world), "
+		  << shadowAgents.size() << " cached geometries) ---------------");
+	}
+
 	/** frees simulation agents */
 	void close(void)
 	{
 		//mark before closing is attempted...
 		isProperlyClosedFlag = true;
+		DEBUG_REPORT("running the closing sequence");
 
 		//TODO
 	}
@@ -95,9 +139,29 @@ public:
 	                     const float maxDist,               //threshold dist
 	                     std::list<const ShadowAgent*>& l); //output list
 
+	size_t getSizeOfAABBs()
+	{ return AABBs.size(); }
+
 	/** returns the state of the 'willRenderNextFrameFlag', that is if the
 	    current simulation round with end up with the call to renderNextFrame() */
-	bool willRenderNextFrame(void);
+	bool willRenderNextFrame(void)
+	{ return willRenderNextFrameFlag; }
+
+	/** notifies the agent to enable/disable its detailed drawing routines */
+	void setAgentsDetailedDrawingMode(const int agentID, const bool state)
+	{
+		//find the agentID among currently existing agents...
+		for (auto ag : agents)
+		if (ag->ID == agentID) ag->setDetailedDrawingMode(state);
+	}
+
+	/** notifies the agent to enable/disable its detailed reporting routines */
+	void setAgentsDetailedReportingMode(const int agentID, const bool state)
+	{
+		//find the agentID among currently existing agents...
+		for (auto ag : agents)
+		if (ag->ID == agentID) ag->setDetailedReportingMode(state);
+	}
 
 protected:
 	/** flag to run-once the closing routines */
@@ -115,13 +179,39 @@ protected:
 	    and calculated elsewhere (managed by foreign FO) */
 	std::list<ShadowAgent*> shadowAgents;
 
+	/** list of AABBs of all agents currently active in the entire
+	    simulation, that is, managed by all FOs */
+	std::list<AxisAlignedBoundingBox> AABBs;
+
 	/** current global simulation time [min] */
 	float currTime = 0.0f;
+
+	/** counter of exports/snapshots, used to numerate frames and output image files */
+	int frameCnt = 0;
+
+	/** flag if the renderNextFrame() will be called after this simulation round */
+	bool willRenderNextFrameFlag = false;
+
+	/** housekeeping before the AABBs exchange takes place */
+	void prepareForUpdateAndPublishAgents();
+
+	/** register the new agents, unregister the dead agents;
+	    distribute the new and old existing agents to the sites */
+	void updateAndPublishAgents();
+
+	/** the main execute() method is actually made of this one */
+	void executeInternals(void);
+	/** the main execute() method is actually made of this one */
+	void executeExternals(void);
+	/** local counterpart to the Director::renderNextFrame() */
+	void renderNextFrame(void);
 
 	// ==================== communication methods ====================
 	// these are implemented in either exactly one of the two:
 	// Communication/FrontOfficerSMP.cpp
 	// Communication/FrontOfficerMPI.cpp
+
+	void waitHereUntilEveryoneIsHereToo();
 
 	int  request_getNextAvailAgentID();
 
@@ -130,17 +220,55 @@ protected:
 	void request_closeAgent(const int agentID, const int associatedFO);
 	void request_updateParentalLink(const int childID, const int parentID);
 
-	bool request_willRenderNextFrame();
+	//bool request_willRenderNextFrame();
 
+	void waitFor_publishAgentsAABBs();
+	void notify_publishAgentsAABBs(const int FOsID);
+	void broadcast_AABBofAgent(const ShadowAgent& ag);
+	void respond_AABBofAgent();
+	void respond_CntOfAABBs();
 
-
-
-
+	void respond_setDetailedDrawingMode();
+	void respond_setDetailedReportingMode();
 
 	//not revisited yet
 	void respond_publishGeometry();
 	void respond_renderNextFrame();
 
+/*
+naming nomenclature:
+Since the methods should come in pairs, their names are made
+of three elements: the action and the counter action (e.g.
+ask/answer or doSmth/doneSmth), underscore, and the action
+identifier that helps to see which two methods belong together.
+The pair may be implemented in completely in FO, or in the Direktor,
+or (not exclusively) in both. We have here the following actions:
+
+request_* that typically blocks until the other side does or provides
+          something (in which case the method has some return type);
+          it is a peer to peer communication so request methods on the
+          Direktor's side typically have a parameter that identifies
+          particular FO, this param is typically missing on the FO side
+          since there is only one Direktor (and therefore an obvious peer)
+
+respond_* typically a counter part to the request_ method
+
+
+notify_*  that is a non-blocking request until the other side does something,
+          it is a "fire and forget" event, the same addressing rule applies
+          as for the request methods
+
+waitFor_* blocking counter part to the notify_ methods, the peer waits here until
+          notify signal arrives, it however does not matter who has sent the signal,
+          only the "type" of the signal is important as this method waits only for
+          a signal of the given type
+
+
+broadcast_* is similar to notify, also sends a particular signal (or data),
+            it is also "fire and forget", but it addresses everyone, that is
+            the Direktor and all FOs including yourself; respond_ method is
+            typically the counter part to the broadcast
+*/
 
 private:
 	float overlapMax = 0.f;
@@ -165,9 +293,14 @@ public:
 public:
 	void connectWithDirektor(Director* d)
 	{
-		if (d == NULL) ERROR_REPORT("Provided Director is actually NULL.");
+		if (d == NULL) throw ERROR_REPORT("Provided Director is actually NULL.");
 		Direktor = d;
 	}
+
+	//to allow the Direktor to call methods that would be otherwise
+	//(in the MPI world) called from our internal methods, typically
+	//from the respond_...() ones
+	friend class Director;
 #endif
 };
 #endif

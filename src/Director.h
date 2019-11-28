@@ -13,15 +13,18 @@ class FrontOfficer;
 class Director
 {
 public:
-	Director(Scenario& s, const int allPortions)
-		: scenario(s), FOsCount(allPortions)
-	{}
+	Director(Scenario& s, const int firstFO, const int allPortions)
+		: scenario(s), firstFOsID(firstFO), FOsCount(allPortions)
+	{
+		//create an extra thread to execute the respond_...() methods
+	}
 
 protected:
 	Scenario& scenario;
 
 public:
-	const int FOsCount;
+	/** the firstFOsID is where the round robin chain starts */
+	const int firstFOsID, FOsCount;
 
 	// ==================== simulation methods ====================
 	// these are implemented in:
@@ -31,7 +34,15 @@ public:
 	/** scene heavy inits and synthoscopy warm up */
 	void init(void)
 	{
+		init1_SMP();
+		init2_SMP();
+		init3_SMP();
+	}
+
+	void init1_SMP(void)
+	{
 		REPORT("Direktor initializing now...");
+		currTime = scenario.params.constants.initTime;
 
 		//a bit of stats before we start...
 		const auto& sSum = scenario.params.constants.sceneSize;
@@ -44,18 +55,43 @@ public:
 
 		scenario.initializeScene();
 		scenario.initializePhaseIIandIII();
+	}
+	void init2_SMP(void)
+	{
+		prepareForUpdateAndPublishAgents();
+		waitHereUntilEveryoneIsHereToo();
 
+		updateAndPublishAgents();
+		waitHereUntilEveryoneIsHereToo();
+
+		reportSituation();
 		REPORT("Direktor initialized");
+	}
+	void init3_SMP(void)
+	{
+		//NB: this method is here only for the cosmetic purposes:
+		//    just wanted that in the SMP case the rendering happens
+		//    as the very last operation of the entire init phase
+
+		//will block itself until the full rendering is complete
+		renderNextFrame();
 	}
 
 	/** does the simulation loops, i.e. triggers calls of AbstractAgent's methods in the right order */
 	void execute(void);
+
+	void reportSituation()
+	{
+		REPORT("--------------- " << currTime << " min ("
+		  << agents.size() << " in the entire world) ---------------");
+	}
 
 	/** frees simulation agents, writes the tracks.txt file */
 	void close(void)
 	{
 		//mark before closing is attempted...
 		isProperlyClosedFlag = true;
+		DEBUG_REPORT("running the closing sequence");
 
 		//TODO
 	}
@@ -110,6 +146,35 @@ public:
 	void disableWaitForUserPrompt(void)
 	{ shallWaitForUserPromptFlag = false; }
 
+	/** returns the ID of FO to which a given agent is associated to */
+	int getFOsIDofAgent(const int agentID)
+	{
+		auto ag = agents.begin();
+		while (ag != agents.end())
+		{
+			if (ag->first == agentID) return ag->second;
+			++ag;
+		}
+
+		//TODO
+		//throw ERROR_REPORT("Couldn't find a record about agent " << agentID);
+		throw ERROR_REPORT("Couldn't find a record about an agent");
+	}
+
+	/** notifies the agent to enable/disable its detailed drawing routines */
+	void setAgentsDetailedDrawingMode(const int agentID, const bool state)
+	{
+		int FO = getFOsIDofAgent(agentID);
+		notify_setDetailedDrawingMode(FO,agentID,state);
+	}
+
+	/** notifies the agent to enable/disable its detailed reporting routines */
+	void setAgentsDetailedReportingMode(const int agentID, const bool state)
+	{
+		int FO = getFOsIDofAgent(agentID);
+		notify_setDetailedReportingMode(FO,agentID,state);
+	}
+
 protected:
 	/** flag to run-once the closing routines */
 	bool isProperlyClosedFlag = false;
@@ -124,14 +189,16 @@ protected:
 	std::list< std::pair<int,int> > newAgents, deadAgents;
 
 	/** map of all agents currently active in the simulation,
-		 maps between agent ID and FO ID associated with this agent */
+	    maps between agent ID and FO ID associated with this agent,
+	    the main purpose of this map is to know which FO to ask when
+	    detailed geometry (in a form of the ShadowAgent) is needed */
 	std::list< std::pair<int,int> > agents;
-
-	/** current global simulation time [min] */
-	float currTime = 0.0f;
 
 	/** structure to hold durations of tracks and the mother-daughter relations */
 	TrackRecords_CTC tracks;
+
+	/** current global simulation time [min] */
+	float currTime = 0.0f;
 
 	/** counter of exports/snapshots, used to numerate frames and output image files */
 	int frameCnt = 0;
@@ -146,10 +213,22 @@ protected:
 	/** Flags if agents' drawForDebug() should be called with every this->renderNextFrame() */
 	bool renderingDebug = false;
 
+	/** housekeeping before the AABBs exchange takes place */
+	void prepareForUpdateAndPublishAgents();
+
+	/** register the new agents, unregister the dead agents;
+	    distribute the new and old existing agents to the sites */
+	void updateAndPublishAgents();
+
+	/** Asks all agents to render and raster their state into this.displayUnit and the images */
+	void renderNextFrame(void);
+
 	// ==================== communication methods ====================
 	// these are implemented in either exactly one of the two:
 	// Communication/DirectorSMP.cpp
 	// Communication/DirectorMPI.cpp
+
+	void waitHereUntilEveryoneIsHereToo();
 
 	void respond_getNextAvailAgentID();
 
@@ -157,15 +236,19 @@ protected:
 	void respond_closeAgent();
 	void respond_updateParentalLink();
 
-	void respond_willRenderNextFrameFlag();
+	//void respond_willRenderNextFrameFlag();
 
+	void notify_publishAgentsAABBs(const int FOsID);
+	void waitFor_publishAgentsAABBs();
+	void respond_AABBofAgent();
+	size_t request_CntOfAABBs(const int FOsID);
 
-
-
+	void notify_setDetailedDrawingMode(const int FOsID, const int agentID, const bool state);
+	void notify_setDetailedReportingMode(const int FOsID, const int agentID, const bool state);
 
 	//not revisited yet
+	void request_renderNextFrame(const int FOsID);
 	void request_publishGeometry();
-	void request_renderNextFrame();
 
 #ifndef DISTRIBUTED
 	FrontOfficer* FO = NULL;
@@ -173,7 +256,7 @@ protected:
 public:
 	void connectWithFrontOfficer(FrontOfficer* fo)
 	{
-		if (fo == NULL) ERROR_REPORT("Provided FrontOfficer is actually NULL.");
+		if (fo == NULL) throw ERROR_REPORT("Provided FrontOfficer is actually NULL.");
 		FO = fo;
 	}
 #endif

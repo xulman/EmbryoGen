@@ -313,7 +313,23 @@ public:
 
 	/** A callback to ask this scenario to realize the digital phantom to final
 	    image conversion, acting on the images from this->params according to
-	    their "enabled" states (see SceneControls::isProducingOutput()). */
+	    their "enabled" states (see SceneControls::isProducingOutput()).
+
+	    The idea was:
+	    Initializes (allocates, sets resolution, etc.) and populates (fills content)
+	    the params.imgFinal, which will be saved as the final testing image,
+	    based on the current content of the phantom and/or optics and/or mask image.
+
+	    Depending on the scenario used, some of these (phantom, optics, mask) images
+	    might be empty (voxels are zero), or their image size may be actually be zero.
+	    This really depends on what agents are used and how they are designed. Which
+	    is why this method has became "virtual" and over-ridable in every scenario
+	    to suit its needs.
+
+	    The content of the Simulation::imgPhantom and/or imgOptics images can be
+	    altered in this method because the said variables shall not be used anymore
+	    in the (just finishing) simulation round. Don't change Simulation::imgMask
+	    because this one is used for computation of the SNR. */
 	virtual void doPhaseIIandIII()
 	{
 		DEBUG_REPORT("This scenario is using the default routine.");

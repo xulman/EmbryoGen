@@ -20,12 +20,17 @@ int main(int argc, char** argv)
 		//these two has to come from MPI stack,
 		//for now some fake values:
 		const int MPI_noOfNodesInTotal = 72
-		const int MPI_rankOfThisInstance = 0
+		const int MPI_IDOfThisInstance = 0
 
-		if (MPI_rankOfThisInstance == 0)
+		//this is assuming that MPI clients' IDs form a full
+		//integer interval between 0 and MPI_noOfNodesInTotal-1,
+		//we further consider 0 to be the Direktor's node,
+		//and 1 till MPI_noOfNodesInTotal-1 for IDs for the FOs
+
+		if (MPI_IDOfThisInstance == 0)
 		{
 			//hoho, I'm the Direktor  (NB: Direktor == main simulation loop)
-			d = new Director(s,MPI_noOfNodesInTotal);
+			d = new Director(s,1,MPI_noOfNodesInTotal-1);
 			d->init();     //init the simulation, and render the first frame
 			d->execute();  //execute the simulation, and render frames
 			d->close();    //close the simulation, deletes agents, and save tracks.txt
@@ -33,29 +38,32 @@ int main(int argc, char** argv)
 		else
 		{
 			//I'm FrontOfficer:
-			int thisFOsID = MPI_rankOfThisInstance;
-			int nextFOsID = thisFOsID+1;
+			int thisFOsID = MPI_IDOfThisInstance;
+			int nextFOsID = thisFOsID+1; //builds the round robin schema
 
 			//tell the last FO to send data back to the Direktor
-			if (nextFOsID == MPI_noOfNodesInTotal) nextFOsID = -1;
+			if (nextFOsID == MPI_noOfNodesInTotal) nextFOsID = 0;
 
-			fo = new FrontOfficer(s,nextFOsID, MPI_rankOfThisInstance,MPI_noOfNodesInTotal);
+			fo = new FrontOfficer(s,nextFOsID, MPI_IDOfThisInstance,MPI_noOfNodesInTotal-1);
 			fo->init();    //populate/create my part of the scene
 			fo->execute(); //wait for Direktor's events
 			fo->close();   //deletes my agents
 		}
 #else
 		//single machine case
-		d = new Director(s,1);
-		fo = new FrontOfficer(s,-1, 1,1);
+		d = new Director(s,1,1);
+		fo = new FrontOfficer(s,0, 1,1);
 
 		fo->connectWithDirektor(d);
 		d->connectWithFrontOfficer(fo);
 
 		auto timeHandle = tic();
 
-		d->init();     //init the simulation, and render the first frame
-		fo->init();    //populate/create my part of the scene
+		d->init1_SMP();  //init the simulation
+		fo->init1_SMP(); //create my part of the scene
+		d->init2_SMP();  //init the simulation
+		fo->init2_SMP(); //populate the simulation
+		d->init3_SMP();  //and render the first frame
 
 		//no active waiting for Direktor's events, the respective
 		//FOs' methods will be triggered directly from the Direktor
