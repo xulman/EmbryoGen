@@ -1,27 +1,77 @@
 #include <iostream>
 #include <i3d/basic.h>
-#include "Simulation.h"
-#include "Scenarios/Scenarios.h"
+#include "Scenarios/common/Scenario.h"
+#include "Scenarios/common/Scenarios.h"
+#include "Director.h"
+#include "FrontOfficer.h"
 
 int main(int argc, char** argv)
 {
-	Simulation* s = NULL;
+	Director* d = NULL;
+	FrontOfficer* fo = NULL;
 
 	try
 	{
-		s = Scenarios(argc,argv).getSimulation();
+		//the Scenario object is always created because it contains
+		//scenario-specific parameters and is used by the Director and all FOs
+		Scenario& s = Scenarios(argc,argv).getScenario();
+
+#ifdef DISTRIBUTED
+		//these two has to come from MPI stack,
+		//for now some fake values:
+		const int MPI_noOfNodesInTotal = 72
+		const int MPI_rankOfThisInstance = 0
+
+		if (MPI_rankOfThisInstance == 0)
+		{
+			//hoho, I'm the Direktor  (NB: Direktor == main simulation loop)
+			d = new Director(s,MPI_noOfNodesInTotal);
+			d->init();     //init the simulation, and render the first frame
+			d->execute();  //execute the simulation, and render frames
+			d->close();    //close the simulation, deletes agents, and save tracks.txt
+		}
+		else
+		{
+			//I'm FrontOfficer:
+			int thisFOsID = MPI_rankOfThisInstance;
+			int nextFOsID = thisFOsID+1;
+
+			//tell the last FO to send data back to the Direktor
+			if (nextFOsID == MPI_noOfNodesInTotal) nextFOsID = -1;
+
+			fo = new FrontOfficer(s,nextFOsID, MPI_rankOfThisInstance,MPI_noOfNodesInTotal);
+			fo->init();    //populate/create my part of the scene
+			fo->execute(); //wait for Direktor's events
+			fo->close();   //deletes my agents
+		}
+#else
+		//single machine case
+		d = new Director(s,1);
+		fo = new FrontOfficer(s,-1, 1,1);
+
+		fo->connectWithDirektor(d);
+		d->connectWithFrontOfficer(fo);
 
 		auto timeHandle = tic();
 
-		s->init();    //init the simulation, and render the first frame
-		s->execute(); //execute the simulation, and render frames
-		s->close();   //close the simulation, deletes agents, and save tracks.txt
+		d->init();     //init the simulation, and render the first frame
+		fo->init();    //populate/create my part of the scene
+
+		//no active waiting for Direktor's events, the respective
+		//FOs' methods will be triggered directly from the Direktor
+		d->execute();  //execute the simulation, and render frames
+
+		d->close();    //close the simulation, deletes agents, and save tracks.txt
+		fo->close();   //deletes my agents
 
 		REPORT("simulation required " << toc(timeHandle));
+#endif
 
 		std::cout << "Happy end.\n\n";
 
-		delete s;     //calls also destructor for very final clean up
+		//calls also destructor for very final clean up
+		if (d  != NULL) delete d;
+		if (fo != NULL) delete fo;
 		return (0);
 	}
 	catch (const char* e)
@@ -53,12 +103,17 @@ int main(int argc, char** argv)
 		std::cout << "System exception.\n\n";
 	}
 
-	//calls destructor for very final clean up, it will also call
-	//the Simulation::close() if it has not been called before...
-	if (s != NULL)
+	//calls destructor for very final clean up, which may also call
+	//the respective close() methods if they had not been called before...
+	if (d != NULL)
 	{
-		REPORT("trying to close (and save the most from) the simulation");
-		delete s;
+		REPORT("trying to close (and save the most from) the simulation's Direktor");
+		delete d;
+	}
+	if (fo != NULL)
+	{
+		REPORT("trying to close (and save the most from) the simulation's FO #" << fo->getID());
+		delete fo;
 	}
 	return (1);
 }

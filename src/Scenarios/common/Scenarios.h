@@ -112,9 +112,9 @@ public:
 		scenario->setArgs(argc,argv);
 	}
 
-	Scenario* getScenario(void)
+	Scenario& getScenario(void)
 	{
-		return scenario;
+		return *scenario;
 	}
 };
 #endif
