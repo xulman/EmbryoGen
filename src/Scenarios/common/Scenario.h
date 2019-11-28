@@ -6,8 +6,10 @@
 #include "../../util/report.h"
 
 //instead of the #include statement, the FrontOfficer type is only declared to exists,
-//FrontOfficer's definition depends on Scenario and so we'd end up in a definitions loop
+//FrontOfficer's definition depends on Scenario and so we'd end up in a definitions loop,
+//and the same holds for the Director type
 class FrontOfficer;
+class Director;
 
 /**
  * Container of "external", declarative/descriptive parameters of
@@ -51,7 +53,7 @@ public:
 
 	/** the callback method that is regularly executed by the
 	    Direktor and all FOs after every full simulation round is over */
-	virtual void updateControls(const float currTime)
+	virtual void updateControls(const float)
 	{ DEBUG_REPORT("This scenario is not updating its controls."); }
 
 
@@ -245,6 +247,10 @@ public:
 	Scenario(SceneControls& params)
 		: params(params)
 	{}
+
+	// to shortcut the Direktor's and FOs' access to this->params
+	friend class FrontOfficer;
+	friend class Director;
 
 protected:
 	/** the control "module" for this scenario which comes via the c'tor
