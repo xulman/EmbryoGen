@@ -2,6 +2,7 @@
 #define REPORT_H
 
 #include <iostream>
+#include <sstream>
 #include <cstring>
 #include <chrono>
 
@@ -32,8 +33,12 @@
 	#define DEBUG_REPORT_NOHEADER_JUSTENDL()
 #endif
 
+/** calls a no-parameter, string-returning lambda that is defined on demand, inprinting the given
+    stream x into its definition, and the execution of it returns the desired string */
+#define buildStringFromStream(x) [](){ std::ostringstream qqq; qqq << x; return qqq.str(); }()
+
 /** to be used in constructs such as:  throw new std::runtime_error( EREPORT("refuse to deal with NULL agent.") ); */
-#define EREPORT(x) std::string(__SHORTFILE__).append("::").append(__FUNCTION__).append("(): ").append(x)
+#define EREPORT(x) std::string(__SHORTFILE__).append("::").append(__FUNCTION__).append("(): ").append( buildStringFromStream(x) )
 
 /** shortcut for the often-used std::runtime_error exception:  throw ERROR_REPORT("refuse to deal with NULL agent."); */
 #define ERROR_REPORT(x)  new std::runtime_error( EREPORT(x) )
