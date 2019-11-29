@@ -402,6 +402,13 @@ public:
 		return i3d::Vector3d<T>(x,y,z);
 	}
 
+	void toScalars(T* x, T* y, T* z) const
+	{
+		*x = this->x;
+		*y = this->y;
+		*z = this->z;
+	}
+
 	/** converts this vector into the "same" vector whose elements
 	    are of another type (e.g., size_t -> float conversion),
 	    creates and returns the converted vector */
@@ -420,6 +427,32 @@ public:
 		x = (T)v.x;
 		y = (T)v.y;
 		z = (T)v.z;
+		return *this;
+	}
+
+	/** resets this vector with the elements (that may be of another
+	    type), returns *this to allow for concatenating of commands... */
+	//TODO would be nice stay with 'from'
+	//     but the xyz pattern was taken instead of Vector<> for vectors
+	//     leading to cannot-cast type of complaints for the line: x=(T)xyz;
+	template <typename FT> //FT = foreign type
+	Vector3d<T>& fromScalars(const FT xx,const FT yy,const FT zz)
+	{
+		x = (T)xx;
+		y = (T)yy;
+		z = (T)zz;
+		return *this;
+	}
+
+	/** resets this vector's elems with the same element (that may be of another
+	    type), returns *this to allow for concatenating of commands... */
+	//TODO would be nice stay with 'from'
+	template <typename FT> //FT = foreign type
+	Vector3d<T>& fromScalar(const FT xyz)
+	{
+		x = (T)xyz;
+		y = (T)xyz;
+		z = (T)xyz;
 		return *this;
 	}
 };
