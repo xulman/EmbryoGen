@@ -79,7 +79,9 @@ else (DISTRIBUTED_VERSION)
 		src/Communication/FrontOfficerSMP.cpp)
 endif (DISTRIBUTED_VERSION)
 
-file(GLOB SCENARIOSOURCES src/Scenarios/*.cpp)
+#TODO: all scenarios are temporarily disabled
+#file(GLOB SCENARIOSOURCES src/Scenarios/*.cpp)
+set(SCENARIOSOURCES src/Scenarios/Scenario_distributed.cpp)
 
 add_executable(embryogen ${SOURCES} ${D_FO_SOURCES} ${SCENARIOSOURCES})
 
