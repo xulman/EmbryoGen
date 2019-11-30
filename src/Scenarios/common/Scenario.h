@@ -5,6 +5,12 @@
 #include "../../util/Vector3d.h"
 #include "../../util/report.h"
 
+//instead of the #include statement, the FrontOfficer type is only declared to exists,
+//FrontOfficer's definition depends on Scenario and so we'd end up in a definitions loop,
+//and the same holds for the Director type
+class FrontOfficer;
+class Director;
+
 /**
  * Container of "external", declarative/descriptive parameters of
  * the simulated scene. Some parameters are immutable, some parameters'
@@ -47,7 +53,7 @@ public:
 
 	/** the callback method that is regularly executed by the
 	    Direktor and all FOs after every full simulation round is over */
-	virtual void updateControls(const float currTime)
+	virtual void updateControls(const float)
 	{ DEBUG_REPORT("This scenario is not updating its controls."); }
 
 
@@ -242,6 +248,10 @@ public:
 		: params(params)
 	{}
 
+	// to shortcut the Direktor's and FOs' access to this->params
+	friend class FrontOfficer;
+	friend class Director;
+
 protected:
 	/** the control "module" for this scenario which comes via the c'tor
 	    (the source object is typically created in new scene's own
@@ -279,7 +289,7 @@ public:
 	    The scenario will be divided into 'noOfAllFractions' and this call
 	    is responsible only for the portion given by this 'fractionNumber'.
 	    This method is called only from all FOs, not from the Direktor. */
-	virtual void initializeAgents(int fractionNumber, int noOfAllFractions) =0;
+	virtual void initializeAgents(FrontOfficer* fo, int fractionNumber, int noOfAllFractions) =0;
 
 	/** A callback that triggers SceneControls::updateControls() after every
 	    full simulation round is over. This method is called from the Direktor
@@ -292,7 +302,7 @@ public:
 	    not from any FO. */
 	virtual void initializePhaseIIandIII()
 	{
-		DEBUG_REPORT("This scenario is not using own specific routine.");
+		DEBUG_REPORT("This scenario is using the default routine.");
 
 #ifdef ENABLE_FILOGEN_REALPSF
 		const char psfFilename[] = "../2013-07-25_1_1_9_0_2_0_0_1_0_0_0_0_9_12.ics";
@@ -303,10 +313,26 @@ public:
 
 	/** A callback to ask this scenario to realize the digital phantom to final
 	    image conversion, acting on the images from this->params according to
-	    their "enabled" states (see SceneControls::isProducingOutput()). */
+	    their "enabled" states (see SceneControls::isProducingOutput()).
+
+	    The idea was:
+	    Initializes (allocates, sets resolution, etc.) and populates (fills content)
+	    the params.imgFinal, which will be saved as the final testing image,
+	    based on the current content of the phantom and/or optics and/or mask image.
+
+	    Depending on the scenario used, some of these (phantom, optics, mask) images
+	    might be empty (voxels are zero), or their image size may be actually be zero.
+	    This really depends on what agents are used and how they are designed. Which
+	    is why this method has became "virtual" and over-ridable in every scenario
+	    to suit its needs.
+
+	    The content of the Simulation::imgPhantom and/or imgOptics images can be
+	    altered in this method because the said variables shall not be used anymore
+	    in the (just finishing) simulation round. Don't change Simulation::imgMask
+	    because this one is used for computation of the SNR. */
 	virtual void doPhaseIIandIII()
 	{
-		DEBUG_REPORT("This scenario is not using own specific routine.");
+		DEBUG_REPORT("This scenario is using the default routine.");
 
 		/* TODO
 		if params.isProducingOutput(params.imgFinal)

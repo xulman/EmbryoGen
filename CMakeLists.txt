@@ -65,12 +65,23 @@ set(SOURCES
 		src/DisplayUnits/SceneryBufferedDisplayUnit.cpp
 		src/Scenarios/common/Scenario.cpp
 		src/Agents/util/Texture.cpp
-		src/Simulation.cpp
+		src/Director.cpp
+		src/FrontOfficer.cpp
 		src/main.cpp)
+
+if (DISTRIBUTED_VERSION)
+	set(D_FO_SOURCES
+		src/Communication/DirectorMPI.cpp
+		src/Communication/FrontOfficerMPI.cpp)
+else (DISTRIBUTED_VERSION)
+	set(D_FO_SOURCES
+		src/Communication/DirectorSMP.cpp
+		src/Communication/FrontOfficerSMP.cpp)
+endif (DISTRIBUTED_VERSION)
 
 file(GLOB SCENARIOSOURCES src/Scenarios/*.cpp)
 
-add_executable(embryogen ${SOURCES} ${SCENARIOSOURCES})
+add_executable(embryogen ${SOURCES} ${D_FO_SOURCES} ${SCENARIOSOURCES})
 
 #--------------------------------------------
 # TARGET LINKING - FIRST-LEVEL REQUIRED LIBS

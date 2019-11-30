@@ -1,5 +1,6 @@
 #include "../Scenarios/common/Scenarios.h"
 #include "../Scenarios/common/Scenario.h"
+#include "../FrontOfficer.h"
 #include "../util/report.h"
 
 // ------------------- constants -------------------
@@ -69,7 +70,7 @@ void testCreatingAndSettingScenario::initializeScene()
 		REPORT("argv[1]=" << argv[1]);
 }
 
-void testCreatingAndSettingScenario::initializeAgents(int fractionNumber,int noOfAllFractions)
+void testCreatingAndSettingScenario::initializeAgents(FrontOfficer* fo, int fractionNumber,int noOfAllFractions)
 {
 	REPORT("preparing " << fractionNumber << "/" << noOfAllFractions);
 }
@@ -97,7 +98,7 @@ SceneControls& testBasicScenario::provideSceneControls()
 void testBasicScenario::initializeScene()
 { REPORT("init Scene"); }
 
-void testBasicScenario::initializeAgents(int fractionNumber,int noOfAllFractions)
+void testBasicScenario::initializeAgents(FrontOfficer* fo, int fractionNumber,int noOfAllFractions)
 { REPORT("add agents " << fractionNumber << "/" << noOfAllFractions); }
 
 class testExtendedScenario: public testBasicScenario

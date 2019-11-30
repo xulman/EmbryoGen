@@ -4,7 +4,7 @@
 #include <i3d/image3d.h>
 #include "../DisplayUnits/DisplayUnit.h"
 #include "../Geometries/Geometry.h"
-class Simulation;
+class FrontOfficer;
 
 /**
  * This class is essentially only a read-only representation of
@@ -111,7 +111,7 @@ public:
 	// ------------- interaction from the Simulation class -------------
 	/** (re)sets the officer to which this agent belongs to, this is also
 	    a communaction handler back to the Simulation class */
-	void setOfficer(Simulation* _officer)
+	void setOfficer(FrontOfficer* _officer)
 	{
 		if (_officer == NULL)
 			throw ERROR_REPORT("got NULL reference on my associated Officer.");
@@ -134,7 +134,7 @@ public:
 	}
 
 protected:
-	Simulation* Officer = NULL;
+	FrontOfficer* Officer = NULL;
 	bool detailedDrawingMode = false;
 	bool detailedReportingMode = false;
 

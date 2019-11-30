@@ -1,0 +1,378 @@
+#include <utility>
+#include <chrono>
+#include <thread>
+#include "Director.h"
+#include "FrontOfficer.h"
+#include "util/synthoscopy/SNR.h"
+
+void Director::execute(void)
+{
+	REPORT("Direktor has just started the simulation");
+
+	const float stopTime = scenario.params.constants.stopTime;
+	const float incrTime = scenario.params.constants.incrTime;
+	const float expoTime = scenario.params.constants.expoTime;
+
+	//run the simulation rounds, one after another one
+	while (currTime < stopTime)
+	{
+		//one simulation round is happening here,
+		//will this one end with rendering?
+		willRenderNextFrameFlag = currTime+incrTime >= (float)frameCnt*expoTime;
+
+#ifndef DISTRIBUTED
+		FO->executeInternals();
+#endif
+		waitHereUntilEveryoneIsHereToo();
+
+		prepareForUpdateAndPublishAgents();
+		waitHereUntilEveryoneIsHereToo();
+
+		updateAndPublishAgents();
+		waitHereUntilEveryoneIsHereToo();
+
+#ifndef DISTRIBUTED
+		FO->executeExternals();
+#endif
+		waitHereUntilEveryoneIsHereToo();
+
+		prepareForUpdateAndPublishAgents();
+		waitHereUntilEveryoneIsHereToo();
+
+		updateAndPublishAgents();
+		waitHereUntilEveryoneIsHereToo();
+
+		// move to the next simulation time point
+		currTime += incrTime;
+		reportSituation();
+
+		// is this the right time to export data?
+		if (willRenderNextFrameFlag)
+		{
+			//will block itself until the full rendering is complete
+			renderNextFrame();
+		}
+
+		//this was promised to happen after every simulation round is over
+		scenario.updateScene( currTime );
+		waitHereUntilEveryoneIsHereToo();
+	}
+}
+
+
+void Director::prepareForUpdateAndPublishAgents()
+{
+	//empty because Direktor is not (yet) managing spatial info
+	//about all agents in the simulation
+
+#ifndef DISTRIBUTED
+	FO->prepareForUpdateAndPublishAgents();
+#endif
+}
+
+
+void Director::updateAndPublishAgents()
+{
+	//since the last call of this method, we have:
+	//list of agents that were active after the last call in 'agents'
+	//subset of these that became inactive in 'deadAgents'
+	//list of newly created in 'newAgents'
+
+	//we essentially only update our "maps"
+	//so that we reliably know "who is living where",
+	//there will be no (network) traffic now because all necessary
+	//notifications had been transferred during the recent simulation
+
+	//remove dead agents from both lists
+	auto ag = deadAgents.begin();
+	while (ag != deadAgents.end())
+	{
+		//remove if agentID matches
+		agents.remove_if([ag](std::pair<int,int> p){ return p.first == ag->first; });
+		ag = deadAgents.erase(ag);
+	}
+
+	//move new agents between both lists
+	agents.splice(agents.begin(), newAgents);
+
+	//now tell the FOs to start interchanging AABBs of their active agents:
+	//notice that every FO should be "prepared" for this since all
+	//must have finished executing their prepareForUpdateAndPublishAgents()
+
+	//notify the first FO to start broadcasting fresh agents' AABBs
+	//this starts the round-robin-chain between FOs
+	notify_publishAgentsAABBs(firstFOsID);
+
+	//wait until we're notified from the last FO
+	//that his broadcasting is over
+	waitFor_publishAgentsAABBs();
+
+	//now that we were assured that all FOs have broadcast their AABBs,
+	//but the messages sent by the last FO might still being processed
+	//by some FOs and so wait here a bit and then ask FO, one by one,
+	//to tell us how many AABBs it currently has
+	std::this_thread::sleep_for((std::chrono::milliseconds)1000);
+
+	//all FOs except myself (assuming i=0 addresses the Direktor)
+	for (int i = 1; i <= FOsCount; ++i)
+	{
+		if (request_CntOfAABBs(i) != agents.size())
+			//TODO
+			//throw ERROR_REPORT("FO #" << i << " does not have a complete list of AABBs");
+			throw ERROR_REPORT("Some FO does not have a complete list of AABBs");
+	}
+}
+
+
+int Director::getNextAvailAgentID()
+{
+	return ++lastUsedAgentID;
+}
+
+
+void Director::startNewAgent(const int agentID,
+                             const int associatedFO,
+                             const bool wantsToAppearInCTCtracksTXTfile)
+{
+	//register the agent for adding into the system
+	newAgents.emplace_back(agentID,associatedFO);
+
+	//CTC logging?
+	if (wantsToAppearInCTCtracksTXTfile)
+		tracks.startNewTrack(agentID, frameCnt);
+}
+
+
+void Director::closeAgent(const int agentID,
+                          const int associatedFO)
+{
+	//register the agent for removing from the system
+	deadAgents.emplace_back(agentID,associatedFO);
+
+	//CTC logging?
+	if (tracks.isTrackFollowed(agentID))
+		tracks.closeTrack(agentID, frameCnt-1);
+}
+
+
+void Director::startNewDaughterAgent(const int childID, const int parentID)
+{
+	//CTC logging: also add the parental link
+	tracks.updateParentalLink(childID, parentID);
+}
+
+
+void Director::renderNextFrame()
+{
+	REPORT("Rendering time point " << frameCnt);
+	SceneControls& sc = scenario.params;
+
+	// ----------- OUTPUT EVENTS -----------
+	//clear the output images
+	sc.imgMask.GetVoxelData()    = 0;
+	sc.imgPhantom.GetVoxelData() = 0;
+	sc.imgOptics.GetVoxelData()  = 0;
+
+	// --------- the big round robin scheme --------- TODO
+	/*
+	//go over all cells, and render them
+	std::list<AbstractAgent*>::const_iterator c=agents.begin();
+	for (; c != agents.end(); c++)
+	{
+		//displayUnit should always exists in some form
+		(*c)->drawTexture(displayUnit);
+		(*c)->drawMask(displayUnit);
+		if (renderingDebug)
+			(*c)->drawForDebug(displayUnit);
+
+		//raster images may not necessarily always exist,
+		//always check for their availability first:
+		if (sc.isProducingOutput(sc.imgPhantom) && sc.isProducingOutput(sc.imgOptics))
+		{
+			(*c)->drawTexture(sc.imgPhantom,sc.imgOptics);
+		}
+		if (sc.isProducingOutput(sc.imgMask))
+		{
+			(*c)->drawMask(sc.imgMask);
+			if (renderingDebug)
+				(*c)->drawForDebug(sc.imgMask); //TODO, should go into its own separate image
+		}
+	}
+	*/
+
+	//render the current frame
+	//TODO
+	/*
+	displayUnit.Flush(); //make sure all drawings are sent before the "tick"
+	displayUnit.Tick( ("Time: "+std::to_string(currTime)).c_str() );
+	displayUnit.Flush(); //make sure the "tick" is sent right away too
+	*/
+
+	//save the images
+	static char fn[1024];
+	if (sc.isProducingOutput(sc.imgMask))
+	{
+		sprintf(fn,"mask%03d.tif",frameCnt);
+		REPORT("Saving " << fn << ", hold on...");
+		sc.imgMask.SaveImage(fn);
+
+		/*
+		if (transferMaskImgChannel != NULL)
+		{
+			REPORT("Sending " << fn << " on " << transferMaskImgChannel->getURL() << ", hold on...");
+			transferImgs(imgMask,*transferMaskImgChannel);
+		}
+		*/
+	}
+
+	if (sc.isProducingOutput(sc.imgPhantom))
+	{
+		sprintf(fn,"phantom%03d.tif",frameCnt);
+		REPORT("Saving " << fn << ", hold on...");
+		sc.imgPhantom.SaveImage(fn);
+
+		/*
+		if (transferPhantomImgChannel != NULL)
+		{
+			REPORT("Sending " << fn << " on " << transferPhantomImgChannel->getURL() << ", hold on...");
+			transferImgs(imgPhantom,*transferPhantomImgChannel);
+		}
+		*/
+	}
+
+	if (sc.isProducingOutput(sc.imgOptics))
+	{
+		sprintf(fn,"optics%03d.tif",frameCnt);
+		REPORT("Saving " << fn << ", hold on...");
+		sc.imgOptics.SaveImage(fn);
+
+		/*
+		if (transferOpticsImgChannel != NULL)
+		{
+			REPORT("Sending " << fn << " on " << transferOpticsImgChannel->getURL() << ", hold on...");
+			transferImgs(imgOptics,*transferOpticsImgChannel);
+		}
+		*/
+	}
+
+	if (sc.isProducingOutput(sc.imgFinal))
+	{
+		sprintf(fn,"finalPreview%03d.tif",frameCnt);
+		REPORT("Creating " << fn << ", hold on...");
+		scenario.doPhaseIIandIII();
+		REPORT("Saving " << fn << ", hold on...");
+		sc.imgFinal.SaveImage(fn);
+
+		/*
+		if (transferFinalImgChannel != NULL)
+		{
+			REPORT("Sending " << fn << " on " << transferFinalImgChannel->getURL() << ", hold on...");
+			transferImgs(imgFinal,*transferFinalImgChannel);
+		}
+		*/
+
+		if (sc.isProducingOutput(sc.imgMask)) mitogen::ComputeSNR(sc.imgFinal,sc.imgMask);
+	}
+
+	++frameCnt;
+
+	// ----------- INPUT EVENTS -----------
+	//if std::cin is closed permanently, wait here a couple of milliseconds
+	//to prevent zeroMQ from flooding the Scenery
+	if (std::cin.eof())
+	{
+		REPORT("waiting 1000 ms to give SimViewer some time to breath...")
+		std::this_thread::sleep_for((std::chrono::milliseconds)1000);
+		return;
+	}
+
+	//finish up here, if user should not be prompted
+	if (!shallWaitForUserPromptFlag) return;
+
+	//wait for key...
+	char key;
+	do {
+		//read the key
+		REPORT_NOENDL("Waiting for a key [and press Enter]: ");
+		std::cin >> key;
+
+		//memorize original key for the inspections handling
+		const char ivwKey = key;
+
+		//some known action?
+		switch (key) {
+		case 'Q':
+			throw ERROR_REPORT("User requested exit.");
+
+		case 'H':
+			//print summary of commands (and their keys)
+			REPORT("key summary:");
+			REPORT("Q - quits the program");
+			REPORT("H - prints this summary");
+			REPORT("E - no operation, just an empty command");
+			REPORT("D - toggles whether agents' drawForDebug() is called");
+			REPORT("I - toggles console (reporting) inspection of selected agents");
+			REPORT("V - toggles visual inspection (in SimViewer) of selected agents");
+			REPORT("W - toggles console and visual inspection of selected agents");
+			break;
+
+		case 'E':
+			//empty action... just a key press eater when user gets lots in the commanding scheme
+			REPORT("No action taken");
+			break;
+
+		case 'D':
+			renderingDebug ^= true;
+			REPORT("Debug rendering toggled to: " << (renderingDebug? "enabled" : "disabled"));
+			break;
+
+		case 'I':
+		case 'V':
+		case 'W':
+			//inspection command(s) is followed by cell sub-command and agent ID(s)
+			REPORT("Entering Inspection toggle mode: press 'e' or 'o' or '1' and agent ID to  enable its inspection");
+			REPORT("Entering Inspection toggle mode: press      any key      and agent ID to disable its inspection");
+			REPORT("Entering Inspection toggle mode: press  any key and 'E'     to leave the Inspection toggle mode");
+			while (key != 'X')
+			{
+				std::cin >> key;
+				bool state = (key == 'e' || key == 'o' || key == '1');
+
+				int id;
+				std::cin >> id;
+
+				if (std::cin.good())
+				{
+					key = 'y'; //to detect if some agent has been modified
+					for (auto c : agents)
+					if (c.first == id)
+					{
+						if (ivwKey != 'I') setAgentsDetailedDrawingMode(c.first,state);
+						if (ivwKey != 'V') setAgentsDetailedReportingMode(c.first,state);
+						REPORT((ivwKey != 'I' ? "vizu " : "")
+						    << (ivwKey != 'V' ? "console " : "")
+						    << "inspection" << (ivwKey == 'W'? "s " : " ")
+						    << (state ? "enabled" : "disabled") << " for ID = " << id);
+						key = 'Y'; //signal we got here
+					}
+
+					if (key == 'y')
+						REPORT("no agent ID = " << id << " found");
+				}
+				else
+				{
+					key = 'X';          //prevent from entering this loop again (but not the outter one!)
+					std::cin.clear();   //prevent from giving up reading
+				}
+				//NB: key is now either 'y' or 'Y', or 'X'
+			}
+			REPORT("Leaving Inspection toggle mode");
+			break;
+
+		default:
+			//signal not-recognized action -> which means "do next simulation batch"
+			key = 0;
+		}
+	}
+	while (key != 0);
+}
