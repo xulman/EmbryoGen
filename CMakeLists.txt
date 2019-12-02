@@ -65,6 +65,7 @@ set(SOURCES
 		src/DisplayUnits/SceneryBufferedDisplayUnit.cpp
 		src/Scenarios/common/Scenario.cpp
 		src/Agents/util/Texture.cpp
+		src/TrackRecord.cpp
 		src/Director.cpp
 		src/FrontOfficer.cpp
 		src/main.cpp)
