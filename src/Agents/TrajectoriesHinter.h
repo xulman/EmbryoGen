@@ -1,5 +1,5 @@
-#ifndef TRAJECTORIESHINTER_H
-#define TRAJECTORIESHINTER_H
+#ifndef AGENTS_TRAJECTORIESHINTER_H
+#define AGENTS_TRAJECTORIESHINTER_H
 
 #include <i3d/morphology.h>
 #include "../util/report.h"

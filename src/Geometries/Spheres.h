@@ -1,5 +1,5 @@
-#ifndef SPHERES_H
-#define SPHERES_H
+#ifndef GEOMETRY_SPHERES_H
+#define GEOMETRY_SPHERES_H
 
 #include "../util/report.h"
 #include "Geometry.h"

@@ -1,5 +1,5 @@
-#ifndef NUCLEUSAGENT_H
-#define NUCLEUSAGENT_H
+#ifndef AGENTS_NUCLEUSAGENT_H
+#define AGENTS_NUCLEUSAGENT_H
 
 #include <list>
 #include <vector>

@@ -1,5 +1,5 @@
-#ifndef NUCLEUS4SAGENT_H
-#define NUCLEUS4SAGENT_H
+#ifndef AGENTS_NUCLEUS4SAGENT_H
+#define AGENTS_NUCLEUS4SAGENT_H
 
 #include "NucleusAgent.h"
 

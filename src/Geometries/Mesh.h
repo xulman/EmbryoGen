@@ -1,5 +1,5 @@
-#ifndef MESH_H
-#define MESH_H
+#ifndef GEOMETRY_MESH_H
+#define GEOMETRY_MESH_H
 
 #include "Geometry.h"
 

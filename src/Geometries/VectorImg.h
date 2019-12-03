@@ -1,5 +1,5 @@
-#ifndef VECTORIMG_H
-#define VECTORIMG_H
+#ifndef GEOMETRY_VECTORIMG_H
+#define GEOMETRY_VECTORIMG_H
 
 #include <i3d/image3d.h>
 #include "../util/report.h"

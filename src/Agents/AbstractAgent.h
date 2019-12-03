@@ -1,5 +1,5 @@
-#ifndef ABSTRACTAGENT_H
-#define ABSTRACTAGENT_H
+#ifndef AGENTS_ABSTRACTAGENT_H
+#define AGENTS_ABSTRACTAGENT_H
 
 #include <i3d/image3d.h>
 #include "../DisplayUnits/DisplayUnit.h"

@@ -1,5 +1,5 @@
-#ifndef SHAPEHINTER_H
-#define SHAPEHINTER_H
+#ifndef AGENTS_SHAPEHINTER_H
+#define AGENTS_SHAPEHINTER_H
 
 #include "../util/report.h"
 #include "../util/surfacesamplers.h"

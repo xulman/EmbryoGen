@@ -1,5 +1,5 @@
-#ifndef MASKIMG_H
-#define MASKIMG_H
+#ifndef GEOMETRY_SCALARIMG_H
+#define GEOMETRY_SCALARIMG_H
 
 #include <i3d/image3d.h>
 #include "Geometry.h"

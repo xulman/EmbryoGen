@@ -1,5 +1,5 @@
-#ifndef _UTIL_SYNTHOSCOPY_FILOGEN_H_
-#define _UTIL_SYNTHOSCOPY_FILOGEN_H_
+#ifndef UTIL_SYNTHOSCOPY_FILOGEN_H
+#define UTIL_SYNTHOSCOPY_FILOGEN_H
 
 /*
  * Virtual Microscope - simulation engine

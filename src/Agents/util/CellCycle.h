@@ -1,5 +1,5 @@
-#ifndef _CELLCYCLE_H_
-#define _CELLCYCLE_H_
+#ifndef CELLCYCLE_H
+#define CELLCYCLE_H
 
 #include <cmath>
 #include "../../util/report.h"
