@@ -56,7 +56,7 @@ void FrontOfficer::notify_publishAgentsAABBs(const int /* FOsID */)
 
 
 /*
- * TODO: RETHINK IT! IS DISCARD EVENT REALLY NEEDED?
+ * TODO:
  * after the push-broadcast round of AABBs it should be clear
  * which agents are now active in the simulation, and
  * every agent decides who is nearby and requests its detailed
@@ -71,11 +71,13 @@ void FrontOfficer::notify_publishAgentsAABBs(const int /* FOsID */)
 
 void FrontOfficer::broadcast_AABBofAgent(const ShadowAgent& ag)
 {
-	//this shall tell other FOs the AABB of the given agent,
+	//this shall tell all (including this one) FOs the AABB of the given agent,
 	//the Direktor actually does not care
 
-	//in this SMP particular implementation we do nothing because
+	//in this SMP particular implementation we do only update ourselves,
 	//there is no other FO and Direktor doesn't care about this update
+	AABBs.emplace_back(ag.getAABB());
+	//TODO string!
 
 	//in MPI world: example:
 	float coords[] = {ag.getAABB().minCorner.x,

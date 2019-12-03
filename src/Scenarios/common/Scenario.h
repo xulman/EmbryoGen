@@ -288,7 +288,8 @@ public:
 	    Method may consider the command-line parameters via this->argc and this->argv.
 	    The scenario will be divided into 'noOfAllFractions' and this call
 	    is responsible only for the portion given by this 'fractionNumber'.
-	    This method is called only from all FOs, not from the Direktor. */
+	    This method is called only from all FOs, not from the Direktor.
+	    Note that the fractionNumber goes from 1 till noOfAllFractions. */
 	virtual void initializeAgents(FrontOfficer* fo, int fractionNumber, int noOfAllFractions) =0;
 
 	/** A callback that triggers SceneControls::updateControls() after every
