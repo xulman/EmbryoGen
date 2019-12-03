@@ -90,6 +90,7 @@ set(SOURCES
 		src/Geometries/ScalarImg.cpp
 		src/Geometries/VectorImg.cpp
 		src/Geometries/Mesh.cpp
+		src/Agents/util/CellCycle.cpp
 		src/Agents/util/Texture.cpp
 		src/Scenarios/common/Scenario.cpp
 		src/TrackRecord.cpp
