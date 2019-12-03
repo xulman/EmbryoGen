@@ -89,30 +89,30 @@ public:
 		Z.GetVoxelData() = 0;
 	}
 
-	/** just for debug purposes: save the vector field.x image to a filename */
-	void saveFFx(const char* filename)
-	{ X.SaveImage(filename); }
+	/** just for debug purposes: save the vector field.x image to a fullFilename */
+	void saveFFx(const char* fullFilename)
+	{ X.SaveImage(fullFilename); }
 
-	/** just for debug purposes: save the vector field.y image to a filename */
-	void saveFFy(const char* filename)
-	{ Y.SaveImage(filename); }
+	/** just for debug purposes: save the vector field.y image to a fullFilename */
+	void saveFFy(const char* fullFilename)
+	{ Y.SaveImage(fullFilename); }
 
-	/** just for debug purposes: save the vector field.z image to a filename */
-	void saveFFz(const char* filename)
-	{ Z.SaveImage(filename); }
+	/** just for debug purposes: save the vector field.z image to a fullFilename */
+	void saveFFz(const char* fullFilename)
+	{ Z.SaveImage(fullFilename); }
 
 	/** just for debug purposes: save the complete vector field (3) images
-	    using 'filename' as a prefix */
-	void saveFF(const char* filename)
+	    using 'filenamesPrefix' as a prefix */
+	void saveFF(const char* filenamesPrefix)
 	{
 		char fn[1024];
-		sprintf(fn,"%s_x.ics",filename);  X.SaveImage(fn);
-		sprintf(fn,"%s_y.ics",filename);  Y.SaveImage(fn);
-		sprintf(fn,"%s_z.ics",filename);  Z.SaveImage(fn);
+		sprintf(fn,"%s_x.ics",filenamesPrefix);  X.SaveImage(fn);
+		sprintf(fn,"%s_y.ics",filenamesPrefix);  Y.SaveImage(fn);
+		sprintf(fn,"%s_z.ics",filenamesPrefix);  Z.SaveImage(fn);
 	}
 
 	/** just for debug purposes: save the image with magnitudes of the vectors to a filename */
-	void saveFFmagnitudes(const char* filename)
+	void saveFFmagnitudes(const char* fullFilename)
 	{
 		//create a new image of the same dimension
 		i3d::Image3d<float> mImg;
