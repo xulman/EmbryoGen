@@ -24,6 +24,28 @@ else (DEBUG_VERSION)
 		set(CMAKE_BUILD_TYPE "RELEASE" CACHE STATIC "" FORCE)
 endif (DEBUG_VERSION)
 
+option(FEATURE_ENABLEPHOTOBLEACHING  "Shall texture particles be loosing their intensity in the phantom image?" OFF)
+option(FEATURE_USEFILOGENSYNTHOSCOPY "Shall synthoscopy code from FiloGen be used instead of the one from MitoGen?" ON)
+option(FEATURE_RUNDISTRIBUTED        "Shall the simulation use MPI (message passing interface) and run distributed?" OFF)
+
+#-------------------------------------------------------
+# TRANSLATE FEATURE REQUESTS INTO PREPROCESSOR CONSTANTS
+#-------------------------------------------------------
+
+if (FEATURE_ENABLEPHOTOBLEACHING)
+	add_definitions(-DENABLED_PHOTOBLEACHING)
+endif (FEATURE_ENABLEPHOTOBLEACHING)
+
+if (FEATURE_USEFILOGENSYNTHOSCOPY)
+	add_definitions(-DENABLE_FILOGEN_PHASEIIandIII)
+else (FEATURE_USEFILOGENSYNTHOSCOPY)
+	add_definitions(-DENABLE_MITOGEN_FINALPREVIEW)
+endif (FEATURE_USEFILOGENSYNTHOSCOPY)
+
+if (FEATURE_RUNDISTRIBUTED)
+	add_definitions(-DDISTRIBUTED)
+endif (FEATURE_RUNDISTRIBUTED)
+
 #-------------------------
 # USE STATIC LIBS OR NOT?
 #-------------------------
@@ -63,8 +85,19 @@ set(SOURCES
 		src/util/synthoscopy/SNR.cpp
 		src/DisplayUnits/SceneryDisplayUnit.cpp
 		src/DisplayUnits/SceneryBufferedDisplayUnit.cpp
-		src/Scenarios/common/Scenario.cpp
+		src/Geometries/Geometry.cpp
+		src/Geometries/Spheres.cpp
+		src/Geometries/ScalarImg.cpp
+		src/Geometries/VectorImg.cpp
+		src/Geometries/Mesh.cpp
+		src/Agents/util/CellCycle.cpp
 		src/Agents/util/Texture.cpp
+		src/Agents/NucleusAgent.cpp
+		src/Agents/Nucleus4SAgent.cpp
+		src/Agents/ShapeHinter.cpp
+		src/Agents/TrajectoriesHinter.cpp
+		src/Scenarios/common/Scenario.cpp
+		src/TrackRecord.cpp
 		src/Director.cpp
 		src/FrontOfficer.cpp
 		src/main.cpp)

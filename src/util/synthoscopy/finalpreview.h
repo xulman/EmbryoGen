@@ -1,5 +1,5 @@
-#ifndef _UTIL_SYNTHOSCOPY_FINALPREVIEW_H_
-#define _UTIL_SYNTHOSCOPY_FINALPREVIEW_H_
+#ifndef UTIL_SYNTHOSCOPY_FINALPREVIEW_H
+#define UTIL_SYNTHOSCOPY_FINALPREVIEW_H
 
 /**********************************************************************
 *

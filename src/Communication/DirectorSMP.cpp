@@ -6,51 +6,70 @@
 
 void Director::respond_getNextAvailAgentID()
 {
+	//this never happens (as FO here talks directly to the Direktor)
+	//MPI world:
+
 	//gets : nothing
 	//gives: int
 
-	//this never happens (as FO here talks directly to the Direktor)
+	/*
 	int sendBackThisNewID = getNextAvailAgentID();
+	*/
 }
 
 
 void Director::respond_startNewAgent()
 {
+	//this never happens (as FO here talks directly to the Direktor)
+	//MPI world:
+
 	//gets : int, int, bool
 	//gives: nothing
 
 	//have to learn from the other party:
+	/*
 	int newAgentID;
 	int associatedFO;
 	bool wantsToAppearInCTCtracksTXTfile;
 
 	startNewAgent(newAgentID,associatedFO,wantsToAppearInCTCtracksTXTfile);
+	*/
 }
 
 
 void Director::respond_closeAgent()
 {
+	//this never happens (as FO here talks directly to the Direktor)
+	//MPI world:
+
 	//gets : int, int
 	//gives: nothing
 
 	//have to learn from the other party:
+	/*
 	int agentID;
 	int associatedFO;
 
 	closeAgent(agentID,associatedFO);
+	*/
 }
 
 
 void Director::respond_updateParentalLink()
 {
+	//this never happens (as FO here talks directly to the Direktor)
+	//MPI world:
+
 	//gets : int, int
 	//gives: nothing
 
 	//have to learn from the other party:
+	/*
 	int childID;
 	int parentID;
 
 	startNewDaughterAgent(childID,parentID);
+	*/
 }
 
 /*
@@ -96,7 +115,7 @@ void Director::respond_AABBofAgent()
 
 size_t Director::request_CntOfAABBs(const int /* FOsID */)
 {
-	return FO->getSizeOfAABBs();
+	return FO->getSizeOfAABBsList();
 }
 
 

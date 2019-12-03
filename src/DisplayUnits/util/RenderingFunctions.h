@@ -8,6 +8,109 @@
 class RenderingFunctions
 {
 public:
+	/** Renders given bounding box into the given DisplayUnit 'du'
+	    under the given 'ID' with the given 'color'. Multiple graphics
+	    elements are required, so a couple of consecutive IDs are used
+	    starting from the given 'ID'. Returned value tells how many
+	    elements were finally used. */
+	template <typename FLOAT>
+	static
+	int drawBox(DisplayUnit& du,
+	            const int ID, const int color,
+	            const Vector3d<FLOAT> &minC,
+	            const Vector3d<FLOAT> &maxC)
+	{
+		//horizontal lines
+		du.DrawLine( ID+0,
+		  minC,
+		  Vector3d<float>(maxC.x,
+		                  minC.y,
+		                  minC.z),color );
+
+		du.DrawLine( ID+1,
+		  Vector3d<float>(minC.x,
+		                  maxC.y,
+		                  minC.z),
+		  Vector3d<float>(maxC.x,
+		                  maxC.y,
+		                  minC.z),color );
+
+		du.DrawLine( ID+2,
+		  Vector3d<float>(minC.x,
+		                  minC.y,
+		                  maxC.z),
+		  Vector3d<float>(maxC.x,
+		                  minC.y,
+		                  maxC.z),color );
+
+		du.DrawLine( ID+3,
+		  Vector3d<float>(minC.x,
+		                  maxC.y,
+		                  maxC.z),
+		  maxC,color );
+
+		//vertical lines
+		du.DrawLine( ID+4,
+		  minC,
+		  Vector3d<float>(minC.x,
+		                  maxC.y,
+		                  minC.z),color );
+
+		du.DrawLine( ID+5,
+		  Vector3d<float>(maxC.x,
+		                  minC.y,
+		                  minC.z),
+		  Vector3d<float>(maxC.x,
+		                  maxC.y,
+		                  minC.z),color );
+
+		du.DrawLine( ID+6,
+		  Vector3d<float>(minC.x,
+		                  minC.y,
+		                  maxC.z),
+		  Vector3d<float>(minC.x,
+		                  maxC.y,
+		                  maxC.z),color );
+
+		du.DrawLine( ID+7,
+		  Vector3d<float>(maxC.x,
+		                  minC.y,
+		                  maxC.z),
+		  maxC,color );
+
+		//"axial" lines
+		du.DrawLine( ID+8,
+		  minC,
+		  Vector3d<float>(minC.x,
+		                  minC.y,
+		                  maxC.z),color );
+
+		du.DrawLine( ID+9,
+		  Vector3d<float>(maxC.x,
+		                  minC.y,
+		                  minC.z),
+		  Vector3d<float>(maxC.x,
+		                  minC.y,
+		                  maxC.z),color );
+
+		du.DrawLine( ID+10,
+		  Vector3d<float>(minC.x,
+		                  maxC.y,
+		                  minC.z),
+		  Vector3d<float>(minC.x,
+		                  maxC.y,
+		                  maxC.z),color );
+
+		du.DrawLine( ID+11,
+		  Vector3d<float>(maxC.x,
+		                  maxC.y,
+		                  minC.z),
+		  maxC,color );
+
+		return 12;
+	}
+
+
 	/** renders (local) grid of lines that align with voxel centres,
 	    that is, the boxes that are created do not represent individual voxels,
 	    returns the number of lines it has created */

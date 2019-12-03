@@ -4,7 +4,8 @@
 #include <list>
 #include <i3d/image3d.h>
 #include "../util/Vector3d.h"
-#include "../DisplayUnits/DisplayUnit.h"
+#include "../DisplayUnits/util/RenderingFunctions.h"
+class DisplayUnit;
 
 /** accuracy of the geometry representation, choose float or double */
 #define FLOAT float
@@ -50,27 +51,8 @@ public:
 	    pixel width */
 	template <typename T>
 	void adaptImage(i3d::Image3d<T>& img,
-	                const Vector3d<float>& res,                                //px/um
-	                const Vector3d<short>& pxFrameWidth = Vector3d<short>(2))  //px
-	const
-	{
-		const Vector3d<float> umFrameWidth( Vector3d<float>().from(pxFrameWidth).elemDivBy(res) );
-
-		Vector3d<float> tmp(minCorner.to<float>());
-		tmp -= umFrameWidth;
-
-		img.SetResolution( i3d::Resolution(res.toI3dVector3d()) );
-		img.SetOffset( tmp.toI3dVector3d() );
-
-		tmp.from(maxCorner-minCorner);
-		tmp += 2.0f * umFrameWidth;
-		tmp.elemMult(res).elemCeil();
-		img.MakeRoom( tmp.to<size_t>().toI3dVector3d() );
-
-		DEBUG_REPORT("from AABB: minCorner=" << minCorner << " um --> maxCorner=" << maxCorner << " um");
-		DEBUG_REPORT(" to image: imgOffset=" << img.GetOffset() << " um, imgSize="
-		             << img.GetSize() << " px, imgRes=" << res << " px/um");
-	}
+	                const Vector3d<float>& res,                                      //px/um
+	                const Vector3d<short>& pxFrameWidth = Vector3d<short>(2)) const; //px
 
 	/** exports this AABB as a "sweeping" box that is given
 	    with the output 'minSweep' and 'maxSweep' corners and
@@ -82,31 +64,7 @@ public:
 	template <typename T>
 	void exportInPixelCoords(const i3d::Image3d<T>& img,
 	                         Vector3d<size_t>& minSweep,
-	                         Vector3d<size_t>& maxSweep) const
-	{
-		//p is minCorner in img's px coordinates
-		Vector3d<FLOAT> p(minCorner);
-		p.toPixels(img.GetResolution().GetRes(),img.GetOffset());
-
-		//make sure minCorner is within the image
-		p.elemMax(Vector3d<FLOAT>(0));
-		p.elemMin(Vector3d<FLOAT>(img.GetSize()));
-
-		//obtain integer px coordinate that is already intersected with image dimensions
-		minSweep.toPixels(p);
-
-		//p is maxCorner in img's px coordinates
-		p = maxCorner;
-		p.toPixels(img.GetResolution().GetRes(),img.GetOffset());
-
-		//make sure minCorner is within the image
-		p.elemMax(Vector3d<FLOAT>(0));
-		p.elemMin(Vector3d<FLOAT>(img.GetSize()));
-
-		//obtain integer px coordinate that is already intersected with image dimensions
-		maxSweep.toPixels(p);
-	}
-
+	                         Vector3d<size_t>& maxSweep) const;
 
 	/** resets AABB (make it ready for someone to start filling it) */
 	void inline reset(void)
@@ -118,129 +76,12 @@ public:
 
 	/** returns SQUARED shortest distance along any axis between this and
 	    the given AABB, or 0.0 if they intersect */
-	FLOAT minDistance(const AxisAlignedBoundingBox& AABB) const
-	{
-		FLOAT M = std::max(minCorner.x,AABB.minCorner.x);
-		FLOAT m = std::min(maxCorner.x,AABB.maxCorner.x);
-		FLOAT dx = M > m ? M-m : 0; //min dist along x-axis
-
-		M = std::max(minCorner.y,AABB.minCorner.y);
-		m = std::min(maxCorner.y,AABB.maxCorner.y);
-		FLOAT dy = M > m ? M-m : 0; //min dist along y-axis
-
-		M = std::max(minCorner.z,AABB.minCorner.z);
-		m = std::min(maxCorner.z,AABB.maxCorner.z);
-		FLOAT dz = M > m ? M-m : 0; //min dist along z-axis
-
-		return (dx*dx + dy*dy + dz*dz);
-	}
+	FLOAT minDistance(const AxisAlignedBoundingBox& AABB) const;
 
 
-	/** Uses AxisAlignedBoundingBox::drawBox() to render this bounding box. */
+	/** Uses RenderingFunctions::drawBox() to render this bounding box. */
 	int drawIt(const int ID, const int color, DisplayUnit& du)
-	{
-		return drawBox(ID,color, minCorner,maxCorner, du);
-	}
-
-	/** Renders given bounding box into the given DisplayUnit 'du'
-	    under the given 'ID' with the given 'color'. Multiple graphics
-	    elements are required, so a couple of consecutive IDs are used
-	    starting from the given 'ID'. Returned value tells how many
-	    elements were finally used. */
-	int drawBox(const int ID, const int color,
-	            const Vector3d<FLOAT> &minC,
-	            const Vector3d<FLOAT> &maxC,
-	            DisplayUnit& du)
-	{
-		//horizontal lines
-		du.DrawLine( ID+0,
-		  minC,
-		  Vector3d<float>(maxC.x,
-		                  minC.y,
-		                  minC.z),color );
-
-		du.DrawLine( ID+1,
-		  Vector3d<float>(minC.x,
-		                  maxC.y,
-		                  minC.z),
-		  Vector3d<float>(maxC.x,
-		                  maxC.y,
-		                  minC.z),color );
-
-		du.DrawLine( ID+2,
-		  Vector3d<float>(minC.x,
-		                  minC.y,
-		                  maxC.z),
-		  Vector3d<float>(maxC.x,
-		                  minC.y,
-		                  maxC.z),color );
-
-		du.DrawLine( ID+3,
-		  Vector3d<float>(minC.x,
-		                  maxC.y,
-		                  maxC.z),
-		  maxC,color );
-
-		//vertical lines
-		du.DrawLine( ID+4,
-		  minC,
-		  Vector3d<float>(minC.x,
-		                  maxC.y,
-		                  minC.z),color );
-
-		du.DrawLine( ID+5,
-		  Vector3d<float>(maxC.x,
-		                  minC.y,
-		                  minC.z),
-		  Vector3d<float>(maxC.x,
-		                  maxC.y,
-		                  minC.z),color );
-
-		du.DrawLine( ID+6,
-		  Vector3d<float>(minC.x,
-		                  minC.y,
-		                  maxC.z),
-		  Vector3d<float>(minC.x,
-		                  maxC.y,
-		                  maxC.z),color );
-
-		du.DrawLine( ID+7,
-		  Vector3d<float>(maxC.x,
-		                  minC.y,
-		                  maxC.z),
-		  maxC,color );
-
-		//"axial" lines
-		du.DrawLine( ID+8,
-		  minC,
-		  Vector3d<float>(minC.x,
-		                  minC.y,
-		                  maxC.z),color );
-
-		du.DrawLine( ID+9,
-		  Vector3d<float>(maxC.x,
-		                  minC.y,
-		                  minC.z),
-		  Vector3d<float>(maxC.x,
-		                  minC.y,
-		                  maxC.z),color );
-
-		du.DrawLine( ID+10,
-		  Vector3d<float>(minC.x,
-		                  maxC.y,
-		                  minC.z),
-		  Vector3d<float>(minC.x,
-		                  maxC.y,
-		                  maxC.z),color );
-
-		du.DrawLine( ID+11,
-		  Vector3d<float>(maxC.x,
-		                  maxC.y,
-		                  minC.z),
-		  maxC,color );
-
-		return 12;
-	}
+	{ return RenderingFunctions::drawBox(du, ID,color, minCorner,maxCorner); }
 };
 
 
@@ -395,8 +236,6 @@ public:
 
 	/** updates this object's own AABB to reflect the current geometry */
 	void updateOwnAABB(void)
-	{
-		updateThisAABB(this->AABB);
-	}
+	{ updateThisAABB(this->AABB); }
 };
 #endif

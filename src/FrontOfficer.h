@@ -3,8 +3,10 @@
 
 #include <list>
 #include "util/report.h"
-#include "Agents/AbstractAgent.h"
 #include "Scenarios/common/Scenario.h"
+#include "Geometries/Geometry.h"
+class AbstractAgent;
+class ShadowAgent;
 class Director;
 
 /** has access to Simulation, to reach its initializeAgents() */
@@ -24,7 +26,7 @@ public:
 	const int ID, nextFOsID, FOsCount;
 
 	/** good old getter for otherwise const'ed public ID */
-	int getID() { return ID; }
+	int getID() const { return ID; }
 
 	// ==================== simulation methods ====================
 	// these are implemented in:
@@ -42,63 +44,18 @@ public:
 		init2_SMP();
 	}
 
-	void init1_SMP()
-	{
-		REPORT("FO #" << ID << " initializing now...");
-		currTime = scenario.params.constants.initTime;
-
-		scenario.initializeScene();
-		scenario.initializeAgents(this,ID,FOsCount);
-	}
-	void init2_SMP()
-	{
-#ifdef DISTRIBUTED
-		//in the SMP case, this method will be called explicitly
-		//from the Direktor, and thus the run is synchronized here
-		prepareForUpdateAndPublishAgents();
-		waitHereUntilEveryoneIsHereToo();
-
-		updateAndPublishAgents();
-		waitHereUntilEveryoneIsHereToo();
-#endif
-		reportSituation();
-		REPORT("FO #" << ID << " initialized");
-	}
+	/** stage 1/2 to do: scene heavy inits and adds agents */
+	void init1_SMP();
+	/** stage 2/2 to do: scene heavy inits and adds agents */
+	void init2_SMP();
 
 	/** does the simulation loops, i.e. calls AbstractAgent's methods */
 	void execute(void);
 
-	void reportSituation()
-	{
-		//overlap reports:
-		if (overlapSubmissionsCounter == 0)
-		{
-			DEBUG_REPORT("no overlaps reported at all");
-		}
-		else
-		{
-			DEBUG_REPORT("max overlap: " << overlapMax
-		        << ", avg overlap: " << (overlapSubmissionsCounter > 0 ? overlapAvg/float(overlapSubmissionsCounter) : 0.f)
-		        << ", cnt of overlaps: " << overlapSubmissionsCounter);
-		}
-		overlapMax = overlapAvg = 0.f;
-		overlapSubmissionsCounter = 0;
-
-		REPORT("--------------- " << currTime << " min ("
-		  << agents.size() << " in this FO #" << ID << " / "
-		  << AABBs.size() << " AABBs (entire world), "
-		  << shadowAgents.size() << " cached geometries) ---------------");
-	}
+	void reportSituation();
 
 	/** frees simulation agents */
-	void close(void)
-	{
-		//mark before closing is attempted...
-		isProperlyClosedFlag = true;
-		DEBUG_REPORT("running the closing sequence");
-
-		//TODO
-	}
+	void close(void);
 
 	/** attempts to clean up, if not done earlier */
 	~FrontOfficer(void)
@@ -144,29 +101,18 @@ public:
 	                     const float maxDist,               //threshold dist
 	                     std::list<const ShadowAgent*>& l); //output list
 
-	size_t getSizeOfAABBs()
-	{ return AABBs.size(); }
+	size_t getSizeOfAABBsList() const;
 
 	/** returns the state of the 'willRenderNextFrameFlag', that is if the
 	    current simulation round with end up with the call to renderNextFrame() */
-	bool willRenderNextFrame(void)
+	bool willRenderNextFrame(void) const
 	{ return willRenderNextFrameFlag; }
 
 	/** notifies the agent to enable/disable its detailed drawing routines */
-	void setAgentsDetailedDrawingMode(const int agentID, const bool state)
-	{
-		//find the agentID among currently existing agents...
-		for (auto ag : agents)
-		if (ag->ID == agentID) ag->setDetailedDrawingMode(state);
-	}
+	void setAgentsDetailedDrawingMode(const int agentID, const bool state);
 
 	/** notifies the agent to enable/disable its detailed reporting routines */
-	void setAgentsDetailedReportingMode(const int agentID, const bool state)
-	{
-		//find the agentID among currently existing agents...
-		for (auto ag : agents)
-		if (ag->ID == agentID) ag->setDetailedReportingMode(state);
-	}
+	void setAgentsDetailedReportingMode(const int agentID, const bool state);
 
 protected:
 	/** flag to run-once the closing routines */

@@ -1,10 +1,11 @@
-#ifndef ABSTRACTAGENT_H
-#define ABSTRACTAGENT_H
+#ifndef AGENTS_ABSTRACTAGENT_H
+#define AGENTS_ABSTRACTAGENT_H
 
 #include <i3d/image3d.h>
+#include "../util/report.h"
 #include "../DisplayUnits/DisplayUnit.h"
 #include "../Geometries/Geometry.h"
-class FrontOfficer;
+#include "../FrontOfficer.h"
 
 /**
  * This class is essentially only a read-only representation of

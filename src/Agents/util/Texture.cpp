@@ -1,9 +1,200 @@
 #include <cmath>
-#include "Texture.h"
+#include "../../util/texture/texture.h"
 #include "../../util/report.h"
+#include "Texture.h"
 
-/** enable/disable the photobleaching feature */
-//#define ENABLED_PHOTOBLEACHING
+template <typename VT>
+void Texture::sampleDotsFromImage(const i3d::Image3d<VT>& img,
+                                  const Spheres& geom,
+                                  const VT quantization)
+{
+	const Vector3d<float> res( img.GetResolution().GetRes() );
+	const Vector3d<float> off( img.GetOffset() );
+
+	//sigmas such that Gaussian will spread just across one voxel
+	const Vector3d<float> chaossSigma( Vector3d<float>(1.0f/6.0f).elemDivBy(res) );
+#ifdef DEBUG
+	long missedDots = 0;
+#endif
+
+	//sweeping stuff...
+	const VT* imgPtr = img.GetFirstVoxelAddr();
+	Vector3d<size_t> pxPos;
+	Vector3d<float>  umPos;
+
+	for (pxPos.z = 0; pxPos.z < img.GetSizeZ(); ++pxPos.z)
+	for (pxPos.y = 0; pxPos.y < img.GetSizeY(); ++pxPos.y)
+	for (pxPos.x = 0; pxPos.x < img.GetSizeX(); ++pxPos.x, ++imgPtr)
+	{
+		umPos.toMicronsFrom(pxPos, res,off);
+
+		if (geom.collideWithPoint(umPos) >= 0)
+		{
+			checkAndIncreaseCapacity();
+
+			//displace randomly within this voxel
+			for (int i = int(*imgPtr/quantization); i > 0; --i)
+			{
+				dots.emplace_back(umPos);
+				dots.back().pos += Vector3d<float>(
+				       GetRandomGauss(0.f,chaossSigma.x, rngState),
+				       GetRandomGauss(0.f,chaossSigma.y, rngState),
+				       GetRandomGauss(0.f,chaossSigma.z, rngState) );
+
+#ifdef DEBUG
+				//test if the new position still fits inside the original voxel
+				Vector3d<size_t> pxBackPos;
+				dots.back().pos.fromMicronsTo(pxBackPos, res,off);
+				if (! pxBackPos.elemIsPredicateTrue(pxPos, [](float l,float r){ return l==r; }))
+					++missedDots;
+#endif
+			}
+		}
+	}
+
+#ifdef DEBUG
+	REPORT("there are " << missedDots << " (" << (float)(100*missedDots)/(float)dots.size()
+	       << " %) dots placed outside its original voxel");
+	REPORT("there are currently " << dots.size() << " registered dots");
+#endif
+}
+
+
+void Texture::createPerlinTexture(const Spheres& geom,
+                                  const Vector3d<FLOAT> textureResolution,
+                                  const double var,
+                                  const double alpha,
+                                  const double beta,
+                                  const int n,
+                                  const float textureAverageIntensity,
+                                  const float quantization,
+                                  const bool shouldCollectOutlyingDots)
+{
+	//setup the aux texture image
+	i3d::Image3d<float> img;
+	setupImageForRasterizingTexture(img,textureResolution, geom);
+
+	//sanity check... if the 'geom' is "empty", no texture image is "wrapped" around it,
+	//we do no creation of the texture then...
+	if (img.GetImageSize() == 0)
+	{
+		DEBUG_REPORT("WARNING: Wrapping texture image is of zero size... stopping here.");
+		return;
+	}
+
+	//fill the aux image
+	DoPerlin3D(img, var,alpha,beta,n);
+
+	//get the current average intensity and adjust to the desired one
+	double sum = 0;
+	float* i = img.GetFirstVoxelAddr();
+	float* const iL = i + img.GetImageSize();
+	for (; i != iL; ++i) sum += *i;
+	sum /= (double)img.GetImageSize();
+	//
+	const float textureIntShift = textureAverageIntensity - (float)sum;
+	for (i = img.GetFirstVoxelAddr(); i != iL; ++i)
+	{
+		*i += textureIntShift;
+		//*i  = std::max( *i, 0.f );
+	}
+	sampleDotsFromImage(img,geom, quantization);
+	//NB: the function ignores any negative-valued texture image voxels,
+	//    no dots are created for such voxels
+
+	if (shouldCollectOutlyingDots)
+	{
+#ifndef DEBUG
+		collectOutlyingDots(geom);
+#else
+		const int dotOutliers = collectOutlyingDots(geom);
+		DEBUG_REPORT(dotOutliers << " (" << (float)(100*dotOutliers)/(float)dots.size()
+		             << " %) dots had to be moved inside the initial geometry");
+#endif
+	}
+}
+
+
+int Texture::collectOutlyingDots(const Spheres& geom)
+{
+	int count = 0;
+#ifdef DEBUG
+	double outDist = 0;
+	double inDist  = 0;
+	int postCorrectionsCnt = 0;
+
+	auto stopWatch = tic();
+#endif
+
+	Vector3d<FLOAT> tmp;
+	FLOAT tmpLen;
+
+	for (auto& dot : dots)
+	{
+		bool foundInside = false;
+		FLOAT nearestDist = TOOFAR;
+		int nearestIdx  = -1;
+
+		for (int i=0; i < geom.noOfSpheres && !foundInside; ++i)
+		{
+			//test against the i-th sphere
+			tmp  = geom.centres[i];
+			tmp -= dot.pos;
+			tmpLen = tmp.len() - geom.radii[i];
+
+			foundInside = tmpLen <= 0;
+
+			if (!foundInside && tmpLen < nearestDist)
+			{
+				//update nearest distance
+				nearestDist = tmpLen;
+				nearestIdx  = i;
+			}
+		}
+
+		if (!foundInside)
+		{
+			//correct dot's position according to the nearestIdx:
+			//random position inside the (zero-centered) sphere
+			dot.pos.x = GetRandomGauss(0.f,geom.radii[nearestIdx]/2.f, rngState);
+			dot.pos.y = GetRandomGauss(0.f,geom.radii[nearestIdx]/2.f, rngState);
+			dot.pos.z = GetRandomGauss(0.f,geom.radii[nearestIdx]/2.f, rngState);
+
+			//make sure we're inside this sphere
+			if (dot.pos.len() > geom.radii[nearestIdx])
+			{
+				dot.pos.changeToUnitOrZero() *= 0.9f * geom.radii[nearestIdx];
+				//NB: it held and holds for sure: dot.pos.len() > 0
+#ifdef DEBUG
+				++postCorrectionsCnt;
+#endif
+			}
+
+#ifdef DEBUG
+			outDist += nearestDist;
+			inDist  += dot.pos.len();
+#endif
+			dot.pos += geom.centres[nearestIdx];
+			++count;
+		}
+	}
+
+#ifdef DEBUG
+	if (count > 0)
+	{
+		REPORT("average outside-to-surface distance " << outDist/(double)count << " um (in " << toc(stopWatch) << ")");
+		REPORT("average new-pos-to-centre  distance " <<  inDist/(double)count << " um");
+		REPORT("secondary corrections of " << postCorrectionsCnt << "/" << count
+		       << " (" << (float)(100*postCorrectionsCnt)/(float)count << " %) dots");
+	}
+	else
+	{
+		REPORT("no corrections were necessary (in " << toc(stopWatch) << ")");
+	}
+#endif
+	return count;
+}
+
 
 /** implements some fake function 1 -> 0+ to (poorly) simulate the ever
     decreasing photon budget, or just always returns 1.0 iff photobleaching
@@ -170,5 +361,100 @@ void TextureQuantized::renderIntoPhantom(i3d::Image3d<float> &phantoms)
 	REPORT("added total cell intensity: " << meanIntContribution <<
 	       " with mean dot intensity: " << meanIntContribution/(double)meanIntContCounter);
 	REPORT("rendering quantum dots took " << toc(stopWatch));
+#endif
+}
+
+
+// ------------- explicit instantiations -------------
+template
+void Texture::sampleDotsFromImage(const i3d::Image3d<i3d::GRAY8>& img,
+                                  const Spheres& geom,
+                                  const i3d::GRAY8 quantization);
+template
+void Texture::sampleDotsFromImage(const i3d::Image3d<i3d::GRAY16>& img,
+                                  const Spheres& geom,
+                                  const i3d::GRAY16 quantization);
+template
+void Texture::sampleDotsFromImage(const i3d::Image3d<float>& img,
+                                  const Spheres& geom,
+                                  const float quantization);
+template
+void Texture::sampleDotsFromImage(const i3d::Image3d<double>& img,
+                                  const Spheres& geom,
+                                  const double quantization);
+// ------------- explicit instantiations -------------
+
+
+void TextureUpdater4S::updateTextureCoords(std::vector<Dot>& dots, const Spheres& newGeom)
+{
+#ifdef DEBUG
+	if (newGeom.noOfSpheres != 4)
+		throw ERROR_REPORT("Cannot update coordinates for non-four sphere geometry.");
+#endif
+	// backup: last geometry for which user coordinates were valid
+	for (unsigned int i=0; i < 4; ++i)
+	{
+		prevCentre[i] = cu[i].prevCentre;
+		prevRadius[i] = cu[i].prevRadius;
+	}
+
+	//prepare the updating routines...
+	cu[0].prepareUpdating( newGeom.centres[0], newGeom.radii[0],
+	                       newGeom.centres[0] - newGeom.centres[1] );
+
+	cu[1].prepareUpdating( newGeom.centres[1], newGeom.radii[1],
+	                       newGeom.centres[0] - newGeom.centres[2] );
+
+	cu[2].prepareUpdating( newGeom.centres[2], newGeom.radii[2],
+	                       newGeom.centres[1] - newGeom.centres[3] );
+
+	cu[3].prepareUpdating( newGeom.centres[3], newGeom.radii[3],
+	                       newGeom.centres[2] - newGeom.centres[3] );
+
+	//aux variables
+	float weights[4];
+	float sum;
+	Vector3d<float> tmp,newPos;
+#ifdef DEBUG
+	int outsideDots = 0;
+#endif
+	//shift texture particles
+	for (auto& dot : dots)
+	{
+		//determine the weights
+		for (unsigned int i=0; i < 4; ++i)
+		{
+			tmp  = dot.pos;
+			tmp -= prevCentre[i];
+			weights[i] = std::max(prevRadius[i] - tmp.len(), (FLOAT)0);
+		}
+
+		//normalization factor
+		sum = weights[0] + weights[1] + weights[2] + weights[3];
+
+		if (sum > 0)
+		{
+			//apply the weights
+			newPos = 0;
+			for (unsigned int i=0; i < 4; ++i)
+			if (weights[i] > 0)
+			{
+				tmp = dot.pos;
+				cu[i].updateCoord(tmp);
+				newPos += (weights[i]/sum) * tmp;
+			}
+			dot.pos = newPos;
+		}
+		else
+		{
+#ifdef DEBUG
+			++outsideDots;
+#endif
+		}
+	}
+
+#ifdef DEBUG
+	if (outsideDots > 0)
+		REPORT(outsideDots << " could not be updated (no matching sphere found, weird...)");
 #endif
 }
