@@ -30,8 +30,13 @@ public:
 	// these are implemented in:
 	// FrontOfficer.cpp
 
-	/** scene heavy inits and adds agents */
-	void init(void)
+	/** scene heavy inits and adds agents for the MPI case; in the SMP case, however,
+	    the execution of this method has to interweave with the execution of Director::init*()
+	    which is solved here by tearing the method into (outside callable) pieces
+	    (in particular, into init1_SMP() and init2_SMP()) and executed in the right order;
+	    in the MPI case, the synchronization of the execution happens natively inside these
+	    methods so we just call of them here */
+	void initMPI(void)
 	{
 		init1_SMP();
 		init2_SMP();

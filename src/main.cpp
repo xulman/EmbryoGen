@@ -31,7 +31,7 @@ int main(int argc, char** argv)
 		{
 			//hoho, I'm the Direktor  (NB: Direktor == main simulation loop)
 			d = new Director(s,1,MPI_noOfNodesInTotal-1);
-			d->init();     //init the simulation, and render the first frame
+			d->initMPI();  //init the simulation, and render the first frame
 			d->execute();  //execute the simulation, and render frames
 			d->close();    //close the simulation, deletes agents, and save tracks.txt
 		}
@@ -45,7 +45,7 @@ int main(int argc, char** argv)
 			if (nextFOsID == MPI_noOfNodesInTotal) nextFOsID = 0;
 
 			fo = new FrontOfficer(s,nextFOsID, MPI_IDOfThisInstance,MPI_noOfNodesInTotal-1);
-			fo->init();    //populate/create my part of the scene
+			fo->initMPI(); //populate/create my part of the scene
 			fo->execute(); //wait for Direktor's events
 			fo->close();   //deletes my agents
 		}
@@ -78,8 +78,8 @@ int main(int argc, char** argv)
 		std::cout << "Happy end.\n\n";
 
 		//calls also destructor for very final clean up
-		if (d  != NULL) delete d;
 		if (fo != NULL) delete fo;
+		if (d  != NULL) delete d;
 		return (0);
 	}
 	catch (const char* e)
@@ -113,15 +113,15 @@ int main(int argc, char** argv)
 
 	//calls destructor for very final clean up, which may also call
 	//the respective close() methods if they had not been called before...
-	if (d != NULL)
-	{
-		REPORT("trying to close (and save the most from) the simulation's Direktor");
-		delete d;
-	}
 	if (fo != NULL)
 	{
 		REPORT("trying to close (and save the most from) the simulation's FO #" << fo->getID());
 		delete fo;
+	}
+	if (d != NULL)
+	{
+		REPORT("trying to close (and save the most from) the simulation's Direktor");
+		delete d;
 	}
 	return (1);
 }

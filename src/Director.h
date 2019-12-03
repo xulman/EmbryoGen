@@ -30,9 +30,13 @@ public:
 	// these are implemented in:
 	// Director.cpp
 
-	/** allocates output images, renders the first frame */
-	/** scene heavy inits and synthoscopy warm up */
-	void init(void)
+	/** scene heavy inits and synthoscopy warm up, renders the first frame in the end;
+	    similarly to FrontOfficer::initMPI(), the execution of the initialization
+	    routine has to interweave with the execution of FO's init and so this
+	    method is chopped into three pieces, these pieces take care of the synchronization
+	    on their own when in MPI regime but during SMP the internal sync stuff does not work
+	    and the sync has to be enforced from the outside */
+	void initMPI(void)
 	{
 		init1_SMP();
 		init2_SMP();
