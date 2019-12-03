@@ -64,8 +64,12 @@ set(SOURCES
 		src/DisplayUnits/SceneryDisplayUnit.cpp
 		src/DisplayUnits/SceneryBufferedDisplayUnit.cpp
 		src/Geometries/Geometry.cpp
-		src/Scenarios/common/Scenario.cpp
+		src/Geometries/Spheres.cpp
+		src/Geometries/ScalarImg.cpp
+		src/Geometries/VectorImg.cpp
+		src/Geometries/Mesh.cpp
 		src/Agents/util/Texture.cpp
+		src/Scenarios/common/Scenario.cpp
 		src/TrackRecord.cpp
 		src/Director.cpp
 		src/FrontOfficer.cpp
