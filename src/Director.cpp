@@ -1,9 +1,67 @@
-#include <utility>
 #include <chrono>
 #include <thread>
-#include "Director.h"
-#include "FrontOfficer.h"
+#include "util/Vector3d.h"
 #include "util/synthoscopy/SNR.h"
+#include "FrontOfficer.h"
+#include "Director.h"
+
+void Director::init1_SMP(void)
+{
+	REPORT("Direktor initializing now...");
+	currTime = scenario.params.constants.initTime;
+
+	//a bit of stats before we start...
+	const auto& sSum = scenario.params.constants.sceneSize;
+	Vector3d<float> sSpx(sSum);
+	sSpx.elemMult(scenario.params.constants.imgRes);
+	REPORT("scenario suggests that scene size will be: "
+	  << sSum.x << " x " << sSum.y << " x " << sSum.z
+	  << " um -> "
+	  << sSpx.x << " x " << sSpx.y << " x " << sSpx.z << " px");
+
+	scenario.initializeScene();
+	scenario.initializePhaseIIandIII();
+}
+
+void Director::init2_SMP(void)
+{
+	prepareForUpdateAndPublishAgents();
+	waitHereUntilEveryoneIsHereToo();
+
+	updateAndPublishAgents();
+	waitHereUntilEveryoneIsHereToo();
+
+	reportSituation();
+	REPORT("Direktor initialized");
+}
+
+void Director::init3_SMP(void)
+{
+	//NB: this method is here only for the cosmetic purposes:
+	//    just wanted that in the SMP case the rendering happens
+	//    as the very last operation of the entire init phase
+
+	//will block itself until the full rendering is complete
+	renderNextFrame();
+}
+
+
+void Director::reportSituation()
+{
+	REPORT("--------------- " << currTime << " min ("
+	  << agents.size() << " in the entire world) ---------------");
+}
+
+
+void Director::close(void)
+{
+	//mark before closing is attempted...
+	isProperlyClosedFlag = true;
+	DEBUG_REPORT("running the closing sequence");
+
+	//TODO
+}
+
 
 void Director::execute(void)
 {
@@ -69,7 +127,6 @@ void Director::prepareForUpdateAndPublishAgents()
 	FO->prepareForUpdateAndPublishAgents();
 #endif
 }
-
 
 void Director::updateAndPublishAgents()
 {
@@ -159,6 +216,33 @@ void Director::startNewDaughterAgent(const int childID, const int parentID)
 {
 	//CTC logging: also add the parental link
 	tracks.updateParentalLink(childID, parentID);
+}
+
+
+int Director::getFOsIDofAgent(const int agentID)
+{
+	auto ag = agents.begin();
+	while (ag != agents.end())
+	{
+		if (ag->first == agentID) return ag->second;
+		++ag;
+	}
+
+	//TODO
+	//throw ERROR_REPORT("Couldn't find a record about agent " << agentID);
+	throw ERROR_REPORT("Couldn't find a record about agent.");
+}
+
+void Director::setAgentsDetailedDrawingMode(const int agentID, const bool state)
+{
+	int FO = getFOsIDofAgent(agentID);
+	notify_setDetailedDrawingMode(FO,agentID,state);
+}
+
+void Director::setAgentsDetailedReportingMode(const int agentID, const bool state)
+{
+	int FO = getFOsIDofAgent(agentID);
+	notify_setDetailedReportingMode(FO,agentID,state);
 }
 
 

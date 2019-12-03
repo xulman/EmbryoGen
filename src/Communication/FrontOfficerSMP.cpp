@@ -1,3 +1,4 @@
+#include "../Agents/AbstractAgent.h"
 #include "../FrontOfficer.h"
 #include "../Director.h"
 
@@ -116,7 +117,7 @@ void FrontOfficer::respond_CntOfAABBs()
 	//gives: int
 
 	//this never happens (as Direktor here talks directly to the FO)
-	size_t sendBackMyCount = getSizeOfAABBs();
+	size_t sendBackMyCount = getSizeOfAABBsList();
 }
 
 

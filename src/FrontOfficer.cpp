@@ -1,4 +1,63 @@
+#include "Agents/AbstractAgent.h"
 #include "FrontOfficer.h"
+
+void FrontOfficer::init1_SMP()
+{
+	REPORT("FO #" << ID << " initializing now...");
+	currTime = scenario.params.constants.initTime;
+
+	scenario.initializeScene();
+	scenario.initializeAgents(this,ID,FOsCount);
+}
+
+void FrontOfficer::init2_SMP()
+{
+#ifdef DISTRIBUTED
+	//in the SMP case, this method will be called explicitly
+	//from the Direktor, and thus the run is synchronized here
+	prepareForUpdateAndPublishAgents();
+	waitHereUntilEveryoneIsHereToo();
+
+	updateAndPublishAgents();
+	waitHereUntilEveryoneIsHereToo();
+#endif
+	reportSituation();
+	REPORT("FO #" << ID << " initialized");
+}
+
+
+void FrontOfficer::reportSituation()
+{
+	//overlap reports:
+	if (overlapSubmissionsCounter == 0)
+	{
+		DEBUG_REPORT("no overlaps reported at all");
+	}
+	else
+	{
+		DEBUG_REPORT("max overlap: " << overlapMax
+	        << ", avg overlap: " << (overlapSubmissionsCounter > 0 ? overlapAvg/float(overlapSubmissionsCounter) : 0.f)
+	        << ", cnt of overlaps: " << overlapSubmissionsCounter);
+	}
+	overlapMax = overlapAvg = 0.f;
+	overlapSubmissionsCounter = 0;
+
+	REPORT("--------------- " << currTime << " min ("
+	  << agents.size() << " in this FO #" << ID << " / "
+	  << AABBs.size() << " AABBs (entire world), "
+	  << shadowAgents.size() << " cached geometries) ---------------");
+}
+
+
+void FrontOfficer::close(void)
+{
+	//mark before closing is attempted...
+	isProperlyClosedFlag = true;
+	DEBUG_REPORT("running the closing sequence");
+
+	//TODO
+}
+
 
 void FrontOfficer::execute(void)
 {
@@ -104,7 +163,6 @@ void FrontOfficer::prepareForUpdateAndPublishAgents()
 {
 	AABBs.clear();
 }
-
 
 void FrontOfficer::updateAndPublishAgents()
 {
@@ -220,6 +278,25 @@ void FrontOfficer::closeMotherStartDaughters(
 }
 
 
+void FrontOfficer::setAgentsDetailedDrawingMode(const int agentID, const bool state)
+{
+	//find the agentID among currently existing agents...
+	for (auto ag : agents)
+	if (ag->ID == agentID) ag->setDetailedDrawingMode(state);
+}
+
+void FrontOfficer::setAgentsDetailedReportingMode(const int agentID, const bool state)
+{
+	//find the agentID among currently existing agents...
+	for (auto ag : agents)
+	if (ag->ID == agentID) ag->setDetailedReportingMode(state);
+}
+
+
+size_t FrontOfficer::getSizeOfAABBsList() const
+{ return AABBs.size(); }
+
+
 void FrontOfficer::getNearbyAgents(const ShadowAgent* const fromSA,   //reference agent
 	                                const float maxDist,               //threshold dist
 	                                std::list<const ShadowAgent*>& l) //output list
@@ -233,16 +310,6 @@ void FrontOfficer::getNearbyAgents(const ShadowAgent* const fromSA,   //referenc
 	//to the cache but the updated copies shall remain valid
 	//until next update round and so do the references on them)
 }
-
-
-/* just in case... but for now, since relevant timing variables
-   are constants, it seems that we can afford calculating the rendering
-	time in isolation (each FO calculates for itself)
-bool FrontOfficer::willRenderNextFrame(void)
-{
-	return request_willRenderNextFrame();
-}
-*/
 
 
 void FrontOfficer::renderNextFrame()

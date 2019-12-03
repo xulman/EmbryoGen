@@ -96,7 +96,7 @@ void Director::respond_AABBofAgent()
 
 size_t Director::request_CntOfAABBs(const int /* FOsID */)
 {
-	return FO->getSizeOfAABBs();
+	return FO->getSizeOfAABBsList();
 }
 
 

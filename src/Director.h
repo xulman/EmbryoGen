@@ -3,7 +3,6 @@
 
 #include <list>
 #include <utility>
-#include "util/Vector3d.h"
 #include "util/report.h"
 #include "TrackRecord_CTC.h"
 #include "Scenarios/common/Scenario.h"
@@ -43,62 +42,20 @@ public:
 		init3_SMP();
 	}
 
-	void init1_SMP(void)
-	{
-		REPORT("Direktor initializing now...");
-		currTime = scenario.params.constants.initTime;
-
-		//a bit of stats before we start...
-		const auto& sSum = scenario.params.constants.sceneSize;
-		Vector3d<float> sSpx(sSum);
-		sSpx.elemMult(scenario.params.constants.imgRes);
-		REPORT("scenario suggests that scene size will be: "
-		  << sSum.x << " x " << sSum.y << " x " << sSum.z
-		  << " um -> "
-		  << sSpx.x << " x " << sSpx.y << " x " << sSpx.z << " px");
-
-		scenario.initializeScene();
-		scenario.initializePhaseIIandIII();
-	}
-	void init2_SMP(void)
-	{
-		prepareForUpdateAndPublishAgents();
-		waitHereUntilEveryoneIsHereToo();
-
-		updateAndPublishAgents();
-		waitHereUntilEveryoneIsHereToo();
-
-		reportSituation();
-		REPORT("Direktor initialized");
-	}
-	void init3_SMP(void)
-	{
-		//NB: this method is here only for the cosmetic purposes:
-		//    just wanted that in the SMP case the rendering happens
-		//    as the very last operation of the entire init phase
-
-		//will block itself until the full rendering is complete
-		renderNextFrame();
-	}
+	/** stage 1/3 to do: scene heavy inits and synthoscopy warm up */
+	void init1_SMP(void);
+	/** stage 2/3 to do: scene heavy inits and synthoscopy warm up */
+	void init2_SMP(void);
+	/** stage 3/3 to do: renders the first frame */
+	void init3_SMP(void);
 
 	/** does the simulation loops, i.e. triggers calls of AbstractAgent's methods in the right order */
 	void execute(void);
 
-	void reportSituation()
-	{
-		REPORT("--------------- " << currTime << " min ("
-		  << agents.size() << " in the entire world) ---------------");
-	}
+	void reportSituation();
 
 	/** frees simulation agents, writes the tracks.txt file */
-	void close(void)
-	{
-		//mark before closing is attempted...
-		isProperlyClosedFlag = true;
-		DEBUG_REPORT("running the closing sequence");
-
-		//TODO
-	}
+	void close(void);
 
 	/** attempts to clean up, if not done earlier */
 	~Director(void)
@@ -132,13 +89,13 @@ public:
 
 	/** returns the state of the 'willRenderNextFrameFlag', that is if the
 	    current simulation round with end up with the call to renderNextFrame() */
-	bool willRenderNextFrame(void)
+	bool willRenderNextFrame(void) const
 	{ return willRenderNextFrameFlag; }
 
 	/** returns the state of the 'shallWaitForUserPromptFlag', that is if an
 	    user will be prompted (and the simulation would stop and wait) at
 	    the end of the renderNextFrame() */
-	bool willWaitForUserPrompt(void)
+	bool willWaitForUserPrompt(void) const
 	{ return shallWaitForUserPromptFlag; }
 
 	/** sets the 'shallWaitForUserPromptFlag', making renderNextFrame() to prompt
@@ -151,33 +108,13 @@ public:
 	{ shallWaitForUserPromptFlag = false; }
 
 	/** returns the ID of FO to which a given agent is associated to */
-	int getFOsIDofAgent(const int agentID)
-	{
-		auto ag = agents.begin();
-		while (ag != agents.end())
-		{
-			if (ag->first == agentID) return ag->second;
-			++ag;
-		}
-
-		//TODO
-		//throw ERROR_REPORT("Couldn't find a record about agent " << agentID);
-		throw ERROR_REPORT("Couldn't find a record about an agent");
-	}
+	int getFOsIDofAgent(const int agentID);
 
 	/** notifies the agent to enable/disable its detailed drawing routines */
-	void setAgentsDetailedDrawingMode(const int agentID, const bool state)
-	{
-		int FO = getFOsIDofAgent(agentID);
-		notify_setDetailedDrawingMode(FO,agentID,state);
-	}
+	void setAgentsDetailedDrawingMode(const int agentID, const bool state);
 
 	/** notifies the agent to enable/disable its detailed reporting routines */
-	void setAgentsDetailedReportingMode(const int agentID, const bool state)
-	{
-		int FO = getFOsIDofAgent(agentID);
-		notify_setDetailedReportingMode(FO,agentID,state);
-	}
+	void setAgentsDetailedReportingMode(const int agentID, const bool state);
 
 protected:
 	/** flag to run-once the closing routines */
