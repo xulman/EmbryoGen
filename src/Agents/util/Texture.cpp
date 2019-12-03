@@ -2,9 +2,6 @@
 #include "Texture.h"
 #include "../../util/report.h"
 
-/** enable/disable the photobleaching feature */
-//#define ENABLED_PHOTOBLEACHING
-
 /** implements some fake function 1 -> 0+ to (poorly) simulate the ever
     decreasing photon budget, or just always returns 1.0 iff photobleaching
     shall be ignored (photobleaching feature is disabled */

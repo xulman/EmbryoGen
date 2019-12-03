@@ -24,6 +24,28 @@ else (DEBUG_VERSION)
 		set(CMAKE_BUILD_TYPE "RELEASE" CACHE STATIC "" FORCE)
 endif (DEBUG_VERSION)
 
+option(FEATURE_ENABLEPHOTOBLEACHING  "Shall texture particles be loosing their intensity in the phantom image?" OFF)
+option(FEATURE_USEFILOGENSYNTHOSCOPY "Shall synthoscopy code from FiloGen be used instead of the one from MitoGen?" ON)
+option(FEATURE_RUNDISTRIBUTED        "Shall the simulation use MPI (message passing interface) and run distributed?" OFF)
+
+#-------------------------------------------------------
+# TRANSLATE FEATURE REQUESTS INTO PREPROCESSOR CONSTANTS
+#-------------------------------------------------------
+
+if (FEATURE_ENABLEPHOTOBLEACHING)
+	add_definitions(-DENABLED_PHOTOBLEACHING)
+endif (FEATURE_ENABLEPHOTOBLEACHING)
+
+if (FEATURE_USEFILOGENSYNTHOSCOPY)
+	add_definitions(-DENABLE_FILOGEN_PHASEIIandIII)
+else (FEATURE_USEFILOGENSYNTHOSCOPY)
+	add_definitions(-DENABLE_MITOGEN_FINALPREVIEW)
+endif (FEATURE_USEFILOGENSYNTHOSCOPY)
+
+if (FEATURE_RUNDISTRIBUTED)
+	add_definitions(-DDISTRIBUTED)
+endif (FEATURE_RUNDISTRIBUTED)
+
 #-------------------------
 # USE STATIC LIBS OR NOT?
 #-------------------------
