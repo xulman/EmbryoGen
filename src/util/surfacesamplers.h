@@ -4,6 +4,7 @@
 #include <math.h>
 #include <i3d/image3d.h>
 #include <functional>
+#include "../Geometries/Geometry.h"
 
 /**
  * This iteratively gives vectors/coordinates that (somewhat) regularly

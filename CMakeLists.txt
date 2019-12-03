@@ -92,6 +92,7 @@ set(SOURCES
 		src/Geometries/Mesh.cpp
 		src/Agents/util/CellCycle.cpp
 		src/Agents/util/Texture.cpp
+		src/Agents/NucleusAgent.cpp
 		src/Scenarios/common/Scenario.cpp
 		src/TrackRecord.cpp
 		src/Director.cpp
