@@ -59,8 +59,7 @@ class FrontOfficer;
 //restoreMe//SCENARIO_DECLARATION_withDefOptSynthoscopy( Scenario_dragRotateAndTexture )
 //restoreMe//SCENARIO_DECLARATION_withDefOptSynthoscopy( Scenario_phaseIIandIII )
 //restoreMe//SCENARIO_DECLARATION_withDefOptSynthoscopy( Scenario_PerlinShowCase )
-//restoreMe//SCENARIO_DECLARATION_withDefOptSynthoscopy( Scenario_Parallel )
-SCENARIO_DECLARATION_withDefOptSynthoscopy( Scenario_Distributed )
+SCENARIO_DECLARATION_withDefOptSynthoscopy( Scenario_Parallel )
 //  ---> ADD NEW SCENARIO HERE AND ALSO BELOW <---
 
 class Scenarios
@@ -87,8 +86,7 @@ public:
 		//restoreMe//SCENARIO_MATCHING( "dragFluoTexture",   Scenario_dragRotateAndTexture )
 		//restoreMe//SCENARIO_MATCHING( "synthoscopy",       Scenario_phaseIIandIII )
 		//restoreMe//SCENARIO_MATCHING( "PerlinShowCase",    Scenario_PerlinShowCase )
-		//restoreMe//SCENARIO_MATCHING( "parallel",          Scenario_Parallel )
-		SCENARIO_MATCHING( "distributed",       Scenario_Distributed )
+		SCENARIO_MATCHING( "parallel",          Scenario_Parallel )
 		//  ---> ADD NEW SCENARIO HERE (and add definition *cpp file, re-run cmake!) <---
 
 		if (scenario == NULL)

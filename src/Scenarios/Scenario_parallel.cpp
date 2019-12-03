@@ -1,10 +1,11 @@
 #include <thread>
 #include <functional>
 #include <i3d/image3d.h>
+#include "common/Scenarios.h"
 #include "../util/rnd_generators.h"
 #include "../util/Vector3d.h"
 #include "../Geometries/Spheres.h"
-#include "common/Scenarios.h"
+#include "../Agents/AbstractAgent.h"
 
 // ------------------ grid placement and related stuff ------------------
 //
@@ -66,7 +67,9 @@ public:
 	void advanceAndBuildIntForces(const float)
 	{
 		//random duration (in full 2-10 seconds) pause here to pretend "some work"
-		std::this_thread::sleep_for(std::chrono::seconds( (long long)GetRandomUniform(2,10) ));
+		const int waitingTime = (int)GetRandomUniform(2,10);
+		REPORT(IDSIGN << "pretends work that would last for " << waitingTime << " seconds");
+		std::this_thread::sleep_for(std::chrono::seconds( (long long)waitingTime ));
 
 		//ask to have the geometry updated as a result of the "some work"
 		shouldUpdateGeometry = true;
@@ -123,13 +126,6 @@ public:
 	{
 		//set my "grid pixel" to mark I was alive
 		mask.SetVoxel((size_t)x,(size_t)y,0, (i3d::GRAY16)ID);
-
-		//one agent will disable producing mask images after it was created at least once
-		if (ID == 1 && currTime == 0.1f)
-		{
-			DEBUG_REPORT("stopping the production of the maskXXX.tif");
-			Officer->disableProducingOutput(mask);
-		}
 	}
 
 	void drawTexture(i3d::Image3d<float>& phantom, i3d::Image3d<float>& indices)
@@ -169,30 +165,87 @@ public:
 
 // ------------------ setting up the simulation scenario ------------------
 //
-void Scenario_Parallel::initializeScenario(void)
+SceneControls& Scenario_Parallel::provideSceneControls()
+{
+	SceneControls::Constants myConstants;
+	//
+	//do 20 (internal) iterations and then stop
+	myConstants.stopTime = myConstants.initTime + 20*myConstants.incrTime;
+	//
+	//ask the system to report after every (internal) simulation step
+	myConstants.expoTime = myConstants.incrTime;
+
+
+	class mySceneControl: public SceneControls
+	{
+	public:
+		mySceneControl(Constants& c): SceneControls(c) {}
+
+		void updateControls(const float currTime) override
+		{
+			if (currTime == 0.1f)
+			{
+				DEBUG_REPORT("stopping the production of the maskXXX.tif files");
+				this->disableProducingOutput(this->imgMask);
+			}
+		}
+	};
+
+	return *(new mySceneControl(myConstants));
+}
+
+
+void Scenario_Parallel::initializeScene()
+{
+	DEBUG_REPORT("enabling some image outputs...");
+
+	//scenario has two optional params: how many agents along x and y axes
+	const int howManyAlongX = argc > 2? atoi(argv[2]) : 5;
+	const int howManyAlongY = argc > 3? atoi(argv[3]) : 4;
+
+	//setup the output images: that many pixels as many agents
+	params.setOutputImgSpecs(Vector3d<float>(0),    //offset: um
+	                  Vector3d<float>((float)howManyAlongX,(float)howManyAlongY,1.f),    //size: um = px
+	                  Vector3d<float>(1));   //resolution: px/um
+	params.enableProducingOutput(params.imgPhantom);
+	params.enableProducingOutput(params.imgOptics);
+	params.enableProducingOutput(params.imgMask); //enable if you want to see the constellation of IDs
+}
+
+
+void Scenario_Parallel::initializeAgents(FrontOfficer* fo,int p,int P)
 {
 	//scenario has two optional params: how many agents along x and y axes
 	const int howManyAlongX = argc > 2? atoi(argv[2]) : 5;
 	const int howManyAlongY = argc > 3? atoi(argv[3]) : 4;
 
 	//corner of the grid of agents such that centre of the grid coincides with scene's centre
-	Vector3d<float> simCorner(sceneSize);
+	Vector3d<float> simCorner(params.constants.sceneSize);
 	simCorner /= 2.0f;
-	simCorner += sceneOffset;
-	simCorner.x -= placementStepX * (howManyAlongX-1)/2.f;
-	simCorner.y -= placementStepY * (howManyAlongY-1)/2.f;
+	simCorner += params.constants.sceneOffset;
+	simCorner.x -= placementStepX * ((float)howManyAlongX-1.f)/2.f;
+	simCorner.y -= placementStepY * ((float)howManyAlongY-1.f)/2.f;
 
 	//agents' metadata
 	char agentName[512];
 	int ID = 1;
 
+	const int batchSize = (int)std::ceil( howManyAlongX * howManyAlongY / P );
+	int createdAgents = 0;
+
 	for (int y = 0; y < howManyAlongY; ++y)
 	for (int x = 0; x < howManyAlongX; ++x)
 	{
+		//skip this agent if it does not belong to our batch
+		if (createdAgents/batchSize +1 < p) continue;
+
+		//stop creating agents if we are over with our batch
+		if (createdAgents/batchSize +1 > p) break;
+
 		//the wished position
 		Vector3d<float> pos(simCorner);
-		pos.x += placementStepX * x;
-		pos.y += placementStepY * y;
+		pos.x += placementStepX * (float)x;
+		pos.y += placementStepY * (float)y;
 
 		//shape (and placement)
 		Spheres s(1);
@@ -202,23 +255,11 @@ void Scenario_Parallel::initializeScenario(void)
 		//name
 		sprintf(agentName,"nucleus %d @ %d,%d",ID,x,y);
 
-		ParallelNucleus* ag = new ParallelNucleus(ID,std::string(agentName),s,x,y,currTime,incrTime);
-		startNewAgent(ag);
+		//TODO: ParallelNucleus* ag = new ParallelNucleus(ID,std::string(agentName),s,x,y,currTime,params.constants.incrTime);
+		ParallelNucleus* ag = new ParallelNucleus(ID,std::string(agentName),s,x,y,params.constants.initTime,params.constants.incrTime);
+		fo->startNewAgent(ag);
 
 		++ID;
+		++createdAgents;
 	}
-
-	//setup the output images: that many pixels as many agents
-	setOutputImgSpecs(Vector3d<float>(0),    //offset: um
-	                  Vector3d<float>(howManyAlongX,howManyAlongY,1),    //size: um = px
-	                  Vector3d<float>(1));   //resolution: px/um
-	enableProducingOutput(imgPhantom);
-	enableProducingOutput(imgOptics);
-	enableProducingOutput(imgMask); //enable if you want to see the constellation of IDs
-
-	//do 20 (internal) iterations and then stop
-	stopTime = currTime + 20*incrTime;
-
-	//ask the system to report after every (internal) simulation step
-	expoTime = incrTime;
 }
