@@ -80,6 +80,7 @@ void FrontOfficer::broadcast_AABBofAgent(const ShadowAgent& ag)
 	AABBs.emplace_back(ag.getAABB());
 	//TODO string!
 
+	/*
 	//in MPI world: example:
 	float coords[] = {ag.getAABB().minCorner.x,
 	                  ag.getAABB().minCorner.y,
@@ -92,15 +93,19 @@ void FrontOfficer::broadcast_AABBofAgent(const ShadowAgent& ag)
 	//send out 6x float, string - to be received by respond_AABBofAgent()
 
 	//TODO: check that the broadcast reaches myself too!
+	*/
 }
 
 
 void FrontOfficer::respond_AABBofAgent()
 {
+	//this never happens (as there's no other FO to call us)
+	//MPI world:
+
 	//gets : AABB+type as 6x float, string
 	//gives: nothing
 
-	//this never happens (as there's no FO to call us)
+	/*
 	//fake example values:
 	float coords[] = { 10.f,10.f,10.f, 20.f,20.f,20.f };
 	std::string agentType("some fictious agent");
@@ -108,40 +113,53 @@ void FrontOfficer::respond_AABBofAgent()
 	AABBs.emplace_back();
 	AABBs.back().minCorner.fromScalars(coords[0],coords[1],coords[2]);
 	AABBs.back().maxCorner.fromScalars(coords[3],coords[4],coords[5]);
+	*/
 }
 
 
 void FrontOfficer::respond_CntOfAABBs()
 {
+	//this never happens (as Direktor here talks directly to the FO)
+	//MPI world:
+
 	//gets : nothing
 	//gives: int
 
-	//this never happens (as Direktor here talks directly to the FO)
+	/*
 	size_t sendBackMyCount = getSizeOfAABBsList();
+	*/
 }
 
 
 void FrontOfficer::respond_setDetailedDrawingMode()
 {
+	//this never happens (as Direktor here talks directly to the FO)
+	//MPI world:
+
 	//gets : int, bool
 	//gives: nothing
 
-	//this never happens (as Direktor here talks directly to the FO)
+	/*
 	int agentID = 1;
 	bool state = false;
 	setAgentsDetailedDrawingMode(agentID,state);
+	*/
 }
 
 
 void FrontOfficer::respond_setDetailedReportingMode()
 {
+	//this never happens (as Direktor here talks directly to the FO)
+	//MPI world:
+
 	//gets : int, bool
 	//gives: nothing
 
-	//this never happens (as Direktor here talks directly to the FO)
+	/*
 	int agentID = 1;
 	bool state = false;
 	setAgentsDetailedReportingMode(agentID,state);
+	*/
 }
 
 
