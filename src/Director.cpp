@@ -174,9 +174,7 @@ void Director::updateAndPublishAgents()
 	for (int i = 1; i <= FOsCount; ++i)
 	{
 		if (request_CntOfAABBs(i) != agents.size())
-			//TODO
-			//throw ERROR_REPORT("FO #" << i << " does not have a complete list of AABBs");
-			throw ERROR_REPORT("Some FO does not have a complete list of AABBs");
+			throw ERROR_REPORT("FO #" << i << " does not have a complete list of AABBs");
 	}
 }
 
@@ -228,9 +226,7 @@ int Director::getFOsIDofAgent(const int agentID)
 		++ag;
 	}
 
-	//TODO
-	//throw ERROR_REPORT("Couldn't find a record about agent " << agentID);
-	throw ERROR_REPORT("Couldn't find a record about agent.");
+	throw ERROR_REPORT("Couldn't find a record about agent " << agentID);
 }
 
 void Director::setAgentsDetailedDrawingMode(const int agentID, const bool state)
