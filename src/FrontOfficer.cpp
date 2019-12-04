@@ -234,7 +234,7 @@ void FrontOfficer::startNewAgent(AbstractAgent* ag, const bool wantsToAppearInCT
 	//remote registration:
 	request_startNewAgent(ag->ID,this->ID,wantsToAppearInCTCtracksTXTfile);
 
-	DEBUG_REPORT("just registered this new agent: " << ag->ID << "-" << ag->getAgentType());
+	DEBUG_REPORT("just registered this new agent: " << IDSIGNHIM(*ag));
 }
 
 
@@ -250,7 +250,7 @@ void FrontOfficer::closeAgent(AbstractAgent* ag)
 	//remote registration
 	request_closeAgent(ag->ID,this->ID);
 
-	DEBUG_REPORT("just unregistered this dead agent: " << ag->ID << "-" << ag->getAgentType());
+	DEBUG_REPORT("just unregistered this dead agent: " << IDSIGNHIM(*ag));
 }
 
 
