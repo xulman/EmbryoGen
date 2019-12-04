@@ -89,6 +89,15 @@ void FrontOfficer::close(void)
 		delete deadAgents.front();
 		deadAgents.pop_front();
 	}
+
+	//also clean up any shadow agents one may have
+	DEBUG_REPORT("will remove " << shadowAgents.size() << " shadow agents");
+	for (auto sh : shadowAgents)
+	{
+		delete sh.second;
+		sh.second = NULL;
+	}
+	shadowAgents.clear();
 }
 
 

@@ -155,13 +155,13 @@ protected:
 	    and calculated on this node (managed by this FO) */
 	std::map<int,AbstractAgent*> agents;
 
-	/** list of all agents currently active in the simulation
-	    and calculated elsewhere (managed by foreign FO) */
-	std::list<ShadowAgent*> shadowAgents;
-
 	/** list of AABBs of all agents currently active in the entire
 	    simulation, that is, managed by all FOs */
 	std::list<NamedAxisAlignedBoundingBox> AABBs;
+
+	/** cache of all recently retrieved geometries of agents
+	    that are computed elsewhere (managed by foreign FO) */
+	std::map<int,ShadowAgent*> shadowAgents;
 
 	/** current global simulation time [min] */
 	float currTime = 0.0f;
