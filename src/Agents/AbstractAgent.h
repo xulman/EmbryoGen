@@ -57,6 +57,13 @@ public:
 		return geometry.AABB;
 	}
 
+	/** constructs an extra object with agent's (axis aligned) named bounding box
+	    and returns pointer on it, caller MUST delete this object eventually */
+	NamedAxisAlignedBoundingBox* createNamedAABB(void) const
+	{
+		return new NamedAxisAlignedBoundingBox(geometry.AABB,ID,agentType);
+	}
+
 	/** returns read-only reference to the agent's geometry */
 	const Geometry& getGeometry(void) const
 	{
