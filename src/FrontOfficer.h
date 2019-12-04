@@ -132,7 +132,7 @@ protected:
 
 	/** list of AABBs of all agents currently active in the entire
 	    simulation, that is, managed by all FOs */
-	std::list<AxisAlignedBoundingBox> AABBs;
+	std::list<NamedAxisAlignedBoundingBox> AABBs;
 
 	/** current global simulation time [min] */
 	float currTime = 0.0f;

@@ -108,7 +108,7 @@ void Director::respond_AABBofAgent()
 	//perhaps we would see a reason later why Direktor would need
 	//to know spatial relation among all agents
 
-	//gets : AABB+type as 6x float, string
+	//gets : AABB+type as 6x float, int, string
 	//gives: nothing
 }
 

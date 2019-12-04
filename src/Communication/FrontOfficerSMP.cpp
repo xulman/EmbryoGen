@@ -77,7 +77,7 @@ void FrontOfficer::broadcast_AABBofAgent(const ShadowAgent& ag)
 
 	//in this SMP particular implementation we do only update ourselves,
 	//there is no other FO and Direktor doesn't care about this update
-	AABBs.emplace_back(ag.getAABB());
+	AABBs.emplace_back(ag.getAABB(),ag.getID(),ag.getAgentType());
 	//TODO string!
 
 	/*
@@ -88,11 +88,13 @@ void FrontOfficer::broadcast_AABBofAgent(const ShadowAgent& ag)
 	                  ag.getAABB().maxCorner.x,
 	                  ag.getAABB().maxCorner.y,
 	                  ag.getAABB().maxCorner.z};
-	//important, also transfer agent's type/string:
+	//important, also transfer agent's ID and type/string:
+	ag.getID();
 	ag.getAgentType();
-	//send out 6x float, string - to be received by respond_AABBofAgent()
+	//send out 6x float, int, string - to be received by respond_AABBofAgent()
 
 	//TODO: check that the broadcast reaches myself too!
+	//      or just update myself explicitly just like above in the SMP case
 	*/
 }
 
@@ -102,17 +104,20 @@ void FrontOfficer::respond_AABBofAgent()
 	//this never happens (as there's no other FO to call us)
 	//MPI world:
 
-	//gets : AABB+type as 6x float, string
+	//gets : AABB+type as 6x float, int, string
 	//gives: nothing
 
 	/*
 	//fake example values:
 	float coords[] = { 10.f,10.f,10.f, 20.f,20.f,20.f };
+	int agentID(10);
 	std::string agentType("some fictious agent");
 
 	AABBs.emplace_back();
 	AABBs.back().minCorner.fromScalars(coords[0],coords[1],coords[2]);
 	AABBs.back().maxCorner.fromScalars(coords[3],coords[4],coords[5]);
+	AABBs.back().ID   = agentID;
+	AABBs.back().name = agentType;
 	*/
 }
 
