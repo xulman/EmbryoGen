@@ -207,6 +207,7 @@ void FrontOfficer::executeExternals()
 void FrontOfficer::prepareForUpdateAndPublishAgents()
 {
 	AABBs.clear();
+	agentsToFOsMap.clear();
 }
 
 void FrontOfficer::updateAndPublishAgents()
@@ -340,6 +341,18 @@ size_t FrontOfficer::getSizeOfAABBsList() const
 { return AABBs.size(); }
 
 
+void FrontOfficer::registerThatThisAgentIsAtThisFO(const int agentID, const int FOsID)
+{
+#ifdef DEBUG
+	if (agentsToFOsMap.find(agentID) != agentsToFOsMap.end())
+		throw ERROR_REPORT("Agent ID " << agentID
+			<< " already registered with FO #" << agentsToFOsMap.find(agentID)->second
+			<< " but was (again) broadcast by FO #" << FOsID);
+#endif
+	agentsToFOsMap[agentID] = FOsID;
+}
+
+
 void FrontOfficer::getNearbyAABBs(const ShadowAgent* const fromSA,                   //reference agent
 	                               const float maxDist,                               //threshold dist
 	                               std::list<const NamedAxisAlignedBoundingBox*>& l)  //output list
@@ -459,5 +472,6 @@ void FrontOfficer::reportAABBs()
 	for (const auto& naabb : AABBs)
 		REPORT("agent ID " << naabb.ID << " \"" << naabb.name
 		       << "\" spanning from "
-		       << naabb.minCorner << " to " << naabb.maxCorner);
+		       << naabb.minCorner << " to " << naabb.maxCorner
+		       << " and living at FO #" << agentsToFOsMap[naabb.ID]);
 }

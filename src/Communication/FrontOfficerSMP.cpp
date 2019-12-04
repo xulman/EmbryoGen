@@ -78,7 +78,7 @@ void FrontOfficer::broadcast_AABBofAgent(const ShadowAgent& ag)
 	//in this SMP particular implementation we do only update ourselves,
 	//there is no other FO and Direktor doesn't care about this update
 	AABBs.emplace_back(ag.getAABB(),ag.getID(),ag.getAgentType());
-	//TODO string!
+	registerThatThisAgentIsAtThisFO(ag.getID(),this->ID);
 
 	/*
 	//in MPI world: example:
@@ -104,13 +104,16 @@ void FrontOfficer::respond_AABBofAgent()
 	//this never happens (as there's no other FO to call us)
 	//MPI world:
 
-	//gets : AABB+type as 6x float, int, string
+	//gets : AABB+ID+type as 6x float, int, string
 	//gives: nothing
+	//also needs to get the ID of the FO that broadcasted that particular message
+	//(if that is not possible, the sending FOsID will need be part of the message)
 
 	/*
 	//fake example values:
 	float coords[] = { 10.f,10.f,10.f, 20.f,20.f,20.f };
 	int agentID(10);
+	int FOsIDfromWhichTheMessageArrived(1);
 	std::string agentType("some fictious agent");
 
 	AABBs.emplace_back();
@@ -118,6 +121,8 @@ void FrontOfficer::respond_AABBofAgent()
 	AABBs.back().maxCorner.fromScalars(coords[3],coords[4],coords[5]);
 	AABBs.back().ID   = agentID;
 	AABBs.back().name = agentType;
+
+	registerThatThisAgentIsAtThisFO(agentID,FOsIDfromWhichTheMessageArrived);
 	*/
 }
 
