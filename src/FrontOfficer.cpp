@@ -120,12 +120,12 @@ void FrontOfficer::executeInternals()
 
 	//develop (willingly) new shapes... (can run in parallel),
 	//the agents' (external at least!) geometries must not change during this phase
-	std::list<AbstractAgent*>::iterator c=agents.begin();
+	std::map<int,AbstractAgent*>::iterator c=agents.begin();
 	for (; c != agents.end(); c++)
 	{
-		(*c)->advanceAndBuildIntForces(futureTime);
+		c->second->advanceAndBuildIntForces(futureTime);
 #ifdef DEBUG
-		if ((*c)->getLocalTime() < futureTime)
+		if (c->second->getLocalTime() < futureTime)
 			throw ERROR_REPORT("Agent is not synchronized.");
 #endif
 	}
@@ -134,8 +134,8 @@ void FrontOfficer::executeInternals()
 	c=agents.begin();
 	for (; c != agents.end(); c++)
 	{
-		(*c)->adjustGeometryByIntForces();
-		(*c)->publishGeometry();
+		c->second->adjustGeometryByIntForces();
+		c->second->publishGeometry();
 	}
 }
 
@@ -146,18 +146,18 @@ void FrontOfficer::executeExternals()
 #endif
 	//react (unwillingly) to the new geometries... (can run in parallel),
 	//the agents' (external at least!) geometries must not change during this phase
-	std::list<AbstractAgent*>::iterator c=agents.begin();
+	std::map<int,AbstractAgent*>::iterator c=agents.begin();
 	for (; c != agents.end(); c++)
 	{
-		(*c)->collectExtForces();
+		c->second->collectExtForces();
 	}
 
 	//propagate current internal geometries to the exported ones... (can run in parallel)
 	c=agents.begin();
 	for (; c != agents.end(); c++)
 	{
-		(*c)->adjustGeometryByExtForces();
-		(*c)->publishGeometry();
+		c->second->adjustGeometryByExtForces();
+		c->second->publishGeometry();
 	}
 }
 
@@ -179,22 +179,22 @@ void FrontOfficer::updateAndPublishAgents()
 	auto ag = deadAgents.begin();
 	while (ag != deadAgents.end())
 	{
-		agents.remove(*ag);          //remove from the 'agents' list
+		agents.erase((*ag)->ID);     //remove from the 'agents' list
 		delete *ag;                  //remove the agent itself (its d'tor)
 		ag = deadAgents.erase(ag);   //remove from the 'deadAgents' list
 	}
 
 	//register the new ones (and remove from the "new born list")
-	/*
 	ag = newAgents.begin();
 	while (ag != newAgents.end())
 	{
-		agents.push_back(*ag);
+#ifdef DEBUG
+		if (agents.find((*ag)->ID) != agents.end())
+			throw ERROR_REPORT("Attempting to add another agent with the same ID " << (*ag)->ID);
+#endif
+		agents[(*ag)->ID] = *ag;
 		ag = newAgents.erase(ag);
 	}
-	*/
-	//TODO: does this work the same as the commented out code above?
-	agents.splice(agents.begin(), newAgents);
 
 	//WAIT HERE UNTIL WE'RE TOLD TO START BROADCASTING OUR CHANGES
 	//only FO with a "token" does broadcasting, token passing
@@ -202,12 +202,10 @@ void FrontOfficer::updateAndPublishAgents()
 	waitFor_publishAgentsAABBs();
 
 	//now distribute AABBs of the existing ones
-	ag = agents.begin();
-	while (ag != agents.end())
+	for (auto ag : agents)
 	{
-		DEBUG_REPORT("reporting AABB of agent ID " << (*ag)->ID);
-		broadcast_AABBofAgent(**ag);
-		++ag;
+		DEBUG_REPORT("reporting AABB of agent ID " << ag.first);
+		broadcast_AABBofAgent(*(ag.second));
 	}
 
 	//this passes the "token" on another FO
@@ -285,14 +283,14 @@ void FrontOfficer::setAgentsDetailedDrawingMode(const int agentID, const bool st
 {
 	//find the agentID among currently existing agents...
 	for (auto ag : agents)
-	if (ag->ID == agentID) ag->setDetailedDrawingMode(state);
+	if (ag.first == agentID) ag.second->setDetailedDrawingMode(state);
 }
 
 void FrontOfficer::setAgentsDetailedReportingMode(const int agentID, const bool state)
 {
 	//find the agentID among currently existing agents...
 	for (auto ag : agents)
-	if (ag->ID == agentID) ag->setDetailedReportingMode(state);
+	if (ag.first == agentID) ag.second->setDetailedReportingMode(state);
 }
 
 

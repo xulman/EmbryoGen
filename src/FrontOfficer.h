@@ -2,6 +2,7 @@
 #define FRONTOFFICER_H
 
 #include <list>
+#include <map>
 #include "util/report.h"
 #include "Scenarios/common/Scenario.h"
 #include "Geometries/Geometry.h"
@@ -152,7 +153,7 @@ protected:
 
 	/** list of all agents currently active in the simulation
 	    and calculated on this node (managed by this FO) */
-	std::list<AbstractAgent*> agents;
+	std::map<int,AbstractAgent*> agents;
 
 	/** list of all agents currently active in the simulation
 	    and calculated elsewhere (managed by foreign FO) */
