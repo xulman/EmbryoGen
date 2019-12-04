@@ -24,8 +24,8 @@ protected:
 	/** Construct the object (which is an agent shape and position representation)
 	    by giving it a concrete implementation of Geometry, e.g. Mesh or Spheres object.
 	    The reference to this object is kept and used, i.e. no new object is created. */
-	ShadowAgent(Geometry& geom, const std::string& type)
-		: geometry(geom), agentType(type) {};
+	ShadowAgent(Geometry& geom, const int id, const std::string& type)
+		: geometry(geom), ID(id), agentType(type) {};
 
 	/** The geometry of an agent that is exposed to the world.
 	    It might be a light-weight version of the agent's exact geometry.
@@ -33,6 +33,11 @@ protected:
 	    distances between agents. See also the discussion AbstractAgent::drawMask(). */
 	Geometry& geometry;
 
+public:
+	/** label of this agent */
+	const int ID;
+
+protected:
 	/** The type designation of this agent (that is represented with this->geometry).
 	    Simulation agents may decide to "pay attention to"/smell/interact with only
 	    certain types of agents and this attribute is a way to identify/distinguish
@@ -56,6 +61,12 @@ public:
 	const Geometry& getGeometry(void) const
 	{
 		return geometry;
+	}
+
+	/** returns agent's ID */
+	int getID(void) const
+	{
+		return ID;
 	}
 
 	/** returns read-only reference on agent's designation */
@@ -100,9 +111,8 @@ protected:
 	AbstractAgent(const int _ID, const std::string& _type,
 	              Geometry& geometryContainer,
 	              const float _currTime, const float _incrTime)
-		: ShadowAgent(geometryContainer,_type),
-		  currTime(_currTime), incrTime(_incrTime),
-		  ID(_ID) {};
+		: ShadowAgent(geometryContainer,_ID,_type),
+		  currTime(_currTime), incrTime(_incrTime) {};
 
 public:
 	/** Please, override in inherited classes (see docs of AbstractAgent). */
@@ -241,9 +251,6 @@ public:
 
 
 	// ------------- rendering -------------
-	/** label of this agent */
-	const int ID;
-
 	/** Should render the current detailed shape, i.e. the futureGeometry, into
 	    the DisplayUnit; may use this->ID or its state somehow for colors.
 
