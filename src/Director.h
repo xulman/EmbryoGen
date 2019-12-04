@@ -15,7 +15,7 @@ public:
 	Director(Scenario& s, const int firstFO, const int allPortions)
 		: scenario(s), firstFOsID(firstFO), FOsCount(allPortions)
 	{
-		//create an extra thread to execute the respond_...() methods
+		//TODO: create an extra thread to execute/service the respond_...() methods
 	}
 
 protected:

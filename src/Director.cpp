@@ -59,7 +59,19 @@ void Director::close(void)
 	isProperlyClosedFlag = true;
 	DEBUG_REPORT("running the closing sequence");
 
-	//TODO
+	//TODO: should close/kill the service thread too
+
+	//close tracks of all agents
+	for (auto ag : agents)
+	{
+		//CTC logging?
+		if ( tracks.isTrackFollowed(ag.first)      //was part of logging?
+		&&  !tracks.isTrackClosed(ag.first) )      //wasn't closed yet?
+			tracks.closeTrack(ag.first,frameCnt-1);
+	}
+
+	tracks.exportAllToFile("tracks.txt");
+	DEBUG_REPORT("tracks.txt was saved...");
 }
 
 

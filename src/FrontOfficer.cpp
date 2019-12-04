@@ -55,7 +55,40 @@ void FrontOfficer::close(void)
 	isProperlyClosedFlag = true;
 	DEBUG_REPORT("running the closing sequence");
 
-	//TODO
+	//TODO: should close/kill the service thread too
+
+	//delete all agents... also later from newAgents & deadAgents, note that
+	//the same agent may exist on the agents and deadAgents lists simultaneously
+	DEBUG_REPORT("will remove " << agents.size() << " active agents");
+	for (auto ag : agents)
+	{
+		//check and possibly remove from the deadAgents list
+		auto daIt = deadAgents.begin();
+		while (daIt != deadAgents.end() && *daIt != ag.second) ++daIt;
+		if (daIt != deadAgents.end())
+		{
+			DEBUG_REPORT("removing from deadAgents list the duplicate agent ID " << (*daIt)->ID);
+			deadAgents.erase(daIt);
+		}
+
+		delete ag.second;
+		ag.second = NULL;
+	}
+	agents.clear();
+
+	//now remove what's left on newAgents and deadAgents
+	DEBUG_REPORT("will remove " << newAgents.size() << " and " << deadAgents.size()
+	          << " agents from newAgents and deadAgents, respectively");
+	while (!newAgents.empty())
+	{
+		delete newAgents.front();
+		newAgents.pop_front();
+	}
+	while (!deadAgents.empty())
+	{
+		delete deadAgents.front();
+		deadAgents.pop_front();
+	}
 }
 
 

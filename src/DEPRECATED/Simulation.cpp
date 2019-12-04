@@ -2,52 +2,6 @@
 #include "Simulation.h"
 
 
-/** frees simulation agents, writes the tracks.txt file */
-void Simulation::close(void)
-{
-	//mark before closing is attempted...
-	simulationProperlyClosedFlag = true;
-
-	//delete all agents... also from newAgents & deadAgents, note that the
-	//same agent may exist on the agents and deadAgents lists simultaneously
-	std::list<AbstractAgent*>::iterator iter=agents.begin();
-	while (iter != agents.end())
-	{
-		//CTC logging?
-		if ( tracks.isTrackFollowed((*iter)->ID)      //was part of logging?
-		&&  !tracks.isTrackClosed((*iter)->ID) )      //wasn't closed yet?
-			tracks.closeTrack((*iter)->ID,frameCnt-1);
-
-		//check and possibly remove from the deadAgents list
-		auto daIt = deadAgents.begin();
-		while (daIt != deadAgents.end() && *daIt != *iter) ++daIt;
-		if (daIt != deadAgents.end())
-		{
-			DEBUG_REPORT("removing from deadAgents duplicate ID " << (*daIt)->ID);
-			deadAgents.erase(daIt);
-		}
-
-		delete *iter; *iter = NULL;
-		iter++;
-	}
-
-	tracks.exportAllToFile("tracks.txt");
-	DEBUG_REPORT("tracks.txt was saved...");
-
-	//now remove what's left on newAgents and deadAgents
-	DEBUG_REPORT("will remove " << newAgents.size() << " and " << deadAgents.size()
-	          << " agents from newAgents and deadAgents, respectively");
-	while (!newAgents.empty())
-	{
-		delete newAgents.front();
-		newAgents.pop_front();
-	}
-	while (!deadAgents.empty())
-	{
-		delete deadAgents.front();
-		deadAgents.pop_front();
-	}
-}
 
 
 // -----------------------------------------------------------------------------

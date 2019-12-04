@@ -17,7 +17,7 @@ public:
 	FrontOfficer(Scenario& s, const int nextFO, const int myPortion, const int allPortions)
 		: scenario(s), ID(myPortion), nextFOsID(nextFO), FOsCount(allPortions)
 	{
-		//create an extra thread to execute the respond_...() methods
+		//TODO: create an extra thread to execute/service the respond_...() methods
 	}
 
 protected:
