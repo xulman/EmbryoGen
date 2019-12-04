@@ -86,6 +86,54 @@ public:
 
 
 /**
+ * An x,y,z-axes aligned 3D bounding box for approximate representation
+ * of agent's geometry, the box has an extra 'ID' and 'name' attributes that are expected
+ * to match the ID and name (ShadowAgent::agentType) of the agent this box is representing.
+ *
+ * The existence of this class comes from the optimization background. Agents in the simulation
+ * are free to choose with whom (with which other agents) they want to interact, that is,
+ * whose detailed geometry (ShadowAgent's data) they want to consider. Previously,
+ * the FO always fetched (FrontOfficer::getNearbyAgents()) ShadowAgent objects of all
+ * nearby agents and the agent might have just skipped over/ignored some (and the decision
+ * was typically based on the content of ShadowAgent::agentType). This, however, required
+ * all nearby ShadowAgent's to be availalbe (thus transferred!). This is no longer necessary
+ * with the new pair of methods FrontOfficer::getNearbyAABBs() and FrontOfficer::getNearbyAgent().
+ * Here, the agent decides whom to consider based on (the proximity and) the name of the AABB
+ * and only then requests the ShadowAgent of the agents that this one is interested in.
+ * Typically, 'name' is considered to make decision if the corresponding agent is of interest,
+ * but 'ID' is used to properly (and uniquely) map back on the representing agent.
+ *
+ * Author: Vladimir Ulman, 2019
+ */
+class NamedAxisAlignedBoundingBox: public AxisAlignedBoundingBox
+{
+public:
+	int ID;
+	std::string name;
+
+	//mostly repetition of the AxisAlignedBoundingBox c'tors
+	NamedAxisAlignedBoundingBox(void)
+		: AxisAlignedBoundingBox(), ID(-1), name()
+	{}
+
+	NamedAxisAlignedBoundingBox(const NamedAxisAlignedBoundingBox& naabb)
+		: AxisAlignedBoundingBox(naabb), ID(naabb.ID), name(naabb.name)
+	{}
+
+	NamedAxisAlignedBoundingBox(const AxisAlignedBoundingBox& aabb,
+	                            const int boxID, const std::string& boxName)
+		: AxisAlignedBoundingBox(aabb), ID(boxID), name(boxName)
+	{}
+
+	template <typename T>
+	NamedAxisAlignedBoundingBox(const i3d::Image3d<T>& img,
+	                            const int boxID, const std::string& boxName)
+		: AxisAlignedBoundingBox(img), ID(boxID), name(boxName)
+	{}
+};
+
+
+/**
  * Representation of a nearby pair of points, an output of Geometry::getDistance().
  * The geometry object on which getDistance() is called plays the role of 'local' and
  * the argument of the method plays the role of 'other' in the nomenclature of attribute
