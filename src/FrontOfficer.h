@@ -91,13 +91,38 @@ public:
 	void closeMotherStartDaughters(AbstractAgent* mother,
 	                               AbstractAgent* daughterA, AbstractAgent* daughterB);
 
+	/** Fills the list 'l' of NamedAABBs that are no further than maxDist
+	    parameter [micrometer]. The distance is examined as the distance
+	    between AABBs (axis-aligned bounding boxes) of all agents in
+	    the simulation (this->AABBs) and the reference box 'fromThisAABB'.
+	    The discovered boxed are added to the output list 'l'. The added
+	    pointers points on objects contained in the list this->AABBs, so
+	    don't delete them after use... (AABBs manages that on its own). */
+	void getNearbyAABBs(const NamedAxisAlignedBoundingBox& fromThisAABB,   //reference box
+	                    const float maxDist,                               //threshold dist
+	                    std::list<const NamedAxisAlignedBoundingBox*>& l); //output list
+
+	/** Basically, just calls getNearbyAABBs(fromSA->createNamedAABB(),maxDist,l) */
+	void getNearbyAABBs(const ShadowAgent* const fromSA,                   //reference agent
+	                    const float maxDist,                               //threshold dist
+	                    std::list<const NamedAxisAlignedBoundingBox*>& l); //output list
+
 	/** Fills the list 'l' of ShadowAgents that are no further than maxDist
 	    parameter [micrometer]. The distance is examined as the distance
-	    between AABBs (axis-aligned bounding boxes) of the ShadowAgents
-	    and the given ShadowAgent. */
+	    between AABBs (axis-aligned bounding boxes) among all agents in
+	    the simulation and the reference agent 'fromSA'.
+	    This method is essentially a shortcut getNearbyAgent() called iteratively
+	    on all elements of the list obtained with getNearbyAABBs().
+	    The added pointers is a subset of those from the collection
+	    of pointers in this->shadowAgents. */
 	void getNearbyAgents(const ShadowAgent* const fromSA,   //reference agent
 	                     const float maxDist,               //threshold dist
 	                     std::list<const ShadowAgent*>& l); //output list
+
+	/** Returns the reference in a ShadowAgent that
+	    represents the agent with 'fetchThisID'.
+		 The pointer is one from the collection of pointers in this->shadowAgents. */
+	const ShadowAgent* getNearbyAgent(const int fetchThisID);
 
 	size_t getSizeOfAABBsList() const;
 
@@ -121,7 +146,8 @@ protected:
 	bool isProperlyClosedFlag = false;
 
 	/** lists of existing agents scheduled for the addition to or
-	    for the removal from the simulation (at the appropriate occasion) */
+	    for the removal from the simulation (at the appropriate,
+	    occasion) and calculated on this node (managed by this FO) */
 	std::list<AbstractAgent*> newAgents, deadAgents;
 
 	/** list of all agents currently active in the simulation

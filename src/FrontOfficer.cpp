@@ -300,9 +300,50 @@ size_t FrontOfficer::getSizeOfAABBsList() const
 { return AABBs.size(); }
 
 
+void FrontOfficer::getNearbyAABBs(const ShadowAgent* const fromSA,                   //reference agent
+	                               const float maxDist,                               //threshold dist
+	                               std::list<const NamedAxisAlignedBoundingBox*>& l)  //output list
+{
+	getNearbyAABBs( NamedAxisAlignedBoundingBox(fromSA->getAABB(),fromSA->getID(),fromSA->getAgentType()),
+	                maxDist, l );
+}
+
+
+void FrontOfficer::getNearbyAABBs(const NamedAxisAlignedBoundingBox& fromThisAABB,   //reference box
+	                               const float maxDist,                               //threshold dist
+	                               std::list<const NamedAxisAlignedBoundingBox*>& l)  //output list
+{
+	const float maxDist2 = maxDist*maxDist;
+
+	//examine all available boxes/agents
+	for (const auto& b : AABBs)
+	{
+		//don't evaluate against itself
+		if (b.ID == fromThisAABB.ID) continue;
+
+		//close enough?
+		if (fromThisAABB.minDistance(b) < maxDist2) l.push_back(&b);
+	}
+}
+
+
 void FrontOfficer::getNearbyAgents(const ShadowAgent* const fromSA,   //reference agent
 	                                const float maxDist,               //threshold dist
-	                                std::list<const ShadowAgent*>& l) //output list
+	                                std::list<const ShadowAgent*>& l)  //output list
+{
+	//list with pointers on (nearby) boxes that live in this->AABBs,
+	//these were not created explicitly and so we must not delete them
+	std::list<const NamedAxisAlignedBoundingBox*> nearbyBoxes;
+
+	getNearbyAABBs( NamedAxisAlignedBoundingBox(fromSA->getAABB(),fromSA->getID(),fromSA->getAgentType()),
+	                maxDist, nearbyBoxes );
+
+	for (auto box : nearbyBoxes)
+		l.push_back( getNearbyAgent(box->ID) );
+}
+
+
+const ShadowAgent* FrontOfficer::getNearbyAgent(const int fetchThisID)
 {
 	//TODO: empty for now
 
@@ -312,6 +353,7 @@ void FrontOfficer::getNearbyAgents(const ShadowAgent* const fromSA,   //referenc
 	//populate the list with fresh references (that point
 	//to the cache but the updated copies shall remain valid
 	//until next update round and so do the references on them)
+	return NULL;
 }
 
 

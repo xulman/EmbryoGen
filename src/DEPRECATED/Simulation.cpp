@@ -51,38 +51,6 @@ void Simulation::close(void)
 
 
 // -----------------------------------------------------------------------------
-void Simulation::getNearbyAgents(const ShadowAgent* const fromSA,
-                     const float maxDist,
-                     std::list<const ShadowAgent*>& l)
-{
-	//cache fromSA's bounding box
-	const AxisAlignedBoundingBox& fromAABB = fromSA->getAABB();
-	const float maxDist2 = maxDist*maxDist;
-
-	//examine all full (local) agents
-	for (std::list<AbstractAgent*>::const_iterator
-	     c=agents.begin(); c != agents.end(); c++)
-	{
-		//don't evaluate against itself
-		if (*c == fromSA) continue;
-
-		//close enough?
-		if (fromAABB.minDistance((*c)->getAABB()) < maxDist2)
-			l.push_back(*c);
-	}
-
-	//examine all shadow (outside) agents
-	for (std::list<ShadowAgent*>::const_iterator
-	     c=shadowAgents.begin(); c != shadowAgents.end(); c++)
-	{
-		//close enough?
-		if (fromAABB.minDistance((*c)->getAABB()) < maxDist2)
-			l.push_back(*c);
-	}
-}
-
-
-// -----------------------------------------------------------------------------
 #if defined ENABLE_MITOGEN_FINALPREVIEW
   #include "util/synthoscopy/finalpreview.h"
 #elif defined ENABLE_FILOGEN_PHASEIIandIII
