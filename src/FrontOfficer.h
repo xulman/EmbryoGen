@@ -114,6 +114,9 @@ public:
 	/** notifies the agent to enable/disable its detailed reporting routines */
 	void setAgentsDetailedReportingMode(const int agentID, const bool state);
 
+	// -------------- debug --------------
+	void reportAABBs();
+
 protected:
 	/** flag to run-once the closing routines */
 	bool isProperlyClosedFlag = false;

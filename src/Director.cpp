@@ -103,6 +103,9 @@ void Director::execute(void)
 		// move to the next simulation time point
 		currTime += incrTime;
 		reportSituation();
+#ifdef DEBUG
+		reportAgentsAllocation();
+#endif
 
 		// is this the right time to export data?
 		if (willRenderNextFrameFlag)
@@ -455,4 +458,12 @@ void Director::renderNextFrame()
 		}
 	}
 	while (key != 0);
+}
+
+
+void Director::reportAgentsAllocation()
+{
+	REPORT("I now recognize these agents:");
+	for (const auto& AgFO : agents)
+		REPORT("agent ID " << AgFO.first << " at FO #" << AgFO.second);
 }

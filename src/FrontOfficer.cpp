@@ -141,6 +141,9 @@ void FrontOfficer::executeInternals()
 
 void FrontOfficer::executeExternals()
 {
+#ifdef DEBUG
+	reportAABBs();
+#endif
 	//react (unwillingly) to the new geometries... (can run in parallel),
 	//the agents' (external at least!) geometries must not change during this phase
 	std::list<AbstractAgent*>::iterator c=agents.begin();
@@ -359,4 +362,14 @@ void FrontOfficer::renderNextFrame()
 	*/
 
 	++frameCnt;
+}
+
+
+void FrontOfficer::reportAABBs()
+{
+	REPORT("I now recognize these AABBs:");
+	for (const auto& naabb : AABBs)
+		REPORT("agent ID " << naabb.ID << " \"" << naabb.name
+		       << "\" spanning from "
+		       << naabb.minCorner << " to " << naabb.maxCorner);
 }
