@@ -343,6 +343,12 @@ void FrontOfficer::getNearbyAgents(const ShadowAgent* const fromSA,   //referenc
 
 const ShadowAgent* FrontOfficer::getNearbyAgent(const int fetchThisID)
 {
+	//is the requested agent living in the same (*this) FO?
+	const auto ag = agents.find(fetchThisID);
+	if (ag != agents.end()) return ag->second;
+
+	DEBUG_REPORT("The requested agent " << fetchThisID << " is not living on this FO #" << ID);
+
 	//TODO: empty for now
 
 	//plan:
