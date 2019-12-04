@@ -52,8 +52,6 @@ public:
 	/** does the simulation loops, i.e. triggers calls of AbstractAgent's methods in the right order */
 	void execute(void);
 
-	void reportSituation();
-
 	/** frees simulation agents, writes the tracks.txt file */
 	void close(void);
 
@@ -87,6 +85,9 @@ public:
 	    actually a "daughter" of another agent */
 	void startNewDaughterAgent(const int childID, const int parentID);
 
+	/** returns the ID of FO to which a given agent is associated to */
+	int getFOsIDofAgent(const int agentID);
+
 	/** returns the state of the 'willRenderNextFrameFlag', that is if the
 	    current simulation round with end up with the call to renderNextFrame() */
 	bool willRenderNextFrame(void) const
@@ -107,9 +108,6 @@ public:
 	void disableWaitForUserPrompt(void)
 	{ shallWaitForUserPromptFlag = false; }
 
-	/** returns the ID of FO to which a given agent is associated to */
-	int getFOsIDofAgent(const int agentID);
-
 	/** notifies the agent to enable/disable its detailed drawing routines */
 	void setAgentsDetailedDrawingMode(const int agentID, const bool state);
 
@@ -117,6 +115,7 @@ public:
 	void setAgentsDetailedReportingMode(const int agentID, const bool state);
 
 	// -------------- debug --------------
+	void reportSituation();
 	void reportAgentsAllocation();
 
 protected:

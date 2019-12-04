@@ -171,6 +171,7 @@ void Director::updateAndPublishAgents()
 	//but the messages sent by the last FO might still being processed
 	//by some FOs and so wait here a bit and then ask FO, one by one,
 	//to tell us how many AABBs it currently has
+	DEBUG_REPORT("Waiting 1 second before checking all FOs...");
 	std::this_thread::sleep_for((std::chrono::milliseconds)1000);
 
 	//all FOs except myself (assuming i=0 addresses the Direktor)

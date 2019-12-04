@@ -52,8 +52,6 @@ public:
 	/** does the simulation loops, i.e. calls AbstractAgent's methods */
 	void execute(void);
 
-	void reportSituation();
-
 	/** frees simulation agents */
 	void close(void);
 
@@ -115,6 +113,7 @@ public:
 	void setAgentsDetailedReportingMode(const int agentID, const bool state);
 
 	// -------------- debug --------------
+	void reportSituation();
 	void reportAABBs();
 
 protected:
