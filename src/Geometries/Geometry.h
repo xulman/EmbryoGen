@@ -284,6 +284,15 @@ public:
 
 	/** updates this object's own AABB to reflect the current geometry */
 	void updateOwnAABB(void)
-	{ updateThisAABB(this->AABB); }
+	{
+		updateThisAABB(this->AABB);
+		++version;
+	}
+
+	/** a version of this geometry that gets automatically incremented with
+	    every call to this->updateOwnAABB(); intended use was that a user remembers
+	    the last value of this attribute, and she can later see (by comparison) if
+	    the geometry has changed or not.... */
+	int version = 0;
 };
 #endif
