@@ -305,16 +305,7 @@ public:
 	/** A callback to ask this scenario to set up its digital phantom to final
 	    image conversion stack. This method is called only from the Direktor,
 	    not from any FO. */
-	virtual void initializePhaseIIandIII()
-	{
-		DEBUG_REPORT("This scenario is using the default routine.");
-
-#ifdef ENABLE_FILOGEN_REALPSF
-		const char psfFilename[] = "../2013-07-25_1_1_9_0_2_0_0_1_0_0_0_0_9_12.ics";
-		REPORT("reading this PSF image " << psfFilename);
-		imgPSF.ReadImage(psfFilename);
-#endif
-	};
+	virtual void initializePhaseIIandIII();
 
 	/** A callback to ask this scenario to realize the digital phantom to final
 	    image conversion, acting on the images from this->params according to
@@ -335,19 +326,11 @@ public:
 	    altered in this method because the said variables shall not be used anymore
 	    in the (just finishing) simulation round. Don't change Simulation::imgMask
 	    because this one is used for computation of the SNR. */
-	virtual void doPhaseIIandIII()
-	{
-		DEBUG_REPORT("This scenario is using the default routine.");
+	virtual void doPhaseIIandIII();
 
-		/* TODO
-		if params.isProducingOutput(params.imgFinal)
-		{
-		}
-		*/
-	};
-
-#ifdef ENABLE_FILOGEN_REALPSF
+#ifdef ENABLE_FILOGEN_PHASEIIandIII
 private:
+	std::string imgPSFuserPath;
 	i3d::Image3d<float> imgPSF;
 #endif
 };

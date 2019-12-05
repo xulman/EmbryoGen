@@ -3,51 +3,6 @@
 
 
 
-
-// -----------------------------------------------------------------------------
-#if defined ENABLE_MITOGEN_FINALPREVIEW
-  #include "util/synthoscopy/finalpreview.h"
-#elif defined ENABLE_FILOGEN_PHASEIIandIII
-  #include "util/synthoscopy/FiloGen_VM.h"
-#endif
-#ifndef ENABLE_FILOGEN_REALPSF
-  #include <i3d/filters.h>
-#endif
-
-void Simulation::doPhaseIIandIII(void)
-{
-#if defined ENABLE_MITOGEN_FINALPREVIEW
-	REPORT("using default MitoGen synthoscopy");
-	mitogen::PrepareFinalPreviewImage(imgPhantom,imgFinal);
-
-#elif defined ENABLE_FILOGEN_PHASEIIandIII
-	REPORT("using default FiloGen synthoscopy");
-	//
-	// phase II
-#ifdef ENABLE_FILOGEN_REALPSF
-	filogen::PhaseII(imgPhantom, imgPSF);
-#else
-	const float xySigma = 0.6f; //can also be 0.9
-	const float  zSigma = 1.8f; //can also be 2.7
-	DEBUG_REPORT("fake PSF is used for PhaseII, with sigmas: "
-		<< xySigma * imgPhantom.GetResolution().GetX() << " x "
-		<< xySigma * imgPhantom.GetResolution().GetY() << " x "
-		<<  zSigma * imgPhantom.GetResolution().GetZ() << " pixels");
-	i3d::GaussIIR<float>(imgPhantom,
-		xySigma * imgPhantom.GetResolution().GetX(),
-		xySigma * imgPhantom.GetResolution().GetY(),
-		 zSigma * imgPhantom.GetResolution().GetZ());
-#endif
-	//
-	// phase III
-	filogen::PhaseIII(imgPhantom, imgFinal);
-
-#else
-	REPORT("WARNING: Empty function, no synthoscopy is going on.");
-#endif
-}
-
-
 // -----------------------------------------------------------------------------
 template <typename T>
 void Simulation::transferImg(const i3d::Image3d<T>& img, const std::string& URL) const

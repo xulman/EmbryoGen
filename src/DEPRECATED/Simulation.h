@@ -5,12 +5,6 @@
 #include <i3d/image3d.h>
 #include <TransferImage.h>
 
-//choose either ENABLE_MITOGEN_FINALPREVIEW or ENABLE_FILOGEN_PHASEIIandIII,
-//if ENABLE_FILOGEN_PHASEIIandIII is choosen, one can enable ENABLE_FILOGEN_REALPSF
-//#define ENABLE_MITOGEN_FINALPREVIEW
-#define ENABLE_FILOGEN_PHASEIIandIII
-#define ENABLE_FILOGEN_REALPSF
-
 /**
  * This class contains all simulation agents, scene and simulation
  * parameters, and takes care of the iterations of the simulation.
