@@ -89,6 +89,15 @@ void FrontOfficer::close(void)
 		delete deadAgents.front();
 		deadAgents.pop_front();
 	}
+
+	//also clean up any shadow agents one may have
+	DEBUG_REPORT("will remove " << shadowAgents.size() << " shadow agents");
+	for (auto sh : shadowAgents)
+	{
+		delete sh.second;
+		sh.second = NULL;
+	}
+	shadowAgents.clear();
 }
 
 
@@ -198,6 +207,7 @@ void FrontOfficer::executeExternals()
 void FrontOfficer::prepareForUpdateAndPublishAgents()
 {
 	AABBs.clear();
+	agentsToFOsMap.clear();
 }
 
 void FrontOfficer::updateAndPublishAgents()
@@ -331,6 +341,18 @@ size_t FrontOfficer::getSizeOfAABBsList() const
 { return AABBs.size(); }
 
 
+void FrontOfficer::registerThatThisAgentIsAtThisFO(const int agentID, const int FOsID)
+{
+#ifdef DEBUG
+	if (agentsToFOsMap.find(agentID) != agentsToFOsMap.end())
+		throw ERROR_REPORT("Agent ID " << agentID
+			<< " already registered with FO #" << agentsToFOsMap.find(agentID)->second
+			<< " but was (again) broadcast by FO #" << FOsID);
+#endif
+	agentsToFOsMap[agentID] = FOsID;
+}
+
+
 void FrontOfficer::getNearbyAABBs(const ShadowAgent* const fromSA,                   //reference agent
 	                               const float maxDist,                               //threshold dist
 	                               std::list<const NamedAxisAlignedBoundingBox*>& l)  //output list
@@ -380,17 +402,27 @@ const ShadowAgent* FrontOfficer::getNearbyAgent(const int fetchThisID)
 	const auto ag = agents.find(fetchThisID);
 	if (ag != agents.end()) return ag->second;
 
-	DEBUG_REPORT("The requested agent " << fetchThisID << " is not living on this FO #" << ID);
+	//no, the requested agent is somewhere outside...
+#ifdef DEBUG
+	if (agentsToFOsMap.find(fetchThisID) == agentsToFOsMap.end())
+		throw ERROR_REPORT("Should not happen! I don't know which FO is the requested agent ID " << fetchThisID);
+#endif
 
-	//TODO: empty for now
+	//obtain the most recent copy...
+	const int contactThisFO = agentsToFOsMap[fetchThisID];
+	DEBUG_REPORT("Requesting agent ID " << fetchThisID << " from FO #" << contactThisFO);
+	ShadowAgent* const saCopy = request_ShadowAgentCopy(fetchThisID, contactThisFO);
 
-	//plan:
-	//scan over my AABBs to find possibly nearby agents
-	//update my cache of ShadowAgents
-	//populate the list with fresh references (that point
-	//to the cache but the updated copies shall remain valid
-	//until next update round and so do the references on them)
-	return NULL;
+	//...and update the shadowAgents map
+	auto saItem = shadowAgents.find(fetchThisID);
+	//
+	//if not empty, delete the now-old content first
+	if (saItem != shadowAgents.end()) delete saItem->second;
+	//
+	//store the new reference
+	shadowAgents[fetchThisID] = saCopy;
+
+	return saCopy;
 }
 
 
@@ -450,5 +482,6 @@ void FrontOfficer::reportAABBs()
 	for (const auto& naabb : AABBs)
 		REPORT("agent ID " << naabb.ID << " \"" << naabb.name
 		       << "\" spanning from "
-		       << naabb.minCorner << " to " << naabb.maxCorner);
+		       << naabb.minCorner << " to " << naabb.maxCorner
+		       << " and living at FO #" << agentsToFOsMap[naabb.ID]);
 }

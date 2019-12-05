@@ -78,7 +78,7 @@ void FrontOfficer::broadcast_AABBofAgent(const ShadowAgent& ag)
 	//in this SMP particular implementation we do only update ourselves,
 	//there is no other FO and Direktor doesn't care about this update
 	AABBs.emplace_back(ag.getAABB(),ag.getID(),ag.getAgentType());
-	//TODO string!
+	registerThatThisAgentIsAtThisFO(ag.getID(),this->ID);
 
 	/*
 	//in MPI world: example:
@@ -104,13 +104,16 @@ void FrontOfficer::respond_AABBofAgent()
 	//this never happens (as there's no other FO to call us)
 	//MPI world:
 
-	//gets : AABB+type as 6x float, int, string
+	//gets : AABB+ID+type as 6x float, int, string
 	//gives: nothing
+	//also needs to get the ID of the FO that broadcasted that particular message
+	//(if that is not possible, the sending FOsID will need be part of the message)
 
 	/*
 	//fake example values:
 	float coords[] = { 10.f,10.f,10.f, 20.f,20.f,20.f };
 	int agentID(10);
+	int FOsIDfromWhichTheMessageArrived(1);
 	std::string agentType("some fictious agent");
 
 	AABBs.emplace_back();
@@ -118,6 +121,8 @@ void FrontOfficer::respond_AABBofAgent()
 	AABBs.back().maxCorner.fromScalars(coords[3],coords[4],coords[5]);
 	AABBs.back().ID   = agentID;
 	AABBs.back().name = agentType;
+
+	registerThatThisAgentIsAtThisFO(agentID,FOsIDfromWhichTheMessageArrived);
 	*/
 }
 
@@ -132,6 +137,52 @@ void FrontOfficer::respond_CntOfAABBs()
 
 	/*
 	size_t sendBackMyCount = getSizeOfAABBsList();
+	*/
+}
+
+
+ShadowAgent* FrontOfficer::request_ShadowAgentCopy(const int /* agentID */, const int /* FOsID */)
+{
+	//this never happens here (as there is no other FO to talk to)
+	return NULL;
+
+	//MPI world:
+	//contacts FO at FOsID telling it that it needs agentID's ShadowAgent back
+
+	//gives: agentID, this->ID (to tell the other party whom to talk back)
+	//waits
+	//gets : Geometry data, agentID and agentType
+
+	/* fake data!
+	Geometry*   gotThisGeom      = new Spheres(4);
+	int         gotThisAgentID   = 10;
+	std::string gotThisAgentType = "fake agent";
+	return new ShadowAgent(*gotThisGeom, gotThisAgentID,gotThisAgentType);
+	*/
+}
+
+
+void FrontOfficer::respond_ShadowAgentCopy()
+{
+	//this never happens here (as there is no other FO to hear from)
+	//MPI world:
+
+	//gets : requestedAgentID, askingFOsID
+	//gives: Geometry data, agentID and agentType
+
+	/*
+	int requestedAgentID = 10; //fake value
+
+#ifdef DEBUG
+	if (agents.find(requestedAgentID) == agents.end())
+		throw ERROR_REPORT("Cannot provide ShadowAgent for agent ID " << requestedAgentID);
+#endif
+
+	const AbstractAgent& aaRef = *(agents[requestedAgentID]);
+
+	const Geometry&    sendBackGeom      = aaRef.getGeometry();
+	const int          sendBackAgentID   = aaRef.getID();
+	const std::string& sendBackAgentType = aaRef.getAgentType();
 	*/
 }
 
@@ -181,10 +232,6 @@ void FrontOfficer::waitHereUntilEveryoneIsHereToo()
 
 
 //not revisited yet
-void FrontOfficer::respond_publishGeometry()
-{
-	//round robin calls to all my agents and their publishGeometry()
-}
 void FrontOfficer::respond_renderNextFrame()
 {
 	//shall obtain images to render into

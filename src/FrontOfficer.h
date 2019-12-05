@@ -148,20 +148,29 @@ protected:
 
 	/** lists of existing agents scheduled for the addition to or
 	    for the removal from the simulation (at the appropriate,
-	    occasion) and calculated on this node (managed by this FO) */
+	    occasion) and computed on this node (managed by this FO) */
 	std::list<AbstractAgent*> newAgents, deadAgents;
 
 	/** list of all agents currently active in the simulation
-	    and calculated on this node (managed by this FO) */
+	    and computed on this node (managed by this FO) */
 	std::map<int,AbstractAgent*> agents;
-
-	/** list of all agents currently active in the simulation
-	    and calculated elsewhere (managed by foreign FO) */
-	std::list<ShadowAgent*> shadowAgents;
 
 	/** list of AABBs of all agents currently active in the entire
 	    simulation, that is, managed by all FOs */
 	std::list<NamedAxisAlignedBoundingBox> AABBs;
+
+	/** cache of all recently retrieved geometries of agents
+	    that are computed elsewhere (managed by foreign FO) */
+	std::map<int,ShadowAgent*> shadowAgents;
+
+	/** a complete map of all agents in the simulation and IDs of FOs
+	    on which they are currently computed; this map is completely
+	    rebuilt everytime the AABBs are exchanged */
+	std::map<int,int> agentsToFOsMap;
+
+	/** adds an item to the map this->agentsToFOsMap,
+	    it should be called only from the AABB broadcast receiving methods */
+	void registerThatThisAgentIsAtThisFO(const int agentID, const int FOsID);
 
 	/** current global simulation time [min] */
 	float currTime = 0.0f;
@@ -211,8 +220,10 @@ protected:
 	void respond_setDetailedDrawingMode();
 	void respond_setDetailedReportingMode();
 
+	ShadowAgent* request_ShadowAgentCopy(const int agentID, const int FOsID);
+	void respond_ShadowAgentCopy();
+
 	//not revisited yet
-	void respond_publishGeometry();
 	void respond_renderNextFrame();
 
 /*

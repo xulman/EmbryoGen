@@ -191,7 +191,6 @@ protected:
 
 	//not revisited yet
 	void request_renderNextFrame(const int FOsID);
-	void request_publishGeometry();
 
 #ifndef DISTRIBUTED
 	FrontOfficer* FO = NULL;
