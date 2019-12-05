@@ -56,20 +56,6 @@ void FrontOfficer::notify_publishAgentsAABBs(const int /* FOsID */)
 }
 
 
-/*
- * TODO:
- * after the push-broadcast round of AABBs it should be clear
- * which agents are now active in the simulation, and
- * every agent decides who is nearby and requests its detailed
- * geometry.. FOs then cache this requests
- * to avoid re-fetching of heavy geometries (e.g. static
- * scalarImg geometries), we could introduce a version number
- * in the geometry and FO, when asking for detailed geometry,
- * would include the version it holds and replier would either
- * confirm "nothing new since then" or would just sent newer version
- */
-
-
 void FrontOfficer::broadcast_AABBofAgent(const ShadowAgent& ag)
 {
 	//this shall tell all (including this one) FOs the AABB of the given agent,
@@ -229,18 +215,53 @@ void FrontOfficer::waitHereUntilEveryoneIsHereToo()
 {}
 
 
-
-
-
-
-
-
-
-
-//not revisited yet
-void FrontOfficer::respond_renderNextFrame()
+void FrontOfficer::waitFor_renderNextFrame()
 {
-	//shall obtain images to render into
-	//round robin calls to all my agents and their draw*()
-	//shall use: nextFOsID
+	//does nothing in the SMP
+
+	//MPI world:
+
+	//shall block and wait until 3 images come to us
+	//they will come in this order: mask, phantom, optics
+
+#ifdef DEBUG
+	//test this:
+	//the incomming images must be of the same size as ours sc.img*
+#endif
+
+	//one receives each image directly into our own sc.img* image,
+	//to "receive directly" is to sum (operation +) together corresponding
+	//pixels, that is pixel from the network with pixel in the sc.img*,
+	//the result is stored into the sc.img*
+
+	/*
+	SceneControls& sc = scenario.params;
+
+	//here's the handle on our sc.img* images
+	sc.imgMask
+	sc.imgPhantom
+	sc.imgOptics
+
+	//here's how to reach the pixels, they live in one long buffer, e.g.
+	i3d::GRAY16* maskPixelBuffer = sc.imgMask.GetFirstVoxelAddr();
+	const size_t maskPixelLength = sc.imgMask.GetImageSize();
+
+	//reminder of the types of the images:
+	i3d::Image3d<i3d::GRAY16> imgMask;
+	i3d::Image3d<float> imgPhantom;
+	i3d::Image3d<float> imgOptics;
+
+	(i3d::GRAY16 maps into short type)
+	*/
+}
+
+
+void FrontOfficer::request_renderNextFrame(const int /* FOsID */)
+{
+	//does nothing in the SMP
+
+	//MPI world:
+
+	//this is the counterpart to the waitFor_renderNextFrame()
+	//one sends out the images in this order: mask, phantom, optics
 }

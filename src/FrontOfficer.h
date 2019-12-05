@@ -186,6 +186,10 @@ protected:
 	/** flag if the renderNextFrame() will be called after this simulation round */
 	bool willRenderNextFrameFlag = false;
 
+	/** Flags if agents' drawForDebug() should be called with every this->renderNextFrame(),
+	    this flag can be changed only via request_setRenderingDebug()  */
+	bool renderingDebug = false;
+
 	/** housekeeping before the AABBs exchange takes place */
 	void prepareForUpdateAndPublishAgents();
 
@@ -228,8 +232,8 @@ protected:
 	ShadowAgent* request_ShadowAgentCopy(const int agentID, const int FOsID);
 	void respond_ShadowAgentCopy();
 
-	//not revisited yet
-	void respond_renderNextFrame();
+	void waitFor_renderNextFrame();
+	void request_renderNextFrame(const int FOsID);
 
 /*
 naming nomenclature:

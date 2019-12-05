@@ -264,45 +264,28 @@ void Director::renderNextFrame()
 	SceneControls& sc = scenario.params;
 
 	// ----------- OUTPUT EVENTS -----------
-	//clear the output images
+	//prepare the output images
 	sc.imgMask.GetVoxelData()    = 0;
 	sc.imgPhantom.GetVoxelData() = 0;
 	sc.imgOptics.GetVoxelData()  = 0;
 
-	// --------- the big round robin scheme --------- TODO
-	/*
-	//go over all cells, and render them
-	std::list<AbstractAgent*>::const_iterator c=agents.begin();
-	for (; c != agents.end(); c++)
-	{
-		//displayUnit should always exists in some form
-		(*c)->drawTexture(displayUnit);
-		(*c)->drawMask(displayUnit);
-		if (renderingDebug)
-			(*c)->drawForDebug(displayUnit);
+	// --------- the big round robin scheme ---------
+	//start the round...:
+	//this essentially sends out the empty images, and leaves them empty!
+	request_renderNextFrame(firstFOsID);
 
-		//raster images may not necessarily always exist,
-		//always check for their availability first:
-		if (sc.isProducingOutput(sc.imgPhantom) && sc.isProducingOutput(sc.imgOptics))
-		{
-			(*c)->drawTexture(sc.imgPhantom,sc.imgOptics);
-		}
-		if (sc.isProducingOutput(sc.imgMask))
-		{
-			(*c)->drawMask(sc.imgMask);
-			if (renderingDebug)
-				(*c)->drawForDebug(sc.imgMask); //TODO, should go into its own separate image
-		}
-	}
+	/* IF THE INITIAL IMAGES WERE NOT ZERO, HERE THEY MUST BE ZEROED
+	//clear the output images
+	sc.imgMask.GetVoxelData()    = 0;
+	sc.imgPhantom.GetVoxelData() = 0;
+	sc.imgOptics.GetVoxelData()  = 0;
 	*/
 
-	//render the current frame
-	//TODO
-	/*
-	displayUnit.Flush(); //make sure all drawings are sent before the "tick"
-	displayUnit.Tick( ("Time: "+std::to_string(currTime)).c_str() );
-	displayUnit.Flush(); //make sure the "tick" is sent right away too
-	*/
+	//WAIT HERE UNTIL WE GOT THE IMAGES BACK
+	//this essentially pours images from network into local images,
+	//which must be for sure zero beforehand
+	//this will block...
+	waitFor_renderNextFrame();
 
 	//save the images
 	static char fn[1024];

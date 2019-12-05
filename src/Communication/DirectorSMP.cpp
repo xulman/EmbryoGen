@@ -141,21 +141,20 @@ void Director::waitHereUntilEveryoneIsHereToo()
 {}
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//not revisited yet
 void Director::request_renderNextFrame(const int /* FOsID */)
-{}
+{
+	//in the SMP:
+	FO->renderNextFrame();
+
+	//MPI world:
+	//this exactly the same code as in FrontOfficer::request_renderNextFrame(FOsID)
+}
+
+
+void Director::waitFor_renderNextFrame()
+{
+	//does nothing in the SMP
+
+	//MPI world:
+	//this exactly the same code as in FrontOfficer::waitFor_renderNextFrame()
+}

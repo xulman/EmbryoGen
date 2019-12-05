@@ -1,3 +1,4 @@
+#include "DisplayUnits/VoidDisplayUnit.h"
 #include "Agents/AbstractAgent.h"
 #include "FrontOfficer.h"
 
@@ -453,42 +454,51 @@ void FrontOfficer::renderNextFrame()
 	sc.imgPhantom.GetVoxelData() = 0;
 	sc.imgOptics.GetVoxelData()  = 0;
 
-	// --------- the big round robin scheme --------- TODO
-	/*
-	//go over all cells, and render them
-	std::list<AbstractAgent*>::const_iterator c=agents.begin();
-	for (; c != agents.end(); c++)
+	//go over all cells, and render them -- ONLY IMAGES!
+	for (auto ag : agents)
 	{
-		//displayUnit should always exists in some form
-		(*c)->drawTexture(displayUnit);
-		(*c)->drawMask(displayUnit);
-		if (renderingDebug)
-			(*c)->drawForDebug(displayUnit);
-
 		//raster images may not necessarily always exist,
 		//always check for their availability first:
 		if (sc.isProducingOutput(sc.imgPhantom) && sc.isProducingOutput(sc.imgOptics))
 		{
-			(*c)->drawTexture(sc.imgPhantom,sc.imgOptics);
+			ag.second->drawTexture(sc.imgPhantom,sc.imgOptics);
 		}
 		if (sc.isProducingOutput(sc.imgMask))
 		{
-			(*c)->drawMask(sc.imgMask);
+			ag.second->drawMask(sc.imgMask);
 			if (renderingDebug)
-				(*c)->drawForDebug(sc.imgMask); //TODO, should go into its own separate image
+				ag.second->drawForDebug(sc.imgMask); //TODO, should go into its own separate image
 		}
 	}
-	*/
+	//note that this far the code was executed on all FOs, that means in parallel
 
-	//render the current frame
-	//TODO
-	/*
+	// --------- the big round robin scheme ---------
+	//WAIT HERE UNTIL WE GOT THE IMAGES TO CONTRIBUTE INTO
+	//this will block...
+	waitFor_renderNextFrame();
+
+	//now that it is only us who have the token, we
+	//do "pollute" the DisplayUnit (load balancing)
+	//
+	//go over all cells, and render them -- ONLY DISPLAY UNITS!
+	VoidDisplayUnit displayUnit; //TODO REMOVE fix
+	for (auto ag : agents)
+	{
+		//displayUnit should always exists in some form
+		ag.second->drawTexture(displayUnit);
+		ag.second->drawMask(displayUnit);
+		if (renderingDebug)
+			ag.second->drawForDebug(displayUnit);
+	}
+
 	displayUnit.Flush(); //make sure all drawings are sent before the "tick"
-	displayUnit.Tick( ("Time: "+std::to_string(currTime)).c_str() );
+	displayUnit.Tick(buildStringFromStream("Frame: " << frameCnt << " (sent by FO #" << ID << ")").c_str());
 	displayUnit.Flush(); //make sure the "tick" is sent right away too
-	*/
 
 	++frameCnt;
+
+	request_renderNextFrame(nextFOsID);
+	//and we move on to get blocked on any following checkpoint
 }
 
 

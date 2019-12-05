@@ -189,8 +189,9 @@ protected:
 	void notify_setDetailedDrawingMode(const int FOsID, const int agentID, const bool state);
 	void notify_setDetailedReportingMode(const int FOsID, const int agentID, const bool state);
 
-	//not revisited yet
 	void request_renderNextFrame(const int FOsID);
+	void waitFor_renderNextFrame();
+
 
 #ifndef DISTRIBUTED
 	FrontOfficer* FO = NULL;
