@@ -141,6 +141,52 @@ void FrontOfficer::respond_CntOfAABBs()
 }
 
 
+ShadowAgent* FrontOfficer::request_ShadowAgentCopy(const int /* agentID */, const int /* FOsID */)
+{
+	//this never happens here (as there is no other FO to talk to)
+	return NULL;
+
+	//MPI world:
+	//contacts FO at FOsID telling it that it needs agentID's ShadowAgent back
+
+	//gives: agentID, this->ID (to tell the other party whom to talk back)
+	//waits
+	//gets : Geometry data, agentID and agentType
+
+	/* fake data!
+	Geometry*   gotThisGeom      = new Spheres(4);
+	int         gotThisAgentID   = 10;
+	std::string gotThisAgentType = "fake agent";
+	return new ShadowAgent(*gotThisGeom, gotThisAgentID,gotThisAgentType);
+	*/
+}
+
+
+void FrontOfficer::respond_ShadowAgentCopy()
+{
+	//this never happens here (as there is no other FO to hear from)
+	//MPI world:
+
+	//gets : requestedAgentID, askingFOsID
+	//gives: Geometry data, agentID and agentType
+
+	/*
+	int requestedAgentID = 10; //fake value
+
+#ifdef DEBUG
+	if (agents.find(requestedAgentID) == agents.end())
+		throw ERROR_REPORT("Cannot provide ShadowAgent for agent ID " << requestedAgentID);
+#endif
+
+	const AbstractAgent& aaRef = *(agents[requestedAgentID]);
+
+	const Geometry&    sendBackGeom      = aaRef.getGeometry();
+	const int          sendBackAgentID   = aaRef.getID();
+	const std::string& sendBackAgentType = aaRef.getAgentType();
+	*/
+}
+
+
 void FrontOfficer::respond_setDetailedDrawingMode()
 {
 	//this never happens (as Direktor here talks directly to the FO)
@@ -186,10 +232,6 @@ void FrontOfficer::waitHereUntilEveryoneIsHereToo()
 
 
 //not revisited yet
-void FrontOfficer::respond_publishGeometry()
-{
-	//round robin calls to all my agents and their publishGeometry()
-}
 void FrontOfficer::respond_renderNextFrame()
 {
 	//shall obtain images to render into

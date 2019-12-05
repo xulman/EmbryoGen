@@ -220,8 +220,10 @@ protected:
 	void respond_setDetailedDrawingMode();
 	void respond_setDetailedReportingMode();
 
+	ShadowAgent* request_ShadowAgentCopy(const int agentID, const int FOsID);
+	void respond_ShadowAgentCopy();
+
 	//not revisited yet
-	void respond_publishGeometry();
 	void respond_renderNextFrame();
 
 /*

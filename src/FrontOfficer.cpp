@@ -402,17 +402,27 @@ const ShadowAgent* FrontOfficer::getNearbyAgent(const int fetchThisID)
 	const auto ag = agents.find(fetchThisID);
 	if (ag != agents.end()) return ag->second;
 
-	DEBUG_REPORT("The requested agent " << fetchThisID << " is not living on this FO #" << ID);
+	//no, the requested agent is somewhere outside...
+#ifdef DEBUG
+	if (agentsToFOsMap.find(fetchThisID) == agentsToFOsMap.end())
+		throw ERROR_REPORT("Should not happen! I don't know which FO is the requested agent ID " << fetchThisID);
+#endif
 
-	//TODO: empty for now
+	//obtain the most recent copy...
+	const int contactThisFO = agentsToFOsMap[fetchThisID];
+	DEBUG_REPORT("Requesting agent ID " << fetchThisID << " from FO #" << contactThisFO);
+	ShadowAgent* const saCopy = request_ShadowAgentCopy(fetchThisID, contactThisFO);
 
-	//plan:
-	//scan over my AABBs to find possibly nearby agents
-	//update my cache of ShadowAgents
-	//populate the list with fresh references (that point
-	//to the cache but the updated copies shall remain valid
-	//until next update round and so do the references on them)
-	return NULL;
+	//...and update the shadowAgents map
+	auto saItem = shadowAgents.find(fetchThisID);
+	//
+	//if not empty, delete the now-old content first
+	if (saItem != shadowAgents.end()) delete saItem->second;
+	//
+	//store the new reference
+	shadowAgents[fetchThisID] = saCopy;
+
+	return saCopy;
 }
 
 

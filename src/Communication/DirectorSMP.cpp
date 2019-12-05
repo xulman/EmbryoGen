@@ -157,8 +157,5 @@ void Director::waitHereUntilEveryoneIsHereToo()
 
 
 //not revisited yet
-void Director::request_publishGeometry()
-{}
-
 void Director::request_renderNextFrame(const int /* FOsID */)
 {}
