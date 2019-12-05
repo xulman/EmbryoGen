@@ -108,7 +108,7 @@ void Director::respond_AABBofAgent()
 	//perhaps we would see a reason later why Direktor would need
 	//to know spatial relation among all agents
 
-	//gets : AABB+type as 6x float, string
+	//gets : AABB+type as 6x float, int, string
 	//gives: nothing
 }
 
@@ -141,24 +141,20 @@ void Director::waitHereUntilEveryoneIsHereToo()
 {}
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//not revisited yet
-void Director::request_publishGeometry()
-{}
-
 void Director::request_renderNextFrame(const int /* FOsID */)
-{}
+{
+	//in the SMP:
+	FO->renderNextFrame();
+
+	//MPI world:
+	//this exactly the same code as in FrontOfficer::request_renderNextFrame(FOsID)
+}
+
+
+void Director::waitFor_renderNextFrame()
+{
+	//does nothing in the SMP
+
+	//MPI world:
+	//this exactly the same code as in FrontOfficer::waitFor_renderNextFrame()
+}

@@ -2,6 +2,7 @@
 #define FRONTOFFICER_H
 
 #include <list>
+#include <map>
 #include "util/report.h"
 #include "Scenarios/common/Scenario.h"
 #include "Geometries/Geometry.h"
@@ -16,7 +17,7 @@ public:
 	FrontOfficer(Scenario& s, const int nextFO, const int myPortion, const int allPortions)
 		: scenario(s), ID(myPortion), nextFOsID(nextFO), FOsCount(allPortions)
 	{
-		//create an extra thread to execute the respond_...() methods
+		//TODO: create an extra thread to execute/service the respond_...() methods
 	}
 
 protected:
@@ -51,8 +52,6 @@ public:
 
 	/** does the simulation loops, i.e. calls AbstractAgent's methods */
 	void execute(void);
-
-	void reportSituation();
 
 	/** frees simulation agents */
 	void close(void);
@@ -93,13 +92,38 @@ public:
 	void closeMotherStartDaughters(AbstractAgent* mother,
 	                               AbstractAgent* daughterA, AbstractAgent* daughterB);
 
+	/** Fills the list 'l' of NamedAABBs that are no further than maxDist
+	    parameter [micrometer]. The distance is examined as the distance
+	    between AABBs (axis-aligned bounding boxes) of all agents in
+	    the simulation (this->AABBs) and the reference box 'fromThisAABB'.
+	    The discovered boxed are added to the output list 'l'. The added
+	    pointers points on objects contained in the list this->AABBs, so
+	    don't delete them after use... (AABBs manages that on its own). */
+	void getNearbyAABBs(const NamedAxisAlignedBoundingBox& fromThisAABB,   //reference box
+	                    const float maxDist,                               //threshold dist
+	                    std::list<const NamedAxisAlignedBoundingBox*>& l); //output list
+
+	/** Basically, just calls getNearbyAABBs(fromSA->createNamedAABB(),maxDist,l) */
+	void getNearbyAABBs(const ShadowAgent* const fromSA,                   //reference agent
+	                    const float maxDist,                               //threshold dist
+	                    std::list<const NamedAxisAlignedBoundingBox*>& l); //output list
+
 	/** Fills the list 'l' of ShadowAgents that are no further than maxDist
 	    parameter [micrometer]. The distance is examined as the distance
-	    between AABBs (axis-aligned bounding boxes) of the ShadowAgents
-	    and the given ShadowAgent. */
+	    between AABBs (axis-aligned bounding boxes) among all agents in
+	    the simulation and the reference agent 'fromSA'.
+	    This method is essentially a shortcut getNearbyAgent() called iteratively
+	    on all elements of the list obtained with getNearbyAABBs().
+	    The added pointers is a subset of those from the collection
+	    of pointers in this->shadowAgents. */
 	void getNearbyAgents(const ShadowAgent* const fromSA,   //reference agent
 	                     const float maxDist,               //threshold dist
 	                     std::list<const ShadowAgent*>& l); //output list
+
+	/** Returns the reference in a ShadowAgent that
+	    represents the agent with 'fetchThisID'.
+		 The pointer is one from the collection of pointers in this->shadowAgents. */
+	const ShadowAgent* getNearbyAgent(const int fetchThisID);
 
 	size_t getSizeOfAABBsList() const;
 
@@ -114,25 +138,44 @@ public:
 	/** notifies the agent to enable/disable its detailed reporting routines */
 	void setAgentsDetailedReportingMode(const int agentID, const bool state);
 
+	// -------------- debug --------------
+	void reportSituation();
+	void reportAABBs();
+
 protected:
 	/** flag to run-once the closing routines */
 	bool isProperlyClosedFlag = false;
 
 	/** lists of existing agents scheduled for the addition to or
-	    for the removal from the simulation (at the appropriate occasion) */
+	    for the removal from the simulation (at the appropriate,
+	    occasion) and computed on this node (managed by this FO) */
 	std::list<AbstractAgent*> newAgents, deadAgents;
 
 	/** list of all agents currently active in the simulation
-	    and calculated on this node (managed by this FO) */
-	std::list<AbstractAgent*> agents;
-
-	/** list of all agents currently active in the simulation
-	    and calculated elsewhere (managed by foreign FO) */
-	std::list<ShadowAgent*> shadowAgents;
+	    and computed on this node (managed by this FO) */
+	std::map<int,AbstractAgent*> agents;
 
 	/** list of AABBs of all agents currently active in the entire
 	    simulation, that is, managed by all FOs */
-	std::list<AxisAlignedBoundingBox> AABBs;
+	std::list<NamedAxisAlignedBoundingBox> AABBs;
+
+	/** cache of all recently retrieved geometries of agents
+	    that are computed elsewhere (managed by foreign FO) */
+	std::map<int,ShadowAgent*> shadowAgents;
+
+	/** a complete map of all agents in the simulation (includes even earlier agents)
+	    and their versions of their geometries that were broadcast the most recently,
+		 this attribute works in conjunction with 'shadowAgents' and getNearbyAgent() */
+	std::map<int,int> agentsAndBroadcastGeomVersions;
+
+	/** a complete map of all agents in the simulation and IDs of FOs
+	    on which they are currently computed; this map is completely
+	    rebuilt everytime the AABBs are exchanged */
+	std::map<int,int> agentsToFOsMap;
+
+	/** adds an item to the map this->agentsToFOsMap,
+	    it should be called only from the AABB broadcast receiving methods */
+	void registerThatThisAgentIsAtThisFO(const int agentID, const int FOsID);
 
 	/** current global simulation time [min] */
 	float currTime = 0.0f;
@@ -142,6 +185,10 @@ protected:
 
 	/** flag if the renderNextFrame() will be called after this simulation round */
 	bool willRenderNextFrameFlag = false;
+
+	/** Flags if agents' drawForDebug() should be called with every this->renderNextFrame(),
+	    this flag can be changed only via request_setRenderingDebug()  */
+	bool renderingDebug = false;
 
 	/** housekeeping before the AABBs exchange takes place */
 	void prepareForUpdateAndPublishAgents();
@@ -182,9 +229,11 @@ protected:
 	void respond_setDetailedDrawingMode();
 	void respond_setDetailedReportingMode();
 
-	//not revisited yet
-	void respond_publishGeometry();
-	void respond_renderNextFrame();
+	ShadowAgent* request_ShadowAgentCopy(const int agentID, const int FOsID);
+	void respond_ShadowAgentCopy();
+
+	void waitFor_renderNextFrame();
+	void request_renderNextFrame(const int FOsID);
 
 /*
 naming nomenclature:

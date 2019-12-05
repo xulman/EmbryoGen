@@ -59,7 +59,19 @@ void Director::close(void)
 	isProperlyClosedFlag = true;
 	DEBUG_REPORT("running the closing sequence");
 
-	//TODO
+	//TODO: should close/kill the service thread too
+
+	//close tracks of all agents
+	for (auto ag : agents)
+	{
+		//CTC logging?
+		if ( tracks.isTrackFollowed(ag.first)      //was part of logging?
+		&&  !tracks.isTrackClosed(ag.first) )      //wasn't closed yet?
+			tracks.closeTrack(ag.first,frameCnt-1);
+	}
+
+	tracks.exportAllToFile("tracks.txt");
+	DEBUG_REPORT("tracks.txt was saved...");
 }
 
 
@@ -103,6 +115,9 @@ void Director::execute(void)
 		// move to the next simulation time point
 		currTime += incrTime;
 		reportSituation();
+#ifdef DEBUG
+		reportAgentsAllocation();
+#endif
 
 		// is this the right time to export data?
 		if (willRenderNextFrameFlag)
@@ -168,6 +183,7 @@ void Director::updateAndPublishAgents()
 	//but the messages sent by the last FO might still being processed
 	//by some FOs and so wait here a bit and then ask FO, one by one,
 	//to tell us how many AABBs it currently has
+	DEBUG_REPORT("Waiting 1 second before checking all FOs...");
 	std::this_thread::sleep_for((std::chrono::milliseconds)1000);
 
 	//all FOs except myself (assuming i=0 addresses the Direktor)
@@ -248,45 +264,28 @@ void Director::renderNextFrame()
 	SceneControls& sc = scenario.params;
 
 	// ----------- OUTPUT EVENTS -----------
-	//clear the output images
+	//prepare the output images
 	sc.imgMask.GetVoxelData()    = 0;
 	sc.imgPhantom.GetVoxelData() = 0;
 	sc.imgOptics.GetVoxelData()  = 0;
 
-	// --------- the big round robin scheme --------- TODO
-	/*
-	//go over all cells, and render them
-	std::list<AbstractAgent*>::const_iterator c=agents.begin();
-	for (; c != agents.end(); c++)
-	{
-		//displayUnit should always exists in some form
-		(*c)->drawTexture(displayUnit);
-		(*c)->drawMask(displayUnit);
-		if (renderingDebug)
-			(*c)->drawForDebug(displayUnit);
+	// --------- the big round robin scheme ---------
+	//start the round...:
+	//this essentially sends out the empty images, and leaves them empty!
+	request_renderNextFrame(firstFOsID);
 
-		//raster images may not necessarily always exist,
-		//always check for their availability first:
-		if (sc.isProducingOutput(sc.imgPhantom) && sc.isProducingOutput(sc.imgOptics))
-		{
-			(*c)->drawTexture(sc.imgPhantom,sc.imgOptics);
-		}
-		if (sc.isProducingOutput(sc.imgMask))
-		{
-			(*c)->drawMask(sc.imgMask);
-			if (renderingDebug)
-				(*c)->drawForDebug(sc.imgMask); //TODO, should go into its own separate image
-		}
-	}
+	/* IF THE INITIAL IMAGES WERE NOT ZERO, HERE THEY MUST BE ZEROED
+	//clear the output images
+	sc.imgMask.GetVoxelData()    = 0;
+	sc.imgPhantom.GetVoxelData() = 0;
+	sc.imgOptics.GetVoxelData()  = 0;
 	*/
 
-	//render the current frame
-	//TODO
-	/*
-	displayUnit.Flush(); //make sure all drawings are sent before the "tick"
-	displayUnit.Tick( ("Time: "+std::to_string(currTime)).c_str() );
-	displayUnit.Flush(); //make sure the "tick" is sent right away too
-	*/
+	//WAIT HERE UNTIL WE GOT THE IMAGES BACK
+	//this essentially pours images from network into local images,
+	//which must be for sure zero beforehand
+	//this will block...
+	waitFor_renderNextFrame();
 
 	//save the images
 	static char fn[1024];
@@ -455,4 +454,12 @@ void Director::renderNextFrame()
 		}
 	}
 	while (key != 0);
+}
+
+
+void Director::reportAgentsAllocation()
+{
+	REPORT("I now recognize these agents:");
+	for (const auto& AgFO : agents)
+		REPORT("agent ID " << AgFO.first << " at FO #" << AgFO.second);
 }
