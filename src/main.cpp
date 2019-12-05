@@ -5,6 +5,17 @@
 #include "Director.h"
 #include "FrontOfficer.h"
 
+#ifdef DISTRIBUTED
+	#define REPORT_EXCEPTION(x) \
+		REPORT("Broadcasting the following expection:"); \
+		std::cout << x << "\n\n"; \
+		if ( d != NULL)  d->broadcast_throwException(buildStringFromStream("Outside exception: " << x).c_str()); \
+		if (fo != NULL) fo->broadcast_throwException(buildStringFromStream("Outside exception: " << x).c_str());
+#else
+	#define REPORT_EXCEPTION(x) \
+		std::cout << x << "\n\n";
+#endif
+
 int main(int argc, char** argv)
 {
 	Director* d = NULL;
@@ -84,31 +95,31 @@ int main(int argc, char** argv)
 	}
 	catch (const char* e)
 	{
-		std::cout << "Got this message: " << e << "\n\n";
+		REPORT_EXCEPTION("Got this message: " << e)
 	}
 	catch (std::string& e)
 	{
-		std::cout << "Got this message: " << e << "\n\n";
+		REPORT_EXCEPTION("Got this message: " << e)
 	}
 	catch (std::runtime_error* e)
 	{
-		std::cout << "RuntimeError: " << e->what() << "\n\n";
+		REPORT_EXCEPTION("RuntimeError: " << e->what())
 	}
 	catch (i3d::IOException* e)
 	{
-		std::cout << "i3d::IOException: " << e->what << "\n\n";
+		REPORT_EXCEPTION("i3d::IOException: " << e->what)
 	}
 	catch (i3d::LibException* e)
 	{
-		std::cout << "i3d::LibException: " << e->what << "\n\n";
+		REPORT_EXCEPTION("i3d::LibException: " << e->what)
 	}
 	catch (std::bad_alloc&)
 	{
-		std::cout << "Not enough memory.\n\n";
+		REPORT_EXCEPTION("Not enough memory.")
 	}
 	catch (...)
 	{
-		std::cout << "System exception.\n\n";
+		REPORT_EXCEPTION("System exception.")
 	}
 
 	//calls destructor for very final clean up, which may also call

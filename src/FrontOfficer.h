@@ -239,6 +239,11 @@ protected:
 
 	void respond_setRenderingDebug();
 
+public:
+	void broadcast_throwException(const char* exceptionMessage);
+protected:
+	void respond_throwException();
+
 /*
 naming nomenclature:
 Since the methods should come in pairs, their names are made

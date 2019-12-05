@@ -280,3 +280,31 @@ void FrontOfficer::respond_setRenderingDebug()
 	setSimulationDebugRendering(gotThisFlagValue);
 	*/
 }
+
+
+void FrontOfficer::broadcast_throwException(const char* /* exceptionMessage */)
+{
+	//this never happens (as Direktor and FO live in the same try block)
+	//MPI world:
+
+	//gets : nothing
+	//gives: char*
+
+	//just non-blocking broadcast of the exceptionMessage, don't throw
+	//it here because this should only be called already from the catch(),
+	//that is the exception has already been thrown...
+}
+
+
+void FrontOfficer::respond_throwException()
+{
+	//this never happens (as Direktor and FO live in the same try block)
+	//MPI world:
+
+	//gets : bool
+	//gives: nothing
+
+	//read the exceptionMessage, then throw it
+	char msg[] = "received this fake exception message";
+	throw new std::runtime_error( msg );
+}

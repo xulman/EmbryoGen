@@ -168,3 +168,19 @@ void Director::broadcast_setRenderingDebug(const bool setFlagToThis)
 	//MPI world:
 	//non-blocking send out to everyone
 }
+
+
+void Director::broadcast_throwException(const char* /* exceptionMessage */)
+{
+	//this never happens (as Direktor and FO live in the same try block)
+	//MPI world:
+	//the same as FrontOfficer::broadcast_throwException(exceptionMessage)
+}
+
+
+void Director::respond_throwException()
+{
+	//this never happens (as Direktor and FO live in the same try block)
+	//MPI world:
+	//the same as FrontOfficer::respond_throwException()
+}

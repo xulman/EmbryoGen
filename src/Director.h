@@ -197,6 +197,11 @@ protected:
 
 	void broadcast_setRenderingDebug(const bool setFlagToThis);
 
+public:
+	void broadcast_throwException(const char* exceptionMessage);
+protected:
+	void respond_throwException();
+
 
 #ifndef DISTRIBUTED
 	FrontOfficer* FO = NULL;
