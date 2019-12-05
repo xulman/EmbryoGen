@@ -405,23 +405,38 @@ const ShadowAgent* FrontOfficer::getNearbyAgent(const int fetchThisID)
 
 	//no, the requested agent is somewhere outside...
 #ifdef DEBUG
+	//btw: must have been broadcasted and we must therefore see the agent in our data structures
 	if (agentsToFOsMap.find(fetchThisID) == agentsToFOsMap.end())
 		throw ERROR_REPORT("Should not happen! I don't know which FO is the requested agent ID " << fetchThisID);
+	if (agentsAndBroadcastGeomVersions.find(fetchThisID) == agentsAndBroadcastGeomVersions.end())
+		throw ERROR_REPORT("Should not happen! I don't know what is the recent geometry version of the requested agent ID " << fetchThisID);
 #endif
 
-	//obtain the most recent copy...
+	//now, check we have a copy at all and if it is an updated/fresh one
+	auto const saItem = shadowAgents.find(fetchThisID);
+	int storedVersion = (saItem != shadowAgents.end()) ? saItem->second->getGeometry().version : -1000000;
+
+	//if we have a recent geometry by us, let's just return this one
+	if (storedVersion == agentsAndBroadcastGeomVersions[fetchThisID]) return saItem->second;
+
+	//else, we have to obtain the most recent copy...
 	const int contactThisFO = agentsToFOsMap[fetchThisID];
 	DEBUG_REPORT("Requesting agent ID " << fetchThisID << " from FO #" << contactThisFO);
 	ShadowAgent* const saCopy = request_ShadowAgentCopy(fetchThisID, contactThisFO);
 
-	//...and update the shadowAgents map
-	auto saItem = shadowAgents.find(fetchThisID);
-	//
-	//if not empty, delete the now-old content first
+	//delete the now-old content first (if there was some)
 	if (saItem != shadowAgents.end()) delete saItem->second;
-	//
+
 	//store the new reference
 	shadowAgents[fetchThisID] = saCopy;
+
+#ifdef DEBUG
+	//now the broadcast version must match the one we actually have got
+	if (agentsAndBroadcastGeomVersions[fetchThisID] != shadowAgents[fetchThisID]->getGeometry().version)
+		throw ERROR_REPORT("Should not happen! Agent ID " << fetchThisID
+		          << " promised geometry at version " << agentsAndBroadcastGeomVersions[fetchThisID]
+		          << " but provided version " << shadowAgents[fetchThisID]->getGeometry().version);
+#endif
 
 	return saCopy;
 }
