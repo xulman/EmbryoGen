@@ -163,6 +163,11 @@ protected:
 	    that are computed elsewhere (managed by foreign FO) */
 	std::map<int,ShadowAgent*> shadowAgents;
 
+	/** a complete map of all agents in the simulation (includes even earlier agents)
+	    and their versions of their geometries that were broadcast the most recently,
+		 this attribute works in conjunction with 'shadowAgents' and getNearbyAgent() */
+	std::map<int,int> agentsAndBroadcastGeomVersions;
+
 	/** a complete map of all agents in the simulation and IDs of FOs
 	    on which they are currently computed; this map is completely
 	    rebuilt everytime the AABBs are exchanged */

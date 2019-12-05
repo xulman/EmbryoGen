@@ -208,6 +208,7 @@ void FrontOfficer::prepareForUpdateAndPublishAgents()
 {
 	AABBs.clear();
 	agentsToFOsMap.clear();
+	//the agentsAndBroadcastGeomVersions is cummulative, we never erase it
 }
 
 void FrontOfficer::updateAndPublishAgents()
