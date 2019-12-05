@@ -265,3 +265,18 @@ void FrontOfficer::request_renderNextFrame(const int /* FOsID */)
 	//this is the counterpart to the waitFor_renderNextFrame()
 	//one sends out the images in this order: mask, phantom, optics
 }
+
+
+void FrontOfficer::respond_setRenderingDebug()
+{
+	//this never happens (as Direktor here talks directly to the FO)
+	//MPI world:
+
+	//gets : bool
+	//gives: nothing
+
+	/*
+	bool gotThisFlagValue = false; //fake value here!
+	setSimulationDebugRendering(gotThisFlagValue);
+	*/
+}

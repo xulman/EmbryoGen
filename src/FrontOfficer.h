@@ -138,6 +138,9 @@ public:
 	/** notifies the agent to enable/disable its detailed reporting routines */
 	void setAgentsDetailedReportingMode(const int agentID, const bool state);
 
+	/** sets the FrontOfficer::renderingDebug flag */
+	void setSimulationDebugRendering(const bool state);
+
 	// -------------- debug --------------
 	void reportSituation();
 	void reportAABBs();
@@ -186,8 +189,7 @@ protected:
 	/** flag if the renderNextFrame() will be called after this simulation round */
 	bool willRenderNextFrameFlag = false;
 
-	/** Flags if agents' drawForDebug() should be called with every this->renderNextFrame(),
-	    this flag can be changed only via request_setRenderingDebug()  */
+	/** Flags if agents' drawForDebug() should be called with every this->renderNextFrame() */
 	bool renderingDebug = false;
 
 	/** housekeeping before the AABBs exchange takes place */
@@ -234,6 +236,8 @@ protected:
 
 	void waitFor_renderNextFrame();
 	void request_renderNextFrame(const int FOsID);
+
+	void respond_setRenderingDebug();
 
 /*
 naming nomenclature:

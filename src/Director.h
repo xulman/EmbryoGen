@@ -114,6 +114,9 @@ public:
 	/** notifies the agent to enable/disable its detailed reporting routines */
 	void setAgentsDetailedReportingMode(const int agentID, const bool state);
 
+	/** sets the Director::renderingDebug flag */
+	void setSimulationDebugRendering(const bool state);
+
 	// -------------- debug --------------
 	void reportSituation();
 	void reportAgentsAllocation();
@@ -191,6 +194,8 @@ protected:
 
 	void request_renderNextFrame(const int FOsID);
 	void waitFor_renderNextFrame();
+
+	void broadcast_setRenderingDebug(const bool setFlagToThis);
 
 
 #ifndef DISTRIBUTED

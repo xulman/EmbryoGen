@@ -257,6 +257,12 @@ void Director::setAgentsDetailedReportingMode(const int agentID, const bool stat
 	notify_setDetailedReportingMode(FO,agentID,state);
 }
 
+void Director::setSimulationDebugRendering(const bool state)
+{
+	renderingDebug = state;
+	broadcast_setRenderingDebug(state);
+}
+
 
 void Director::renderNextFrame()
 {
@@ -402,6 +408,7 @@ void Director::renderNextFrame()
 
 		case 'D':
 			renderingDebug ^= true;
+			setSimulationDebugRendering(renderingDebug);
 			REPORT("Debug rendering toggled to: " << (renderingDebug? "enabled" : "disabled"));
 			break;
 

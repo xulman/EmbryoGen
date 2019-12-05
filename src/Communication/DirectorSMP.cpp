@@ -158,3 +158,13 @@ void Director::waitFor_renderNextFrame()
 	//MPI world:
 	//this exactly the same code as in FrontOfficer::waitFor_renderNextFrame()
 }
+
+
+void Director::broadcast_setRenderingDebug(const bool setFlagToThis)
+{
+	//SMP:
+	FO->setSimulationDebugRendering(setFlagToThis);
+
+	//MPI world:
+	//non-blocking send out to everyone
+}

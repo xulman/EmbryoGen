@@ -338,6 +338,11 @@ void FrontOfficer::setAgentsDetailedReportingMode(const int agentID, const bool 
 	if (ag.first == agentID) ag.second->setDetailedReportingMode(state);
 }
 
+void FrontOfficer::setSimulationDebugRendering(const bool state)
+{
+	renderingDebug = state;
+}
+
 
 size_t FrontOfficer::getSizeOfAABBsList() const
 { return AABBs.size(); }
