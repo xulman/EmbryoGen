@@ -4,6 +4,7 @@
 #include <i3d/image3d.h>
 #include "../../util/Vector3d.h"
 #include "../../util/report.h"
+#include "../../DisplayUnits/BroadcasterDisplayUnit.h"
 
 //instead of the #include statement, the FrontOfficer type is only declared to exists,
 //FrontOfficer's definition depends on Scenario and so we'd end up in a definitions loop,
@@ -117,6 +118,9 @@ public:
 	/** output image into which the simulation will be iteratively
 	    rasterized/rendered: final output image */
 	i3d::Image3d<i3d::GRAY16> imgFinal;
+
+	/** a hub to anytime connect/disconnect specific instances of DisplayUnit */
+	BroadcasterDisplayUnit displayUnit;
 
 protected:
 	/** internal (private) memory of the input of setOutputImgSpecs() for the enableProducingOutput() */

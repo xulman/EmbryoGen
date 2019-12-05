@@ -1,4 +1,3 @@
-#include "DisplayUnits/VoidDisplayUnit.h"
 #include "Agents/AbstractAgent.h"
 #include "FrontOfficer.h"
 
@@ -486,19 +485,17 @@ void FrontOfficer::renderNextFrame()
 	//do "pollute" the DisplayUnit (load balancing)
 	//
 	//go over all cells, and render them -- ONLY DISPLAY UNITS!
-	VoidDisplayUnit displayUnit; //TODO REMOVE fix
 	for (auto ag : agents)
 	{
-		//displayUnit should always exists in some form
-		ag.second->drawTexture(displayUnit);
-		ag.second->drawMask(displayUnit);
+		ag.second->drawTexture(sc.displayUnit);
+		ag.second->drawMask(sc.displayUnit);
 		if (renderingDebug)
-			ag.second->drawForDebug(displayUnit);
+			ag.second->drawForDebug(sc.displayUnit);
 	}
 
-	displayUnit.Flush(); //make sure all drawings are sent before the "tick"
-	displayUnit.Tick(buildStringFromStream("Frame: " << frameCnt << " (sent by FO #" << ID << ")").c_str());
-	displayUnit.Flush(); //make sure the "tick" is sent right away too
+	sc.displayUnit.Flush(); //make sure all drawings are sent before the "tick"
+	sc.displayUnit.Tick(buildStringFromStream("Frame: " << frameCnt << " (sent by FO #" << ID << ")").c_str());
+	sc.displayUnit.Flush(); //make sure the "tick" is sent right away too
 
 	++frameCnt;
 

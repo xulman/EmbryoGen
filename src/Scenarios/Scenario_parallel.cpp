@@ -2,6 +2,10 @@
 #include <functional>
 #include <i3d/image3d.h>
 #include "common/Scenarios.h"
+#include "../DisplayUnits/ConsoleDisplayUnit.h"
+#include "../DisplayUnits/SceneryBufferedDisplayUnit.h"
+#include "../DisplayUnits/FileDisplayUnit.h"
+#include "../DisplayUnits/FlightRecorderDisplayUnit.h"
 #include "../util/rnd_generators.h"
 #include "../util/Vector3d.h"
 #include "../Geometries/Spheres.h"
@@ -179,7 +183,11 @@ SceneControls& Scenario_Parallel::provideSceneControls()
 	class mySceneControl: public SceneControls
 	{
 	public:
-		mySceneControl(Constants& c): SceneControls(c) {}
+		mySceneControl(Constants& c): SceneControls(c)
+		{
+			//DisplayUnits handling: variant A
+			displayUnit.RegisterUnit( myDU );
+		}
 
 		void updateControls(const float currTime) override
 		{
@@ -188,10 +196,30 @@ SceneControls& Scenario_Parallel::provideSceneControls()
 				DEBUG_REPORT("stopping the production of the maskXXX.tif files");
 				this->disableProducingOutput(this->imgMask);
 			}
+
+			//DisplayUnits handling: variant A
+			if (currTime == 0.3f)
+			{
+				DEBUG_REPORT("stopping the console reports");
+				displayUnit.UnregisterUnit( myDU );
+			}
 		}
+
+		//DisplayUnits handling: variant A
+		ConsoleDisplayUnit myDU;
 	};
 
-	return *(new mySceneControl(myConstants));
+	mySceneControl* ctrl = new mySceneControl(myConstants);
+
+	//DisplayUnits handling: variant B
+	//
+	//ctrl->displayUnit.RegisterUnit( new FileDisplayUnit("debugLog.txt") );
+	//ctrl->displayUnit.RegisterUnit( new FlightRecorderDisplayUnit("FlightRecording.txt") );
+	//ctrl->displayUnit.RegisterUnit( new SceneryBufferedDisplayUnit("localhost:8765") );
+	//ctrl->displayUnit.RegisterUnit( new SceneryBufferedDisplayUnit("10.1.202.7:8765") );     //laptop @ Vlado's office
+	//ctrl->displayUnit.RegisterUnit( new SceneryBufferedDisplayUnit("192.168.3.110:8765") );  //PC     @ Vlado's home
+
+	return *ctrl;
 }
 
 
@@ -210,6 +238,9 @@ void Scenario_Parallel::initializeScene()
 	params.enableProducingOutput(params.imgPhantom);
 	params.enableProducingOutput(params.imgOptics);
 	params.enableProducingOutput(params.imgMask); //enable if you want to see the constellation of IDs
+
+	//DisplayUnits handling: variant C
+	//params.displayUnit.RegisterUnit( new ConsoleDisplayUnit() );
 }
 
 
@@ -255,7 +286,6 @@ void Scenario_Parallel::initializeAgents(FrontOfficer* fo,int p,int P)
 		//name
 		sprintf(agentName,"nucleus %d @ %d,%d",ID,x,y);
 
-		//TODO: ParallelNucleus* ag = new ParallelNucleus(ID,std::string(agentName),s,x,y,currTime,params.constants.incrTime);
 		ParallelNucleus* ag = new ParallelNucleus(ID,std::string(agentName),s,x,y,params.constants.initTime,params.constants.incrTime);
 		fo->startNewAgent(ag);
 

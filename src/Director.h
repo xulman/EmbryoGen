@@ -166,7 +166,7 @@ protected:
 	    distribute the new and old existing agents to the sites */
 	void updateAndPublishAgents();
 
-	/** Asks all agents to render and raster their state into this.displayUnit and the images */
+	/** Asks all agents to render and raster their state into displayUnit and the images */
 	void renderNextFrame(void);
 
 	// ==================== communication methods ====================

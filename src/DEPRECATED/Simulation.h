@@ -5,16 +5,6 @@
 #include <i3d/image3d.h>
 #include <TransferImage.h>
 
-
-
-#include "DisplayUnits/BroadcasterDisplayUnit.h"
-#include "DisplayUnits/VoidDisplayUnit.h"
-#include "DisplayUnits/ConsoleDisplayUnit.h"
-#include "DisplayUnits/SceneryDisplayUnit.h"
-#include "DisplayUnits/SceneryBufferedDisplayUnit.h"
-#include "DisplayUnits/FileDisplayUnit.h"
-#include "DisplayUnits/FlightRecorderDisplayUnit.h"
-
 //choose either ENABLE_MITOGEN_FINALPREVIEW or ENABLE_FILOGEN_PHASEIIandIII,
 //if ENABLE_FILOGEN_PHASEIIandIII is choosen, one can enable ENABLE_FILOGEN_REALPSF
 //#define ENABLE_MITOGEN_FINALPREVIEW
@@ -43,26 +33,12 @@
  */
 class Simulation
 {
-protected:
-	//fixed parameters of the simulation:
-
-	/** output display unit into which the simulation will be iteratively rendered */
-	BroadcasterDisplayUnit displayUnit;
-
 public:
 	/** initializes the simulation parameters */
 	Simulation(void)
 		: transferImgChannelA("localhost:54545",30,"EmbryoGen's Image(s)"), //NB: no connection yet
 		  transferImgChannelB("localhost:54546",30,"EmbryoGen's Image(s)")  //NB: no connection yet
 	{
-		//init display/export units
-		//displayUnit.RegisterUnit( new ConsoleDisplayUnit() );
-		//displayUnit.RegisterUnit( new FileDisplayUnit("debugLog.txt") );
-		//displayUnit.RegisterUnit( new FlightRecorderDisplayUnit("FlightRecording.txt") );
-		displayUnit.RegisterUnit( new SceneryBufferedDisplayUnit("localhost:8765") );
-		//displayUnit.RegisterUnit( new SceneryBufferedDisplayUnit("10.1.202.7:8765") );     //laptop @ Vlado's office
-		//displayUnit.RegisterUnit( new SceneryBufferedDisplayUnit("192.168.3.110:8765") );  //PC     @ Vlado's home
-
 		//setup routing of img transfers, currently two channels are available
 		//transferPhantomImgChannel = &transferImgChannelA;
 		transferOpticsImgChannel  = &transferImgChannelA;
