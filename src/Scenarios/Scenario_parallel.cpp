@@ -195,6 +195,7 @@ SceneControls& Scenario_Parallel::provideSceneControls()
 			{
 				DEBUG_REPORT("stopping the production of the maskXXX.tif files");
 				this->disableProducingOutput(this->imgMask);
+				//this->displayChannel_delete("localFiji");
 			}
 
 			//DisplayUnits handling: variant A
@@ -241,6 +242,10 @@ void Scenario_Parallel::initializeScene()
 
 	//DisplayUnits handling: variant C
 	//params.displayUnit.RegisterUnit( new ConsoleDisplayUnit() );
+
+	params.displayChannel_createNew("localFiji","localhost:54545");
+	params.displayChannel_enableForImgMask("localFiji");
+	params.displayChannel_enableForImgMask("wrongOne-autoEraseMe");
 }
 
 

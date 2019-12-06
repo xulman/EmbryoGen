@@ -1,6 +1,9 @@
 #ifndef SCENARIO_H
 #define SCENARIO_H
 
+#include <map>
+#include <set>
+#include <TransferImage.h>
 #include <i3d/image3d.h>
 #include "../../util/Vector3d.h"
 #include "../../util/report.h"
@@ -11,6 +14,7 @@
 //and the same holds for the Director type
 class FrontOfficer;
 class Director;
+template <typename T> void transferImgs(const i3d::Image3d<T>& img, DAIS::ImagesAsEventsSender& channel);
 
 /**
  * Container of "external", declarative/descriptive parameters of
@@ -122,9 +126,82 @@ public:
 	/** a hub to anytime connect/disconnect specific instances of DisplayUnit */
 	BroadcasterDisplayUnit displayUnit;
 
+
+	void displayChannel_createNew(const std::string& channelName,
+	                              const char* destinationURL,
+	                              const char* channelDisplayTitle = "EmbryoGen's Image(s)")
+	{
+		//delete to avoid overriding
+		displayChannel_delete(channelName);
+
+		transferChannels[channelName]
+			= new DAIS::ImagesAsEventsSender(destinationURL,30,channelDisplayTitle);
+	}
+
+	void displayChannel_delete(const std::string& channelName)
+	{
+		//we need to call the d'tor before we remove
+		auto existingChannel = transferChannels.find(channelName);
+		if (existingChannel != transferChannels.end())
+		{
+			REPORT("Removing transfer channel \"" << channelName << "\", it might hang here if the send buffers are not empty...");
+			delete existingChannel->second;
+			transferChannels.erase(existingChannel);
+		}
+	}
+
+	void displayChannel_enableForImgMask( const std::string& channelName) { imgMaskBroadcast.insert( channelName ); }
+	void displayChannel_disableForImgMask(const std::string& channelName) { imgMaskBroadcast.erase(  channelName ); }
+	void displayChannel_transferImgMask() { transferImg( imgMask, "mask", imgMaskBroadcast ); }
+
+	void displayChannel_enableForImgPhantom( const std::string& channelName) { imgPhantomBroadcast.insert( channelName ); }
+	void displayChannel_disableForImgPhantom(const std::string& channelName) { imgPhantomBroadcast.erase(  channelName ); }
+	void displayChannel_transferImgPhantom() { transferImg( imgPhantom, "phantom", imgPhantomBroadcast ); }
+
+	void displayChannel_enableForImgOptics( const std::string& channelName) { imgOpticsBroadcast.insert( channelName ); }
+	void displayChannel_disableForImgOptics(const std::string& channelName) { imgOpticsBroadcast.erase(  channelName ); }
+	void displayChannel_transferImgOptics() { transferImg( imgOptics, "optics", imgOpticsBroadcast ); }
+
+	void displayChannel_enableForImgFinal( const std::string& channelName) { imgFinalBroadcast.insert( channelName ); }
+	void displayChannel_disableForImgFinal(const std::string& channelName) { imgFinalBroadcast.erase(  channelName ); }
+	void displayChannel_transferImgFinal() { transferImg( imgFinal, "final", imgFinalBroadcast ); }
+
 protected:
 	/** internal (private) memory of the input of setOutputImgSpecs() for the enableProducingOutput() */
 	Vector3d<size_t> lastUsedImgSize;
+
+	std::map< std::string, DAIS::ImagesAsEventsSender* > transferChannels;
+	std::set< std::string > imgMaskBroadcast;
+	std::set< std::string > imgPhantomBroadcast;
+	std::set< std::string > imgOpticsBroadcast;
+	std::set< std::string > imgFinalBroadcast;
+
+	template <typename T>
+	void transferImg(const i3d::Image3d<T>& img, const char* imgName, std::set< std::string >& routes)
+	{
+		auto route = routes.begin();
+		while (route != routes.end())
+		{
+			//does this route exists in the transferChannels?
+			auto const channel = transferChannels.find(*route);
+
+			if (channel != transferChannels.end())
+			{
+				//yes, transfer image over this route...
+				REPORT("Sending " << imgName << " image over the channel \""
+				      << channel->first << "\" (" << channel->second->getURL() << "), hold on...");
+				transferImgs(img,*(channel->second));
+				//...and move on the next one
+				route++;
+			}
+			else
+			{
+				//no, delete the route from this image's broadcast set
+				DEBUG_REPORT("Deleting incorrect \"" << *route << "\" from channels for " << imgName << " image");
+				route = routes.erase(route);
+			}
+		}
+	}
 
 public:
 	/** util method to setup all output images at once, disables all of them for the output,

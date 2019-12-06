@@ -301,13 +301,7 @@ void Director::renderNextFrame()
 		REPORT("Saving " << fn << ", hold on...");
 		sc.imgMask.SaveImage(fn);
 
-		/*
-		if (transferMaskImgChannel != NULL)
-		{
-			REPORT("Sending " << fn << " on " << transferMaskImgChannel->getURL() << ", hold on...");
-			transferImgs(imgMask,*transferMaskImgChannel);
-		}
-		*/
+		sc.displayChannel_transferImgMask();
 	}
 
 	if (sc.isProducingOutput(sc.imgPhantom))
@@ -316,13 +310,7 @@ void Director::renderNextFrame()
 		REPORT("Saving " << fn << ", hold on...");
 		sc.imgPhantom.SaveImage(fn);
 
-		/*
-		if (transferPhantomImgChannel != NULL)
-		{
-			REPORT("Sending " << fn << " on " << transferPhantomImgChannel->getURL() << ", hold on...");
-			transferImgs(imgPhantom,*transferPhantomImgChannel);
-		}
-		*/
+		sc.displayChannel_transferImgPhantom();
 	}
 
 	if (sc.isProducingOutput(sc.imgOptics))
@@ -331,13 +319,7 @@ void Director::renderNextFrame()
 		REPORT("Saving " << fn << ", hold on...");
 		sc.imgOptics.SaveImage(fn);
 
-		/*
-		if (transferOpticsImgChannel != NULL)
-		{
-			REPORT("Sending " << fn << " on " << transferOpticsImgChannel->getURL() << ", hold on...");
-			transferImgs(imgOptics,*transferOpticsImgChannel);
-		}
-		*/
+		sc.displayChannel_transferImgOptics();
 	}
 
 	if (sc.isProducingOutput(sc.imgFinal))
@@ -348,13 +330,7 @@ void Director::renderNextFrame()
 		REPORT("Saving " << fn << ", hold on...");
 		sc.imgFinal.SaveImage(fn);
 
-		/*
-		if (transferFinalImgChannel != NULL)
-		{
-			REPORT("Sending " << fn << " on " << transferFinalImgChannel->getURL() << ", hold on...");
-			transferImgs(imgFinal,*transferFinalImgChannel);
-		}
-		*/
+		sc.displayChannel_transferImgFinal();
 
 		if (sc.isProducingOutput(sc.imgMask)) mitogen::ComputeSNR(sc.imgFinal,sc.imgMask);
 	}
