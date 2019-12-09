@@ -34,6 +34,10 @@ template <typename T> void transferImgs(const i3d::Image3d<T>& img, DAIS::Images
  */
 class SceneControls
 {
+	// to enable the Direktor's and FOs' access protected elements
+	friend class FrontOfficer;
+	friend class Director;
+
 public:
 	//a subset of controls that are treated immutable, and are defined below...
 	class Constants;
@@ -166,6 +170,23 @@ public:
 	void displayChannel_disableForImgFinal(const std::string& channelName) { imgFinalBroadcast.erase(  channelName ); }
 	void displayChannel_transferImgFinal() { transferImg( imgFinal, "final", imgFinalBroadcast ); }
 
+
+	void imagesSaving_enableForImgMask()      {  enableProducingOutput(imgMask); };
+	void imagesSaving_getStateForImgMask()    {      isProducingOutput(imgMask); };
+	void imagesSaving_disableForImgMask()     { disableProducingOutput(imgMask); };
+
+	void imagesSaving_enableForImgPhantom()   {  enableProducingOutput(imgPhantom); };
+	void imagesSaving_getStateForImgPhantom() {      isProducingOutput(imgPhantom); };
+	void imagesSaving_disableForImgPhantom()  { disableProducingOutput(imgPhantom); };
+
+	void imagesSaving_enableForImgOptics()    {  enableProducingOutput(imgOptics); };
+	void imagesSaving_getStateForImgOptics()  {      isProducingOutput(imgOptics); };
+	void imagesSaving_disableForImgOptics()   { disableProducingOutput(imgOptics); };
+
+	void imagesSaving_enableForImgFinal()     {  enableProducingOutput(imgFinal); };
+	void imagesSaving_getStateForImgFinal()   {      isProducingOutput(imgFinal); };
+	void imagesSaving_disableForImgFinal()    { disableProducingOutput(imgFinal); };
+
 protected:
 	/** internal (private) memory of the input of setOutputImgSpecs() for the enableProducingOutput() */
 	Vector3d<size_t> lastUsedImgSize;
@@ -242,6 +263,7 @@ public:
 		imgFinal.CopyMetaData(imgMask);
 	}
 
+protected:
 	/** util method to enable the given image for the output, the method
 	    immediately allocated the necessary memory for the image */
 	template <typename T>
@@ -272,6 +294,19 @@ public:
 	{
 		return (img.GetImageSize() > 0);
 	}
+
+	/** flag whether an user will be prompted (and the simulation would stop
+	    and wait) at the end of the renderNextFrame() */
+	bool shallWaitForUserPromptFlag = true;
+
+public:
+	/** the same as Director::enableWaitForUserPrompt() */
+	void enableWaitForUserPrompt(void)
+	{ shallWaitForUserPromptFlag = true; }
+
+	/** the same as Director::disableWaitForUserPrompt() */
+	void disableWaitForUserPrompt(void)
+	{ shallWaitForUserPromptFlag = false; }
 };
 
 /** an alias to a convenience shared instance with default SceneControls,

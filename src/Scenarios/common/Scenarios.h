@@ -11,7 +11,7 @@ class FrontOfficer;
 /** template to create a new scenario that has all the required API to allow it
     to be successfully plugged into the simulator, it uses the DEFAULT digital
     phantom to final image conversion routine, which is however disabled by default
-    (and one has to enable it with this->params.enableProducingOutput()) called
+    (and one has to enable it with this->params.imagesSaving_enableForImg*()) called
     from this->initializeScene() */
 #define SCENARIO_DECLARATION_withDefOptSynthoscopy(c) \
 	class c: public Scenario {                                                 \
@@ -24,7 +24,7 @@ class FrontOfficer;
 /** template to create a new scenario that has all the required API to allow it
     to be successfully plugged into the simulator, it provides OWN digital
     phantom to final image conversion routine, which is however disabled by default
-    (and one has to enable it with this->params.enableProducingOutput()) called
+    (and one has to enable it with this->params.imagesSaving_enableForImg*()) called
     from this->initializeScene() */
 #define SCENARIO_DECLARATION_withItsOwnSynthoscopy(c) \
 	class c: public Scenario {                                                 \

@@ -236,9 +236,9 @@ void Scenario_Parallel::initializeScene()
 	params.setOutputImgSpecs(Vector3d<float>(0),    //offset: um
 	                  Vector3d<float>((float)howManyAlongX,(float)howManyAlongY,1.f),    //size: um = px
 	                  Vector3d<float>(1));   //resolution: px/um
-	params.enableProducingOutput(params.imgPhantom);
-	params.enableProducingOutput(params.imgOptics);
-	params.enableProducingOutput(params.imgMask); //enable if you want to see the constellation of IDs
+	params.imagesSaving_enableForImgPhantom();
+	params.imagesSaving_enableForImgOptics();
+	params.imagesSaving_enableForImgMask(); //enable if you want to see the constellation of IDs
 
 	//DisplayUnits handling: variant C
 	//params.displayUnit.RegisterUnit( new ConsoleDisplayUnit() );
