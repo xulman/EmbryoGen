@@ -27,6 +27,7 @@ endif (DEBUG_VERSION)
 option(FEATURE_ENABLEPHOTOBLEACHING  "Shall texture particles be loosing their intensity in the phantom image?" OFF)
 option(FEATURE_USEFILOGENSYNTHOSCOPY "Shall synthoscopy code from FiloGen be used instead of the one from MitoGen?" ON)
 option(FEATURE_RUNDISTRIBUTED        "Shall the simulation use MPI (message passing interface) and run distributed?" OFF)
+option(FEATURE_USEOpenMP             "Use OpenMP for single node parallelization" OFF)
 
 #-------------------------------------------------------
 # TRANSLATE FEATURE REQUESTS INTO PREPROCESSOR CONSTANTS
@@ -164,7 +165,7 @@ include_directories(${INC_CPPZMQ})
 
 # ImgTransfer code
 find_path(INC_DAISwp13 "TransferImage.h" DOC "Locate TransferImage.h from the C++ flavour of the DAIS-wp13 images transfer project.")
-find_library(LIB_DAISwp13 DAIS-wp13.a)
+find_library(LIB_DAISwp13 libDAIS-wp13.so)
 include_directories(${INC_DAISwp13})
 set(LIBS ${LIBS} ${LIB_DAISwp13})
 
@@ -217,4 +218,35 @@ endif (SEARCH_ALL_DEPLIBS)
 #----------------
 # TARGET LINKING
 #----------------
-target_link_libraries(embryogen ${LIBS} libzmq-static)
+#set(CMAKE_CXX_FLAGS "-ldl -lm -lpthread -pthread")
+
+if(FEATURE_USEOpenMP)
+  find_package(OpenMP REQUIRED)
+  if(NOT TARGET OpenMP::OpenMP_CXX)
+    find_package(Threads REQUIRED)
+    add_library(OpenMP::OpenMP_CXX IMPORTED INTERFACE)
+    set_property(TARGET OpenMP::OpenMP_CXX
+                 PROPERTY INTERFACE_COMPILE_OPTIONS ${OpenMP_CXX_FLAGS})
+    # Only works if the same flag is passed to the linker; use CMake 3.9+ otherwise (Intel, AppleClang)
+    set_property(TARGET OpenMP::OpenMP_CXX
+                 PROPERTY INTERFACE_LINK_LIBRARIES ${OpenMP_CXX_FLAGS} Threads::Threads)
+  endif()
+endif(FEATURE_USEOpenMP)
+
+if (FEATURE_RUNDISTRIBUTED)
+	find_package(MPI REQUIRED)
+	if (FEATURE_USEOpenMP)
+	  target_link_libraries(embryogen PRIVATE ${MPI_C_LIBRARIES} OpenMP::OpenMP_CXX ${LIBS} libzmq)
+	else(FEATURE_USEOpenMP)
+	  target_link_libraries(embryogen PRIVATE ${MPI_C_LIBRARIES} ${LIBS} libzmq)
+	endif(FEATURE_USEOpenMP)
+	#target_link_libraries(embryogen PRIVATE ${MPI_C_LIBRARIES})
+	#target_include_directories(SYSTEM ${MPI_INCLUDE_PATH})
+	#add_definitions(-DOMPI_SKIP_MPICXX)
+else (FEATURE_RUNDISTRIBUTED)
+	if (FEATURE_USEOpenMP)
+	  target_link_libraries(embryogen OpenMP::OpenMP_CXX ${LIBS} libzmq)
+	else(FEATURE_USEOpenMP)
+	  target_link_libraries(embryogen ${LIBS} libzmq)
+	endif(FEATURE_USEOpenMP)
+endif (FEATURE_RUNDISTRIBUTED)
