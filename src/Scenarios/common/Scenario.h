@@ -294,6 +294,19 @@ protected:
 	{
 		return (img.GetImageSize() > 0);
 	}
+
+	/** flag whether an user will be prompted (and the simulation would stop
+	    and wait) at the end of the renderNextFrame() */
+	bool shallWaitForUserPromptFlag = true;
+
+public:
+	/** the same as Director::enableWaitForUserPrompt() */
+	void enableWaitForUserPrompt(void)
+	{ shallWaitForUserPromptFlag = true; }
+
+	/** the same as Director::disableWaitForUserPrompt() */
+	void disableWaitForUserPrompt(void)
+	{ shallWaitForUserPromptFlag = false; }
 };
 
 /** an alias to a convenience shared instance with default SceneControls,

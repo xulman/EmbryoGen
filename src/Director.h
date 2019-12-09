@@ -13,7 +13,8 @@ class Director
 {
 public:
 	Director(Scenario& s, const int firstFO, const int allPortions)
-		: scenario(s), firstFOsID(firstFO), FOsCount(allPortions)
+		: scenario(s), firstFOsID(firstFO), FOsCount(allPortions),
+		  shallWaitForUserPromptFlag( scenario.params.shallWaitForUserPromptFlag )
 	{
 		//TODO: create an extra thread to execute/service the respond_...() methods
 	}
@@ -104,7 +105,7 @@ public:
 	void enableWaitForUserPrompt(void)
 	{ shallWaitForUserPromptFlag = true; }
 
-	/** the opposite of the Simulation::enableWaitForUserPrompt() */
+	/** the opposite of the Director::enableWaitForUserPrompt() */
 	void disableWaitForUserPrompt(void)
 	{ shallWaitForUserPromptFlag = false; }
 
@@ -153,8 +154,9 @@ protected:
 	bool willRenderNextFrameFlag = false;
 
 	/** flag whether an user will be prompted (and the simulation would stop
-	    and wait) at the end of the renderNextFrame() */
-	bool shallWaitForUserPromptFlag = true;
+	    and wait) at the end of the renderNextFrame(); this attribute actually
+	    shadows/overlays over the scenario.params.shallWaitForUserPromptFlag */
+	bool& shallWaitForUserPromptFlag;
 
 	/** Flags if agents' drawForDebug() should be called with every this->renderNextFrame() */
 	bool renderingDebug = false;

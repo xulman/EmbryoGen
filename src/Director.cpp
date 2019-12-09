@@ -347,7 +347,7 @@ void Director::renderNextFrame()
 		return;
 	}
 
-	//finish up here, if user should not be prompted
+	//finish here, if user should not be prompted
 	if (!shallWaitForUserPromptFlag) return;
 
 	//wait for key...
