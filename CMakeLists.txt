@@ -113,9 +113,7 @@ else (FEATURE_RUNDISTRIBUTED)
 		src/Communication/FrontOfficerSMP.cpp)
 endif (FEATURE_RUNDISTRIBUTED)
 
-#TODO: all scenarios are temporarily disabled
-#file(GLOB SCENARIOSOURCES src/Scenarios/*.cpp)
-set(SCENARIOSOURCES src/Scenarios/Scenario_parallel.cpp)
+file(GLOB SCENARIOSOURCES src/Scenarios/*.cpp)
 
 add_executable(embryogen ${SOURCES} ${D_FO_SOURCES} ${SCENARIOSOURCES})
 

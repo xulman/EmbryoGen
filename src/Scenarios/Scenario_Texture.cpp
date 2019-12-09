@@ -1,6 +1,6 @@
+#include "../DisplayUnits/SceneryBufferedDisplayUnit.h"
 #include "../util/Vector3d.h"
 #include "../Geometries/Spheres.h"
-#include "../Simulation.h"
 #include "common/Scenarios.h"
 #include "../Agents/NucleusAgent.h"
 #include "../Agents/util/Texture.h"
@@ -25,21 +25,29 @@ public:
 
 	void drawTexture(i3d::Image3d<float>& phantom, i3d::Image3d<float>&) override
 	{
-		if (Officer->isProducingOutput(phantom)) renderIntoPhantom(phantom);
+		renderIntoPhantom(phantom);
 	}
 };
 
-void Scenario_withTexture::initializeScenario(void)
+
+//==========================================================================
+void Scenario_withTexture::initializeAgents(FrontOfficer* fo,int p,int)
 {
+	if (p != 1)
+	{
+		REPORT("Populating only the first FO (which is not this one).");
+		return;
+	}
+
 	//to obtain a sequence of IDs for new agents...
 	int ID=1;
 
-	const float radius = 0.4f*sceneSize.y;
+	const float radius = 0.4f*params.constants.sceneSize.y;
 	const int howManyToPlace = argc > 2? atoi(argv[2]) : 6;
 
-	Vector3d<float> sceneCentre(sceneSize);
+	Vector3d<float> sceneCentre(params.constants.sceneSize);
 	sceneCentre /= 2.0f;
-	sceneCentre += sceneOffset;
+	sceneCentre += params.constants.sceneOffset;
 
 	for (int i=0; i < howManyToPlace; ++i)
 	{
@@ -57,17 +65,38 @@ void Scenario_withTexture::initializeScenario(void)
 		s.updateCentre(1,pos+Vector3d<float>(0,0,+3));
 		s.updateRadius(1,5.0f);
 
-		myTexturedNucleus* ag = new myTexturedNucleus(ID++,"nucleus with texture",s,currTime,incrTime);
-		startNewAgent(ag);
+		myTexturedNucleus* ag = new myTexturedNucleus(ID++,"nucleus with texture",s,params.constants.initTime,params.constants.incrTime);
+		fo->startNewAgent(ag);
 	}
+}
 
-	stopTime = 0.2f;
-	enableProducingOutput(imgPhantom);
-	enableProducingOutput(imgFinal);
+
+void Scenario_withTexture::initializeScene()
+{
+	params.imagesSaving_enableForImgPhantom();
+	params.imagesSaving_enableForImgFinal();
+}
+
+
+SceneControls& Scenario_withTexture::provideSceneControls()
+{
+	SceneControls::Constants myConstants;
+	myConstants.stopTime = 0.2f;
+
+	return *(new SceneControls(myConstants));
+}
+
+
+void Scenario_withTexture::initializePhaseIIandIII(void)
+{
+	REPORT("hello, preparing my own code for synthoscopy");
 }
 
 void Scenario_withTexture::doPhaseIIandIII(void)
 {
-	REPORT("hello");
-	Simulation::doPhaseIIandIII();
+	REPORT("hello, doing my own code for synthoscopy");
+
+	//we've shown we can be in own code for synthoscopy,
+	//but this time we will fallback using the default code...
+	Scenario::doPhaseIIandIII();
 }

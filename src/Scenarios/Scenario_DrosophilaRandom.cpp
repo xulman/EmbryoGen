@@ -1,8 +1,8 @@
+#include "../DisplayUnits/SceneryBufferedDisplayUnit.h"
 #include "../util/rnd_generators.h"
 #include "../util/Vector3d.h"
 #include "../Geometries/ScalarImg.h"
 #include "../Geometries/VectorImg.h"
-#include "../Simulation.h"
 #include "../Agents/Nucleus4SAgent.h"
 #include "../Agents/ShapeHinter.h"
 #include "../Agents/TrajectoriesHinter.h"
@@ -47,8 +47,16 @@ protected:
 	}
 };
 
-void Scenario_DrosophilaRandom::initializeScenario(void)
+
+//==========================================================================
+void Scenario_DrosophilaRandom::initializeAgents(FrontOfficer* fo,int p,int)
 {
+	if (p != 1)
+	{
+		REPORT("Populating only the first FO (which is not this one).");
+		return;
+	}
+
 	//stepping in all directions -> influences the final number of nuclei
 	const float dx = 14.0f;
 
@@ -58,8 +66,8 @@ void Scenario_DrosophilaRandom::initializeScenario(void)
 	//longer axis x
 	//symmetric/short axes y,z
 
-	const float Xside  = (0.90f*sceneSize.x)/2.0f;
-	const float YZside = (0.75f*sceneSize.y)/2.0f;
+	const float Xside  = (0.90f*params.constants.sceneSize.x)/2.0f;
+	const float YZside = (0.75f*params.constants.sceneSize.y)/2.0f;
 
 	//rnd shifter along axes
 	rndGeneratorHandle coordShifterRNG;
@@ -83,14 +91,14 @@ void Scenario_DrosophilaRandom::initializeScenario(void)
 			Vector3d<float> pos(z,radius * axis.y,radius * axis.z);
 
 			//position is shifted to the scene centre
-			pos.x += sceneSize.x/2.0f;
-			pos.y += sceneSize.y/2.0f;
-			pos.z += sceneSize.z/2.0f;
+			pos.x += params.constants.sceneSize.x/2.0f;
+			pos.y += params.constants.sceneSize.y/2.0f;
+			pos.z += params.constants.sceneSize.z/2.0f;
 
 			//position is shifted due to scene offset
-			pos.x += sceneOffset.x;
-			pos.y += sceneOffset.y;
-			pos.z += sceneOffset.z;
+			pos.x += params.constants.sceneOffset.x;
+			pos.y += params.constants.sceneOffset.y;
+			pos.z += params.constants.sceneOffset.z;
 
 			//also random shift along the main axis
 			pos.x += GetRandomGauss(0.f,0.3f*dx,coordShifterRNG);
@@ -105,9 +113,9 @@ void Scenario_DrosophilaRandom::initializeScenario(void)
 			s.updateCentre(3,pos +18.0f*axis);
 			s.updateRadius(3,3.0f);
 
-			GrowableNucleusRand* ag = new GrowableNucleusRand(ID++,"nucleus growable random",s,currTime,incrTime);
+			GrowableNucleusRand* ag = new GrowableNucleusRand(ID++,"nucleus growable random",s,params.constants.initTime,params.constants.incrTime);
 			ag->startGrowTime=10.0f;
-			startNewAgent(ag);
+			fo->startNewAgent(ag);
 		}
 	}
 
@@ -118,17 +126,27 @@ void Scenario_DrosophilaRandom::initializeScenario(void)
 	//m.saveDistImg("GradIN_ZeroOUT.tif");
 
 	//finally, create the simulation agent to register this shape
-	ShapeHinter* ag = new ShapeHinter(ID++,"yolk",m,currTime,incrTime);
-	startNewAgent(ag, false);
+	ShapeHinter* ag = new ShapeHinter(ID++,"yolk",m,params.constants.initTime,params.constants.incrTime);
+	fo->startNewAgent(ag, false);
 
 	//-------------
 	TrajectoriesHinter* at = new TrajectoriesHinter(ID++,"trajectories",
 	                           initShape,VectorImg::ChoosingPolicy::avgVec,
-	                           currTime,incrTime);
-	startNewAgent(at, false);
+	                           params.constants.initTime,params.constants.incrTime);
+	fo->startNewAgent(at, false);
 
 	//the trajectories hinter:
 	at->talkToHinter().readFromFile("../DrosophilaYolk_movement.txt", Vector3d<float>(2.f), 10.0f, 20.0f);
 	REPORT("Timepoints: " << at->talkToHinter().size()
 	    << ", Tracks: " << at->talkToHinter().knownTracks.size());
 }
+
+
+void Scenario_DrosophilaRandom::initializeScene()
+{
+	params.displayUnit.RegisterUnit( new SceneryBufferedDisplayUnit("localhost:8765") );
+}
+
+
+SceneControls& Scenario_DrosophilaRandom::provideSceneControls()
+{ return DefaultSceneControls; }

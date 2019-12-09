@@ -1,7 +1,7 @@
+#include "../DisplayUnits/SceneryBufferedDisplayUnit.h"
 #include "../util/Vector3d.h"
 #include "../Geometries/Spheres.h"
 #include "../Geometries/util/SpheresFunctions.h"
-#include "../Simulation.h"
 #include "../Agents/Nucleus4SAgent.h"
 #include "../Agents/util/Texture.h"
 #include "common/Scenarios.h"
@@ -73,7 +73,7 @@ public:
 
 	void drawTexture(i3d::Image3d<float>& phantom, i3d::Image3d<float>&) override
 	{
-		if (Officer->isProducingOutput(phantom)) renderIntoPhantom(phantom);
+		renderIntoPhantom(phantom);
 	}
 
 	void drawMask(DisplayUnit& du) override
@@ -90,8 +90,16 @@ public:
 	}
 };
 
-void Scenario_dragRotateAndTexture::initializeScenario(void)
+
+//==========================================================================
+void Scenario_dragRotateAndTexture::initializeAgents(FrontOfficer* fo,int p,int)
 {
+	if (p != 1)
+	{
+		REPORT("Populating only the first FO (which is not this one).");
+		return;
+	}
+
 	//to obtain a sequence of IDs for new agents...
 	int ID=1;
 
@@ -108,14 +116,14 @@ void Scenario_dragRotateAndTexture::initializeScenario(void)
 		Vector3d<float> pos(0,radius * axis.y,radius * axis.z);
 
 		//position is shifted to the scene centre
-		pos.x += sceneSize.x/2.0f;
-		pos.y += sceneSize.y/2.0f;
-		pos.z += sceneSize.z/2.0f;
+		pos.x += params.constants.sceneSize.x/2.0f;
+		pos.y += params.constants.sceneSize.y/2.0f;
+		pos.z += params.constants.sceneSize.z/2.0f;
 
 		//position is shifted due to scene offset
-		pos.x += sceneOffset.x;
-		pos.y += sceneOffset.y;
-		pos.z += sceneOffset.z;
+		pos.x += params.constants.sceneOffset.x;
+		pos.y += params.constants.sceneOffset.y;
+		pos.z += params.constants.sceneOffset.z;
 
 		Spheres s(4);
 		s.updateCentre(0,pos);
@@ -127,16 +135,30 @@ void Scenario_dragRotateAndTexture::initializeScenario(void)
 		s.updateCentre(3,pos +18.0f*axis);
 		s.updateRadius(3,3.0f);
 
-		myDragAndTextureNucleus* ag = new myDragAndTextureNucleus(ID++,"nucleus travelling texture",s,currTime,incrTime);
+		myDragAndTextureNucleus* ag = new myDragAndTextureNucleus(ID++,"nucleus travelling texture",s,params.constants.initTime,params.constants.incrTime);
 		ag->setDetailedDrawingMode(true);
-		startNewAgent(ag);
+		fo->startNewAgent(ag);
 	}
+}
+
+
+void Scenario_dragRotateAndTexture::initializeScene()
+{
+	params.displayUnit.RegisterUnit( new SceneryBufferedDisplayUnit("localhost:8765") );
 
 	//override the output images
-	setOutputImgSpecs( Vector3d<float>(220,30,30), Vector3d<float>(40,160,160));
-	enableProducingOutput( imgMask );
-	enableProducingOutput( imgPhantom );
+	params.setOutputImgSpecs( Vector3d<float>(220,30,30), Vector3d<float>(40,160,160));
+	params.imagesSaving_enableForImgMask();
+	params.imagesSaving_enableForImgPhantom();
+}
+
+
+SceneControls& Scenario_dragRotateAndTexture::provideSceneControls()
+{
+	SceneControls::Constants myConstants;
 
 	//override the default stop time
-	stopTime = 40.2f;
+	myConstants.stopTime = 40.2f;
+
+	return *(new SceneControls(myConstants));
 }

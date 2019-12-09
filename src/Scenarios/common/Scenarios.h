@@ -49,16 +49,16 @@ class FrontOfficer;
 
 
 //                                          regular class name
-//restoreMe//SCENARIO_DECLARATION_withDefOptSynthoscopy( Scenario_AFewAgents )
-//restoreMe//SCENARIO_DECLARATION_withDefOptSynthoscopy( Scenario_DrosophilaRegular )
-//restoreMe//SCENARIO_DECLARATION_withDefOptSynthoscopy( Scenario_DrosophilaRandom )
-//restoreMe//SCENARIO_DECLARATION_withDefOptSynthoscopy( Scenario_pseudoDivision )
-//restoreMe//SCENARIO_DECLARATION_withDefOptSynthoscopy( Scenario_dragAndRotate )
-//restoreMe//SCENARIO_DECLARATION_withDefOptSynthoscopy( Scenario_withCellCycle )
-//restoreMe//SCENARIO_DECLARATION_withItsOwnSynthoscopy( Scenario_withTexture )
-//restoreMe//SCENARIO_DECLARATION_withDefOptSynthoscopy( Scenario_dragRotateAndTexture )
-//restoreMe//SCENARIO_DECLARATION_withDefOptSynthoscopy( Scenario_phaseIIandIII )
-//restoreMe//SCENARIO_DECLARATION_withDefOptSynthoscopy( Scenario_PerlinShowCase )
+SCENARIO_DECLARATION_withDefOptSynthoscopy( Scenario_AFewAgents )
+SCENARIO_DECLARATION_withDefOptSynthoscopy( Scenario_DrosophilaRegular )
+SCENARIO_DECLARATION_withDefOptSynthoscopy( Scenario_DrosophilaRandom )
+SCENARIO_DECLARATION_withDefOptSynthoscopy( Scenario_pseudoDivision )
+SCENARIO_DECLARATION_withDefOptSynthoscopy( Scenario_dragAndRotate )
+SCENARIO_DECLARATION_withDefOptSynthoscopy( Scenario_withCellCycle )
+SCENARIO_DECLARATION_withItsOwnSynthoscopy( Scenario_withTexture )
+SCENARIO_DECLARATION_withDefOptSynthoscopy( Scenario_dragRotateAndTexture )
+SCENARIO_DECLARATION_withDefOptSynthoscopy( Scenario_phaseIIandIII )
+SCENARIO_DECLARATION_withDefOptSynthoscopy( Scenario_PerlinShowCase )
 SCENARIO_DECLARATION_withDefOptSynthoscopy( Scenario_Parallel )
 //  ---> ADD NEW SCENARIO HERE AND ALSO BELOW <---
 
@@ -76,16 +76,16 @@ public:
 	Scenarios(int argc, char** argv)
 	{
 		//                  nickname            regular class name
-		//restoreMe//SCENARIO_MATCHING( "aFewAgents",        Scenario_AFewAgents )
-		//restoreMe//SCENARIO_MATCHING( "regularDrosophila", Scenario_DrosophilaRegular )
-		//restoreMe//SCENARIO_MATCHING( "randomDrosophila",  Scenario_DrosophilaRandom )
-		//restoreMe//SCENARIO_MATCHING( "pseudoDivision",    Scenario_pseudoDivision )
-		//restoreMe//SCENARIO_MATCHING( "dragAndRotate",     Scenario_dragAndRotate )
-		//restoreMe//SCENARIO_MATCHING( "cellCycle",         Scenario_withCellCycle )
-		//restoreMe//SCENARIO_MATCHING( "fluoTexture",       Scenario_withTexture )
-		//restoreMe//SCENARIO_MATCHING( "dragFluoTexture",   Scenario_dragRotateAndTexture )
-		//restoreMe//SCENARIO_MATCHING( "synthoscopy",       Scenario_phaseIIandIII )
-		//restoreMe//SCENARIO_MATCHING( "PerlinShowCase",    Scenario_PerlinShowCase )
+		SCENARIO_MATCHING( "aFewAgents",        Scenario_AFewAgents )
+		SCENARIO_MATCHING( "regularDrosophila", Scenario_DrosophilaRegular )
+		SCENARIO_MATCHING( "randomDrosophila",  Scenario_DrosophilaRandom )
+		SCENARIO_MATCHING( "pseudoDivision",    Scenario_pseudoDivision )
+		SCENARIO_MATCHING( "dragAndRotate",     Scenario_dragAndRotate )
+		SCENARIO_MATCHING( "cellCycle",         Scenario_withCellCycle )
+		SCENARIO_MATCHING( "fluoTexture",       Scenario_withTexture )
+		SCENARIO_MATCHING( "dragFluoTexture",   Scenario_dragRotateAndTexture )
+		SCENARIO_MATCHING( "synthoscopy",       Scenario_phaseIIandIII )
+		SCENARIO_MATCHING( "PerlinShowCase",    Scenario_PerlinShowCase )
 		SCENARIO_MATCHING( "parallel",          Scenario_Parallel )
 		//  ---> ADD NEW SCENARIO HERE (and add definition *cpp file, re-run cmake!) <---
 

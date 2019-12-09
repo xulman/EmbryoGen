@@ -1,22 +1,32 @@
+#include "../DisplayUnits/SceneryBufferedDisplayUnit.h"
 #include "../util/Vector3d.h"
 #include "../Geometries/Spheres.h"
 #include "../Geometries/ScalarImg.h"
-#include "../Simulation.h"
 #include "../Agents/Nucleus4SAgent.h"
 #include "../Agents/ShapeHinter.h"
 #include "common/Scenarios.h"
 
-void Scenario_AFewAgents::initializeScenario(void)
+//no specific Nucleus (or other "prefilled" agent)
+
+
+//==========================================================================
+void Scenario_AFewAgents::initializeAgents(FrontOfficer* fo,int p,int)
 {
+	if (p != 1)
+	{
+		REPORT("Populating only the first FO (which is not this one).");
+		return;
+	}
+
 	//to obtain a sequence of IDs for new agents...
 	int ID=1;
 
-	const float radius = 0.4f*sceneSize.y;
+	const float radius = 0.4f*params.constants.sceneSize.y;
 	const int howManyToPlace = 6;
 
-	Vector3d<float> sceneCentre(sceneSize);
+	Vector3d<float> sceneCentre(params.constants.sceneSize);
 	sceneCentre /= 2.0f;
-	sceneCentre += sceneOffset;
+	sceneCentre += params.constants.sceneOffset;
 
 	for (int i=0; i < howManyToPlace; ++i)
 	{
@@ -38,8 +48,8 @@ void Scenario_AFewAgents::initializeScenario(void)
 		s.updateCentre(3,pos+Vector3d<float>(0,0,+9));
 		s.updateRadius(3,3.0f);
 
-		Nucleus4SAgent* ag = new Nucleus4SAgent(ID++,"nucleus",s,currTime,incrTime);
-		startNewAgent(ag);
+		Nucleus4SAgent* ag = new Nucleus4SAgent(ID++,"nucleus",s,params.constants.initTime,params.constants.incrTime);
+		fo->startNewAgent(ag);
 	}
 
 
@@ -77,6 +87,16 @@ void Scenario_AFewAgents::initializeScenario(void)
 	//m.saveDistImg("GradIN_ZeroOUT.tif");
 
 	//finally, create the simulation agent to register this shape
-	ShapeHinter* ag = new ShapeHinter(ID++,"yolk",m,currTime,incrTime);
-	startNewAgent(ag, false);
+	ShapeHinter* ag = new ShapeHinter(ID++,"yolk",m,params.constants.initTime,params.constants.incrTime);
+	fo->startNewAgent(ag, false);
 }
+
+
+void Scenario_AFewAgents::initializeScene()
+{
+	params.displayUnit.RegisterUnit( new SceneryBufferedDisplayUnit("localhost:8765") );
+}
+
+
+SceneControls& Scenario_AFewAgents::provideSceneControls()
+{ return DefaultSceneControls; }
