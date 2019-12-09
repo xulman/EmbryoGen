@@ -103,15 +103,15 @@ set(SOURCES
 		src/FrontOfficer.cpp
 		src/main.cpp)
 
-if (DISTRIBUTED_VERSION)
+if (FEATURE_RUNDISTRIBUTED)
 	set(D_FO_SOURCES
 		src/Communication/DirectorMPI.cpp
 		src/Communication/FrontOfficerMPI.cpp)
-else (DISTRIBUTED_VERSION)
+else (FEATURE_RUNDISTRIBUTED)
 	set(D_FO_SOURCES
 		src/Communication/DirectorSMP.cpp
 		src/Communication/FrontOfficerSMP.cpp)
-endif (DISTRIBUTED_VERSION)
+endif (FEATURE_RUNDISTRIBUTED)
 
 #TODO: all scenarios are temporarily disabled
 #file(GLOB SCENARIOSOURCES src/Scenarios/*.cpp)

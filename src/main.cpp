@@ -30,8 +30,8 @@ int main(int argc, char** argv)
 #ifdef DISTRIBUTED
 		//these two has to come from MPI stack,
 		//for now some fake values:
-		const int MPI_noOfNodesInTotal = 72
-		const int MPI_IDOfThisInstance = 0
+		const int MPI_noOfNodesInTotal = 72;
+		const int MPI_IDOfThisInstance = 0;
 
 		//this is assuming that MPI clients' IDs form a full
 		//integer interval between 0 and MPI_noOfNodesInTotal-1,
