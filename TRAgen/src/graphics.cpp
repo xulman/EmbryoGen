@@ -332,12 +332,12 @@ void writeScreenToImageFile(void)
 		{
 			//some enhancing of the "signal" of the digital phantom
 			*pF += 0.2f;
-			*pF *= 8.0f;
+			*pF *= 80.0f;
 		}
 	}
 
 	//tmp.SaveImage("test.tif");
-	i3d::GaussIIR(tmp, 1.0f, 1.0f, 0.f);	//2D filtering - aka PSF blur
+	i3d::GaussIIR(tmp, 1.6f, 1.6f, 0.f);	//2D filtering - aka PSF blur
 
 
 	//some phase III postprocessing (simulation of the image formation in the CCD camera):
