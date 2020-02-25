@@ -7,23 +7,23 @@
 #include "AbstractAgent.h"
 #include "../Geometries/Spheres.h"
 
-static ForceName ftype_s2s       = "sphere-sphere";     //internal forces
-static ForceName ftype_drive     = "desired movement";
-static ForceName ftype_friction  = "friction";
+static const ForceName ftype_s2s       = "sphere-sphere";     //internal forces
+static const ForceName ftype_drive     = "desired movement";
+static const ForceName ftype_friction  = "friction";
 
-static ForceName ftype_repulsive = "repulsive";         //due to external events with nuclei
-static ForceName ftype_body      = "no overlap (body)";
-static ForceName ftype_slide     = "no sliding";
+static const ForceName ftype_repulsive = "repulsive";         //due to external events with nuclei
+static const ForceName ftype_body      = "no overlap (body)";
+static const ForceName ftype_slide     = "no sliding";
 
-static ForceName ftype_hinter    = "sphere-hinter";     //due to external events with shape hinters
+static const ForceName ftype_hinter    = "sphere-hinter";     //due to external events with shape hinters
 
-static FLOAT fstrength_body_scale     = (FLOAT)0.4;     // [N/um]      TRAgen: N/A
-static FLOAT fstrength_overlap_scale  = (FLOAT)0.2;     // [N/um]      TRAgen: k
-static FLOAT fstrength_overlap_level  = (FLOAT)0.1;     // [N]         TRAgen: A
-static FLOAT fstrength_overlap_depth  = (FLOAT)0.5;     // [um]        TRAgen: delta_o (do)
-static FLOAT fstrength_rep_scale      = (FLOAT)0.6;     // [1/um]      TRAgen: B
-static FLOAT fstrength_slide_scale    = (FLOAT)1.0;     // unitless
-static FLOAT fstrength_hinter_scale   = (FLOAT)0.25;    // [1/um^2]
+static const FLOAT fstrength_body_scale     = (FLOAT)0.4;     // [N/um]      TRAgen: N/A
+static const FLOAT fstrength_overlap_scale  = (FLOAT)0.2;     // [N/um]      TRAgen: k
+static const FLOAT fstrength_overlap_level  = (FLOAT)0.1;     // [N]         TRAgen: A
+static const FLOAT fstrength_overlap_depth  = (FLOAT)0.5;     // [um]        TRAgen: delta_o (do)
+static const FLOAT fstrength_rep_scale      = (FLOAT)0.6;     // [1/um]      TRAgen: B
+static const FLOAT fstrength_slide_scale    = (FLOAT)1.0;     // unitless
+static const FLOAT fstrength_hinter_scale   = (FLOAT)0.25;    // [1/um^2]
 
 /** Color coding:
  0 - white
