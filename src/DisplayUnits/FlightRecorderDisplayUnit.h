@@ -38,9 +38,15 @@ public:
 		}
 
 		if (tryCnt == 0)
+		{
 			logger.open(filename);  //the original filename
+			DEBUG_REPORT("Recording into: " << filename);
+		}
 		else
+		{
 			logger.open(fn);        //the last "versioned" filename
+			DEBUG_REPORT("Recording into: " << fn);
+		}
 	}
 
 	~FlightRecorderDisplayUnit()
