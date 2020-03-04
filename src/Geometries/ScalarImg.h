@@ -187,5 +187,9 @@ private:
 		distImgFarEnd.from( Vector3d<size_t>(distImg.GetSize()) )
 		             .toMicrons(distImgRes,distImgOff);
 	}
+
+	// ----------------- support for serialization and deserealization -----------------
+public:
+	long getSizeInBytes() const override;
 };
 #endif

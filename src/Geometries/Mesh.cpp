@@ -37,3 +37,10 @@ void Mesh::updateThisAABB(AxisAlignedBoundingBox& /* AABB */) const
 	//TODO
 	REPORT("not implemented yet!");
 }
+
+
+long Mesh::getSizeInBytes() const
+{
+	REPORT("NOT SUPPORTED YET!");
+	return 1;
+}

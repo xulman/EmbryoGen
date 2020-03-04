@@ -243,3 +243,10 @@ void VectorImg::updateThisAABB(AxisAlignedBoundingBox& AABB) const
 	AABB.minCorner = imgOff;
 	AABB.maxCorner = imgFarEnd;
 }
+
+
+long VectorImg::getSizeInBytes() const
+{
+	REPORT("NOT SUPPORTED YET!");
+	return 1;
+}

@@ -249,5 +249,9 @@ private:
 		imgFarEnd.from( Vector3d<size_t>(X.GetSize()) )
 		         .toMicrons(imgRes,imgOff);
 	}
+
+	// ----------------- support for serialization and deserealization -----------------
+public:
+	long getSizeInBytes() const override;
 };
 #endif

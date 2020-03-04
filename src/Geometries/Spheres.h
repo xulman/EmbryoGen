@@ -128,5 +128,9 @@ public:
 	friend class Texture;
 	friend class TextureQuantized;
 	friend class TextureUpdater4S;
+
+	// ----------------- support for serialization and deserealization -----------------
+public:
+	long getSizeInBytes() const override;
 };
 #endif

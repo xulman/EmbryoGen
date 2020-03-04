@@ -40,5 +40,9 @@ public:
 
 
 	// ------------- get/set methods -------------
+
+	// ----------------- support for serialization and deserealization -----------------
+public:
+	long getSizeInBytes() const override;
 };
 #endif

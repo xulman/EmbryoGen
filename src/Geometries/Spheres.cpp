@@ -117,3 +117,9 @@ void Spheres::updateThisAABB(AxisAlignedBoundingBox& AABB) const
 		AABB.maxCorner.z = std::max(AABB.maxCorner.z, centres[i].z+radii[i]);
 	}
 }
+
+
+long Spheres::getSizeInBytes() const
+{
+	return sizeof(int) + noOfSpheres * 4 * sizeof(FLOAT);
+}

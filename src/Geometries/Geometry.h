@@ -294,5 +294,12 @@ public:
 	    the last value of this attribute, and she can later see (by comparison) if
 	    the geometry has changed or not.... */
 	int version = 0;
+
+	// ----------------- support for serialization and deserealization -----------------
+	int getType() const
+	{ return (int)shapeForm; }
+
+	virtual
+	long getSizeInBytes() const =0;
 };
 #endif

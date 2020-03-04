@@ -309,6 +309,13 @@ void ScalarImg::updateWithNewMask(const i3d::Image3d<MT>& _mask)
 }
 
 
+long ScalarImg::getSizeInBytes() const
+{
+	REPORT("NOT SUPPORTED YET!");
+	return 1;
+}
+
+
 // ------------- explicit instantiations -------------
 template
 void ScalarImg::updateWithNewMask(const i3d::Image3d<i3d::GRAY8>& _mask);
