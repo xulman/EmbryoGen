@@ -3,6 +3,7 @@
 #include "../Geometries/Spheres.h"
 #include "../Agents/Nucleus4SAgent.h"
 #include "common/Scenarios.h"
+#include "../DisplayUnits/FlightRecorderDisplayUnit.h"
 
 class myNucleus: public Nucleus4SAgent
 {
@@ -94,7 +95,13 @@ void Scenario_dragAndRotate::initializeAgents(FrontOfficer* fo,int p,int)
 
 void Scenario_dragAndRotate::initializeScene()
 {
-	params.displayUnit.RegisterUnit( new SceneryBufferedDisplayUnit("localhost:8765") );
+	//----------- common inits -----------
+	//----------- specific inits -----------
+	if (amIinFOContext())
+	{
+		params.displayUnit.RegisterUnit( new SceneryBufferedDisplayUnit("localhost:8765") );
+		params.displayUnit.RegisterUnit( new FlightRecorderDisplayUnit("/temp/FR_dragAndRotate.txt") );
+	}
 }
 
 

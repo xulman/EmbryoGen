@@ -5,6 +5,7 @@
 #include "../Agents/Nucleus4SAgent.h"
 #include "../Agents/util/Texture.h"
 #include "common/Scenarios.h"
+#include "../DisplayUnits/FlightRecorderDisplayUnit.h"
 
 class myDragAndTextureNucleus: public Nucleus4SAgent, TextureQuantized, TextureUpdater4S
 {
@@ -144,12 +145,25 @@ void Scenario_dragRotateAndTexture::initializeAgents(FrontOfficer* fo,int p,int)
 
 void Scenario_dragRotateAndTexture::initializeScene()
 {
-	params.displayUnit.RegisterUnit( new SceneryBufferedDisplayUnit("localhost:8765") );
-
+	//----------- common inits -----------
 	//override the output images
 	params.setOutputImgSpecs( Vector3d<float>(220,30,30), Vector3d<float>(40,160,160));
 	params.imagesSaving_enableForImgMask();
 	params.imagesSaving_enableForImgPhantom();
+	params.imagesSaving_enableForImgOptics();
+
+	//----------- specific inits -----------
+	if (amIinFOContext())
+	{
+		params.displayUnit.RegisterUnit( new SceneryBufferedDisplayUnit("localhost:8765") );
+		params.displayUnit.RegisterUnit( new FlightRecorderDisplayUnit("/temp/FR_dragRotateAndTexture.txt") );
+	}
+
+	if (amIinDirektorContext())
+	{
+		params.displayChannel_createNew("localFiji","localhost:54545");
+		params.displayChannel_enableForImgPhantom("localFiji");
+	}
 }
 
 
