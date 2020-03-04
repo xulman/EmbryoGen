@@ -119,7 +119,55 @@ void Spheres::updateThisAABB(AxisAlignedBoundingBox& AABB) const
 }
 
 
+// ----------------- support for serialization and deserealization -----------------
 long Spheres::getSizeInBytes() const
 {
 	return sizeof(int) + noOfSpheres * 4 * sizeof(FLOAT);
+}
+
+
+void Spheres::serializeTo(char* buffer) const
+{
+	//store noOfSpheres
+	*((int*)buffer) = noOfSpheres;
+
+	//"create" (or "overlay") a float array
+	float* f_buffer = (float*)(buffer + sizeof(int));
+
+	//store individual spheres
+	for (int i=0; i < noOfSpheres; ++i)
+	{
+		*f_buffer = centres[i].x; ++f_buffer;
+		*f_buffer = centres[i].y; ++f_buffer;
+		*f_buffer = centres[i].z; ++f_buffer;
+		*f_buffer = radii[i]; ++f_buffer;
+	}
+}
+
+
+void Spheres::deserializeFrom(char* buffer)
+{
+	if (noOfSpheres != *((int*)buffer))
+		throw ERROR_REPORT("Deserialization mismatch.");
+
+	//"overlay" a float array
+	float* f_buffer = (float*)(buffer + sizeof(int));
+
+	//read and setup individual spheres
+	for (int i=0; i < noOfSpheres; ++i)
+	{
+		centres[i].x = *f_buffer; ++f_buffer;
+		centres[i].y = *f_buffer; ++f_buffer;
+		centres[i].z = *f_buffer; ++f_buffer;
+		radii[i] = *f_buffer; ++f_buffer;
+	}
+}
+
+
+Spheres* Spheres::createAndDeserializeFrom(char* buffer)
+{
+	//read noOfSpheres and create an object
+	Spheres* s = new Spheres(*((int*)buffer));
+	s->deserializeFrom(buffer);
+	return s;
 }
