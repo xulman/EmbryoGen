@@ -361,7 +361,7 @@ class Scenario
 public:
 	/** the one and only must-provide-SceneControls-enforcer c'tor */
 	Scenario(SceneControls& params)
-		: params(params)
+		: params(params), displays(*this, params)
 	{}
 
 	// to shortcut the Direktor's and FOs' access to this->params
@@ -465,6 +465,84 @@ protected:
 	bool amIinDirektorContext() { return contextID == -1; }
 	bool amIinFOContext()       { return contextID != -1; }
 	int getFOContextID()        { return contextID; }
+
+public:
+	struct Displays {
+		Displays(Scenario& thisScenario, SceneControls& thisSceneControls)
+			: ctx(thisScenario), params(thisSceneControls) {}
+		Scenario& ctx;
+		SceneControls& params;
+
+		//----- display units -----
+		void registerDisplayUnit(DisplayUnit* ds)
+		{
+			if (ctx.amIinFOContext())
+				params.displayUnit.RegisterUnit(ds);
+		}
+		void unregisterDisplayUnit(DisplayUnit* ds)
+		{
+			if (ctx.amIinFOContext())
+				params.displayUnit.UnregisterUnit(ds);
+		}
+
+		//----- image transfer channels -----
+		void registerImagingUnit(const std::string& unitNickName,
+		                         const char* destinationURL,
+		                         const char* thisSourceNickName = "EmbryoGen's Image(s)")
+		{
+			if (ctx.amIinDirektorContext())
+				params.displayChannel_createNew(unitNickName,destinationURL,thisSourceNickName);
+		}
+		void unregisterImagingUnit(const std::string& unitNickName)
+		{
+			if (ctx.amIinDirektorContext())
+				params.displayChannel_delete(unitNickName);
+		}
+
+		void enableImgMaskInImagingUnit(const std::string& unitNickName)
+		{
+			if (ctx.amIinDirektorContext())
+				params.displayChannel_enableForImgMask(unitNickName);
+		}
+		void disableImgMaskInImagingUnit(const std::string& unitNickName)
+		{
+			if (ctx.amIinDirektorContext())
+				params.displayChannel_disableForImgMask(unitNickName);
+		}
+
+		void enableImgPhantomInImagingUnit(const std::string& unitNickName)
+		{
+			if (ctx.amIinDirektorContext())
+				params.displayChannel_enableForImgPhantom(unitNickName);
+		}
+		void disableImgPhantomInImagingUnit(const std::string& unitNickName)
+		{
+			if (ctx.amIinDirektorContext())
+				params.displayChannel_disableForImgPhantom(unitNickName);
+		}
+
+		void enableImgOpticsInImagingUnit(const std::string& unitNickName)
+		{
+			if (ctx.amIinDirektorContext())
+				params.displayChannel_enableForImgOptics(unitNickName);
+		}
+		void disableImgOpticsInImagingUnit(const std::string& unitNickName)
+		{
+			if (ctx.amIinDirektorContext())
+				params.displayChannel_disableForImgOptics(unitNickName);
+		}
+
+		void enableImgFinalInImagingUnit(const std::string& unitNickName)
+		{
+			if (ctx.amIinDirektorContext())
+				params.displayChannel_enableForImgFinal(unitNickName);
+		}
+		void disableImgFinalInImagingUnit(const std::string& unitNickName)
+		{
+			if (ctx.amIinDirektorContext())
+				params.displayChannel_disableForImgFinal(unitNickName);
+		}
+	} displays;
 
 #ifdef ENABLE_FILOGEN_PHASEIIandIII
 private:
