@@ -488,11 +488,11 @@ void FrontOfficer::renderNextFrame()
 	//note that this far the code was executed on all FOs, that means in parallel
 
 	// --------- the big round robin scheme ---------
-	//WAIT HERE UNTIL WE GOT THE IMAGES TO CONTRIBUTE INTO
+	//WAIT HERE UNTIL WE GET THE IMAGES TO CONTRIBUTE INTO
 	//this will block...
 	waitFor_renderNextFrame();
 
-	//now that it is only us who have the token, we
+	//note that it is only us who have the token, we
 	//do "pollute" the DisplayUnit (load balancing)
 	//
 	//go over all cells, and render them -- ONLY DISPLAY UNITS!

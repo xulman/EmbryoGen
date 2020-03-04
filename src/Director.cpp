@@ -291,7 +291,7 @@ void Director::renderNextFrame()
 	sc.imgOptics.GetVoxelData()  = 0;
 	*/
 
-	//WAIT HERE UNTIL WE GOT THE IMAGES BACK
+	//WAIT HERE UNTIL WE GET THE IMAGES BACK
 	//this essentially pours images from network into local images,
 	//which must be for sure zero beforehand
 	//this will block...
