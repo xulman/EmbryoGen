@@ -440,6 +440,32 @@ public:
 	    because this one is used for computation of the SNR. */
 	virtual void doPhaseIIandIII();
 
+private:
+	/** Context in which this particular scenario object is executed. It is actually
+	    merely a symbolic value that shall be positive whenever this object is living
+	    inside some FrontOfficer, and that shall be -1 whenever this object is living
+	    inside the Direktor.
+
+	    Scenarios shall, nevertheless, make no difference in their "behaviour" (how
+	    they are defined, e.g. values of constants, or how they are changing
+	    themselves via this->updateScene()). The notion of the context is defined
+	    here only for cases where it really makes sense to behave differently, such
+	    as, creating an image transfer object on Direktor only (when no images
+	    shall be transferred on FrontOfficer), or connecting to SimViewer only from
+	    one particular process (be it Direktor, or one particular FrontOfficer). */
+	int contextID = -1;
+
+	/** Internal method to be executed only during a FrontOfficer construction
+	    to define the appropriate context of this particular scenario object */
+	void declareFOcontext(const int myPortion) { contextID = myPortion; }
+
+	/** Similar to Scenario::declareFOcontext() but for Direktor */
+	void declareDirektorContext() { contextID = -1; }
+protected:
+	bool amIinDirektorContext() { return contextID == -1; }
+	bool amIinFOContext()       { return contextID != -1; }
+	int getFOContextID()        { return contextID; }
+
 #ifdef ENABLE_FILOGEN_PHASEIIandIII
 private:
 	std::string imgPSFuserPath;
