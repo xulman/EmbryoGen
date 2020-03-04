@@ -217,42 +217,9 @@ void FrontOfficer::waitHereUntilEveryoneIsHereToo()
 
 void FrontOfficer::waitFor_renderNextFrame()
 {
-	//does nothing in the SMP
-
-	//MPI world:
-
-	//shall block and wait until 3 images come to us
-	//they will come in this order: mask, phantom, optics
-
-#ifdef DEBUG
-	//test this:
-	//the incomming images must be of the same size as ours sc.img*
-#endif
-
-	//one receives each image directly into our own sc.img* image,
-	//to "receive directly" is to sum (operation +) together corresponding
-	//pixels, that is pixel from the network with pixel in the sc.img*,
-	//the result is stored into the sc.img*
-
-	/*
-	SceneControls& sc = scenario.params;
-
-	//here's the handle on our sc.img* images
-	sc.imgMask
-	sc.imgPhantom
-	sc.imgOptics
-
-	//here's how to reach the pixels, they live in one long buffer, e.g.
-	i3d::GRAY16* maskPixelBuffer = sc.imgMask.GetFirstVoxelAddr();
-	const size_t maskPixelLength = sc.imgMask.GetImageSize();
-
-	//reminder of the types of the images:
-	i3d::Image3d<i3d::GRAY16> imgMask;
-	i3d::Image3d<float> imgPhantom;
-	i3d::Image3d<float> imgOptics;
-
-	(i3d::GRAY16 maps into short type)
-	*/
+	//normally, it should move the content of the images from this FO
+	//into Direktor's images... but instead we render directly into
+	//Direktor's images... see FrontOfficer::renderNextFrame()
 }
 
 
