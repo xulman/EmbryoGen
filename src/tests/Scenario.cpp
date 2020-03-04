@@ -108,6 +108,7 @@ public:
 	{
 		REPORT("constants.incrTime = " << params.constants.incrTime);
 		REPORT("producingMasks? = " << params.isProducingOutput(params.imgMask));
+		REPORT("producingMasks? = " << params.imagesSaving_isEnabledForImgMask());
 		//params.constants.expoTime = 10.0f; FAILS which is OKay
 		params.enableProducingOutput(params.imgFinal);
 	}
