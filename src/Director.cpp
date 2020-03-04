@@ -115,8 +115,10 @@ void Director::execute(void)
 		// move to the next simulation time point
 		currTime += incrTime;
 		reportSituation();
+#ifdef DISTRIBUTED
 #ifdef DEBUG
 		reportAgentsAllocation();
+#endif
 #endif
 
 		// is this the right time to export data?
