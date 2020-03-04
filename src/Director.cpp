@@ -19,8 +19,25 @@ void Director::init1_SMP(void)
 	  << " um -> "
 	  << sSpx.x << " x " << sSpx.y << " x " << sSpx.z << " px");
 
+	scenario.declareDirektorContext(); //NB: this statement is redundant in DISTRIBUTED
 	scenario.initializeScene();
 	scenario.initializePhaseIIandIII();
+
+	//"reminder" test
+	if (scenario.params.imagesSaving_isEnabledForImgPhantom()
+	 || scenario.params.imagesSaving_isEnabledForImgOptics())
+	{
+		if (! scenario.params.imagesSaving_isEnabledForImgOptics())
+		{
+			REPORT("===> Found enabled phantom images, but disabled optics images.");
+			REPORT("===> Will actually not render agents until both is enabled.");
+		}
+		if (! scenario.params.imagesSaving_isEnabledForImgPhantom())
+		{
+			REPORT("===> Found enabled optics images, but disabled phantom images.");
+			REPORT("===> Will actually not render agents until both is enabled.");
+		}
+	}
 }
 
 void Director::init2_SMP(void)
@@ -129,6 +146,7 @@ void Director::execute(void)
 		}
 
 		//this was promised to happen after every simulation round is over
+		scenario.declareDirektorContext(); //NB: this statement is redundant in DISTRIBUTED
 		scenario.updateScene( currTime );
 		waitHereUntilEveryoneIsHereToo();
 	}
@@ -330,6 +348,7 @@ void Director::renderNextFrame()
 	{
 		sprintf(fn,"finalPreview%03d.tif",frameCnt);
 		REPORT("Creating " << fn << ", hold on...");
+		scenario.declareDirektorContext(); //NB: this statement is redundant in DISTRIBUTED
 		scenario.doPhaseIIandIII();
 		REPORT("Saving " << fn << ", hold on...");
 		sc.imgFinal.SaveImage(fn);

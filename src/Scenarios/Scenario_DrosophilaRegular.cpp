@@ -133,7 +133,7 @@ void Scenario_DrosophilaRegular::initializeAgents(FrontOfficer* fo,int p,int)
 
 void Scenario_DrosophilaRegular::initializeScene()
 {
-	params.displayUnit.RegisterUnit( new SceneryBufferedDisplayUnit("localhost:8765") );
+	displays.registerDisplayUnit( new SceneryBufferedDisplayUnit("localhost:8765") );
 }
 
 

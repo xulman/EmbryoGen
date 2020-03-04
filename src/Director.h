@@ -8,7 +8,7 @@
 #include "Scenarios/common/Scenario.h"
 class FrontOfficer;
 
-/** has access to Simulation, to reach its doPhaseIIandIII() */
+/** has access to Scenario, to reach its doPhaseIIandIII() */
 class Director
 {
 public:
@@ -16,6 +16,7 @@ public:
 		: scenario(s), firstFOsID(firstFO), FOsCount(allPortions),
 		  shallWaitForUserPromptFlag( scenario.params.shallWaitForUserPromptFlag )
 	{
+		scenario.declareDirektorContext();
 		//TODO: create an extra thread to execute/service the respond_...() methods
 	}
 

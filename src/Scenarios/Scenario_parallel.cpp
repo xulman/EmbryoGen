@@ -236,16 +236,15 @@ void Scenario_Parallel::initializeScene()
 	params.setOutputImgSpecs(Vector3d<float>(0),    //offset: um
 	                  Vector3d<float>((float)howManyAlongX,(float)howManyAlongY,1.f),    //size: um = px
 	                  Vector3d<float>(1));   //resolution: px/um
-	params.imagesSaving_enableForImgPhantom();
-	params.imagesSaving_enableForImgOptics();
-	params.imagesSaving_enableForImgMask(); //enable if you want to see the constellation of IDs
+	disks.enableImgPhantomTIFFs();
+	disks.enableImgOpticsTIFFs();
+	disks.enableImgMaskTIFFs(); //enable if you want to see the constellation of IDs
 
-	//DisplayUnits handling: variant C
-	//params.displayUnit.RegisterUnit( new ConsoleDisplayUnit() );
+	//variant "on console" for parsing out and computing mutual distances
+	//displays.registerDisplayUnit( new ConsoleDisplayUnit() );
 
-	params.displayChannel_createNew("localFiji","localhost:54545");
-	params.displayChannel_enableForImgMask("localFiji");
-	params.displayChannel_enableForImgMask("wrongOne-autoEraseMe");
+	displays.registerImagingUnit("localFiji","localhost:54545");
+	displays.enableImgMaskInImagingUnit("localFiji");
 }
 
 

@@ -17,6 +17,7 @@ public:
 	FrontOfficer(Scenario& s, const int nextFO, const int myPortion, const int allPortions)
 		: scenario(s), ID(myPortion), nextFOsID(nextFO), FOsCount(allPortions)
 	{
+		scenario.declareFOcontext(myPortion);
 		//TODO: create an extra thread to execute/service the respond_...() methods
 	}
 

@@ -94,7 +94,7 @@ void Scenario_AFewAgents::initializeAgents(FrontOfficer* fo,int p,int)
 
 void Scenario_AFewAgents::initializeScene()
 {
-	params.displayUnit.RegisterUnit( new SceneryBufferedDisplayUnit("localhost:8765") );
+	displays.registerDisplayUnit( new SceneryBufferedDisplayUnit("localhost:8765") );
 }
 
 
