@@ -22,6 +22,22 @@ void Director::init1_SMP(void)
 	scenario.declareDirektorContext(); //NB: this statement is redundant in DISTRIBUTED
 	scenario.initializeScene();
 	scenario.initializePhaseIIandIII();
+
+	//"reminder" test
+	if (scenario.params.imagesSaving_isEnabledForImgPhantom()
+	 || scenario.params.imagesSaving_isEnabledForImgOptics())
+	{
+		if (! scenario.params.imagesSaving_isEnabledForImgOptics())
+		{
+			REPORT("===> Found enabled phantom images, but disabled optics images.");
+			REPORT("===> Will actually not render agents until both is enabled.");
+		}
+		if (! scenario.params.imagesSaving_isEnabledForImgPhantom())
+		{
+			REPORT("===> Found enabled optics images, but disabled phantom images.");
+			REPORT("===> Will actually not render agents until both is enabled.");
+		}
+	}
 }
 
 void Director::init2_SMP(void)
