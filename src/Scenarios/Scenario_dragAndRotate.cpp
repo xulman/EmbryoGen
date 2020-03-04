@@ -95,13 +95,8 @@ void Scenario_dragAndRotate::initializeAgents(FrontOfficer* fo,int p,int)
 
 void Scenario_dragAndRotate::initializeScene()
 {
-	//----------- common inits -----------
-	//----------- specific inits -----------
-	if (amIinFOContext())
-	{
-		params.displayUnit.RegisterUnit( new SceneryBufferedDisplayUnit("localhost:8765") );
-		params.displayUnit.RegisterUnit( new FlightRecorderDisplayUnit("/temp/FR_dragAndRotate.txt") );
-	}
+	displays.registerDisplayUnit( new SceneryBufferedDisplayUnit("localhost:8765") );
+	displays.registerDisplayUnit( new FlightRecorderDisplayUnit("/temp/FR_dragAndRotate.txt") );
 }
 
 

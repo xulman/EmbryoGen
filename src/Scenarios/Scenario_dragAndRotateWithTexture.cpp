@@ -145,25 +145,18 @@ void Scenario_dragRotateAndTexture::initializeAgents(FrontOfficer* fo,int p,int)
 
 void Scenario_dragRotateAndTexture::initializeScene()
 {
-	//----------- common inits -----------
 	//override the output images
 	params.setOutputImgSpecs( Vector3d<float>(220,30,30), Vector3d<float>(40,160,160));
-	params.imagesSaving_enableForImgMask();
-	params.imagesSaving_enableForImgPhantom();
-	params.imagesSaving_enableForImgOptics();
 
-	//----------- specific inits -----------
-	if (amIinFOContext())
-	{
-		params.displayUnit.RegisterUnit( new SceneryBufferedDisplayUnit("localhost:8765") );
-		params.displayUnit.RegisterUnit( new FlightRecorderDisplayUnit("/temp/FR_dragRotateAndTexture.txt") );
-	}
+	disks.enableImgMaskTIFFs();
+	disks.enableImgPhantomTIFFs();
+	disks.enableImgOpticsTIFFs();
 
-	if (amIinDirektorContext())
-	{
-		params.displayChannel_createNew("localFiji","localhost:54545");
-		params.displayChannel_enableForImgPhantom("localFiji");
-	}
+	displays.registerDisplayUnit( new SceneryBufferedDisplayUnit("localhost:8765") );
+	displays.registerDisplayUnit( new FlightRecorderDisplayUnit("/temp/FR_dragRotateAndTexture.txt") );
+
+	displays.registerImagingUnit("localFiji","localhost:54545");
+	displays.enableImgPhantomInImagingUnit("localFiji");
 }
 
 
