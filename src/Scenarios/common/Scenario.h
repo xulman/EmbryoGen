@@ -361,7 +361,7 @@ class Scenario
 public:
 	/** the one and only must-provide-SceneControls-enforcer c'tor */
 	Scenario(SceneControls& params)
-		: params(params), displays(*this, params)
+		: params(params), displays(*this, params), disks(*this, params)
 	{}
 
 	// to shortcut the Direktor's and FOs' access to this->params
@@ -543,6 +543,35 @@ public:
 				params.displayChannel_disableForImgFinal(unitNickName);
 		}
 	} displays;
+
+	struct Disks {
+		Disks(Scenario& thisScenario, SceneControls& thisSceneControls)
+			: ctx(thisScenario), params(thisSceneControls) {}
+		Scenario& ctx;
+		SceneControls& params;
+
+		//----- image storing channels -----
+		//(essentially only a bunch of aliases in dedicated "namespace")
+		void enableImgMaskTIFFs()
+		{ params.imagesSaving_enableForImgMask(); }
+		void disableImgMaskTIFFs()
+		{ params.imagesSaving_disableForImgMask(); }
+
+		void enableImgPhantomTIFFs()
+		{ params.imagesSaving_enableForImgPhantom(); }
+		void disableImgPhantomTIFFs()
+		{ params.imagesSaving_disableForImgPhantom(); }
+
+		void enableImgOpticsTIFFs()
+		{ params.imagesSaving_enableForImgOptics(); }
+		void disableImgOpticsTIFFs()
+		{ params.imagesSaving_disableForImgOptics(); }
+
+		void enableImgFinalTIFFs()
+		{ params.imagesSaving_enableForImgFinal(); }
+		void disableImgFinalTIFFs()
+		{ params.imagesSaving_disableForImgFinal(); }
+	} disks;
 
 #ifdef ENABLE_FILOGEN_PHASEIIandIII
 private:
