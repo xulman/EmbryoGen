@@ -5,6 +5,8 @@
 
 #include "../Geometries/Geometry.h"
 #include "../Geometries/Spheres.h"
+#include "../Geometries/ScalarImg.h"
+#include "../Geometries/VectorImg.h"
 #include "../Geometries/util/Serialization.h"
 #include <iostream>
 #include <i3d/image3d.h>
@@ -170,7 +172,7 @@ long noOfPixelDifferences(const i3d::Image3d<VT>& a, const i3d::Image3d<VT>& b)
 }
 
 template <class VOXEL>
-void GetImageInfo(i3d::Image3d<VOXEL> & image);
+void GetImageInfo(const i3d::Image3d<VOXEL> & image);
 void testImages(void)
 {
 	i3d::Image3d<float> fimg;
@@ -224,16 +226,65 @@ void testImages(void)
 }
 
 
+void testScalarImgGeometry()
+{
+	i3d::Image3d<i3d::GRAY8> initShape("../../DrosophilaYolk_mask_lowerRes.tif");
+	ScalarImg si(initShape,ScalarImg::DistanceModel::GradIN_ZeroOUT);
+
+	std::cout << "template image params:\n";
+	GetImageInfo(initShape);
+
+	long bufSize = si.getSizeInBytes();
+	char* buffer = new char[bufSize];
+
+	si.serializeTo(buffer);
+	ScalarImg& sii = *ScalarImg::createAndDeserializeFrom(buffer);
+
+	std::cout << "orig image size: " <<  si.getSizeInBytes() << "\n";
+	std::cout << " new image size: " << sii.getSizeInBytes() << "\n";
+	//
+	GetImageInfo( si.getDistImg());
+	GetImageInfo(sii.getDistImg());
+}
+
+
+void testVectorImgGeometry()
+{
+	i3d::Image3d<i3d::GRAY8> initShape("../../DrosophilaYolk_mask_lowerRes.tif");
+	VectorImg vi(initShape,VectorImg::ChoosingPolicy::avgVec);
+
+	std::cout << "template image params:\n";
+	GetImageInfo(initShape);
+
+	long bufSize = vi.getSizeInBytes();
+	char* buffer = new char[bufSize];
+
+	vi.serializeTo(buffer);
+	VectorImg& vii = *VectorImg::createAndDeserializeFrom(buffer);
+
+	std::cout << "orig image size: " <<  vi.getSizeInBytes() << "\n";
+	std::cout << " new image size: " << vii.getSizeInBytes() << "\n";
+	//
+	Vector3d<FLOAT> vec;
+	vi.getVector(20,30,40,vec);
+	std::cout << "orig vector: " << vec << "\n";
+	vii.getVector(20,30,40,vec);
+	std::cout << " new vector: " << vec << "\n";
+}
+
+
 int main(void)
 {
 	//testSpheres();
 	//testSeriDeseri();
-	testImages();
+	//testImages();
+	testScalarImgGeometry();
+	//testVectorImgGeometry();
 }
 
 
 template <class VOXEL>
-void GetImageInfo(i3d::Image3d<VOXEL> & image)
+void GetImageInfo(const i3d::Image3d<VOXEL> & image)
 {
 	 using namespace std;
     cout << "Image size px: " << image.GetSize() << " px\n";
