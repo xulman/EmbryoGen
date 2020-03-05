@@ -123,7 +123,7 @@ void Spheres::updateThisAABB(AxisAlignedBoundingBox& AABB) const
 // ----------------- support for serialization and deserealization -----------------
 long Spheres::getSizeInBytes() const
 {
-	return sizeof(int) + noOfSpheres * 4 * sizeof(FLOAT);
+	return 2*sizeof(int) + noOfSpheres*4*sizeof(FLOAT);
 }
 
 
@@ -138,6 +138,8 @@ void Spheres::serializeTo(char* buffer) const
 		off += Serialization::toBuffer(centres[i], buffer+off);
 		off += Serialization::toBuffer(radii[i],   buffer+off);
 	}
+
+	Serialization::toBuffer(version, buffer+off);
 }
 
 
@@ -157,6 +159,10 @@ void Spheres::deserializeFrom(char* buffer)
 		off += Deserialization::fromBuffer(buffer+off, centres[i]);
 		off += Deserialization::fromBuffer(buffer+off, radii[i]);
 	}
+
+	//update Geometry attribs:
+	Deserialization::fromBuffer(buffer+off, version);
+	updateThisAABB(this->AABB);
 }
 
 
