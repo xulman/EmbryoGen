@@ -245,8 +245,28 @@ void VectorImg::updateThisAABB(AxisAlignedBoundingBox& AABB) const
 }
 
 
+// ----------------- support for serialization and deserealization -----------------
 long VectorImg::getSizeInBytes() const
 {
 	REPORT("NOT SUPPORTED YET!");
 	return 1;
+}
+
+
+void VectorImg::serializeTo(char*) const
+{
+	REPORT("NOT SUPPORTED YET!");
+}
+
+
+void VectorImg::deserializeFrom(char*)
+{
+	REPORT("NOT SUPPORTED YET!");
+}
+
+
+VectorImg* VectorImg::createAndDeserializeFrom(char*)
+{
+	REPORT("NOT SUPPORTED YET!");
+	return NULL;
 }

@@ -299,7 +299,9 @@ public:
 	int getType() const
 	{ return (int)shapeForm; }
 
-	virtual
-	long getSizeInBytes() const =0;
+	virtual long getSizeInBytes() const =0;
+
+	virtual void serializeTo(char* buffer) const =0;
+	virtual void deserializeFrom(char* buffer) =0;
 };
 #endif

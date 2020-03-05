@@ -309,10 +309,30 @@ void ScalarImg::updateWithNewMask(const i3d::Image3d<MT>& _mask)
 }
 
 
+// ----------------- support for serialization and deserealization -----------------
 long ScalarImg::getSizeInBytes() const
 {
 	REPORT("NOT SUPPORTED YET!");
 	return 1;
+}
+
+
+void ScalarImg::serializeTo(char*) const
+{
+	REPORT("NOT SUPPORTED YET!");
+}
+
+
+void ScalarImg::deserializeFrom(char*)
+{
+	REPORT("NOT SUPPORTED YET!");
+}
+
+
+ScalarImg* ScalarImg::createAndDeserializeFrom(char*)
+{
+	REPORT("NOT SUPPORTED YET!");
+	return NULL;
 }
 
 

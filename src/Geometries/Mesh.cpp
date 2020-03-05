@@ -39,8 +39,28 @@ void Mesh::updateThisAABB(AxisAlignedBoundingBox& /* AABB */) const
 }
 
 
+// ----------------- support for serialization and deserealization -----------------
 long Mesh::getSizeInBytes() const
 {
 	REPORT("NOT SUPPORTED YET!");
 	return 1;
+}
+
+
+void Mesh::serializeTo(char*) const
+{
+	REPORT("NOT SUPPORTED YET!");
+}
+
+
+void Mesh::deserializeFrom(char*)
+{
+	REPORT("NOT SUPPORTED YET!");
+}
+
+
+Mesh* Mesh::createAndDeserializeFrom(char*)
+{
+	REPORT("NOT SUPPORTED YET!");
+	return NULL;
 }
