@@ -7,6 +7,7 @@
 #include "../Geometries/Spheres.h"
 #include "../Geometries/util/Serialization.h"
 #include <iostream>
+#include <i3d/image3d.h>
 
 void describeSphere(Spheres& s)
 {
@@ -150,9 +151,102 @@ void testSeriDeseri(void)
 	std::cout << " after: " << vs << " == " << got_vs << "\n";
 }
 
+template <typename VT>
+long noOfPixelDifferences(const i3d::Image3d<VT>& a, const i3d::Image3d<VT>& b)
+{
+	const VT* aa = a.GetFirstVoxelAddr();
+	const VT* bb = b.GetFirstVoxelAddr();
+	const VT* const aaT = aa + a.GetImageSize();
+
+	long cnt = 0;
+
+	while (aa != aaT)
+	{
+		if (*aa != *bb) ++cnt;
+		++aa; ++bb;
+	}
+
+	return cnt;
+}
+
+template <class VOXEL>
+void GetImageInfo(i3d::Image3d<VOXEL> & image);
+void testImages(void)
+{
+	i3d::Image3d<float> fimg;
+	fimg.MakeRoom(200,100,300);
+	fimg.SetOffset(i3d::Vector3d<float>(999.9f,99.9f,9.9f));
+	fimg.SetResolution(i3d::Resolution(9.5f,99.5f,999.5f));
+	GetImageInfo(fimg);
+
+	for (size_t z=0; z < fimg.GetSizeZ(); ++z)
+	for (size_t y=0; y < fimg.GetSizeY(); ++y)
+	for (size_t x=0; x < fimg.GetSizeX(); ++x)
+	fimg.SetVoxel(x,y,z,(float)z);
+
+	const long bufSize = Serialization::getSizeInBytes(fimg);
+	std::cout << "can be serialized into " << bufSize << " bytes\n";
+
+	char* buffer = new char[bufSize];
+	std::cout << "offset shift: " << Serialization::toBuffer(fimg,buffer) << "\n";
+
+	i3d::Image3d<float> got_fimg;
+	i3d::Image3d<i3d::GRAY8> wrongImg;
+
+	std::cout << "offset shift: " << Deserialization::fromBuffer(buffer,got_fimg) << "\n";
+	GetImageInfo(got_fimg);
+	std::cout << "no of different pixels: " << noOfPixelDifferences(fimg,got_fimg) << "\n";
+
+	try {
+		Deserialization::fromBuffer(buffer,wrongImg);
+	}
+	catch (std::runtime_error* e) {
+		std::cout << "something is correctly wrong:\n";
+		std::cout << e->what() << "\n";
+	}
+
+	std::cout << "----------------------------------\n";
+
+	i3d::Image3d<i3d::GRAY8> gimg,got_gimg;
+	gimg.MakeRoom(200,100,300);
+	gimg.SetOffset(i3d::Vector3d<float>(999.9f,99.9f,9.9f));
+	gimg.SetResolution(i3d::Resolution(9.5f,99.5f,999.5f));
+	GetImageInfo(gimg);
+
+	const long bufSizeB = Serialization::getSizeInBytes(gimg);
+	std::cout << "can be serialized into " << bufSizeB << " bytes\n";
+
+	char* bufferB = new char[bufSizeB];
+	std::cout << "offset shift: " << Serialization::toBuffer(gimg,bufferB) << "\n";
+	std::cout << "offset shift: " << Deserialization::fromBuffer(bufferB,got_gimg) << "\n";
+	GetImageInfo(got_gimg);
+	std::cout << "no of different pixels: " << noOfPixelDifferences(gimg,got_gimg) << "\n";
+}
+
 
 int main(void)
 {
 	//testSpheres();
-	testSeriDeseri();
+	//testSeriDeseri();
+	testImages();
+}
+
+
+template <class VOXEL>
+void GetImageInfo(i3d::Image3d<VOXEL> & image)
+{
+	 using namespace std;
+    cout << "Image size px: " << image.GetSize() << " px\n";
+    cout << "Image size um: " << i3d::PixelsToMicrons(image.GetSize(),image.GetResolution()) << " um\n";
+    cout << "Image resolution: " << image.GetResolution().GetRes() << " px/um\n";
+    cout << "Image offset: " << image.GetOffset() << " um\n";
+	 size_t ImageSize=image.GetImageSize()*sizeof(VOXEL);
+	 cout << "Image size: " << ImageSize << " B\n";
+	 if (ImageSize > (size_t(1) << 30)) cout << "Image size human: " << (ImageSize >> 30) << " GB\n";
+	 else
+	 if (ImageSize > (size_t(1) << 20)) cout << "Image size human: " << (ImageSize >> 20) << " MB\n";
+	 else
+	 if (ImageSize > (size_t(1) << 10)) cout << "Image size human: " << (ImageSize >> 10) << " kB\n";
+	 else
+	 cout << "Image size human: " << ImageSize << " B\n";
 }
