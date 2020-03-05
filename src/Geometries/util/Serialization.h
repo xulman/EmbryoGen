@@ -122,9 +122,9 @@ public:
 		return size;
 	}
 
-	static int encodeVoxelType(const i3d::GRAY8* pixelPtr)  { return 1; }
-	static int encodeVoxelType(const i3d::GRAY16* pixelPtr) { return 2; }
-	static int encodeVoxelType(const float* pixelPtr)       { return 3; }
+	static int encodeVoxelType(const i3d::GRAY8*)  { return 1; }
+	static int encodeVoxelType(const i3d::GRAY16*) { return 2; }
+	static int encodeVoxelType(const float*)       { return 3; }
 };
 
 
