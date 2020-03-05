@@ -5,6 +5,7 @@
 
 #include "../Geometries/Geometry.h"
 #include "../Geometries/Spheres.h"
+#include "../Geometries/util/Serialization.h"
 #include <iostream>
 
 void describeSphere(Spheres& s)
@@ -20,7 +21,7 @@ void describeSphere(Spheres& s)
 	std::cout << "------\n";
 }
 
-int main(void)
+void testSpheres(void)
 {
 	//some testing sphere
 	Spheres s(5);
@@ -61,4 +62,97 @@ int main(void)
 	catch (...) {
 		std::cout << "failed as expected\n";
 	}
+}
+
+
+void testSeriDeseri(void)
+{
+	short  sVal = 10;
+	int    iVal = 20;
+	long   lVal = 30;
+	float  fVal = 10.4f;
+	double dVal = 20.8;
+	//
+	short  got_sVal;
+	int    got_iVal;
+	long   got_lVal;
+	float  got_fVal;
+	double got_dVal;
+
+	char* buffer = new char[1024];
+	long a,b;
+
+	a = Serialization::toBuffer(sVal,buffer);
+	b = Deserialization::fromBuffer(buffer,got_sVal);
+	std::cout << "sVal: in=" << sVal << ", out=" << got_sVal << ", offsets: " << a << "," << b << "\n";
+	//
+	a = Serialization::toBuffer(iVal,buffer);
+	b = Deserialization::fromBuffer(buffer,got_iVal);
+	std::cout << "iVal: in=" << iVal << ", out=" << got_iVal << ", offsets: " << a << "," << b << "\n";
+	//
+	a = Serialization::toBuffer(lVal,buffer);
+	b = Deserialization::fromBuffer(buffer,got_lVal);
+	std::cout << "lVal: in=" << lVal << ", out=" << got_lVal << ", offsets: " << a << "," << b << "\n";
+	//
+	a = Serialization::toBuffer(fVal,buffer);
+	b = Deserialization::fromBuffer(buffer,got_fVal);
+	std::cout << "fVal: in=" << fVal << ", out=" << got_fVal << ", offsets: " << a << "," << b << "\n";
+	//
+	a = Serialization::toBuffer(dVal,buffer);
+	b = Deserialization::fromBuffer(buffer,got_dVal);
+	std::cout << "dVal: in=" << dVal << ", out=" << got_dVal << ", offsets: " << a << "," << b << "\n";
+
+
+	sVal += 10;
+	iVal += 20;
+	lVal += 30;
+	fVal += 10.4f;
+	dVal += 20.8;
+	//
+	long curOff = 0;
+	curOff += Serialization::toBuffer(sVal,buffer+curOff);
+	curOff += Serialization::toBuffer(iVal,buffer+curOff);
+	curOff += Serialization::toBuffer(lVal,buffer+curOff);
+	curOff += Serialization::toBuffer(fVal,buffer+curOff);
+	curOff += Serialization::toBuffer(dVal,buffer+curOff);
+	std::cout << "written in total: " << curOff << "\n";
+	//
+	curOff = 0;
+	curOff += Deserialization::fromBuffer(buffer+curOff,got_sVal);
+	curOff += Deserialization::fromBuffer(buffer+curOff,got_iVal);
+	curOff += Deserialization::fromBuffer(buffer+curOff,got_lVal);
+	curOff += Deserialization::fromBuffer(buffer+curOff,got_fVal);
+	curOff += Deserialization::fromBuffer(buffer+curOff,got_dVal);
+	std::cout << "read in total: " << curOff << "\n";
+	//
+	std::cout << "sVal: in=" << sVal << ", out=" << got_sVal << "\n";
+	std::cout << "iVal: in=" << iVal << ", out=" << got_iVal << "\n";
+	std::cout << "lVal: in=" << lVal << ", out=" << got_lVal << "\n";
+	std::cout << "fVal: in=" << fVal << ", out=" << got_fVal << "\n";
+	std::cout << "dVal: in=" << dVal << ", out=" << got_dVal << "\n";
+
+
+	Vector3d<float> vf(2.f,2.5f,2.8f),got_vf;
+	Vector3d<short> vs(4,5,6),got_vs;
+	std::cout << "before: " << vf << " == " << got_vf << "\n";
+	std::cout << "before: " << vs << " == " << got_vs << "\n";
+	//
+	curOff = 0;
+	curOff += Serialization::toBuffer(vf,buffer+curOff);
+	curOff += Serialization::toBuffer(vs,buffer+curOff);
+	std::cout << "written in total: " << curOff << "\n";
+	//
+	curOff = 0;
+	curOff += Deserialization::fromBuffer(buffer+curOff,got_vf);
+	curOff += Deserialization::fromBuffer(buffer+curOff,got_vs);
+	std::cout << "read in total: " << curOff << "\n";
+	std::cout << " after: " << vf << " == " << got_vf << "\n";
+	std::cout << " after: " << vs << " == " << got_vs << "\n";
+}
+
+
+int main(void)
+{
+	//testSpheres();
+	testSeriDeseri();
 }
