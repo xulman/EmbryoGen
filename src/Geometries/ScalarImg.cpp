@@ -2,6 +2,7 @@
 #include "../util/report.h"
 #include "Spheres.h"
 #include "ScalarImg.h"
+#include "util/Serialization.h"
 
 /** calculate min surface distance between myself and some foreign agent */
 void ScalarImg::getDistance(const Geometry& otherGeometry,
@@ -312,27 +313,49 @@ void ScalarImg::updateWithNewMask(const i3d::Image3d<MT>& _mask)
 // ----------------- support for serialization and deserealization -----------------
 long ScalarImg::getSizeInBytes() const
 {
-	REPORT("NOT SUPPORTED YET!");
-	return 1;
+	long size = Serialization::getSizeInBytes(distImg);
+	return size + 2*sizeof(int);
 }
 
 
-void ScalarImg::serializeTo(char*) const
+void ScalarImg::serializeTo(char* buffer) const
 {
-	REPORT("NOT SUPPORTED YET!");
+	long off = Serialization::toBuffer((int)model,buffer);
+	off += Serialization::toBuffer(distImg,buffer+off);
+
+	Serialization::toBuffer(version, buffer+off);
 }
 
 
-void ScalarImg::deserializeFrom(char*)
+void ScalarImg::deserializeFrom(char* buffer)
 {
-	REPORT("NOT SUPPORTED YET!");
+	int mmodel;
+	long off = Deserialization::fromBuffer(buffer,mmodel);
+
+	if (mmodel != (int)this->model)
+		throw ERROR_REPORT( "Deserialization mismatch: filling image of dist. model "
+			<< this->model << " with model " << (DistanceModel)mmodel
+			<< " from the buffer" );
+
+	off += Deserialization::fromBuffer(buffer+off,distImg);
+	updateDistImgResOffFarEnd();
+
+	//update Geometry attribs:
+	Deserialization::fromBuffer(buffer+off, version);
+	updateThisAABB(this->AABB);
 }
 
 
-ScalarImg* ScalarImg::createAndDeserializeFrom(char*)
+ScalarImg* ScalarImg::createAndDeserializeFrom(char* buffer)
 {
-	REPORT("NOT SUPPORTED YET!");
-	return NULL;
+	//read the distance model type
+	int mmodel;
+	Deserialization::fromBuffer(buffer,mmodel);
+
+	//create an object
+	ScalarImg* simg = new ScalarImg((DistanceModel)mmodel);
+	simg->deserializeFrom(buffer);
+	return simg;
 }
 
 
