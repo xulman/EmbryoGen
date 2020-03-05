@@ -1,4 +1,5 @@
 #include "Spheres.h"
+#include "util/Serialization.h"
 
 void Spheres::getDistance(const Geometry& otherGeometry,
                           std::list<ProximityPair>& l) const
@@ -129,37 +130,32 @@ long Spheres::getSizeInBytes() const
 void Spheres::serializeTo(char* buffer) const
 {
 	//store noOfSpheres
-	*((int*)buffer) = noOfSpheres;
-
-	//"create" (or "overlay") a float array
-	float* f_buffer = (float*)(buffer + sizeof(int));
+	long off = Serialization::toBuffer(noOfSpheres, buffer);
 
 	//store individual spheres
 	for (int i=0; i < noOfSpheres; ++i)
 	{
-		*f_buffer = centres[i].x; ++f_buffer;
-		*f_buffer = centres[i].y; ++f_buffer;
-		*f_buffer = centres[i].z; ++f_buffer;
-		*f_buffer = radii[i]; ++f_buffer;
+		off += Serialization::toBuffer(centres[i], buffer+off);
+		off += Serialization::toBuffer(radii[i],   buffer+off);
 	}
 }
 
 
 void Spheres::deserializeFrom(char* buffer)
 {
-	if (noOfSpheres != *((int*)buffer))
-		throw ERROR_REPORT("Deserialization mismatch.");
+	int recv_noOfSpheres;
+	long off = Deserialization::fromBuffer(buffer, recv_noOfSpheres);
 
-	//"overlay" a float array
-	float* f_buffer = (float*)(buffer + sizeof(int));
+	if (noOfSpheres != recv_noOfSpheres)
+		throw ERROR_REPORT( "Deserialization mismatch: cannot fill geometry of "
+			<< noOfSpheres << " spheres from the buffer with "
+			<< recv_noOfSpheres << " spheres" );
 
 	//read and setup individual spheres
 	for (int i=0; i < noOfSpheres; ++i)
 	{
-		centres[i].x = *f_buffer; ++f_buffer;
-		centres[i].y = *f_buffer; ++f_buffer;
-		centres[i].z = *f_buffer; ++f_buffer;
-		radii[i] = *f_buffer; ++f_buffer;
+		off += Deserialization::fromBuffer(buffer+off, centres[i]);
+		off += Deserialization::fromBuffer(buffer+off, radii[i]);
 	}
 }
 
