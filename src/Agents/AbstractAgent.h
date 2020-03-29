@@ -6,6 +6,7 @@
 #include "../DisplayUnits/DisplayUnit.h"
 #include "../Geometries/Geometry.h"
 #include "../FrontOfficer.h"
+#include "../util/strings.h"
 
 /**
  * This class is essentially only a read-only representation of
@@ -48,7 +49,7 @@ protected:
 	    it might want to be registered in the system for a while (to simulate its dissolution)
 	    while (by changing its designation) to "communicate" other agents its new "state" and
 	    to allow them act accordingly). */
-	std::string agentType;
+	hashedString agentType;
 
 public:
 	/** returns read-only reference to the agent's (axis aligned) bounding box */
@@ -61,7 +62,7 @@ public:
 	    and returns pointer on it, caller MUST delete this object eventually */
 	NamedAxisAlignedBoundingBox* createNamedAABB(void) const
 	{
-		return new NamedAxisAlignedBoundingBox(geometry.AABB,ID,agentType);
+		return new NamedAxisAlignedBoundingBox(geometry.AABB,ID,agentType.getHash());
 	}
 
 	/** returns read-only reference to the agent's geometry */
@@ -77,9 +78,21 @@ public:
 	}
 
 	/** returns read-only reference on agent's designation */
-	const std::string& getAgentType(void) const
+	const hashedString& getAgentType_hashedString(void) const
 	{
 		return agentType;
+	}
+
+	/** returns read-only reference on agent's designation */
+	const std::string& getAgentType(void) const
+	{
+		return agentType.getString();
+	}
+
+	/** returns ID of agent's designation */
+	size_t getAgentTypeID(void) const
+	{
+		return agentType.getHash();
 	}
 };
 
