@@ -68,11 +68,11 @@ void FrontOfficer::broadcast_AABBofAgent(const ShadowAgent& ag)
 	                  ag.getAABB().maxCorner.x,
 	                  ag.getAABB().maxCorner.y,
 	                  ag.getAABB().maxCorner.z};
-	//important, also transfer agent's ID and type/string:
+	//important, also transfer agent's ID and typeID:
 	ag.getID();
-	ag.getAgentType();
+	ag.getAgentTypeID();
 	int sendVersion = ag.getGeometry().version;
-	//send out 6x float, int, string, int --> all to be received by respond_AABBofAgent()
+	//send out 6x float, int, size_t, int --> all to be received by respond_AABBofAgent()
 
 	//TODO: check that the broadcast reaches myself too!
 	//      or just update myself explicitly just like above in the SMP case
@@ -84,7 +84,7 @@ void FrontOfficer::respond_AABBofAgent()
 {
 	//MPI world:
 
-	//gets : AABB +ID +type +geomVersion as 6x float, int, string, int
+	//gets : AABB +agentID +agentTypeID +geomVersion as 6x float, int, size_t, int
 	//gives: nothing
 	//also needs to get the ID of the FO that broadcasted that particular message
 	//(if that is not possible, the sending FOsID will need be part of the message)
@@ -95,14 +95,14 @@ void FrontOfficer::respond_AABBofAgent()
 	//
 	float coords[] = { 10.f,10.f,10.f, 20.f,20.f,20.f };
 	int         agentID(10);
-	std::string agentType("some fictious agent");
+	size_t      agentTypeID(20);
 	int         geomVersion(42);
 
 	AABBs.emplace_back();
 	AABBs.back().minCorner.fromScalars(coords[0],coords[1],coords[2]);
 	AABBs.back().maxCorner.fromScalars(coords[3],coords[4],coords[5]);
-	AABBs.back().ID   = agentID;
-	AABBs.back().name = agentType;
+	AABBs.back().ID     = agentID;
+	AABBs.back().nameID = agentTypeID;
 	agentsAndBroadcastGeomVersions[agentID] = geomVersion;
 	registerThatThisAgentIsAtThisFO(agentID,FOsIDfromWhichTheMessageArrived);
 	*/

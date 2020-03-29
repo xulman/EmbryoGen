@@ -65,7 +65,7 @@ void FrontOfficer::broadcast_AABBofAgent(const ShadowAgent& ag)
 	//there is no other FO and Direktor doesn't care about this update
 	//
 	//this code essentially supplies the work of respond_AABBofAgent() in the SMP world
-	AABBs.emplace_back(ag.getAABB(),ag.getID(),ag.getAgentType());
+	AABBs.emplace_back(ag.getAABB(),ag.getID(),ag.getAgentTypeID());
 	agentsAndBroadcastGeomVersions[ag.getID()] = ag.getGeometry().version;
 	registerThatThisAgentIsAtThisFO(ag.getID(),this->ID);
 
