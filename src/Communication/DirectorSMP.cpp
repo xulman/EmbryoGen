@@ -104,12 +104,6 @@ void Director::waitFor_publishAgentsAABBs()
 void Director::respond_AABBofAgent()
 {
 	//we ignore these notifications entirely
-	//
-	//perhaps we would see a reason later why Direktor would need
-	//to know spatial relation among all agents
-
-	//gets : AABB+type as 6x float, int, string
-	//gives: nothing
 }
 
 
