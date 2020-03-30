@@ -82,28 +82,39 @@ void NucleusAgent::collectExtForces(void)
 
 	//scheduler, please give me ShadowAgents that are not further than ignoreDistance
 	//(and the distance is evaluated based on distances of AABBs)
-	std::list<const ShadowAgent*> nearbyAgents;
-	Officer->getNearbyAgents(this,ignoreDistance, nearbyAgents);
+	std::list<const NamedAxisAlignedBoundingBox*> nearbyAgentBoxes;
+	Officer->getNearbyAABBs(this, ignoreDistance, nearbyAgentBoxes);
 
 #ifdef DEBUG
 	if (detailedReportingMode)
-		REPORT("ID " << ID << ": Found " << nearbyAgents.size() << " nearby agents");
+		REPORT("ID " << ID << ": Found " << nearbyAgentBoxes.size() << " nearby agents");
 #endif
 	//those on the list are ShadowAgents who are potentially close enough
 	//to interact with me and these I need to inspect closely
 	proximityPairs_toNuclei.clear();
 	proximityPairs_toYolk.clear();
 	proximityPairs_tracks.clear();
-	for (const auto sa : nearbyAgents)
+	for (const auto naabb : nearbyAgentBoxes)
 	{
-		if ( (sa->getAgentType())[0] == 'n' )
+		const std::string& agentType = Officer->translateNameIdToAgentName(naabb->nameID);
+		if ( agentType[0] == 'n' )
+		{
+			//fetch the relevant ShadowAgent only now -- when we really know that we want this one
+			const ShadowAgent* sa = Officer->getNearbyAgent(naabb->ID);
 			geometry.getDistance(sa->getGeometry(),proximityPairs_toNuclei, (void*)((const NucleusAgent*)sa));
+		}
 		else
 		{
-			if ( (sa->getAgentType())[0] == 'y' )
+			if ( agentType[0] == 'y' )
+			{
+				const ShadowAgent* sa = Officer->getNearbyAgent(naabb->ID);
 				geometry.getDistance(sa->getGeometry(),proximityPairs_toYolk);
+			}
 			else
+			{
+				const ShadowAgent* sa = Officer->getNearbyAgent(naabb->ID);
 				geometry.getDistance(sa->getGeometry(),proximityPairs_tracks);
+			}
 		}
 	}
 
