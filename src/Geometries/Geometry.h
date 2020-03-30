@@ -104,6 +104,9 @@ public:
  * agentsTypesDictionary), and then considered to make decision if the corresponding agent is
  * of interest. The 'ID' is used to properly (and uniquely) map back on the represented agent.
  *
+ * Consider also the docs of FrontOfficer::translateNameIdToAgentName() to understand
+ * the grand scheme of things, please.
+ *
  * Author: Vladimir Ulman, 2019
  */
 class NamedAxisAlignedBoundingBox: public AxisAlignedBoundingBox

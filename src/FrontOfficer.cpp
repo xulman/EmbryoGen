@@ -394,6 +394,12 @@ void FrontOfficer::getNearbyAABBs(const NamedAxisAlignedBoundingBox& fromThisAAB
 }
 
 
+const std::string& FrontOfficer::translateNameIdToAgentName(const size_t nameID)
+{
+	return agentsTypesDictionary.translateIdToString(nameID);
+}
+
+
 void FrontOfficer::getNearbyAgents(const ShadowAgent* const fromSA,   //reference agent
 	                                const float maxDist,               //threshold dist
 	                                std::list<const ShadowAgent*>& l)  //output list
@@ -516,7 +522,7 @@ void FrontOfficer::reportAABBs()
 {
 	REPORT("I now recognize these AABBs:");
 	for (const auto& naabb : AABBs)
-		REPORT("agent ID " << naabb.ID << " \"" << naabb.nameID //TODO: transled nameID via agentsTypesDictionary
+		REPORT("agent ID " << naabb.ID << " \"" << agentsTypesDictionary.translateIdToString(naabb.nameID)
 		       << "\" spanning from "
 		       << naabb.minCorner << " to " << naabb.maxCorner
 		       << " and living at FO #" << agentsToFOsMap[naabb.ID]);
