@@ -281,6 +281,7 @@ void FrontOfficer::startNewAgent(AbstractAgent* ag, const bool wantsToAppearInCT
 
 	//register the agent for adding into the system:
 	//local registration:
+	agentsTypesDictionary.registerThisString(ag->getAgentType_hashedString());
 	newAgents.push_back(ag);
 	ag->setOfficer(this);
 
