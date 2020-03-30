@@ -78,6 +78,13 @@ void FrontOfficer::broadcast_AABBofAgent(const ShadowAgent& ag)
 	//TODO: check that the broadcast reaches myself too!
 	//      or just update myself explicitly just like above in the SMP case
 	*/
+
+	/*
+	//here, according to doc/agentTypeDictionary.txt
+	//we should be actually sending:
+	//gives: AABB +agentID +agentTypeID +geomVersion +noOfNewAgentTypes
+	//and the noOfNewAgentTypes shall be a new param of this method
+	*/
 }
 
 
@@ -106,6 +113,15 @@ void FrontOfficer::respond_AABBofAgent()
 	AABBs.back().nameID = agentTypeID;
 	agentsAndBroadcastGeomVersions[agentID] = geomVersion;
 	registerThatThisAgentIsAtThisFO(agentID,FOsIDfromWhichTheMessageArrived);
+	*/
+
+	/*
+	//here, according to doc/agentTypeDictionary.txt
+	//we should actually obtain:
+	//gets : AABB +agentID +agentTypeID +geomVersion +noOfNewAgentTypes
+	//then:
+	if (noOfNewAgentTypes > 0)
+		respond_newAgentsTypes(noOfNewAgentTypes);
 	*/
 }
 

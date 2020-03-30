@@ -68,6 +68,12 @@ void FrontOfficer::broadcast_AABBofAgent(const ShadowAgent& ag)
 	AABBs.emplace_back(ag.getAABB(),ag.getID(),ag.getAgentTypeID());
 	agentsAndBroadcastGeomVersions[ag.getID()] = ag.getGeometry().version;
 	registerThatThisAgentIsAtThisFO(ag.getID(),this->ID);
+
+	/*
+	//here, according to doc/agentTypeDictionary.txt
+	//this method shall have one extra param: noOfNewAgentTypes
+	//but it will not be used in this case
+	*/
 }
 
 

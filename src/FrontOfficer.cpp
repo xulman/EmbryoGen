@@ -258,6 +258,22 @@ void FrontOfficer::updateAndPublishAgents()
 		broadcast_AABBofAgent(*(ag.second));
 	}
 
+	/*
+	//here, according to doc/agentTypeDictionary.txt
+	//the previous for-cycle would look like this:
+	size_t cnt = agents.size();
+	for (auto ag : agents)
+	{
+		DEBUG_REPORT("reporting AABB of agent ID " << ag.first);
+		if (cnt > 1)
+			broadcast_AABBofAgent(*(ag.second),0);
+		else
+			//the last AABB reports how many agentsTypesDictionary items will follow
+			broadcast_AABBofAgent(*(ag.second),agentsTypesDictionary.howManyShouldBeBroadcast());
+		--cnt;
+	}
+	*/
+
 	//this passes the "token" on another FO
 	notify_publishAgentsAABBs(nextFOsID);
 
