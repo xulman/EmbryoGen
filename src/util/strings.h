@@ -2,7 +2,9 @@
 #define STRINGS_H
 
 #include <string>
+#include <list>
 #include <map>
+#include "../Geometries/Geometry.h"
 #include "report.h"
 class FrontOfficer;
 
@@ -137,6 +139,13 @@ protected:
 	    has arrived) and call the other enlistTheIncomingItem() */
 	void enlistTheIncomingItem(const std::string& string)
 	{ enlistTheIncomingItem(hashedString::hash(string),string); }
+
+	/** after sending&receiving, and only after markAllWasBroadcast():
+	    it manipulates only this->knownDictionary and removes every dictionary item
+	    from it that has no counterpart in the given list -- this has nasty complexity
+	    consequence (as list can do only O(n) search), but it prevents from Dictionary
+	    growing excessively -> use, but sparsely */
+	void cleanUp(const std::list<NamedAxisAlignedBoundingBox>& AABBs);
 
 	/** ugly hack to allow FrontOfficer to reach the protected methods without
 	    making them public -- so agents cannot break things because they can

@@ -32,7 +32,8 @@ because it is a hash of the string). This limits the necessity to deal with
 agentTypeID only during the AABB and ShadowAgent work/transfers...
 
 The Dictionary can only grow, no remove or replace operations will be supported
-nor allowed. FOs will be mirroring one central Dictionary that lives in the Direktor.
+nor allowed (exception is the cleanUp event, see below).
+FOs will have their Dictionaries synchronized.
 Since agentTypeIDs are hashes of their agentTypeStrs, there is no centralized
 distribution of IDs as anyone can compute ID on its own, and two FOs shall arrive
 to the same ID for the same strings. One only has to notify everyone else whenever
@@ -41,13 +42,22 @@ new string, that was not previously seen in the Dictionary, is added.
 The changes/additions in the Dictionary can happen anytime, the Dictionary
 is updated immediately (and it does not matter if two FOs add the same string
 because it will render exactly the same item/pair in their Dictionary-ies,
-thus no conflict or inconsistency occurs). Until updateAndPublish() takes place,
-other FOs and Direktor need not know about these changes/updates. Therefore,
+thus no conflict or inconsistency occurs). Until updateAndPublishAgents() takes
+place, other FOs need not know about these changes/updates. Therefore,
 the broadcast of the newly added Dictionary items can happen as late as during
-the updateAndPublish(). To utilize the MPI philosphy, the message that broadcasts
-AABB may include a bool flag as part of it, and that flag signals if the next
-message will again AABB or update to the Dictionary; and all FOs can get ready
-to receive the appropriate message consequently.
+the updateAndPublishAgents(). To utilize the MPI philosophy, each message that
+broadcasts AABB may include a count field as part of it, and that field signals
+how many Dictionary items will be broadcast next. The plan is that this extra
+field will be zero except for the last AABB broadcast message (from a particular
+FO) that would store the actual count (which may be zero again). The broadcast
+listeners would know what to listen for next.
+
+The cleanUp event:
+Actually, if all FOs have, after every updateAndPublishAgents(), have their
+lists of AABBs synchronized, we can actually use their lists to figure out
+what items from their Dictionary-ies are no longer in use, and could be deleted
+- this happens separately by each FO, yet synchronized. Direktor, is currently
+not maintaining its own Dictionary.
 
 What queries into the Dictionary can we ever get from the simulation:
 

@@ -1,5 +1,7 @@
 #include <string>
+#include <list>
 #include "strings.h"
+#include "../Geometries/Geometry.h"
 
 /** The buffer length into which any MPI-communicated string must be imprint, The original
     string is padded with zero-value characters if it is too short, or trimmed if too long. */
@@ -89,5 +91,21 @@ void StringsDictionary::enlistTheIncomingItem(const size_t hash, const std::stri
 		if (string.compare(knownDictionary[hash]) != 0)
 			throw ERROR_REPORT("Hashing malfunction: Have >>" << knownDictionary[hash] << "<< and got >>"
 			  << string << "<<, both of the same hash = " << hash);
+	}
+}
+
+
+void StringsDictionary::cleanUp(const std::list<NamedAxisAlignedBoundingBox>& AABBs)
+{
+	auto dict = knownDictionary.begin();
+	while (dict != knownDictionary.end())
+	{
+		//is there a box with the same nameID?
+		bool found = false;
+		for (auto naabb : AABBs)
+			if (dict->first == naabb.nameID) { found = true; break; }
+
+		if (!found) dict = knownDictionary.erase(dict);
+		else ++dict;
 	}
 }
