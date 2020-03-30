@@ -1,5 +1,6 @@
 #include <iostream>
 #include "../util/strings.h"
+#include "../Geometries/Geometry.h"
 
 
 /** wraps around the Dictionary to
@@ -37,6 +38,12 @@ public:
 		{
 			enlistTheIncomingItem(i.first,i.second);
 		}
+	}
+
+	//for testing of the cleanUp()
+	void cleanUp(const std::list<NamedAxisAlignedBoundingBox>& AABBs)
+	{
+		StringsDictionary::cleanUp(AABBs);
 	}
 };
 
@@ -86,6 +93,11 @@ try
 	std::cout << "imprinted (B-pad): >>" << buf << "<<\n";
 	std::cout << "couted           : >>" << agent1_1 << "<<\n";
 
+	hashedString veryLong("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFFEEDDC260");
+	veryLong.printIntoBuffer(buf,StringsImprintSize,'X');
+	std::cout << "imprinted (X-pad): >>" << buf << "<<\n";
+	std::cout << "couted           : >>" << veryLong << "<<\n";
+
 	hashedString agent1_2("nucleus 2");
 	d1.registerThisString(agent1_2);
 
@@ -116,7 +128,30 @@ try
 	std::cout << "Dictionary: " << d1.translateIdToString(agent1_2.getHash()) << "\n\n";
 
 	//must err
-	d1.translateIdToString(agent1_2.getHash()+1);
+	//d1.translateIdToString(agent1_2.getHash()+1);
+
+
+	std::cout << "===================== testing cleanUp() ==================\n";
+	d1.printKnownDictionary();
+	std::cout << "this is my AABBs:\n";
+
+	AxisAlignedBoundingBox aabb;
+	int cnt = 0;
+
+	std::list<NamedAxisAlignedBoundingBox> AABBs;
+	for (auto dItem : d1.showKnownDictionary())
+		if (cnt == 3 || cnt == 1)
+			AABBs.emplace_back(aabb, ++cnt, dItem.first+1);
+		else
+			AABBs.emplace_back(aabb, ++cnt, dItem.first);
+
+	for (auto naabb : AABBs)
+		std::cout << naabb.ID << ": hash=" << naabb.nameID << "\n";
+
+	d1.cleanUp(AABBs);
+	d1.printKnownDictionary();
+
+	std::cout << "===================== testing cleanUp() ==================\n";
 }
 catch (std::runtime_error* e)
 {
