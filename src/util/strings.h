@@ -4,6 +4,7 @@
 #include <string>
 #include <map>
 #include "report.h"
+class FrontOfficer;
 
 /** The buffer length into which any MPI-communicated string must be imprint, The original
     string is padded with zero-value characters if it is too short, or trimmed if too long. */
@@ -105,49 +106,45 @@ private:
 	    and to-be-synced sub-dictionaries */
 	std::map<size_t, std::string> knownDictionary, newDictionary;
 
+	// -------------- for agents --------------
 public:
-	const std::string& translateIdToString(const size_t ID) const
-	{
-		if (knownDictionary.find(ID) != knownDictionary.end())
-		{
-			return knownDictionary.at(ID);
-		}
-		else
-		{
-			if (newDictionary.find(ID) != newDictionary.end())
-			{
-				return newDictionary.at(ID);
-			}
-			else
-			{
-				//we have to return a string but here we have none at hand,
-				//so we sadly have to throw an exception
-				throw ERROR_REPORT("String with ID/hash "
-				  << ID << " is not existing in the dictionary.");
-			}
-		}
-	}
+	const std::string& translateIdToString(const size_t ID) const;
 
-	void registerThisString(const std::string& s)
-	{
-		const size_t ID = hashedString::hash(s);
+	void registerThisString(const std::string& s);
+	void registerThisString(const hashedString& s);
 
-		//don't add anything if it is already in the Dictionary
-		if (  newDictionary.find(ID) == newDictionary.end()
-		 && knownDictionary.find(ID) == knownDictionary.end() )
-			newDictionary[ID] = s;
-	}
+	// -------------- for broadcasting --------------
+protected:
+	/** sending: returns the number of items added recently since the last markAllWasBroadcast() */
+	size_t howManyShouldBeBroadcast() const
+	{ return newDictionary.size(); }
 
-	void registerThisString(const hashedString& s)
-	{
-		//don't add anything if it is already in the Dictionary
-		if (  newDictionary.find(s.getHash()) == newDictionary.end()
-		 && knownDictionary.find(s.getHash()) == knownDictionary.end() )
-			newDictionary[s.getHash()] = s.getString();
-	}
+	/** sending: lists the items added recently since the last markAllWasBroadcast() */
+	const std::map<size_t, std::string>& theseShouldBeBroadcast() const
+	{ return newDictionary; }
 
+	/** sending: marks that the recently added items were transferred (to some other
+	    Dictionaries to have all of them synchronized); calling howManyShouldBeBroadcast()
+	    right after this method will return with 0 (zero). */
+	void markAllWasBroadcast();
+
+	/** receiving: enlist the given dictionary item (ID,string) directly into knownDictionary;
+	    if an item of the same ID is already existing in local Dictionary, check that the given
+	    string and already stored string are the same -- consistency checking of the hashes */
+	void enlistTheIncomingItem(const size_t hash, const std::string& string);
+
+	/** receiving: enlist the given string, that is, calculate its hash (pretend a full item
+	    has arrived) and call the other enlistTheIncomingItem() */
+	void enlistTheIncomingItem(const std::string& string)
+	{ enlistTheIncomingItem(hashedString::hash(string),string); }
+
+	/** ugly hack to allow FrontOfficer to reach the protected methods without
+	    making them public -- so agents cannot break things because they can
+	    operate only on the public methods */
+	friend class FrontOfficer;
 
 	// -------------- for reporting --------------
+public:
 	const std::map<size_t, std::string>& showKnownDictionary() const { return knownDictionary; }
 	const std::map<size_t, std::string>& showNewDictionary() const { return newDictionary; }
 
@@ -168,65 +165,6 @@ public:
 	{
 		printKnownDictionary();
 		printNewDictionary();
-	}
-
-
-	// -------------- for broadcasting --------------
-protected:
-	/** sending: returns the number of items added recently since the last markAllWasBroadcast() */
-	size_t howManyShouldBeBroadcast() const
-	{
-		return newDictionary.size();
-	}
-
-	/** sending: lists the items added recently since the last markAllWasBroadcast() */
-	const std::map<size_t, std::string>& theseShouldBeBroadcast() const
-	{
-		return newDictionary;
-	}
-
-	/** sending: marks that the recently added items were transferred (to some other
-	    Dictionaries to have all of them synchronized); calling howManyShouldBeBroadcast()
-	    right after this method will return with 0 (zero). */
-	void markAllWasBroadcast()
-	{
-		for (const auto& nItem : newDictionary)
-		{
-#ifdef DEBUG
-			if (knownDictionary.find(nItem.first) != knownDictionary.end())
-				REPORT("new to already known >>" << nItem.second << "<<");
-#endif
-			knownDictionary[nItem.first] = nItem.second;
-		}
-		newDictionary.clear();
-	}
-
-	/** receiving: enlist the given dictionary item (ID,string) directly into knownDictionary;
-	    if an item of the same ID is already existing in local Dictionary, check that the given
-	    string and already stored string are the same -- consistency checking of the hashes */
-	void enlistTheIncomingItem(const size_t hash, const std::string& string)
-	{
-		if (knownDictionary.find(hash) == knownDictionary.end())
-		{
-			//new item
-			knownDictionary[hash] = string;
-		}
-		else
-		{
-			DEBUG_REPORT("received already known >>" << string << "<<");
-
-			//known item (IDs/hashes are matching), check that strings are matching too
-			if (string.compare(knownDictionary[hash]) != 0)
-				throw ERROR_REPORT("Hashing malfunction: Have >>" << knownDictionary[hash] << "<< and got >>"
-				  << string << "<<, both of the same hash = " << hash);
-		}
-	}
-
-	/** receiving: enlist the given string, that is, calculate its hash (pretend a full item
-	    has arrived) and call the other enlistTheIncomingItem() */
-	void enlistTheIncomingItem(const std::string& string)
-	{
-		enlistTheIncomingItem(hashedString::hash(string),string);
 	}
 };
 #endif
