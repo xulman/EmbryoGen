@@ -264,7 +264,9 @@ void FrontOfficer::updateAndPublishAgents()
 
 void FrontOfficer::postprocessAfterUpdateAndPublishAgents()
 {
-	//currently empty
+	//post-process local Dictionary
+	agentsTypesDictionary.markAllWasBroadcast();
+	agentsTypesDictionary.cleanUp(AABBs);
 }
 
 
