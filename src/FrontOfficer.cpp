@@ -99,6 +99,9 @@ void FrontOfficer::close(void)
 		sh.second = NULL;
 	}
 	shadowAgents.clear();
+
+	//clean up aux attribs
+	delete __agentTypeBuf;
 }
 
 

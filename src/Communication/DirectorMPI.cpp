@@ -103,6 +103,15 @@ size_t Director::request_CntOfAABBs(const int /* FOsID */)
 }
 
 
+void Director::respond_newAgentsTypes(int)
+{
+	//we ignore these notifications entirely
+	//
+	//perhaps we would see a reason later why Direktor would need
+	//to know the content of the agentsTypesDictionary
+}
+
+
 void Director::notify_setDetailedDrawingMode(const int /* FOsID */, const int agentID, const bool state)
 {
 	//in the SMP world:

@@ -16,7 +16,8 @@ class FrontOfficer//: public Simulation
 {
 public:
 	FrontOfficer(Scenario& s, const int nextFO, const int myPortion, const int allPortions)
-		: scenario(s), ID(myPortion), nextFOsID(nextFO), FOsCount(allPortions)
+		: scenario(s), ID(myPortion), nextFOsID(nextFO), FOsCount(allPortions),
+		  __agentTypeBuf(new char[StringsImprintSize]) //freed in FrontOfficer::close()
 	{
 		//TODO: create an extra thread to execute/service the respond_...() methods
 	}
@@ -262,6 +263,10 @@ protected:
 	void broadcast_AABBofAgent(const ShadowAgent& ag);
 	void respond_AABBofAgent();
 	void respond_CntOfAABBs();
+
+	void broadcast_newAgentsTypes();
+	void respond_newAgentsTypes(int noOfIncomingNewAgentTypes);
+	char* const __agentTypeBuf; //RO pointer on RW data
 
 	void respond_setDetailedDrawingMode();
 	void respond_setDetailedReportingMode();

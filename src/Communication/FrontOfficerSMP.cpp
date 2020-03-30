@@ -83,6 +83,18 @@ void FrontOfficer::respond_CntOfAABBs()
 }
 
 
+void FrontOfficer::broadcast_newAgentsTypes()
+{
+	//this never happens (as there's no other FO to call us)
+}
+
+
+void FrontOfficer::respond_newAgentsTypes(int)
+{
+	//this never happens (as there's no other FO to call us)
+}
+
+
 ShadowAgent* FrontOfficer::request_ShadowAgentCopy(const int /* agentID */, const int /* FOsID */)
 {
 	//this never happens here (as there is no other FO to talk to)

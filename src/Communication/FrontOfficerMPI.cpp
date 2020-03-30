@@ -1,6 +1,7 @@
 #include "../Agents/AbstractAgent.h"
 #include "../FrontOfficer.h"
 #include "../Director.h"
+#include "../util/strings.h"
 
 int FrontOfficer::request_getNextAvailAgentID()
 {
@@ -119,6 +120,43 @@ void FrontOfficer::respond_CntOfAABBs()
 	/*
 	size_t sendBackMyCount = getSizeOfAABBsList();
 	*/
+}
+
+
+void FrontOfficer::broadcast_newAgentsTypes()
+{
+	//MPI world:
+
+	//gets : nothing
+	//gives: N-times pairs of size_t, char[StringsImprintSize]
+
+	for (const auto& dItem : agentsTypesDictionary.theseShouldBeBroadcast())
+	{
+		size_t hash = dItem.first;
+		hashedString::printIntoBuffer(dItem.second, __agentTypeBuf,StringsImprintSize);
+		//sends away hash and agentTypeBuf
+	}
+}
+
+
+void FrontOfficer::respond_newAgentsTypes(int noOfIncomingNewAgentTypes)
+{
+	//MPI world:
+
+	//gets : N-times pairs of size_t, char[StringsImprintSize]
+	//gives: nothing
+
+	while (noOfIncomingNewAgentTypes > 0)
+	{
+		//fake one input:
+		size_t hash = 79832748923742;
+		//__agentTypeBuf = "some fake string"
+
+		//this is how to process it:
+		agentsTypesDictionary.enlistTheIncomingItem(hash,__agentTypeBuf);
+
+		--noOfIncomingNewAgentTypes;
+	}
 }
 
 
