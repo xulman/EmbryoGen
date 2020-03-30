@@ -199,6 +199,10 @@ protected:
 	    distribute the new and old existing agents to the sites */
 	void updateAndPublishAgents();
 
+	/** housekeeping after the complete AABBs exchange took place,
+	    "complete" means that _all_ FOs have broadcast all they wanted */
+	void postprocessAfterUpdateAndPublishAgents();
+
 	/** the main execute() method is actually made of this one */
 	void executeInternals(void);
 	/** the main execute() method is actually made of this one */

@@ -168,6 +168,10 @@ protected:
 	    distribute the new and old existing agents to the sites */
 	void updateAndPublishAgents();
 
+	/** housekeeping after the complete AABBs exchange took place,
+	    "complete" means that _all_ FOs have broadcast all they wanted */
+	void postprocessAfterUpdateAndPublishAgents();
+
 	/** Asks all agents to render and raster their state into displayUnit and the images */
 	void renderNextFrame(void);
 
