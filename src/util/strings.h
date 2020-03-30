@@ -67,13 +67,19 @@ public:
 	{ return _string; }
 
 
-	/** prints this->_string into fixed length buffer by, possibly, trimming the input to fit
-	    in length, or extending/padding with zero-valued chars to fill the 'buffer' completely */
+	/** runs the static printIntoBuffer() with this->_string */
 	void printIntoBuffer(char* buffer, const size_t bufLength, const char padding = 0) const
+	{ printIntoBuffer(_string, buffer,bufLength,padding); }
+
+	/** prints 'sourceStr' into fixed length buffer by, possibly, trimming the input to fit
+	    in length, or extending/padding with zero-valued chars to fill the 'buffer' completely */
+	static
+	void printIntoBuffer(const std::string& sourceStr,
+	                     char* buffer, const size_t bufLength, const char padding = 0)
 	{
 		//copy and, possibly, trim
-		const size_t copySize = std::min(_string.length(), bufLength);
-		memcpy((void*)buffer, (void*)_string.c_str(), copySize);
+		const size_t copySize = std::min(sourceStr.length(), bufLength);
+		memcpy((void*)buffer, (void*)sourceStr.c_str(), copySize);
 
 		if (copySize < bufLength) memset((void*)(buffer+copySize), padding, bufLength-copySize);
 	}
