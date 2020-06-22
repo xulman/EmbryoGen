@@ -1,6 +1,18 @@
 # Compiled C++ object files #
 *.o
 
+# files for static compile: sources
+libs/*gz
+libs/*zip
+#
+# files for static compile: "factory" folders
+libs/*-*
+libs/i3dlibs
+libs/libf2c
+#
+# files for static compile: outputs
+libs/DEPLOY
+
 # Various build folders #
 BUILD*
 bin*

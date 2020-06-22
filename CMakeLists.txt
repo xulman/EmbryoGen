@@ -30,11 +30,12 @@ endif (DEBUG_VERSION)
 
 option(SEARCH_ALL_DEPLIBS     "Shall all dependency libraries be explicitly linked? Useful mainly for static builds." OFF)
 option(SEARCH_FOR_STATIC      "Shall CMAKE look for static variants of the dependency libraries?" OFF)
-#option(L_REQUEST_STATIC_LINKING "Shall LINKER look for static variants of the dependency libraries?" OFF)
 
 if (SEARCH_FOR_STATIC)
 	set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
 	set(CMAKE_LIBRARY_PATH "/reset/path/to/myLibs/" CACHE PATH "optional additional search path where static libs might be gathered")
+	set(INC_I3D "${CMAKE_LIBRARY_PATH}/../include" CACHE PATH "additional search path where static includes should be found")
+	set(INC_GSL "${CMAKE_LIBRARY_PATH}/../include" CACHE PATH "additional search path where static includes should be found")
 else (SEARCH_FOR_STATIC)
 	if (APPLE)
 		set(CMAKE_FIND_LIBRARY_SUFFIXES ".dylib")
@@ -74,10 +75,6 @@ add_executable(embryogen ${SOURCES} ${SCENARIOSOURCES})
 #--------------------------------------------
 # TARGET LINKING - FIRST-LEVEL REQUIRED LIBS
 #--------------------------------------------
-
-#if (L_REQUEST_STATIC_LINKING)
-#	set_target_properties(embryogen PROPERTIES LINK_SEARCH_START_STATIC ON)
-#endif (L_REQUEST_STATIC_LINKING)
 
 # i3dlibs library
 find_path(INC_I3D "i3d/image3d.h")
@@ -129,24 +126,14 @@ if (SEARCH_ALL_DEPLIBS)
 		# explicitly add libraries required by the CBIA i3dlibs
 		find_library(LIB_LAPACK lapack)
 		find_library(LIB_BLAS blas)
-		#find_library(LIB_GFORTRAN gfortran PATHS /usr/lib/gcc/x86_64-pc-linux-gnu/4.6.3)
-		set(LIBS ${LIBS} ${LIB_LAPACK} ${LIB_BLAS} ${LIB_GFORTRAN})
+		set(LIBS ${LIBS} ${LIB_LAPACK} ${LIB_BLAS})
 
 		find_library(LIB_TIFF tiff)
-		find_library(LIB_JPEG jpeg)
 		find_library(LIB_ICS ics)
-		#find_library(LIB_PNG png)
-		#find_library(LIB_HDF5_HL hdf5_hl)
-		#find_library(LIB_HDF5 hdf5)
+		set(LIBS ${LIBS} ${LIB_TIFF} ${LIB_ICS})
 
-		set(LIBS ${LIBS} ${LIB_TIFF} ${LIB_JPEG} ${LIB_ICS}
-					${LIB_PNG} ${LIB_HDF5} ${LIB_HDF5_HL})
-
-		#find_library(LIB_LZMA lzma)
-		#find_library(LIB_JBIG jbig)
 		find_library(LIB_Z z)
-
-		set(LIBS ${LIBS} ${LIB_JBIG} ${LIB_LZMA} ${LIB_Z})
+		set(LIBS ${LIBS} ${LIB_Z})
 
 		find_library(LIB_FFTW_SINGLE_THREADS fftw3f_threads)
 		find_library(LIB_FFTW_SINGLE fftw3f)
@@ -154,18 +141,10 @@ if (SEARCH_ALL_DEPLIBS)
 		find_library(LIB_FFTW_DOUBLE fftw3)
 		find_library(LIB_FFTW_LDOUBLE_THREADS fftw3l_threads)
 		find_library(LIB_FFTW_LDOUBLE fftw3l)
-
-		set(LIBS ${LIBS} ${LIB_FFTW_SINGLE_THREADS}
-					${LIB_FFTW_SINGLE}
-					${LIB_FFTW_DOUBLE_THREADS}
-					${LIB_FFTW_DOUBLE}
-					${LIB_FFTW_LDOUBLE_THREADS}
-					${LIB_FFTW_LDOUBLE})
+		set(LIBS ${LIBS} ${LIB_FFTW_SINGLE_THREADS} ${LIB_FFTW_SINGLE}
+					${LIB_FFTW_DOUBLE_THREADS} ${LIB_FFTW_DOUBLE}
+					${LIB_FFTW_LDOUBLE_THREADS} ${LIB_FFTW_LDOUBLE})
 endif (SEARCH_ALL_DEPLIBS)
-
-#if (L_REQUEST_STATIC_LINKING)
-#	set_target_properties(embryogen PROPERTIES LINK_SEARCH_START_STATIC OFF)
-#endif (L_REQUEST_STATIC_LINKING)
 
 #----------------
 # TARGET LINKING

@@ -1,0 +1,2 @@
+module add GCC/9.3.0
+module add CMake
