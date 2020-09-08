@@ -91,7 +91,7 @@ void Director::respond_AABBofAgent()
 	//perhaps we would see a reason later why Direktor would need
 	//to know spatial relation among all agents
 
-	//gets : AABB+type as 6x float, int, string
+	//gets : AABB +agentID +agentTypeID +geomVersion as 6x float, int, size_t, int
 	//gives: nothing
 }
 
@@ -100,6 +100,15 @@ size_t Director::request_CntOfAABBs(const int /* FOsID */)
 {
 	//block and wait until size_t comes back from the front officer FOsID
 	return 10; //faked value!
+}
+
+
+void Director::respond_newAgentsTypes(int)
+{
+	//we ignore these notifications entirely
+	//
+	//perhaps we would see a reason later why Direktor would need
+	//to know the content of the agentsTypesDictionary
 }
 
 

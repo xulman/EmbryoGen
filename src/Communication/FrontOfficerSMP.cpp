@@ -65,26 +65,14 @@ void FrontOfficer::broadcast_AABBofAgent(const ShadowAgent& ag)
 	//there is no other FO and Direktor doesn't care about this update
 	//
 	//this code essentially supplies the work of respond_AABBofAgent() in the SMP world
-	AABBs.emplace_back(ag.getAABB(),ag.getID(),ag.getAgentType());
+	AABBs.emplace_back(ag.getAABB(),ag.getID(),ag.getAgentTypeID());
 	agentsAndBroadcastGeomVersions[ag.getID()] = ag.getGeometry().version;
 	registerThatThisAgentIsAtThisFO(ag.getID(),this->ID);
 
 	/*
-	//in MPI world: example:
-	float coords[] = {ag.getAABB().minCorner.x,
-	                  ag.getAABB().minCorner.y,
-	                  ag.getAABB().minCorner.z,
-	                  ag.getAABB().maxCorner.x,
-	                  ag.getAABB().maxCorner.y,
-	                  ag.getAABB().maxCorner.z};
-	//important, also transfer agent's ID and type/string:
-	ag.getID();
-	ag.getAgentType();
-	int sendVersion = ag.getGeometry().version;
-	//send out 6x float, int, string, int --> all to be received by respond_AABBofAgent()
-
-	//TODO: check that the broadcast reaches myself too!
-	//      or just update myself explicitly just like above in the SMP case
+	//here, according to doc/agentTypeDictionary.txt
+	//this method shall have one extra param: noOfNewAgentTypes
+	//but it will not be used in this case
 	*/
 }
 
@@ -92,44 +80,24 @@ void FrontOfficer::broadcast_AABBofAgent(const ShadowAgent& ag)
 void FrontOfficer::respond_AABBofAgent()
 {
 	//this never happens (as there's no other FO to call us)
-	//MPI world:
-
-	//gets : AABB +ID +type +geomVersion as 6x float, int, string, int
-	//gives: nothing
-	//also needs to get the ID of the FO that broadcasted that particular message
-	//(if that is not possible, the sending FOsID will need be part of the message)
-
-	/*
-	//fake example values:
-	int FOsIDfromWhichTheMessageArrived(1);
-	//
-	float coords[] = { 10.f,10.f,10.f, 20.f,20.f,20.f };
-	int         agentID(10);
-	std::string agentType("some fictious agent");
-	int         geomVersion(42);
-
-	AABBs.emplace_back();
-	AABBs.back().minCorner.fromScalars(coords[0],coords[1],coords[2]);
-	AABBs.back().maxCorner.fromScalars(coords[3],coords[4],coords[5]);
-	AABBs.back().ID   = agentID;
-	AABBs.back().name = agentType;
-	agentsAndBroadcastGeomVersions[agentID] = geomVersion;
-	registerThatThisAgentIsAtThisFO(agentID,FOsIDfromWhichTheMessageArrived);
-	*/
 }
 
 
 void FrontOfficer::respond_CntOfAABBs()
 {
 	//this never happens (as Direktor here talks directly to the FO)
-	//MPI world:
+}
 
-	//gets : nothing
-	//gives: int
 
-	/*
-	size_t sendBackMyCount = getSizeOfAABBsList();
-	*/
+void FrontOfficer::broadcast_newAgentsTypes()
+{
+	//this never happens (as there's no other FO to call us)
+}
+
+
+void FrontOfficer::respond_newAgentsTypes(int)
+{
+	//this never happens (as there's no other FO to call us)
 }
 
 

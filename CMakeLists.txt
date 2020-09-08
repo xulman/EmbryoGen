@@ -75,6 +75,7 @@ endif (SEARCH_FOR_STATIC)
 
 set(SOURCES
 		src/util/Vector3d.cpp
+		src/util/strings.cpp
 		src/util/rnd_generators.cpp
 		src/util/flowfields.cpp
 		src/util/report.cpp

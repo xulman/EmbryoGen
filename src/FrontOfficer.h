@@ -4,6 +4,7 @@
 #include <list>
 #include <map>
 #include "util/report.h"
+#include "util/strings.h"
 #include "Scenarios/common/Scenario.h"
 #include "Geometries/Geometry.h"
 class AbstractAgent;
@@ -15,7 +16,8 @@ class FrontOfficer//: public Simulation
 {
 public:
 	FrontOfficer(Scenario& s, const int nextFO, const int myPortion, const int allPortions)
-		: scenario(s), ID(myPortion), nextFOsID(nextFO), FOsCount(allPortions)
+		: scenario(s), ID(myPortion), nextFOsID(nextFO), FOsCount(allPortions),
+		  __agentTypeBuf(new char[StringsImprintSize]) //freed in FrontOfficer::close()
 	{
 		scenario.declareFOcontext(myPortion);
 		//TODO: create an extra thread to execute/service the respond_...() methods
@@ -97,9 +99,12 @@ public:
 	    parameter [micrometer]. The distance is examined as the distance
 	    between AABBs (axis-aligned bounding boxes) of all agents in
 	    the simulation (this->AABBs) and the reference box 'fromThisAABB'.
-	    The discovered boxed are added to the output list 'l'. The added
+	    The discovered boxes are added to the output list 'l'. The added
 	    pointers points on objects contained in the list this->AABBs, so
-	    don't delete them after use... (AABBs manages that on its own). */
+	    don't delete them after use... (AABBs manages that on its own).
+
+	    Consider also the docs of translateNameIdToAgentName() to understand
+	    the grand scheme of things, please. */
 	void getNearbyAABBs(const NamedAxisAlignedBoundingBox& fromThisAABB,   //reference box
 	                    const float maxDist,                               //threshold dist
 	                    std::list<const NamedAxisAlignedBoundingBox*>& l); //output list
@@ -109,6 +114,18 @@ public:
 	                    const float maxDist,                               //threshold dist
 	                    std::list<const NamedAxisAlignedBoundingBox*>& l); //output list
 
+	/** Queries this->agentsTypesDictionary for the given 'nameID', and, if all is well,
+	    returns the agent type string (ShadowAgent::agentType::_string).
+
+	    The idea is that caller (a simulation agent) uses getNearbyAABBs() to figure
+	    out who (what other simulation agents) is nearby, this comes in a list of
+	    NamedAxisAlignedBoundingBox-es. Every box, includes an ID of an agent it is
+	    representing and nameID of the agent's type. The caller then translates/expands
+	    the nameID into full agent's type std::string (this is what this method does),
+	    decides if this nearby agent is of interest, and if it is, the caller calls
+	    this->getNearbyAgent(ID from the AABB of the nearby agent). */
+	const std::string& translateNameIdToAgentName(const size_t nameID);
+
 	/** Fills the list 'l' of ShadowAgents that are no further than maxDist
 	    parameter [micrometer]. The distance is examined as the distance
 	    between AABBs (axis-aligned bounding boxes) among all agents in
@@ -116,14 +133,23 @@ public:
 	    This method is essentially a shortcut getNearbyAgent() called iteratively
 	    on all elements of the list obtained with getNearbyAABBs().
 	    The added pointers is a subset of those from the collection
-	    of pointers in this->shadowAgents. */
+	    of pointers in this->shadowAgents.
+
+	    Consider also the docs of translateNameIdToAgentName() to understand
+	    the grand scheme of things, please.
+
+	    This method is not optimal to use during distributed runs of the simulation.
+	    Consider the DISTRIBUTED macro to see if this run is a distributed one. */
 	void getNearbyAgents(const ShadowAgent* const fromSA,   //reference agent
 	                     const float maxDist,               //threshold dist
 	                     std::list<const ShadowAgent*>& l); //output list
 
 	/** Returns the reference in a ShadowAgent that
 	    represents the agent with 'fetchThisID'.
-		 The pointer is one from the collection of pointers in this->shadowAgents. */
+	    The pointer is one from the collection of pointers in this->shadowAgents.
+
+	    Consider also the docs of translateNameIdToAgentName() to understand
+	    the grand scheme of things, please. */
 	const ShadowAgent* getNearbyAgent(const int fetchThisID);
 
 	size_t getSizeOfAABBsList() const;
@@ -145,6 +171,7 @@ public:
 	// -------------- debug --------------
 	void reportSituation();
 	void reportAABBs();
+	const StringsDictionary& refOnAgentsTypesDictionary() { return agentsTypesDictionary; }
 
 protected:
 	/** flag to run-once the closing routines */
@@ -158,6 +185,11 @@ protected:
 	/** list of all agents currently active in the simulation
 	    and computed on this node (managed by this FO) */
 	std::map<int,AbstractAgent*> agents;
+
+	/** maps nameIDs (from NamedAxisAlignedBoundingBox, which should be the same
+	    as ShadowAgent::getAgentTypeID()) to ShadowAgent::getAgentType(),
+	    see, e.g., ShadowAgent::createNamedAABB() or FrontOfficer::broadcast_AABBofAgent() */
+	StringsDictionary agentsTypesDictionary;
 
 	/** list of AABBs of all agents currently active in the entire
 	    simulation, that is, managed by all FOs */
@@ -232,6 +264,10 @@ protected:
 	void broadcast_AABBofAgent(const ShadowAgent& ag);
 	void respond_AABBofAgent();
 	void respond_CntOfAABBs();
+
+	void broadcast_newAgentsTypes();
+	void respond_newAgentsTypes(int noOfIncomingNewAgentTypes);
+	char* const __agentTypeBuf; //RO pointer on RW data
 
 	void respond_setDetailedDrawingMode();
 	void respond_setDetailedReportingMode();

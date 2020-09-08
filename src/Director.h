@@ -196,6 +196,8 @@ protected:
 	void respond_AABBofAgent();
 	size_t request_CntOfAABBs(const int FOsID);
 
+	void respond_newAgentsTypes(int noOfIncomingNewAgentTypes);
+
 	void notify_setDetailedDrawingMode(const int FOsID, const int agentID, const bool state);
 	void notify_setDetailedReportingMode(const int FOsID, const int agentID, const bool state);
 

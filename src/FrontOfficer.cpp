@@ -101,6 +101,9 @@ void FrontOfficer::close(void)
 		sh.second = NULL;
 	}
 	shadowAgents.clear();
+
+	//clean up aux attribs
+	delete __agentTypeBuf;
 }
 
 
@@ -258,6 +261,22 @@ void FrontOfficer::updateAndPublishAgents()
 		broadcast_AABBofAgent(*(ag.second));
 	}
 
+	/*
+	//here, according to doc/agentTypeDictionary.txt
+	//the previous for-cycle would look like this:
+	size_t cnt = agents.size();
+	for (auto ag : agents)
+	{
+		DEBUG_REPORT("reporting AABB of agent ID " << ag.first);
+		if (cnt > 1)
+			broadcast_AABBofAgent(*(ag.second),0);
+		else
+			//the last AABB reports how many agentsTypesDictionary items will follow
+			broadcast_AABBofAgent(*(ag.second),agentsTypesDictionary.howManyShouldBeBroadcast());
+		--cnt;
+	}
+	*/
+
 	//this passes the "token" on another FO
 	notify_publishAgentsAABBs(nextFOsID);
 
@@ -267,7 +286,9 @@ void FrontOfficer::updateAndPublishAgents()
 
 void FrontOfficer::postprocessAfterUpdateAndPublishAgents()
 {
-	//currently empty
+	//post-process local Dictionary
+	agentsTypesDictionary.markAllWasBroadcast();
+	agentsTypesDictionary.cleanUp(AABBs);
 }
 
 
@@ -284,6 +305,7 @@ void FrontOfficer::startNewAgent(AbstractAgent* ag, const bool wantsToAppearInCT
 
 	//register the agent for adding into the system:
 	//local registration:
+	agentsTypesDictionary.registerThisString(ag->getAgentType_hashedString());
 	newAgents.push_back(ag);
 	ag->setOfficer(this);
 
@@ -374,7 +396,7 @@ void FrontOfficer::getNearbyAABBs(const ShadowAgent* const fromSA,              
 	                               const float maxDist,                               //threshold dist
 	                               std::list<const NamedAxisAlignedBoundingBox*>& l)  //output list
 {
-	getNearbyAABBs( NamedAxisAlignedBoundingBox(fromSA->getAABB(),fromSA->getID(),fromSA->getAgentType()),
+	getNearbyAABBs( NamedAxisAlignedBoundingBox(fromSA->getAABB(),fromSA->getID(),fromSA->getAgentTypeID()),
 	                maxDist, l );
 }
 
@@ -397,6 +419,12 @@ void FrontOfficer::getNearbyAABBs(const NamedAxisAlignedBoundingBox& fromThisAAB
 }
 
 
+const std::string& FrontOfficer::translateNameIdToAgentName(const size_t nameID)
+{
+	return agentsTypesDictionary.translateIdToString(nameID);
+}
+
+
 void FrontOfficer::getNearbyAgents(const ShadowAgent* const fromSA,   //reference agent
 	                                const float maxDist,               //threshold dist
 	                                std::list<const ShadowAgent*>& l)  //output list
@@ -405,7 +433,7 @@ void FrontOfficer::getNearbyAgents(const ShadowAgent* const fromSA,   //referenc
 	//these were not created explicitly and so we must not delete them
 	std::list<const NamedAxisAlignedBoundingBox*> nearbyBoxes;
 
-	getNearbyAABBs( NamedAxisAlignedBoundingBox(fromSA->getAABB(),fromSA->getID(),fromSA->getAgentType()),
+	getNearbyAABBs( NamedAxisAlignedBoundingBox(fromSA->getAABB(),fromSA->getID(),fromSA->getAgentTypeID()),
 	                maxDist, nearbyBoxes );
 
 	for (auto box : nearbyBoxes)
@@ -529,7 +557,7 @@ void FrontOfficer::reportAABBs()
 {
 	REPORT("I now recognize these AABBs:");
 	for (const auto& naabb : AABBs)
-		REPORT("agent ID " << naabb.ID << " \"" << naabb.name
+		REPORT("agent ID " << naabb.ID << " \"" << agentsTypesDictionary.translateIdToString(naabb.nameID)
 		       << "\" spanning from "
 		       << naabb.minCorner << " to " << naabb.maxCorner
 		       << " and living at FO #" << agentsToFOsMap[naabb.ID]);
