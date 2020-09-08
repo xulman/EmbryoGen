@@ -60,6 +60,7 @@ void FrontOfficer::broadcast_AABBofAgent(const ShadowAgent& ag)
 {
 	//this shall tell all (including this one) FOs the AABB of the given agent,
 	//the Direktor actually does not care
+	DEBUG_REPORT("FO #" << this->ID << " is reporting AABB of agent ID " << ag.ID);
 
 	/*
 	//in MPI world: example:

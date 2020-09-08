@@ -192,8 +192,10 @@ void FrontOfficer::executeInternals()
 
 void FrontOfficer::executeExternals()
 {
+#ifdef DISTRIBUTED
 #ifdef DEBUG
 	reportAABBs();
+#endif
 #endif
 	//react (unwillingly) to the new geometries... (can run in parallel),
 	//the agents' (external at least!) geometries must not change during this phase
@@ -257,7 +259,6 @@ void FrontOfficer::updateAndPublishAgents()
 	//now distribute AABBs of the existing ones
 	for (auto ag : agents)
 	{
-		DEBUG_REPORT("reporting AABB of agent ID " << ag.first);
 		broadcast_AABBofAgent(*(ag.second));
 	}
 
