@@ -128,5 +128,14 @@ public:
 	friend class Texture;
 	friend class TextureQuantized;
 	friend class TextureUpdater4S;
+
+	// ----------------- support for serialization and deserealization -----------------
+public:
+	long getSizeInBytes() const override;
+
+	void serializeTo(char* buffer) const override;
+	void deserializeFrom(char* buffer) override;
+
+	static Spheres* createAndDeserializeFrom(char* buffer);
 };
 #endif

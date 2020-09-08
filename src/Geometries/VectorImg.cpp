@@ -1,5 +1,6 @@
 #include "Spheres.h"
 #include "VectorImg.h"
+#include "util/Serialization.h"
 
 void VectorImg::getDistance(const Geometry& otherGeometry,
                             std::list<ProximityPair>& l) const
@@ -242,4 +243,57 @@ void VectorImg::updateThisAABB(AxisAlignedBoundingBox& AABB) const
 	//the AABB is the whole image
 	AABB.minCorner = imgOff;
 	AABB.maxCorner = imgFarEnd;
+}
+
+
+// ----------------- support for serialization and deserealization -----------------
+long VectorImg::getSizeInBytes() const
+{
+	long size = Serialization::getSizeInBytes(X);
+	return 3*size + 2*sizeof(int);
+}
+
+
+void VectorImg::serializeTo(char* buffer) const
+{
+	long off = Serialization::toBuffer((int)policy,buffer);
+	off += Serialization::toBuffer(X,buffer+off);
+	off += Serialization::toBuffer(Y,buffer+off);
+	off += Serialization::toBuffer(Z,buffer+off);
+
+	Serialization::toBuffer(version, buffer+off);
+}
+
+
+void VectorImg::deserializeFrom(char* buffer)
+{
+	int ppolicy;
+	long off = Deserialization::fromBuffer(buffer,ppolicy);
+
+	if (ppolicy != (int)this->policy)
+		throw ERROR_REPORT( "Deserialization mismatch: filling image of choosing policy model "
+			<< this->policy << " with model " << (ChoosingPolicy)ppolicy
+			<< " from the buffer" );
+
+	off += Deserialization::fromBuffer(buffer+off,X);
+	off += Deserialization::fromBuffer(buffer+off,Y);
+	off += Deserialization::fromBuffer(buffer+off,Z);
+	updateResOffFarEnd();
+
+	//update Geometry attribs:
+	Deserialization::fromBuffer(buffer+off, version);
+	updateThisAABB(this->AABB);
+}
+
+
+VectorImg* VectorImg::createAndDeserializeFrom(char* buffer)
+{
+	//read the choosing policy model
+	int ppolicy;
+	Deserialization::fromBuffer(buffer,ppolicy);
+
+	//create an object
+	VectorImg* vimg = new VectorImg((ChoosingPolicy)ppolicy);
+	vimg->deserializeFrom(buffer);
+	return vimg;
 }

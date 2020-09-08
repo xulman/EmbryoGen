@@ -66,21 +66,12 @@ public:
 		updateResOffFarEnd();
 	}
 
-	/** copy constructor */
-	/* not necessary as long as no new() constructs are used in the main c'tor
-	VectorImg(const VectorImg& s)
-		: Geometry(ListOfShapeForms::VectorImg), policy(s.getChoosingPolicy())
-	{
-		REPORT("copy c'tor");
-		X         = s.getImgX();
-		Y         = s.getImgY();
-		Z         = s.getImgZ();
-		imgRes    = s.getImgRes();
-		imgOff    = s.getImgOff();
-		imgFarEnd = s.getImgFarEnd();
-	}
-	*/
+private:
+	VectorImg(ChoosingPolicy _policy)
+		: Geometry(ListOfShapeForms::VectorImg), policy(_policy)
+	{ /** createAndDeserializeFrom() will do it for us */ }
 
+public:
 	/** inserts zero vectors to the vector field */
 	void zeroAll(void)
 	{
@@ -249,5 +240,14 @@ private:
 		imgFarEnd.from( Vector3d<size_t>(X.GetSize()) )
 		         .toMicrons(imgRes,imgOff);
 	}
+
+	// ----------------- support for serialization and deserealization -----------------
+public:
+	long getSizeInBytes() const override;
+
+	void serializeTo(char* buffer) const override;
+	void deserializeFrom(char* buffer) override;
+
+	static VectorImg* createAndDeserializeFrom(char* buffer);
 };
 #endif

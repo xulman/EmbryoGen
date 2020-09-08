@@ -1,4 +1,5 @@
 #include "Spheres.h"
+#include "util/Serialization.h"
 
 void Spheres::getDistance(const Geometry& otherGeometry,
                           std::list<ProximityPair>& l) const
@@ -116,4 +117,59 @@ void Spheres::updateThisAABB(AxisAlignedBoundingBox& AABB) const
 		AABB.minCorner.z = std::min(AABB.minCorner.z, centres[i].z-radii[i]);
 		AABB.maxCorner.z = std::max(AABB.maxCorner.z, centres[i].z+radii[i]);
 	}
+}
+
+
+// ----------------- support for serialization and deserealization -----------------
+long Spheres::getSizeInBytes() const
+{
+	return 2*sizeof(int) + noOfSpheres*4*sizeof(FLOAT);
+}
+
+
+void Spheres::serializeTo(char* buffer) const
+{
+	//store noOfSpheres
+	long off = Serialization::toBuffer(noOfSpheres, buffer);
+
+	//store individual spheres
+	for (int i=0; i < noOfSpheres; ++i)
+	{
+		off += Serialization::toBuffer(centres[i], buffer+off);
+		off += Serialization::toBuffer(radii[i],   buffer+off);
+	}
+
+	Serialization::toBuffer(version, buffer+off);
+}
+
+
+void Spheres::deserializeFrom(char* buffer)
+{
+	int recv_noOfSpheres;
+	long off = Deserialization::fromBuffer(buffer, recv_noOfSpheres);
+
+	if (noOfSpheres != recv_noOfSpheres)
+		throw ERROR_REPORT( "Deserialization mismatch: cannot fill geometry of "
+			<< noOfSpheres << " spheres from the buffer with "
+			<< recv_noOfSpheres << " spheres" );
+
+	//read and setup individual spheres
+	for (int i=0; i < noOfSpheres; ++i)
+	{
+		off += Deserialization::fromBuffer(buffer+off, centres[i]);
+		off += Deserialization::fromBuffer(buffer+off, radii[i]);
+	}
+
+	//update Geometry attribs:
+	Deserialization::fromBuffer(buffer+off, version);
+	updateThisAABB(this->AABB);
+}
+
+
+Spheres* Spheres::createAndDeserializeFrom(char* buffer)
+{
+	//read noOfSpheres and create an object
+	Spheres* s = new Spheres(*((int*)buffer));
+	s->deserializeFrom(buffer);
+	return s;
 }

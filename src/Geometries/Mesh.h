@@ -40,5 +40,14 @@ public:
 
 
 	// ------------- get/set methods -------------
+
+	// ----------------- support for serialization and deserealization -----------------
+public:
+	long getSizeInBytes() const override;
+
+	void serializeTo(char* buffer) const override;
+	void deserializeFrom(char* buffer) override;
+
+	static Mesh* createAndDeserializeFrom(char* buffer);
 };
 #endif
