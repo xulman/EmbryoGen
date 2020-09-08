@@ -8,7 +8,7 @@
 #include "Scenarios/common/Scenario.h"
 class FrontOfficer;
 
-/** has access to Simulation, to reach its doPhaseIIandIII() */
+/** has access to Scenario, to reach its doPhaseIIandIII() */
 class Director
 {
 public:
@@ -16,6 +16,7 @@ public:
 		: scenario(s), firstFOsID(firstFO), FOsCount(allPortions),
 		  shallWaitForUserPromptFlag( scenario.params.shallWaitForUserPromptFlag )
 	{
+		scenario.declareDirektorContext();
 		//TODO: create an extra thread to execute/service the respond_...() methods
 	}
 
@@ -209,6 +210,17 @@ protected:
 	FrontOfficer* FO = NULL;
 
 public:
+	//provides shortcuts for the FO to the output images of
+	//the Direktor to have them filled directly
+	i3d::Image3d<i3d::GRAY16>& refOnDirektorsImgMask(void)
+	{ return scenario.params.imgMask; }
+
+	i3d::Image3d<float>& refOnDirektorsImgPhantom(void)
+	{ return scenario.params.imgPhantom; }
+
+	i3d::Image3d<float>& refOnDirektorsImgOptics(void)
+	{ return scenario.params.imgOptics; }
+
 	void connectWithFrontOfficer(FrontOfficer* fo)
 	{
 		if (fo == NULL) throw ERROR_REPORT("Provided FrontOfficer is actually NULL.");

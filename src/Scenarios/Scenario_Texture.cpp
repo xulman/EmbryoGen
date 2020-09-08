@@ -73,8 +73,9 @@ void Scenario_withTexture::initializeAgents(FrontOfficer* fo,int p,int)
 
 void Scenario_withTexture::initializeScene()
 {
-	params.imagesSaving_enableForImgPhantom();
-	params.imagesSaving_enableForImgFinal();
+	disks.enableImgPhantomTIFFs();
+	disks.enableImgOpticsTIFFs();
+	disks.enableImgFinalTIFFs();
 }
 
 

@@ -144,7 +144,7 @@ void Scenario_DrosophilaRandom::initializeAgents(FrontOfficer* fo,int p,int)
 
 void Scenario_DrosophilaRandom::initializeScene()
 {
-	params.displayUnit.RegisterUnit( new SceneryBufferedDisplayUnit("localhost:8765") );
+	displays.registerDisplayUnit( new SceneryBufferedDisplayUnit("localhost:8765") );
 }
 
 

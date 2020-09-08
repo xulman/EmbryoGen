@@ -1,11 +1,13 @@
 #include "Agents/AbstractAgent.h"
 #include "FrontOfficer.h"
+#include "Director.h"
 
 void FrontOfficer::init1_SMP()
 {
 	REPORT("FO #" << ID << " initializing now...");
 	currTime = scenario.params.constants.initTime;
 
+	scenario.declareFOcontext(ID); //NB: this statement is redundant in DISTRIBUTED
 	scenario.initializeScene();
 	scenario.initializeAgents(this,ID,FOsCount);
 }
@@ -147,6 +149,7 @@ void FrontOfficer::execute(void)
 		}
 
 		//this was promised to happen after every simulation round is over
+		scenario.declareFOcontext(ID); //NB: this statement is redundant in DISTRIBUTED
 		scenario.updateScene( currTime );
 		waitHereUntilEveryoneIsHereToo();
 	}
@@ -465,23 +468,33 @@ void FrontOfficer::renderNextFrame()
 		//always check for their availability first:
 		if (sc.isProducingOutput(sc.imgPhantom) && sc.isProducingOutput(sc.imgOptics))
 		{
+#ifdef DISTRIBUTED
 			ag.second->drawTexture(sc.imgPhantom,sc.imgOptics);
+#else
+			ag.second->drawTexture(Direktor->refOnDirektorsImgPhantom(),Direktor->refOnDirektorsImgOptics());
+#endif
 		}
 		if (sc.isProducingOutput(sc.imgMask))
 		{
+#ifdef DISTRIBUTED
 			ag.second->drawMask(sc.imgMask);
 			if (renderingDebug)
 				ag.second->drawForDebug(sc.imgMask); //TODO, should go into its own separate image
+#else
+			ag.second->drawMask(Direktor->refOnDirektorsImgMask());
+			if (renderingDebug)
+				ag.second->drawForDebug(Direktor->refOnDirektorsImgMask()); //TODO, should go into its own separate image
+#endif
 		}
 	}
 	//note that this far the code was executed on all FOs, that means in parallel
 
 	// --------- the big round robin scheme ---------
-	//WAIT HERE UNTIL WE GOT THE IMAGES TO CONTRIBUTE INTO
+	//WAIT HERE UNTIL WE GET THE IMAGES TO CONTRIBUTE INTO
 	//this will block...
 	waitFor_renderNextFrame();
 
-	//now that it is only us who have the token, we
+	//note that it is only us who have the token, we
 	//do "pollute" the DisplayUnit (load balancing)
 	//
 	//go over all cells, and render them -- ONLY DISPLAY UNITS!

@@ -96,7 +96,7 @@ void Scenario_pseudoDivision::initializeAgents(FrontOfficer* fo,int p,int)
 
 void Scenario_pseudoDivision::initializeScene()
 {
-	params.displayUnit.RegisterUnit( new SceneryBufferedDisplayUnit("localhost:8765") );
+	displays.registerDisplayUnit( new SceneryBufferedDisplayUnit("localhost:8765") );
 }
 
 

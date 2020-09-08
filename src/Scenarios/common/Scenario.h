@@ -171,21 +171,21 @@ public:
 	void displayChannel_transferImgFinal() { transferImg( imgFinal, "final", imgFinalBroadcast ); }
 
 
-	void imagesSaving_enableForImgMask()      {  enableProducingOutput(imgMask); };
-	void imagesSaving_getStateForImgMask()    {      isProducingOutput(imgMask); };
-	void imagesSaving_disableForImgMask()     { disableProducingOutput(imgMask); };
+	void imagesSaving_enableForImgMask()       {  enableProducingOutput(imgMask); };
+	bool imagesSaving_isEnabledForImgMask()    { return isProducingOutput(imgMask); };
+	void imagesSaving_disableForImgMask()      { disableProducingOutput(imgMask); };
 
-	void imagesSaving_enableForImgPhantom()   {  enableProducingOutput(imgPhantom); };
-	void imagesSaving_getStateForImgPhantom() {      isProducingOutput(imgPhantom); };
-	void imagesSaving_disableForImgPhantom()  { disableProducingOutput(imgPhantom); };
+	void imagesSaving_enableForImgPhantom()    {  enableProducingOutput(imgPhantom); };
+	bool imagesSaving_isEnabledForImgPhantom() { return isProducingOutput(imgPhantom); };
+	void imagesSaving_disableForImgPhantom()   { disableProducingOutput(imgPhantom); };
 
-	void imagesSaving_enableForImgOptics()    {  enableProducingOutput(imgOptics); };
-	void imagesSaving_getStateForImgOptics()  {      isProducingOutput(imgOptics); };
-	void imagesSaving_disableForImgOptics()   { disableProducingOutput(imgOptics); };
+	void imagesSaving_enableForImgOptics()     {  enableProducingOutput(imgOptics); };
+	bool imagesSaving_isEnabledForImgOptics()  { return isProducingOutput(imgOptics); };
+	void imagesSaving_disableForImgOptics()    { disableProducingOutput(imgOptics); };
 
-	void imagesSaving_enableForImgFinal()     {  enableProducingOutput(imgFinal); };
-	void imagesSaving_getStateForImgFinal()   {      isProducingOutput(imgFinal); };
-	void imagesSaving_disableForImgFinal()    { disableProducingOutput(imgFinal); };
+	void imagesSaving_enableForImgFinal()      {  enableProducingOutput(imgFinal); };
+	bool imagesSaving_isEnabledForImgFinal()   { return isProducingOutput(imgFinal); };
+	void imagesSaving_disableForImgFinal()     { disableProducingOutput(imgFinal); };
 
 protected:
 	/** internal (private) memory of the input of setOutputImgSpecs() for the enableProducingOutput() */
@@ -361,7 +361,7 @@ class Scenario
 public:
 	/** the one and only must-provide-SceneControls-enforcer c'tor */
 	Scenario(SceneControls& params)
-		: params(params)
+		: params(params), displays(*this, params), disks(*this, params)
 	{}
 
 	// to shortcut the Direktor's and FOs' access to this->params
@@ -439,6 +439,139 @@ public:
 	    in the (just finishing) simulation round. Don't change Simulation::imgMask
 	    because this one is used for computation of the SNR. */
 	virtual void doPhaseIIandIII();
+
+private:
+	/** Context in which this particular scenario object is executed. It is actually
+	    merely a symbolic value that shall be positive whenever this object is living
+	    inside some FrontOfficer, and that shall be -1 whenever this object is living
+	    inside the Direktor.
+
+	    Scenarios shall, nevertheless, make no difference in their "behaviour" (how
+	    they are defined, e.g. values of constants, or how they are changing
+	    themselves via this->updateScene()). The notion of the context is defined
+	    here only for cases where it really makes sense to behave differently, such
+	    as, creating an image transfer object on Direktor only (when no images
+	    shall be transferred on FrontOfficer), or connecting to SimViewer only from
+	    one particular process (be it Direktor, or one particular FrontOfficer). */
+	int contextID = -1;
+
+	/** Internal method to be executed only during a FrontOfficer construction
+	    to define the appropriate context of this particular scenario object */
+	void declareFOcontext(const int myPortion) { contextID = myPortion; }
+
+	/** Similar to Scenario::declareFOcontext() but for Direktor */
+	void declareDirektorContext() { contextID = -1; }
+protected:
+	bool amIinDirektorContext() { return contextID == -1; }
+	bool amIinFOContext()       { return contextID != -1; }
+	int getFOContextID()        { return contextID; }
+
+public:
+	struct Displays {
+		Displays(Scenario& thisScenario, SceneControls& thisSceneControls)
+			: ctx(thisScenario), params(thisSceneControls) {}
+		Scenario& ctx;
+		SceneControls& params;
+
+		//----- display units -----
+		void registerDisplayUnit(DisplayUnit* ds)
+		{
+			if (ctx.amIinFOContext())
+				params.displayUnit.RegisterUnit(ds);
+		}
+		void unregisterDisplayUnit(DisplayUnit* ds)
+		{
+			if (ctx.amIinFOContext())
+				params.displayUnit.UnregisterUnit(ds);
+		}
+
+		//----- image transfer channels -----
+		void registerImagingUnit(const std::string& unitNickName,
+		                         const char* destinationURL,
+		                         const char* thisSourceNickName = "EmbryoGen's Image(s)")
+		{
+			if (ctx.amIinDirektorContext())
+				params.displayChannel_createNew(unitNickName,destinationURL,thisSourceNickName);
+		}
+		void unregisterImagingUnit(const std::string& unitNickName)
+		{
+			if (ctx.amIinDirektorContext())
+				params.displayChannel_delete(unitNickName);
+		}
+
+		void enableImgMaskInImagingUnit(const std::string& unitNickName)
+		{
+			if (ctx.amIinDirektorContext())
+				params.displayChannel_enableForImgMask(unitNickName);
+		}
+		void disableImgMaskInImagingUnit(const std::string& unitNickName)
+		{
+			if (ctx.amIinDirektorContext())
+				params.displayChannel_disableForImgMask(unitNickName);
+		}
+
+		void enableImgPhantomInImagingUnit(const std::string& unitNickName)
+		{
+			if (ctx.amIinDirektorContext())
+				params.displayChannel_enableForImgPhantom(unitNickName);
+		}
+		void disableImgPhantomInImagingUnit(const std::string& unitNickName)
+		{
+			if (ctx.amIinDirektorContext())
+				params.displayChannel_disableForImgPhantom(unitNickName);
+		}
+
+		void enableImgOpticsInImagingUnit(const std::string& unitNickName)
+		{
+			if (ctx.amIinDirektorContext())
+				params.displayChannel_enableForImgOptics(unitNickName);
+		}
+		void disableImgOpticsInImagingUnit(const std::string& unitNickName)
+		{
+			if (ctx.amIinDirektorContext())
+				params.displayChannel_disableForImgOptics(unitNickName);
+		}
+
+		void enableImgFinalInImagingUnit(const std::string& unitNickName)
+		{
+			if (ctx.amIinDirektorContext())
+				params.displayChannel_enableForImgFinal(unitNickName);
+		}
+		void disableImgFinalInImagingUnit(const std::string& unitNickName)
+		{
+			if (ctx.amIinDirektorContext())
+				params.displayChannel_disableForImgFinal(unitNickName);
+		}
+	} displays;
+
+	struct Disks {
+		Disks(Scenario& thisScenario, SceneControls& thisSceneControls)
+			: ctx(thisScenario), params(thisSceneControls) {}
+		Scenario& ctx;
+		SceneControls& params;
+
+		//----- image storing channels -----
+		//(essentially only a bunch of aliases in dedicated "namespace")
+		void enableImgMaskTIFFs()
+		{ params.imagesSaving_enableForImgMask(); }
+		void disableImgMaskTIFFs()
+		{ params.imagesSaving_disableForImgMask(); }
+
+		void enableImgPhantomTIFFs()
+		{ params.imagesSaving_enableForImgPhantom(); }
+		void disableImgPhantomTIFFs()
+		{ params.imagesSaving_disableForImgPhantom(); }
+
+		void enableImgOpticsTIFFs()
+		{ params.imagesSaving_enableForImgOptics(); }
+		void disableImgOpticsTIFFs()
+		{ params.imagesSaving_disableForImgOptics(); }
+
+		void enableImgFinalTIFFs()
+		{ params.imagesSaving_enableForImgFinal(); }
+		void disableImgFinalTIFFs()
+		{ params.imagesSaving_disableForImgFinal(); }
+	} disks;
 
 #ifdef ENABLE_FILOGEN_PHASEIIandIII
 private:
