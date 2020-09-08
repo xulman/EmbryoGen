@@ -47,6 +47,7 @@ void Director::init2_SMP(void)
 
 	updateAndPublishAgents();
 	waitHereUntilEveryoneIsHereToo();
+	postprocessAfterUpdateAndPublishAgents();
 
 	reportSituation();
 	REPORT("Direktor initialized");
@@ -117,6 +118,7 @@ void Director::execute(void)
 
 		updateAndPublishAgents();
 		waitHereUntilEveryoneIsHereToo();
+		postprocessAfterUpdateAndPublishAgents();
 
 #ifndef DISTRIBUTED
 		FO->executeExternals();
@@ -128,6 +130,7 @@ void Director::execute(void)
 
 		updateAndPublishAgents();
 		waitHereUntilEveryoneIsHereToo();
+		postprocessAfterUpdateAndPublishAgents();
 
 		// move to the next simulation time point
 		currTime += incrTime;
@@ -214,6 +217,15 @@ void Director::updateAndPublishAgents()
 		if (request_CntOfAABBs(i) != agents.size())
 			throw ERROR_REPORT("FO #" << i << " does not have a complete list of AABBs");
 	}
+}
+
+void Director::postprocessAfterUpdateAndPublishAgents()
+{
+	//currently empty
+
+#ifndef DISTRIBUTED
+	FO->postprocessAfterUpdateAndPublishAgents();
+#endif
 }
 
 

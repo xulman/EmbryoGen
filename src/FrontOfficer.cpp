@@ -22,6 +22,7 @@ void FrontOfficer::init2_SMP()
 
 	updateAndPublishAgents();
 	waitHereUntilEveryoneIsHereToo();
+	postprocessAfterUpdateAndPublishAgents();
 #endif
 	reportSituation();
 	REPORT("FO #" << ID << " initialized");
@@ -126,6 +127,7 @@ void FrontOfficer::execute(void)
 
 		updateAndPublishAgents();
 		waitHereUntilEveryoneIsHereToo();
+		postprocessAfterUpdateAndPublishAgents();
 
 		executeExternals();
 		waitHereUntilEveryoneIsHereToo();
@@ -135,6 +137,7 @@ void FrontOfficer::execute(void)
 
 		updateAndPublishAgents();
 		waitHereUntilEveryoneIsHereToo();
+		postprocessAfterUpdateAndPublishAgents();
 
 		// move to the next simulation time point
 		currTime += incrTime;
@@ -260,6 +263,11 @@ void FrontOfficer::updateAndPublishAgents()
 
 	//and we move on to get blocked on any following checkpoint
 	//while waiting there, our respond_AABBofAgent() collects data
+}
+
+void FrontOfficer::postprocessAfterUpdateAndPublishAgents()
+{
+	//currently empty
 }
 
 
