@@ -1,4 +1,5 @@
 #include "SceneryDisplayUnit.h"
+#include "../util/report.h"
 #include <sstream>
 #include <zmq.hpp>
 
@@ -120,6 +121,7 @@ void SceneryDisplayUnit::ConnectToHost(void)
 {
 	context  = new zmq::context_t(1);
 	socket   = new zmq::socket_t(*context, ZMQ_PAIR);
+	DEBUG_REPORT("Connecting Scenery DU to: " << (std::string("tcp://")+std::string(hostUrl)));
 	socket->connect(std::string("tcp://")+std::string(hostUrl));
 }
 
@@ -127,6 +129,7 @@ void SceneryDisplayUnit::DisconnectFromHost(void)
 {
 	if (socket != NULL)
 	{
+		DEBUG_REPORT("Disconnecting Scenery DU from: " << (std::string("tcp://")+std::string(hostUrl)));
 		socket->disconnect(std::string("tcp://")+std::string(hostUrl));
 		socket->close();
 		delete socket;

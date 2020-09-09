@@ -3,6 +3,7 @@
 
 #include <fstream>
 #include "DisplayUnit.h"
+#include "../util/report.h"
 
 /**
  * This class implements drawing by reporting what is being drawed
