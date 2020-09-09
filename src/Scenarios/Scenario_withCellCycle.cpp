@@ -116,7 +116,7 @@ void Scenario_withCellCycle::initializeAgents(FrontOfficer* fo,int p,int)
 
 void Scenario_withCellCycle::initializeScene()
 {
-	displays.registerDisplayUnit( new SceneryBufferedDisplayUnit("localhost:8765") );
+	displays.registerDisplayUnit( [](){ return new SceneryBufferedDisplayUnit("localhost:8765"); } );
 }
 
 

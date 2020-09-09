@@ -241,7 +241,7 @@ void Scenario_Parallel::initializeScene()
 	disks.enableImgMaskTIFFs(); //enable if you want to see the constellation of IDs
 
 	//variant "on console" for parsing out and computing mutual distances
-	//displays.registerDisplayUnit( new ConsoleDisplayUnit() );
+	//displays.registerDisplayUnit( [](){ return new ConsoleDisplayUnit(); } );
 
 	displays.registerImagingUnit("localFiji","localhost:54545");
 	displays.enableImgMaskInImagingUnit("localFiji");

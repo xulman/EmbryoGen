@@ -95,8 +95,8 @@ void Scenario_dragAndRotate::initializeAgents(FrontOfficer* fo,int p,int)
 
 void Scenario_dragAndRotate::initializeScene()
 {
-	displays.registerDisplayUnit( new SceneryBufferedDisplayUnit("localhost:8765") );
-	displays.registerDisplayUnit( new FlightRecorderDisplayUnit("/temp/FR_dragAndRotate.txt") );
+	displays.registerDisplayUnit( [](){ return new SceneryBufferedDisplayUnit("localhost:8765"); } );
+	displays.registerDisplayUnit( [](){ return new FlightRecorderDisplayUnit("/temp/FR_dragAndRotate.txt"); } );
 }
 
 

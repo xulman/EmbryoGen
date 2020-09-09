@@ -1,4 +1,5 @@
 #include "../DisplayUnits/SceneryBufferedDisplayUnit.h"
+#include "../DisplayUnits/FlightRecorderDisplayUnit.h"
 #include "../util/rnd_generators.h"
 #include "../util/Vector3d.h"
 #include "../Geometries/ScalarImg.h"
@@ -144,7 +145,8 @@ void Scenario_DrosophilaRandom::initializeAgents(FrontOfficer* fo,int p,int)
 
 void Scenario_DrosophilaRandom::initializeScene()
 {
-	displays.registerDisplayUnit( new SceneryBufferedDisplayUnit("localhost:8765") );
+	displays.registerDisplayUnit( [](){ return new SceneryBufferedDisplayUnit("localhost:8765"); } );
+	displays.registerDisplayUnit( [](){ return new FlightRecorderDisplayUnit("/temp/FR_randomDro.txt"); } );
 }
 
 

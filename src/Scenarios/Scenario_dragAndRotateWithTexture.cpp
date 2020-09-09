@@ -152,8 +152,8 @@ void Scenario_dragRotateAndTexture::initializeScene()
 	disks.enableImgPhantomTIFFs();
 	disks.enableImgOpticsTIFFs();
 
-	displays.registerDisplayUnit( new SceneryBufferedDisplayUnit("localhost:8765") );
-	displays.registerDisplayUnit( new FlightRecorderDisplayUnit("/temp/FR_dragRotateAndTexture.txt") );
+	displays.registerDisplayUnit( [](){ return new SceneryBufferedDisplayUnit("localhost:8765"); } );
+	displays.registerDisplayUnit( [](){ return new FlightRecorderDisplayUnit("/temp/FR_dragRotateAndTexture.txt"); } );
 
 	displays.registerImagingUnit("localFiji","localhost:54545");
 	displays.enableImgPhantomInImagingUnit("localFiji");
