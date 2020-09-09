@@ -474,6 +474,27 @@ public:
 		SceneControls& params;
 
 		//----- display units -----
+		/** registers DisplayUnit that gets created on-demand and returns the created
+		    DisplayUnit or NULL (if there was no demand to create one);
+		    use this from Scenario::initializeScene()
+
+		    if initializeScene() would host a code 'registerDisplayUnit( new someDisplayUnit() )'
+		    then this unit is created always prior every call but is registered only sometimes,
+		    note that Scenario::initializeScene() is called both from Direktor and from FrontOfficer(s)
+		    but the object should not be registered and created! for the Direktor... */
+		DisplayUnit* registerDisplayUnit(const std::function< DisplayUnit*(void) >& unitFactory)
+		{
+			if (ctx.amIinFOContext())
+			{
+				DisplayUnit* ds = unitFactory();
+				params.displayUnit.RegisterUnit(ds);
+				return ds;
+			}
+			else return NULL;
+		}
+
+		/** registers already existing DisplayUnit;
+		    don't use from Scenario::initializeScene() */
 		void registerDisplayUnit(DisplayUnit* ds)
 		{
 			if (ctx.amIinFOContext())
