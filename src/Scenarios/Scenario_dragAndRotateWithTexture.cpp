@@ -1,59 +1,87 @@
 #include "../DisplayUnits/SceneryBufferedDisplayUnit.h"
-#include "../util/Vector3d.h"
+#include "../DisplayUnits/FlightRecorderDisplayUnit.h"
 #include "../Geometries/Spheres.h"
 #include "../Geometries/util/SpheresFunctions.h"
-#include "../Agents/Nucleus4SAgent.h"
+#include "../Agents/NucleusNSAgent.h"
 #include "../Agents/util/Texture.h"
 #include "common/Scenarios.h"
-#include "../DisplayUnits/FlightRecorderDisplayUnit.h"
 
-class myDragAndTextureNucleus: public Nucleus4SAgent, TextureQuantized, TextureUpdater4S
+class myDragAndTextureNucleus: public NucleusNSAgent, Texture, TextureUpdater2pNS
 {
 public:
 	myDragAndTextureNucleus(const int _ID, const std::string& _type,
 	          const Spheres& shape,
 	          const float _currTime, const float _incrTime):
-		Nucleus4SAgent(_ID,_type, shape, _currTime,_incrTime),
-		TextureQuantized(60000, Vector3d<float>(2.0f,2.0f,2.0f), 8), //does not tear the texture in phantoms  (5x slower)
-		//Texture(60000), //tears the texture a bit in phantom images but it is not apparent in finalPreviews (5x faster)
-		TextureUpdater4S(shape)
+		NucleusNSAgent(_ID,_type, shape, _currTime,_incrTime),
+		//TextureQuantized(60000, Vector3d<float>(2.0f,2.0f,2.0f), 8), //does not tear the texture in phantoms  (5x slower)
+		Texture(10000), //tears the texture a bit in phantom images but it is not apparent in finalPreviews (5x faster)
+		TextureUpdater2pNS(shape)
 	{
 		cytoplasmWidth = 0.0f;
 
+		/*
 		//texture img: resolution -- makes sense to match it with the phantom img resolution
 		createPerlinTexture(futureGeometry, Vector3d<float>(2.0f),
 		                    5.0,8,4,6,    //Perlin
 		                    1.0f,         //texture intensity range centre
 		                    0.1f, true);  //quantization and shouldCollectOutlyingDots
+		*/
+		for (int i=2; i < noOfSpheres; ++i)
+		{
+			addTextureAlongLine(futureGeometry.getCentres()[0],futureGeometry.getCentres()[i],2000);
+			addTextureAlongLine(futureGeometry.getCentres()[1],futureGeometry.getCentres()[i],2000);
+		}
 	}
 
-	void advanceAndBuildIntForces(const float) override
+	void addTextureAlongLine(const Vector3d<float>& from, const Vector3d<float>& to,
+	                         const size_t noOfParticles = 5000)
+	{
+		Vector3d<float> delta = to - from;
+		delta /= (float)noOfParticles;
+
+		for (size_t i=0; i < noOfParticles; ++i)
+		{
+			dots.emplace_back(from + (float)i*delta);
+		}
+	}
+
+	void advanceAndBuildIntForces(const float futureGlobalTime) override
 	{
 		//add own forces (mutually opposite) to "head&tail" spheres (to spin it)
+		/*
 		Vector3d<FLOAT> rotationVelocity;
 		rotationVelocity.y = 1.5f* std::cos(currTime/30.f * 6.28f);
 		rotationVelocity.z = 1.5f* std::sin(currTime/30.f * 6.28f);
+		*/
 
-		forces.emplace_back(
-			(weights[0]/velocity_PersistenceTime) * rotationVelocity,
-			futureGeometry.getCentres()[0],0, ftype_drive );
+		const int radialPos = (ID-1) % 3;
+		const FLOAT velocity = (float)radialPos*0.4f + 0.6f;
+		//REPORT("ID=" << ID << " radialPos=" << radialPos << ", velocity=" << velocity);
+		Vector3d<FLOAT> travellingVelocity(0,velocity,0);
+		exertForceOnSphere(1,
+			(weights[0]/velocity_PersistenceTime) * travellingVelocity,
+			ftype_drive );
 
+		/*
 		rotationVelocity *= -1;
 		forces.emplace_back(
 			(weights[3]/velocity_PersistenceTime) * rotationVelocity,
 			futureGeometry.getCentres()[3],3, ftype_drive );
+		*/
 
 		//define own velocity
-		velocity_CurrentlyDesired.x = 1.0f* std::cos(currTime/10.f * 6.28f);
+		/*
+		velocity_CurrentlyDesired.y = 1.0f* std::cos(currTime/10.f * 6.28f);
 		velocity_CurrentlyDesired.z = 1.0f* std::sin(currTime/10.f * 6.28f);
+		*/
 
 		//call the original method... takes care of own velocity, spheres mis-alignments, etc.
-		Nucleus4SAgent::advanceAndBuildIntForces(0.f);
+		NucleusNSAgent::advanceAndBuildIntForces(futureGlobalTime);
 	}
 
 	void adjustGeometryByExtForces(void) override
 	{
-		Nucleus4SAgent::adjustGeometryByExtForces();
+		NucleusNSAgent::adjustGeometryByExtForces();
 
 		//update only just before the texture rendering event... (to save some comp. time)
 		if (Officer->willRenderNextFrame())
@@ -66,7 +94,7 @@ public:
 #else
 			const int dotOutliers = collectOutlyingDots(futureGeometry);
 			DEBUG_REPORT(dotOutliers << " (" << (float)(100*dotOutliers)/(float)dots.size()
-							 << " %) dots had to be moved inside the initial geometry");
+							 << " %) dots had to be moved inside the current geometry");
 #endif
 		}
 	}
@@ -77,18 +105,46 @@ public:
 		renderIntoPhantom(phantom);
 	}
 
-	void drawMask(DisplayUnit& du) override
+	void drawMask(i3d::Image3d<i3d::GRAY16>& img) override
 	{
-		int dID = DisplayUnit::firstIdForAgentObjects(ID);
+		//shortcuts to the mask image parameters
+		const Vector3d<FLOAT> res(img.GetResolution().GetRes());
+		const Vector3d<FLOAT> off(img.GetOffset());
 
-		//draw spheres
-		for (int i=0; i < futureGeometry.getNoOfSpheres(); ++i)
-			du.DrawPoint(dID++,futureGeometry.getCentres()[i],futureGeometry.getRadii()[i],5);
+		//shortcuts to our Own spheres
+		const Vector3d<FLOAT>* const centresO = futureGeometry.getCentres();
+		const FLOAT* const radiiO             = futureGeometry.getRadii();
+		const int iO                          = futureGeometry.getNoOfSpheres();
 
-		//draw skeletons
-		for (int i=1; i < futureGeometry.getNoOfSpheres(); ++i)
-			du.DrawLine(dID++,futureGeometry.getCentres()[i-1],futureGeometry.getCentres()[i],2);
+		//project and "clip" this AABB into the img frame
+		//so that voxels to sweep can be narrowed down...
+		//
+		//   sweeping position and boundaries (relevant to the 'img')
+		Vector3d<size_t> curPos, minSweepPX,maxSweepPX;
+		futureGeometry.AABB.exportInPixelCoords(img, minSweepPX,maxSweepPX);
+		//
+		//micron coordinate of the running voxel 'curPos'
+		Vector3d<FLOAT> centre;
+
+		//sweep and check intersection with spheres' volumes
+		for (curPos.z = minSweepPX.z; curPos.z < maxSweepPX.z; curPos.z++)
+			for (curPos.y = minSweepPX.y; curPos.y < maxSweepPX.y; curPos.y++)
+				for (curPos.x = minSweepPX.x; curPos.x < maxSweepPX.x; curPos.x++)
+				{
+					//get micron coordinate of the current voxel's centre
+					centre.toMicronsFrom(curPos, res,off);
+
+					//check the current voxel against all spheres
+					for (int i = 0; i < iO; ++i)
+					{
+						if ((centre-centresO[i]).len() <= radiiO[i])
+						{
+							img.SetVoxel(curPos.x,curPos.y,curPos.z, (i3d::GRAY16)(ID*100 + i));
+						}
+					}
+				}
 	}
+
 };
 
 
@@ -100,9 +156,6 @@ void Scenario_dragRotateAndTexture::initializeAgents(FrontOfficer* fo,int p,int)
 		REPORT("Populating only the first FO (which is not this one).");
 		return;
 	}
-
-	//to obtain a sequence of IDs for new agents...
-	int ID=1;
 
 	const int howManyToPlace = argc > 2? atoi(argv[2]) : 12;
 	DEBUG_REPORT("will rotate " << howManyToPlace << " nuclei...");
@@ -126,19 +179,44 @@ void Scenario_dragRotateAndTexture::initializeAgents(FrontOfficer* fo,int p,int)
 		pos.y += params.constants.sceneOffset.y;
 		pos.z += params.constants.sceneOffset.z;
 
-		Spheres s(4);
+		Spheres s(6);
+		//central axis
 		s.updateCentre(0,pos);
-		s.updateRadius(0,3.0f);
-		s.updateCentre(1,pos +6.0f*axis);
+		s.updateRadius(0,5.0f);
+		s.updateCentre(1,pos +8.0f*axis);
 		s.updateRadius(1,5.0f);
-		s.updateCentre(2,pos +12.0f*axis);
-		s.updateRadius(2,5.0f);
-		s.updateCentre(3,pos +18.0f*axis);
-		s.updateRadius(3,3.0f);
 
-		myDragAndTextureNucleus* ag = new myDragAndTextureNucleus(ID++,"nucleus travelling texture",s,params.constants.initTime,params.constants.incrTime);
-		ag->setDetailedDrawingMode(true);
-		fo->startNewAgent(ag);
+		//satellites
+		s.updateCentre(2,pos +Vector3d<float>(0,+5,0) +6.0f*axis);
+		s.updateRadius(2,3.0f);
+		s.updateCentre(3,pos +Vector3d<float>(0,0,+5) +6.0f*axis);
+		s.updateRadius(3,3.0f);
+		s.updateCentre(4,pos +Vector3d<float>(0,-5,0) +6.0f*axis);
+		s.updateRadius(4,3.0f);
+		s.updateCentre(5,pos +Vector3d<float>(0,0,-5) +6.0f*axis);
+		s.updateRadius(5,3.0f);
+
+		fo->startNewAgent(
+			new myDragAndTextureNucleus(fo->getNextAvailAgentID(),"nucleus travelling texture",
+		                               s, params.constants.initTime,params.constants.incrTime)
+		);
+
+		const Vector3d<float> shiftVec(14,0,0);
+		for (int i = 0; i < s.getNoOfSpheres(); ++i)
+			s.updateCentre(i, s.getCentres()[i] + shiftVec);
+
+		fo->startNewAgent(
+			new myDragAndTextureNucleus(fo->getNextAvailAgentID(),"nucleus travelling texture",
+		                               s, params.constants.initTime,params.constants.incrTime)
+		);
+
+		for (int i = 0; i < s.getNoOfSpheres(); ++i)
+			s.updateCentre(i, s.getCentres()[i] + shiftVec);
+
+		fo->startNewAgent(
+			new myDragAndTextureNucleus(fo->getNextAvailAgentID(),"nucleus travelling texture",
+		                               s, params.constants.initTime,params.constants.incrTime)
+		);
 	}
 }
 
@@ -146,7 +224,7 @@ void Scenario_dragRotateAndTexture::initializeAgents(FrontOfficer* fo,int p,int)
 void Scenario_dragRotateAndTexture::initializeScene()
 {
 	//override the output images
-	params.setOutputImgSpecs( Vector3d<float>(220,30,30), Vector3d<float>(40,160,160));
+	params.setOutputImgSpecs( Vector3d<float>(220,30,30), Vector3d<float>(70,160,160));
 
 	disks.enableImgMaskTIFFs();
 	disks.enableImgPhantomTIFFs();
@@ -155,8 +233,8 @@ void Scenario_dragRotateAndTexture::initializeScene()
 	displays.registerDisplayUnit( [](){ return new SceneryBufferedDisplayUnit("localhost:8765"); } );
 	displays.registerDisplayUnit( [](){ return new FlightRecorderDisplayUnit("/temp/FR_dragRotateAndTexture.txt"); } );
 
-	displays.registerImagingUnit("localFiji","localhost:54545");
-	displays.enableImgPhantomInImagingUnit("localFiji");
+	//displays.registerImagingUnit("localFiji","localhost:54545");
+	//displays.enableImgPhantomInImagingUnit("localFiji");
 }
 
 
