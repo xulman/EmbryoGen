@@ -458,3 +458,70 @@ void TextureUpdater4S::updateTextureCoords(std::vector<Dot>& dots, const Spheres
 		REPORT(outsideDots << " could not be updated (no matching sphere found, weird...)");
 #endif
 }
+
+
+void TextureUpdater2pNS::updateTextureCoords(std::vector<Dot>& dots, const Spheres& newGeom)
+{
+#ifdef DEBUG
+	if (newGeom.noOfSpheres != noOfSpheres)
+		throw ERROR_REPORT("Cannot update coordinates for " << newGeom.noOfSpheres
+		                << " sphere geometry, expected " << noOfSpheres << " spheres.");
+#endif
+	// backup: last geometry for which texture coordinates were valid
+	// and prepare the updating routines where "orientation is global"
+	Vector3d<FLOAT> tmp( newGeom.centres[sphereOnMainAxis] );
+	tmp -= newGeom.centres[sphereAtCentre];
+	for (int i=0; i < noOfSpheres; ++i)
+	{
+		prevCentre[i] = cu[i].prevCentre;
+		prevRadius[i] = cu[i].prevRadius;
+		cu[i].prepareUpdating(newGeom.centres[i], newGeom.radii[i], tmp);
+	}
+
+	//aux variables
+	float sum;
+	Vector3d<FLOAT> newPos;
+#ifdef DEBUG
+	int outsideDots = 0;
+#endif
+
+	//shift texture particles
+	for (auto& dot : dots)
+	{
+		//determine the weights
+		sum = 0;
+		for (int i=0; i < noOfSpheres; ++i)
+		{
+			tmp  = dot.pos;
+			tmp -= prevCentre[i];
+			__weights[i] = std::max(prevRadius[i] - tmp.len(), (FLOAT)0);
+			sum += __weights[i];
+		}
+
+		if (sum > 0)
+		{
+			//apply the weights
+			newPos = 0;
+			for (int i=0; i < noOfSpheres; ++i)
+			if (__weights[i] > 0)
+			{
+				tmp = dot.pos;
+				cu[i].updateCoord(tmp);
+				tmp *= __weights[i]/sum;
+				newPos += tmp;
+			}
+			dot.pos = newPos;
+		}
+		else
+		{
+#ifdef DEBUG
+			++outsideDots;
+#endif
+		}
+	}
+
+#ifdef DEBUG
+	if (outsideDots > 0)
+		REPORT(outsideDots << " could not be updated (no matching sphere found, weird...)");
+#endif
+}
