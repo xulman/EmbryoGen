@@ -109,6 +109,7 @@ void Director::execute(void)
 		willRenderNextFrameFlag = currTime+incrTime >= (float)frameCnt*expoTime;
 
 #ifndef DISTRIBUTED
+		FO->willRenderNextFrameFlag = this->willRenderNextFrameFlag;
 		FO->executeInternals();
 #endif
 		waitHereUntilEveryoneIsHereToo();
