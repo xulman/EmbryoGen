@@ -7,7 +7,7 @@ void ShapeHinter::drawForDebug(DisplayUnit& du)
 {
 	if (detailedDrawingMode)
 	{
-		int dID = ID << 17 | 1 << 16; //enable debug bit
+		int dID = DisplayUnit::firstIdForAgentDebugObjects(ID);
 
 		//draw bounding box of the complete ScalarImg
 		dID += RenderingFunctions::drawBox(du, dID,4,

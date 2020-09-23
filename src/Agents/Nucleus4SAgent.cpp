@@ -101,7 +101,7 @@ void Nucleus4SAgent::drawForDebug(DisplayUnit& du)
 	//(but also render only if under inspection)
 	if (detailedDrawingMode)
 	{
-		int dID = ID << 17 | 1 << 16; //enable debug bit
+		int dID = DisplayUnit::firstIdForAgentDebugObjects(ID);
 		dID += 32767; //we will be using IDs from the upper end of the reserved interval
 
 		//shape deviations:

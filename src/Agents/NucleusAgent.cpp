@@ -244,8 +244,8 @@ void NucleusAgent::drawMask(DisplayUnit& du)
 
 	//if not selected: draw cells with no debug bit
 	//if     selected: draw cells as a global debug object
-	int dID = ID << 17;
-	int gdID = ID*40 +5000;
+	int dID  = DisplayUnit::firstIdForAgentObjects(ID);
+	int gdID = DisplayUnit::firstIdForSceneDebugObjects() + ID*40 +5000;
 	//NB: 'd'ID = is for 'd'rawing, not for 'd'ebug !
 
 	//draw spheres
@@ -279,7 +279,7 @@ void NucleusAgent::drawForDebug(DisplayUnit& du)
 	if (detailedDrawingMode)
 	{
 		const int color = 2;
-		int dID = ID << 17 | 1 << 16; //enable debug bit
+		int dID = DisplayUnit::firstIdForAgentDebugObjects(ID);
 
 		//cell centres connection "line" (green):
 		for (int i=1; i < futureGeometry.noOfSpheres; ++i)
