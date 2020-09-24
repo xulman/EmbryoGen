@@ -79,7 +79,7 @@ public:
 
 	void drawMask(DisplayUnit& du) override
 	{
-		int dID = ID << 17;
+		int dID = DisplayUnit::firstIdForAgentObjects(ID);
 
 		//draw spheres
 		for (int i=0; i < futureGeometry.getNoOfSpheres(); ++i)

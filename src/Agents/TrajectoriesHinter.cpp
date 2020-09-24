@@ -6,7 +6,7 @@ void TrajectoriesHinter::drawForDebug(DisplayUnit& du)
 {
 	if (detailedDrawingMode)
 	{
-		const int DBG = ID << 17 | 1 << 16;
+		const int DBG = DisplayUnit::firstIdForAgentDebugObjects(ID);
 		int createdLines = 0;
 		int createdBalls = 0;
 		int createdVecs  = 0;

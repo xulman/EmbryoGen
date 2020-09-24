@@ -139,6 +139,15 @@ protected:
 	    and for which the list of ProximityPairs was built during collectExtForces() */
 	void adjustGeometryByForces(void);
 
+	/** helper method to (correctly) create a force acting on a sphere */
+	inline
+	void exertForceOnSphere(const int sphereIdx,
+	                        const Vector3d<FLOAT>& forceVector,
+	                        const ForceName forceType)
+	{
+		forces.emplace_back( forceVector, futureGeometry.centres[sphereIdx],sphereIdx, forceType);
+	}
+
 	// ------------- to implement one round of simulation -------------
 	void advanceAndBuildIntForces(const float futureGlobalTime) override;
 

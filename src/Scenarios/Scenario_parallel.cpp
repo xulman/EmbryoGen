@@ -123,7 +123,7 @@ public:
 	void drawMask(DisplayUnit& du)
 	{
 		//draw sphere at its current position
-		du.DrawPoint(ID << 17, geometry.getCentres()[0], geometry.getRadii()[0], 2);
+		du.DrawPoint(DisplayUnit::firstIdForAgentObjects(ID), geometry.getCentres()[0], geometry.getRadii()[0], 2);
 	}
 
 	void drawMask(i3d::Image3d<i3d::GRAY16>& mask)
