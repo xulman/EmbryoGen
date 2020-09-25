@@ -211,5 +211,29 @@ public:
 			REPORT("rotMatrix row3: " << rotMatrix[6] << "\t" << rotMatrix[7] << "\t" << rotMatrix[8]);
 		}
 	};
+
+	template <typename FT>
+	struct SquareMatrix {
+		explicit
+		SquareMatrix(int noOfSpheres) : side(noOfSpheres), data(new FT[side*side]) {}
+		~SquareMatrix() { delete[] data; }
+
+		const int side;
+		FT* const data;
+
+		FT* operator()(int row,int col) const { return data + (row*side +col); }
+		FT set(int row,int col, FT val) const { data[row*side +col] = val; return val; }
+		FT get(int row,int col) const { return data[row*side +col]; }
+
+		void print()
+		{
+			for (int row=0; row < side; ++row)
+			{
+				for (int col=0; col < side; ++col)
+					REPORT_NOHEADER_NOENDL("\t" << get(row,col));
+				REPORT_NOHEADER_JUSTENDL();
+			}
+		}
+	};
 };
 #endif
