@@ -61,7 +61,7 @@ void Texture::sampleDotsFromImage(const i3d::Image3d<VT>& img,
 
 
 void Texture::createPerlinTexture(const Spheres& geom,
-                                  const Vector3d<FLOAT> textureResolution,
+                                  const Vector3d<FLOAT>& textureResolution,
                                   const double var,
                                   const double alpha,
                                   const double beta,

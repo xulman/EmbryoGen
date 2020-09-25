@@ -98,7 +98,7 @@ public:
 	    Hence, with the higher value of the 'textureAverageIntensity', the contrast (ratio of
 	    the highest over smallest intensity value) of the texture is essentially worsened. */
 	void createPerlinTexture(const Spheres& geom,
-	                         const Vector3d<FLOAT> textureResolution,
+	                         const Vector3d<FLOAT>& textureResolution,
 	                         const double var,
 	                         const double alpha = 8,
 	                         const double beta = 4,
