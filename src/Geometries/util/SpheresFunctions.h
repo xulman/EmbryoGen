@@ -118,7 +118,7 @@ public:
 
 			//setup identity (no rotation) matrix if there's (nearly)
 			//no difference between the prev and new orientation
-			if (std::abs(rotAng) > 0.9999f)
+			if (std::abs(rotAng) > 0.999999999)
 			{
 				rotMatrix[0] = 1; rotMatrix[1] = 0; rotMatrix[2] = 0;
 				rotMatrix[3] = 0; rotMatrix[4] = 1; rotMatrix[5] = 0;
