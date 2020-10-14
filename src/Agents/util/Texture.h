@@ -325,12 +325,15 @@ class TextureUpdaterNS
 {
 public:
 	/** init the class with the current NS geometry */
-	TextureUpdaterNS(const Spheres& geom)
+	TextureUpdaterNS(const Spheres& geom, int maxNoOfNeighs = 1)
 		: noOfSpheres( testAndGetNoOfSpheres(geom) ),
+		  neigWeightMatrix(noOfSpheres),
 		  prevCentre(noOfSpheres), prevRadius(noOfSpheres),
 		  prevOrientation(noOfSpheres),
 		  __weights(new float[noOfSpheres])
 	{
+		resetNeigWeightMatrix(geom,maxNoOfNeighs);
+
 		//allocate and init properly
 		Vector3d<FLOAT> orientVec;
 		cu.reserve(noOfSpheres);
@@ -353,6 +356,19 @@ public:
 	    of the given list of texture dots */
 	void updateTextureCoords(std::vector<Dot>& dots, const Spheres& newGeom);
 
+	/** For each sphere, all overlapping (that is, neighboring) spheres are sorted
+	    first according to their radii, and according to the size of the overlap of
+	    two spheres if both are of the same radius; larger means earlier in the sorted
+	    list. Finally, 'maxNoOfNeighs' of spheres (or less if that many is not
+	    available) are marked in the 'neigWeightMatrix', all with weight 1. */
+	void resetNeigWeightMatrix(const Spheres& spheres, int maxNoOfNeighs = 1);
+
+	/** an alternative to resetNeigWeightMatrix() */
+	void setNeigWeightMatrix(const SpheresFunctions::SquareMatrix<FLOAT>& newWeightMatrix);
+
+	/** prints on the console */
+	void printNeigWeightMatrix();
+
 private:
 	/** this method can be regarded as a container of a code that is executed as the first
 	    when an object of this class is constructed, the purpose here is to test if the input
@@ -366,6 +382,10 @@ private:
 
 	/** coordinate updaters, one per sphere */
 	std::vector< SpheresFunctions::CoordsUpdater<FLOAT> > cu;
+
+	/** neighbors and their weights, in this implementation the weights are binary:
+	    a sphere is influenced by another one sphere (or equally by a few others) */
+	SpheresFunctions::SquareMatrix<FLOAT> neigWeightMatrix;
 
 	/** aux arrays for the updateTextureCoords() */
 	std::vector< Vector3d<FLOAT> > prevCentre;
