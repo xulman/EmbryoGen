@@ -1,6 +1,7 @@
 #ifndef TEXTURE_H
 #define TEXTURE_H
 
+#include <memory>
 #include <vector>
 #include <cmath>
 #include <i3d/image3d.h>
@@ -98,7 +99,7 @@ public:
 	    Hence, with the higher value of the 'textureAverageIntensity', the contrast (ratio of
 	    the highest over smallest intensity value) of the texture is essentially worsened. */
 	void createPerlinTexture(const Spheres& geom,
-	                         const Vector3d<FLOAT> textureResolution,
+	                         const Vector3d<FLOAT>& textureResolution,
 	                         const double var,
 	                         const double alpha = 8,
 	                         const double beta = 4,
@@ -250,5 +251,150 @@ private:
 	/** aux arrays for the updateTextureCoords() */
 	Vector3d<FLOAT> prevCentre[4];
 	FLOAT           prevRadius[4];
+};
+
+
+/**
+ * This class can update coordinates of the texture dots on-the-go as the underlying
+ * "2+NS" geometry is developing. This class is designed for agents that utilize
+ * an explicit body (polarity) axis and assume given two spheres are attached to/are
+ * defining this axis. Technically, it is an utility class wrapped around 2+N pieces
+ * of the SpheresFunctions::CoordsUpdater.
+ *
+ * The deal in "2+NS" geometry is that there is 2+N spheres and that some two spheres
+ * (through their centres) define the current orientation of the agent, which is then
+ * imposed on all spheres.
+ */
+class TextureUpdater2pNS
+{
+public:
+	/** init the class with the current 2pNS geometry */
+	TextureUpdater2pNS(const Spheres& geom, const int _sphereAtCentre=0, const int _sphereOnMainAxis=1)
+		: sphereAtCentre(   testAndReturnSphereIdx(geom,_sphereAtCentre) ),
+		  sphereOnMainAxis( testAndReturnSphereIdx(geom,_sphereOnMainAxis) ),
+		  noOfSpheres(geom.noOfSpheres),
+		  prevCentre(noOfSpheres), prevRadius(noOfSpheres),
+		  __weights(new float[noOfSpheres])
+	{
+		//allocate and init properly
+		const Vector3d<FLOAT> orientVec(geom.centres[sphereOnMainAxis]-geom.centres[sphereAtCentre]);
+		cu.reserve(noOfSpheres);
+		for (int i=0; i < noOfSpheres; ++i)
+			cu.emplace_back(geom.centres[i],geom.radii[i],orientVec);
+	}
+
+	/** source of a vector -- this together defines the body main axis, the cell's polarity if you will */
+	const int sphereAtCentre;
+	/** end of a vector -- this together defines the body main axis, the cell's polarity if you will */
+	const int sphereOnMainAxis;
+
+	/** total number of spheres, including the special two above; this would have been
+	    a template parameter if I were able to make this (otherwise templated) class
+	    a friend of the Spheres class .. I had issues with the template params */
+	const int noOfSpheres;
+
+	/** this method tracks the 2pNS geometry changes and updates, in accord, the coordinates
+	    of the given list of texture dots */
+	void updateTextureCoords(std::vector<Dot>& dots, const Spheres& newGeom);
+
+private:
+	int testAndReturnSphereIdx(const Spheres& geom, const int idx)
+	{
+		if (geom.noOfSpheres < 2)
+			throw ERROR_REPORT("Cannot init updating of coordinates, needs geometry of two or more spheres.");
+		if (idx < 0 || idx >= geom.noOfSpheres)
+			throw ERROR_REPORT("Invalid sphere idx (" << idx << ") when " << geom.noOfSpheres << " spheres avail.");
+		return idx;
+	}
+
+	/** coordinate updaters, one per sphere */
+	std::vector< SpheresFunctions::CoordsUpdater<FLOAT> > cu;
+
+	/** aux arrays for the updateTextureCoords() */
+	std::vector< Vector3d<FLOAT> > prevCentre;
+	std::vector< FLOAT >           prevRadius;
+
+	/** aux array to be allocated once and not repeatedly in updateTextureCoords();
+	    despite private, gcc finds it in derived classes and complains about confusion
+	    with NucleusAgent::weights which is why the attribute's name got crippled... */
+	std::unique_ptr<float[]> __weights;
+};
+
+
+class TextureUpdaterNS
+{
+public:
+	/** init the class with the current NS geometry */
+	TextureUpdaterNS(const Spheres& geom, int maxNoOfNeighs = 1)
+		: noOfSpheres( testAndGetNoOfSpheres(geom) ),
+		  neigWeightMatrix(noOfSpheres),
+		  prevCentre(noOfSpheres), prevRadius(noOfSpheres),
+		  prevOrientation(noOfSpheres),
+		  __weights(new float[noOfSpheres])
+	{
+		resetNeigWeightMatrix(geom,maxNoOfNeighs);
+
+		//allocate and init properly
+		Vector3d<FLOAT> orientVec;
+		cu.reserve(noOfSpheres);
+		for (int i=0; i < noOfSpheres; ++i)
+		{
+			getLocalOrientation(geom,i,orientVec);
+			cu.emplace_back(geom.centres[i],geom.radii[i],orientVec);
+		}
+	}
+
+	/** total number of spheres, including the special two; this would have been
+	    a template parameter if I were able to make this (otherwise templated) class
+	    a friend of the Spheres class .. I had issues with the template params */
+	const int noOfSpheres;
+
+	/** extract "orientation" (into 'orientVec') of 'idx'-sphere in the given 'spheres' geometry */
+	void getLocalOrientation(const Spheres& spheres, const int idx, Vector3d<FLOAT>& orientVec);
+
+	/** this method tracks the NS geometry changes and updates, in accord, the coordinates
+	    of the given list of texture dots */
+	void updateTextureCoords(std::vector<Dot>& dots, const Spheres& newGeom);
+
+	/** For each sphere, all overlapping (that is, neighboring) spheres are sorted
+	    first according to their radii, and according to the size of the overlap of
+	    two spheres if both are of the same radius; larger means earlier in the sorted
+	    list. Finally, 'maxNoOfNeighs' of spheres (or less if that many is not
+	    available) are marked in the 'neigWeightMatrix', all with weight 1. */
+	void resetNeigWeightMatrix(const Spheres& spheres, int maxNoOfNeighs = 1);
+
+	/** an alternative to resetNeigWeightMatrix() */
+	void setNeigWeightMatrix(const SpheresFunctions::SquareMatrix<FLOAT>& newWeightMatrix);
+
+	/** prints on the console */
+	void printNeigWeightMatrix();
+
+private:
+	/** this method can be regarded as a container of a code that is executed as the first
+	    when an object of this class is constructed, the purpose here is to test if the input
+	    geometry is valid for this class, and to fill (const'ed) this.noOfSpheres */
+	int testAndGetNoOfSpheres(const Spheres& geom)
+	{
+		if (geom.noOfSpheres < 2)
+			throw ERROR_REPORT("Cannot init updating of coordinates, needs geometry of two or more spheres.");
+		return geom.noOfSpheres;
+	}
+
+	/** coordinate updaters, one per sphere */
+	std::vector< SpheresFunctions::CoordsUpdater<FLOAT> > cu;
+
+	/** neighbors and their weights, in this implementation the weights are binary:
+	    a sphere is influenced by another one sphere (or equally by a few others) */
+	SpheresFunctions::SquareMatrix<FLOAT> neigWeightMatrix;
+
+	/** aux arrays for the updateTextureCoords() */
+	std::vector< Vector3d<FLOAT> > prevCentre;
+	std::vector< FLOAT >           prevRadius;
+	std::vector< Vector3d<FLOAT> > prevOrientation;
+
+	/** aux array to be allocated once and not repeatedly in updateTextureCoords();
+	    despite private, gcc finds it in derived classes and complains about confusion
+	    with NucleusAgent::weights which is why the attribute's name got crippled... */
+	std::unique_ptr<float[]> __weights;
 };
 #endif

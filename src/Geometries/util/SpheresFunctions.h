@@ -118,7 +118,7 @@ public:
 
 			//setup identity (no rotation) matrix if there's (nearly)
 			//no difference between the prev and new orientation
-			if (std::abs(rotAng) > 0.9999f)
+			if (std::abs(rotAng) > 0.999999999)
 			{
 				rotMatrix[0] = 1; rotMatrix[1] = 0; rotMatrix[2] = 0;
 				rotMatrix[3] = 0; rotMatrix[4] = 1; rotMatrix[5] = 0;
@@ -209,6 +209,30 @@ public:
 			REPORT("rotMatrix row1: " << rotMatrix[0] << "\t" << rotMatrix[1] << "\t" << rotMatrix[2]);
 			REPORT("rotMatrix row2: " << rotMatrix[3] << "\t" << rotMatrix[4] << "\t" << rotMatrix[5]);
 			REPORT("rotMatrix row3: " << rotMatrix[6] << "\t" << rotMatrix[7] << "\t" << rotMatrix[8]);
+		}
+	};
+
+	template <typename FT>
+	struct SquareMatrix {
+		explicit
+		SquareMatrix(int noOfSpheres) : side(noOfSpheres), data(new FT[side*side]) {}
+		~SquareMatrix() { delete[] data; }
+
+		const int side;
+		FT* const data;
+
+		FT* operator()(int row,int col) const { return data + (row*side +col); }
+		FT set(int row,int col, FT val) const { data[row*side +col] = val; return val; }
+		FT get(int row,int col) const { return data[row*side +col]; }
+
+		void print()
+		{
+			for (int row=0; row < side; ++row)
+			{
+				for (int col=0; col < side; ++col)
+					REPORT_NOHEADER_NOENDL("\t" << get(row,col));
+				REPORT_NOHEADER_JUSTENDL();
+			}
 		}
 	};
 };

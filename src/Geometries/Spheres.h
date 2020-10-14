@@ -125,9 +125,12 @@ public:
 	friend class SpheresFunctions;
 	friend class NucleusAgent;
 	friend class Nucleus4SAgent;
+	friend class NucleusNSAgent;
 	friend class Texture;
 	friend class TextureQuantized;
 	friend class TextureUpdater4S;
+	friend class TextureUpdaterNS;
+	friend class TextureUpdater2pNS;
 
 	// ----------------- support for serialization and deserealization -----------------
 public:

@@ -61,7 +61,7 @@ void Texture::sampleDotsFromImage(const i3d::Image3d<VT>& img,
 
 
 void Texture::createPerlinTexture(const Spheres& geom,
-                                  const Vector3d<FLOAT> textureResolution,
+                                  const Vector3d<FLOAT>& textureResolution,
                                   const double var,
                                   const double alpha,
                                   const double beta,
@@ -442,6 +442,286 @@ void TextureUpdater4S::updateTextureCoords(std::vector<Dot>& dots, const Spheres
 				tmp = dot.pos;
 				cu[i].updateCoord(tmp);
 				newPos += (weights[i]/sum) * tmp;
+			}
+			dot.pos = newPos;
+		}
+		else
+		{
+#ifdef DEBUG
+			++outsideDots;
+#endif
+		}
+	}
+
+#ifdef DEBUG
+	if (outsideDots > 0)
+		REPORT(outsideDots << " could not be updated (no matching sphere found, weird...)");
+#endif
+}
+
+
+void TextureUpdater2pNS::updateTextureCoords(std::vector<Dot>& dots, const Spheres& newGeom)
+{
+#ifdef DEBUG
+	if (newGeom.noOfSpheres != noOfSpheres)
+		throw ERROR_REPORT("Cannot update coordinates for " << newGeom.noOfSpheres
+		                << " sphere geometry, expected " << noOfSpheres << " spheres.");
+#endif
+	// backup: last geometry for which texture coordinates were valid
+	// and prepare the updating routines where "orientation is global"
+	Vector3d<FLOAT> tmp( newGeom.centres[sphereOnMainAxis] );
+	tmp -= newGeom.centres[sphereAtCentre];
+	for (int i=0; i < noOfSpheres; ++i)
+	{
+		prevCentre[i] = cu[i].prevCentre;
+		prevRadius[i] = cu[i].prevRadius;
+		cu[i].prepareUpdating(newGeom.centres[i], newGeom.radii[i], tmp);
+	}
+
+	//aux variables
+	float sum;
+	Vector3d<FLOAT> newPos;
+#ifdef DEBUG
+	int outsideDots = 0;
+#endif
+
+	//shift texture particles
+	for (auto& dot : dots)
+	{
+		//determine the weights
+		sum = 0;
+		for (int i=0; i < noOfSpheres; ++i)
+		{
+			tmp  = dot.pos;
+			tmp -= prevCentre[i];
+			__weights[i] = std::max(prevRadius[i] - tmp.len(), (FLOAT)0);
+			sum += __weights[i];
+		}
+
+		if (sum > 0)
+		{
+			//apply the weights
+			newPos = 0;
+			for (int i=0; i < noOfSpheres; ++i)
+			if (__weights[i] > 0)
+			{
+				tmp = dot.pos;
+				cu[i].updateCoord(tmp);
+				tmp *= __weights[i]/sum;
+				newPos += tmp;
+			}
+			dot.pos = newPos;
+		}
+		else
+		{
+#ifdef DEBUG
+			++outsideDots;
+#endif
+		}
+	}
+
+#ifdef DEBUG
+	if (outsideDots > 0)
+		REPORT(outsideDots << " could not be updated (no matching sphere found, weird...)");
+#endif
+}
+
+
+void TextureUpdaterNS::resetNeigWeightMatrix(const Spheres& spheres, int maxNoOfNeighs)
+{
+#ifdef DEBUG
+	if (spheres.noOfSpheres != noOfSpheres)
+		throw ERROR_REPORT("Cannot update coordinates for " << spheres.noOfSpheres
+		                << " sphere geometry, expected " << noOfSpheres << " spheres.");
+
+	if (maxNoOfNeighs < 1 || maxNoOfNeighs >= noOfSpheres)
+		throw ERROR_REPORT("requesting maxNoOfNeighs=" << maxNoOfNeighs
+		                << " when only " << noOfSpheres << "-1 neighbors are available");
+#endif
+
+	struct myGreaterThan_t {
+		myGreaterThan_t(const Spheres& s): spheres(s) {}
+		const Spheres& spheres;
+
+		int refIdx;
+		bool operator()(const int l, const int r) const
+		{
+			//make sure the refIdx is sorted away to the far-most end of the sequence,
+			//that is, the refIdx is always "smaller than"
+			if (l == refIdx) return false;
+			if (r == refIdx) return true;
+
+			//need second test?
+			if (spheres.radii[l] == spheres.radii[r])
+			{
+				//secondary test: need to calculate overlaps
+				const FLOAT refRadius = spheres.radii[refIdx];
+
+				FLOAT otherRadius = spheres.radii[l];
+				FLOAT lOverlapSize = refRadius + otherRadius;
+				lOverlapSize -= (spheres.centres[refIdx] - spheres.centres[l]).len();
+				lOverlapSize = std::min(lOverlapSize, std::min(2*refRadius,2*otherRadius));
+
+				otherRadius = spheres.radii[r];
+				FLOAT rOverlapSize = refRadius + otherRadius;
+				rOverlapSize -= (spheres.centres[refIdx] - spheres.centres[r]).len();
+				rOverlapSize = std::min(rOverlapSize, std::min(2*refRadius,2*otherRadius));
+
+				return lOverlapSize > rOverlapSize;
+			}
+			else
+				//primary test
+				return spheres.radii[l] > spheres.radii[r];
+		}
+	} myGreaterThan(spheres);
+
+	//prepare the array of all available indices,
+	//the array will always be some permutation of all sphere indices
+	std::vector<int> sortedIndices(noOfSpheres);
+	for (int i=0; i < noOfSpheres; ++i) sortedIndices[i] = i;
+
+	//for every sphere:
+	for (int row=0; row < noOfSpheres; ++row)
+	{
+		//re-sort indices
+		myGreaterThan.refIdx = row;
+		std::sort(sortedIndices.begin(),sortedIndices.end(), myGreaterThan);
+
+		//list indices of spheres in the order optimal for "mating"
+		DEBUG_REPORT_NOENDL("sphere #" << row << ":");
+
+		int foundNeighs = 0;
+		for (int sortedIdx=0; sortedIdx < noOfSpheres-1; ++sortedIdx)
+		//NB: avoid self-eval: row idx is always at sortedIndices[noOfSpheres-1]
+		{
+			const int col = sortedIndices[sortedIdx];
+			//NB: col != row (unless sortedIdx+1 == noOfSpheres)
+
+			if (foundNeighs >= maxNoOfNeighs)
+			{
+				//this makes sure the complete matrix row was touched
+				*neigWeightMatrix(row,col) = 0;
+				DEBUG_REPORT_NOHEADER_NOENDL("  " << col << "(n)");
+				continue;
+			}
+
+			//only when not enough of neighs has been discovered so far,
+			//but consider only overlapping neighs!
+			const FLOAT overlap = std::max<FLOAT>(
+				-(spheres.centres[row] - spheres.centres[col]).len()
+				+ spheres.radii[row] + spheres.radii[col] , 0);
+			if (overlap > 0)
+			{
+				*neigWeightMatrix(row,col) = 1;
+				++foundNeighs;
+				DEBUG_REPORT_NOHEADER_NOENDL("  " << col << "(y)");
+			}
+			else
+			{
+				*neigWeightMatrix(row,col) = 0;
+				DEBUG_REPORT_NOHEADER_NOENDL("  " << col << "(n)");
+			}
+		}
+		*neigWeightMatrix(row,row) = (float)foundNeighs;
+		DEBUG_REPORT_NOHEADER(" = " << foundNeighs << " links");
+
+		if (foundNeighs == 0)
+			throw ERROR_REPORT("Unsupported sphere configuration. Every sphere must overlap with at least one another.");
+	}
+}
+
+
+void TextureUpdaterNS::setNeigWeightMatrix(const SpheresFunctions::SquareMatrix<FLOAT>& newWeightMatrix)
+{
+#ifdef DEBUG
+	if (neigWeightMatrix.side != newWeightMatrix.side)
+		throw ERROR_REPORT("Attempting to set matrix of different size.");
+#endif
+
+	const int totalLength = neigWeightMatrix.side * neigWeightMatrix.side;
+	for (int i=0; i < totalLength; ++i)
+		neigWeightMatrix.data[i] = newWeightMatrix.data[i];
+}
+
+
+void TextureUpdaterNS::printNeigWeightMatrix()
+{
+	REPORT("weights among neighboring spheres:");
+	neigWeightMatrix.print();
+}
+
+
+void TextureUpdaterNS::getLocalOrientation(const Spheres& spheres, const int idx, Vector3d<FLOAT>& orientVec)
+{
+	Vector3d<FLOAT> tmpVec;
+
+	orientVec = 0;
+	for (int i=0; i < spheres.noOfSpheres; ++i)
+	if (i != idx && *neigWeightMatrix(idx,i) > 0)
+	{
+		//vec from 'idx' to 'i'
+		tmpVec  = spheres.centres[i];
+		tmpVec -= spheres.centres[idx];
+
+		//weight this contribution
+		tmpVec.changeToUnitOrZero();
+		tmpVec *= *neigWeightMatrix(idx,i) / *neigWeightMatrix(idx,idx);
+
+		orientVec += tmpVec;
+	}
+	orientVec.changeToUnitOrZero();
+}
+
+
+void TextureUpdaterNS::updateTextureCoords(std::vector<Dot>& dots, const Spheres& newGeom)
+{
+#ifdef DEBUG
+	if (newGeom.noOfSpheres != noOfSpheres)
+		throw ERROR_REPORT("Cannot update coordinates for " << newGeom.noOfSpheres
+		                << " sphere geometry, expected " << noOfSpheres << " spheres.");
+#endif
+	// backup: last geometry for which user coordinates were valid
+	// and prepare the updating routines...
+	Vector3d<FLOAT> tmp;
+	for (int i=0; i < noOfSpheres; ++i)
+	{
+		prevCentre[i] = cu[i].prevCentre;
+		prevRadius[i] = cu[i].prevRadius;
+		getLocalOrientation(newGeom,i,tmp);
+		cu[i].prepareUpdating( newGeom.centres[i], newGeom.radii[i], tmp );
+	}
+
+	//aux variables
+	float sum;
+	Vector3d<FLOAT> newPos;
+#ifdef DEBUG
+	int outsideDots = 0;
+#endif
+
+	//shift texture particles
+	for (auto& dot : dots)
+	{
+		//determine the weights
+		sum = 0;
+		for (int i=0; i < noOfSpheres; ++i)
+		{
+			tmp  = dot.pos;
+			tmp -= prevCentre[i];
+			__weights[i] = std::max(prevRadius[i] - tmp.len(), (FLOAT)0);
+			sum += __weights[i];
+		}
+
+		if (sum > 0)
+		{
+			//apply the weights
+			newPos = 0;
+			for (int i=0; i < noOfSpheres; ++i)
+			if (__weights[i] > 0)
+			{
+				tmp = dot.pos;
+				cu[i].updateCoord(tmp);
+				tmp *= __weights[i]/sum;
+				newPos += tmp;
 			}
 			dot.pos = newPos;
 		}
