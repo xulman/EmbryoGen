@@ -4,6 +4,25 @@
 #include <memory>
 #include "NucleusAgent.h"
 
+/**
+ * In the 2pNS model (this class) the mutual arrangement of spheres is represented
+ * relatively w.r.t. the axis between the first two spheres (current direction is
+ * cached in 'centreAxis') and the firm 'basalPlaneNormal' vector. So, the actual
+ * position of the first two spheres is given only with the distance between the
+ * two ('centreDistance'). The remaining spheres are projected to real world coords
+ * using the firm local coords ('spheresLocalCoords') and the current state of
+ * the axes ('centreAxis', 'basalPlaneNormal', 'aux3rdAxis'). Thus, the expected
+ * position of the remaining spheres depends on the current position of the first
+ * two spheres.
+ *
+ * Whenever a sphere is detected to be off its expected position, a 's2s' force F
+ * is created whose orientation is towards the expected position and magnitude is
+ * driven by the size of the current displacement. Furthermore, opposite, equally
+ * strong, force is "distributed" across spheres that are in touch with this one.
+ * That said, a sum of these forces amounts to -F. The weights at which the forces
+ * are distributed are proportional to the overlap of the sphere in question and
+ * the offset sphere (the one with the full force F).
+ */
 class Nucleus2pNSAgent: public NucleusAgent
 {
 public:
@@ -56,21 +75,37 @@ protected:
 	void updateAuxAxes();
 
 
-	/** calculates a difference from the expected position of centres of all but
-	    the first two spheres from their current position, and stores it into 'offs' */
+	/** for all but the first two spheres, this method calculates a difference
+	    from the current position of spheres centres to the expected position,
+	    and stores it into 'offs' */
 	void getCurrentOffVectorsForCentres();
 
 	/** this is the raw array of Vector3ds to work with,
 	    the array is filled with this.getCurrentOffVectorsForCentres() */
 	std::unique_ptr< Vector3d<FLOAT>[] > offs;
 
+	/** an aux array for distributeCounterForcesAmongTouchingSpheres() that is
+	    living here to shield it from re-allocating with every method call */
+	std::unique_ptr< FLOAT[] > overlaps;
+
 	// ------------- externals geometry -------------
 
 	// ------------- to implement one round of simulation -------------
+	/** Here, the 's2s - sphere2sphere' forces are created on demand, acting on
+	    individual (centres of) spheres based on the difference of the centres from
+	    their expected positions. In the end, the NucleusAgent::advanceAndBuildIntForces()
+	    is called... to actually determine the final force per sphere and
+	    implement geometry changes. */
 	void advanceAndBuildIntForces(const float futureGlobalTime) override;
+
+	/** given a force acting on a certain sphere, it creates scaled forces, all
+	    parallel and opposite to the given one, at spheres that are overlapping
+	    with this one, scaling is proportional to the overlap */
+	void distributeCounterForcesAmongTouchingSpheres(const ForceVector3d<FLOAT>& counterForce);
 
 protected:
 	// ------------- rendering -------------
-	//void drawForDebug(DisplayUnit& du) override;
+	void drawMask(DisplayUnit& du) override;
+	void drawForDebug(DisplayUnit& du) override;
 };
 #endif
