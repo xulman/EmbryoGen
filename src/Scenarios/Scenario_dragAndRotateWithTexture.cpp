@@ -6,7 +6,7 @@
 #include "../Agents/util/Texture.h"
 #include "common/Scenarios.h"
 
-class myDragAndTextureNucleus: public NucleusNSAgent, Texture, TextureUpdater2pNS
+class myDragAndTextureNucleus: public NucleusNSAgent, Texture, TextureUpdaterNS
 {
 public:
 	myDragAndTextureNucleus(const int _ID, const std::string& _type,
@@ -15,7 +15,7 @@ public:
 		NucleusNSAgent(_ID,_type, shape, _currTime,_incrTime),
 		//TextureQuantized(60000, Vector3d<float>(2.0f,2.0f,2.0f), 8), //does not tear the texture in phantoms  (5x slower)
 		Texture(10000), //tears the texture a bit in phantom images but it is not apparent in finalPreviews (5x faster)
-		TextureUpdater2pNS(shape)
+		TextureUpdaterNS(shape)
 	{
 		cytoplasmWidth = 0.0f;
 
