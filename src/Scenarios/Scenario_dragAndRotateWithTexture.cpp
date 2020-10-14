@@ -6,27 +6,19 @@
 #include "../Agents/util/Texture.h"
 #include "common/Scenarios.h"
 
-class myDragAndTextureNucleus: public NucleusNSAgent, Texture, TextureUpdaterNS
+class myDragAndTextureNucleus_common: public NucleusNSAgent, Texture
 {
 public:
-	myDragAndTextureNucleus(const int _ID, const std::string& _type,
+	myDragAndTextureNucleus_common(const int _ID, const std::string& _type,
 	          const Spheres& shape,
 	          const float _currTime, const float _incrTime):
 		NucleusNSAgent(_ID,_type, shape, _currTime,_incrTime),
-		//TextureQuantized(60000, Vector3d<float>(2.0f,2.0f,2.0f), 8), //does not tear the texture in phantoms  (5x slower)
-		Texture(10000), //tears the texture a bit in phantom images but it is not apparent in finalPreviews (5x faster)
-		TextureUpdaterNS(shape)
+		//TextureQuantized(60000, Vector3d<float>(2.0f,2.0f,2.0f), 8) //does not tear the texture in phantoms  (5x slower)
+		Texture(10000) //tears the texture a bit in phantom images but it is not apparent in finalPreviews (5x faster)
 	{
 		cytoplasmWidth = 0.0f;
 
-		/*
-		//texture img: resolution -- makes sense to match it with the phantom img resolution
-		createPerlinTexture(futureGeometry, Vector3d<float>(2.0f),
-		                    5.0,8,4,6,    //Perlin
-		                    1.0f,         //texture intensity range centre
-		                    0.1f, true);  //quantization and shouldCollectOutlyingDots
-		*/
-		for (int i=2; i < noOfSpheres; ++i)
+		for (int i=2; i < shape.getNoOfSpheres(); ++i)
 		{
 			addTextureAlongLine(futureGeometry.getCentres()[0],futureGeometry.getCentres()[i],2000);
 			addTextureAlongLine(futureGeometry.getCentres()[1],futureGeometry.getCentres()[i],2000);
@@ -54,8 +46,11 @@ public:
 		rotationVelocity.z = 1.5f* std::sin(currTime/30.f * 6.28f);
 		*/
 
+		/*
 		const int radialPos = (ID-1) % 3;
-		const FLOAT velocity = (float)radialPos*0.4f + 0.6f;
+		const FLOAT velocity = (float)radialPos*0.4f + 0.6f; - rings of different velocities
+		*/
+		const FLOAT velocity = (float)1.0f;
 		//REPORT("ID=" << ID << " radialPos=" << radialPos << ", velocity=" << velocity);
 		Vector3d<FLOAT> travellingVelocity(0,velocity,0);
 		exertForceOnSphere(1,
@@ -99,6 +94,8 @@ public:
 		}
 	}
 
+	virtual void updateTextureCoords(std::vector<Dot>&, const Spheres&)
+	{ REPORT("don't you dare to call me!"); }
 
 	void drawTexture(i3d::Image3d<float>& phantom, i3d::Image3d<float>&) override
 	{
@@ -144,7 +141,69 @@ public:
 					}
 				}
 	}
+};
 
+
+//==========================================================================
+class myDragAndTextureNucleus_NStexture: public myDragAndTextureNucleus_common, TextureUpdaterNS
+{
+public:
+	myDragAndTextureNucleus_NStexture(const int _ID, const std::string& _type,
+	          const Spheres& shape,
+	          const float _currTime, const float _incrTime,
+	          const int maxNeighs=1):
+		myDragAndTextureNucleus_common(_ID,_type,shape,_currTime,_incrTime),
+		TextureUpdaterNS(shape,maxNeighs)
+	{}
+
+	void updateTextureCoords(std::vector<Dot>& dots, const Spheres& newGeom) override
+	{ this->TextureUpdaterNS::updateTextureCoords(dots,newGeom); }
+
+	void drawMask(DisplayUnit& du) override
+	{
+		//show the usual stuff....
+		NucleusNSAgent::drawMask(du);
+
+		//and also the local orientations
+		Vector3d<float> orientVec;
+		int gdID = DisplayUnit::firstIdForSceneDebugObjects() + ID*40 +15000;
+		for (int i=0; i < futureGeometry.getNoOfSpheres(); ++i)
+		{
+			getLocalOrientation(futureGeometry,i,orientVec);
+			du.DrawVector(gdID++, futureGeometry.getCentres()[i],orientVec,0);
+		}
+	}
+};
+
+
+class myDragAndTextureNucleus_2pNStexture: public myDragAndTextureNucleus_common, TextureUpdater2pNS
+{
+public:
+	myDragAndTextureNucleus_2pNStexture(const int _ID, const std::string& _type,
+	          const Spheres& shape,
+	          const float _currTime, const float _incrTime):
+		myDragAndTextureNucleus_common(_ID,_type,shape,_currTime,_incrTime),
+		TextureUpdater2pNS(shape,0,1)
+	{}
+
+	void updateTextureCoords(std::vector<Dot>& dots, const Spheres& newGeom) override
+	{ this->TextureUpdater2pNS::updateTextureCoords(dots,newGeom); }
+
+	void drawMask(DisplayUnit& du) override
+	{
+		//show the usual stuff....
+		NucleusNSAgent::drawMask(du);
+
+		//and also the local orientations
+		Vector3d<float> orientVec = futureGeometry.getCentres()[sphereOnMainAxis];
+		orientVec -= futureGeometry.getCentres()[sphereAtCentre];
+		orientVec.changeToUnitOrZero();
+		int gdID = DisplayUnit::firstIdForSceneDebugObjects() + ID*40 +15000;
+		for (int i=0; i < futureGeometry.getNoOfSpheres(); ++i)
+		{
+			du.DrawVector(gdID++, futureGeometry.getCentres()[i],orientVec,0);
+		}
+	}
 };
 
 
@@ -197,8 +256,8 @@ void Scenario_dragRotateAndTexture::initializeAgents(FrontOfficer* fo,int p,int)
 		s.updateRadius(5,3.0f);
 
 		fo->startNewAgent(
-			new myDragAndTextureNucleus(fo->getNextAvailAgentID(),"nucleus travelling texture",
-		                               s, params.constants.initTime,params.constants.incrTime)
+			new myDragAndTextureNucleus_NStexture(fo->getNextAvailAgentID(),"nucleus travelling NS (3) texture",
+			                                      s, params.constants.initTime,params.constants.incrTime,3)
 		);
 
 		const Vector3d<float> shiftVec(14,0,0);
@@ -206,16 +265,16 @@ void Scenario_dragRotateAndTexture::initializeAgents(FrontOfficer* fo,int p,int)
 			s.updateCentre(i, s.getCentres()[i] + shiftVec);
 
 		fo->startNewAgent(
-			new myDragAndTextureNucleus(fo->getNextAvailAgentID(),"nucleus travelling texture",
-		                               s, params.constants.initTime,params.constants.incrTime)
+			new myDragAndTextureNucleus_NStexture(fo->getNextAvailAgentID(),"nucleus travelling NS texture",
+			                                      s, params.constants.initTime,params.constants.incrTime)
 		);
 
 		for (int i = 0; i < s.getNoOfSpheres(); ++i)
 			s.updateCentre(i, s.getCentres()[i] + shiftVec);
 
 		fo->startNewAgent(
-			new myDragAndTextureNucleus(fo->getNextAvailAgentID(),"nucleus travelling texture",
-		                               s, params.constants.initTime,params.constants.incrTime)
+			new myDragAndTextureNucleus_2pNStexture(fo->getNextAvailAgentID(),"nucleus travelling 2pNS texture",
+			                                        s, params.constants.initTime,params.constants.incrTime)
 		);
 	}
 }
