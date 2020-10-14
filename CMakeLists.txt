@@ -96,6 +96,7 @@ set(SOURCES
 		src/Agents/util/Texture.cpp
 		src/Agents/NucleusAgent.cpp
 		src/Agents/Nucleus4SAgent.cpp
+		src/Agents/NucleusNSAgent.cpp
 		src/Agents/ShapeHinter.cpp
 		src/Agents/TrajectoriesHinter.cpp
 		src/Scenarios/common/Scenario.cpp
