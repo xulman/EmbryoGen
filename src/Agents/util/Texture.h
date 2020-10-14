@@ -319,4 +319,62 @@ private:
 	    with NucleusAgent::weights which is why the attribute's name got crippled... */
 	std::unique_ptr<float[]> __weights;
 };
+
+
+class TextureUpdaterNS
+{
+public:
+	/** init the class with the current NS geometry */
+	TextureUpdaterNS(const Spheres& geom)
+		: noOfSpheres( testAndGetNoOfSpheres(geom) ),
+		  prevCentre(noOfSpheres), prevRadius(noOfSpheres),
+		  prevOrientation(noOfSpheres),
+		  __weights(new float[noOfSpheres])
+	{
+		//allocate and init properly
+		Vector3d<FLOAT> orientVec;
+		cu.reserve(noOfSpheres);
+		for (int i=0; i < noOfSpheres; ++i)
+		{
+			getLocalOrientation(geom,i,orientVec);
+			cu.emplace_back(geom.centres[i],geom.radii[i],orientVec);
+		}
+	}
+
+	/** total number of spheres, including the special two; this would have been
+	    a template parameter if I were able to make this (otherwise templated) class
+	    a friend of the Spheres class .. I had issues with the template params */
+	const int noOfSpheres;
+
+	/** extract "orientation" (into 'orientVec') of 'idx'-sphere in the given 'spheres' geometry */
+	void getLocalOrientation(const Spheres& spheres, const int idx, Vector3d<FLOAT>& orientVec);
+
+	/** this method tracks the NS geometry changes and updates, in accord, the coordinates
+	    of the given list of texture dots */
+	void updateTextureCoords(std::vector<Dot>& dots, const Spheres& newGeom);
+
+private:
+	/** this method can be regarded as a container of a code that is executed as the first
+	    when an object of this class is constructed, the purpose here is to test if the input
+	    geometry is valid for this class, and to fill (const'ed) this.noOfSpheres */
+	int testAndGetNoOfSpheres(const Spheres& geom)
+	{
+		if (geom.noOfSpheres < 2)
+			throw ERROR_REPORT("Cannot init updating of coordinates, needs geometry of two or more spheres.");
+		return geom.noOfSpheres;
+	}
+
+	/** coordinate updaters, one per sphere */
+	std::vector< SpheresFunctions::CoordsUpdater<FLOAT> > cu;
+
+	/** aux arrays for the updateTextureCoords() */
+	std::vector< Vector3d<FLOAT> > prevCentre;
+	std::vector< FLOAT >           prevRadius;
+	std::vector< Vector3d<FLOAT> > prevOrientation;
+
+	/** aux array to be allocated once and not repeatedly in updateTextureCoords();
+	    despite private, gcc finds it in derived classes and complains about confusion
+	    with NucleusAgent::weights which is why the attribute's name got crippled... */
+	std::unique_ptr<float[]> __weights;
+};
 #endif

@@ -129,6 +129,7 @@ public:
 	friend class Texture;
 	friend class TextureQuantized;
 	friend class TextureUpdater4S;
+	friend class TextureUpdaterNS;
 	friend class TextureUpdater2pNS;
 
 	// ----------------- support for serialization and deserealization -----------------
