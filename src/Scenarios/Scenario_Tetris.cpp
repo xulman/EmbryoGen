@@ -7,13 +7,15 @@
 #include "../util/texture/texture.h"
 #include "../util/rnd_generators.h"
 
-class TetrisNucleus: public NucleusNSAgent //, TextureUpdaterNS
+class TetrisNucleus: public NucleusNSAgent, TextureUpdaterNS
 {
 public:
 	TetrisNucleus(const int _ID, const std::string& _type,
-	              const Spheres& shape,
+	              const Spheres& shape, const int _activeSphereIdx,
 	              const float _currTime, const float _incrTime):
-		NucleusNSAgent(_ID,_type, shape, _currTime,_incrTime)
+		NucleusNSAgent(_ID,_type, shape, _currTime,_incrTime),
+		TextureUpdaterNS(shape,1),
+		activeSphereIdx(_activeSphereIdx)
 		//Texture(60000)
 		//TextureQuantized(60000, Vector3d<float>(2.0f,2.0f,2.0f), 8)
 	{
@@ -32,6 +34,28 @@ public:
 		renderIntoPhantom(phantom);
 	}
 	*/
+
+	void drawMask(DisplayUnit& du) override
+	{
+		int dID  = DisplayUnit::firstIdForAgentObjects(ID);
+		int ldID = DisplayUnit::firstIdForAgentDebugObjects(ID);
+
+		//spheres all green, except: 0th is white, "active" is red
+		du.DrawPoint(dID++,futureGeometry.getCentres()[0],futureGeometry.getRadii()[0],0);
+		for (int i=1; i < futureGeometry.getNoOfSpheres(); ++i)
+			du.DrawPoint(dID++,futureGeometry.getCentres()[i],futureGeometry.getRadii()[i],i == activeSphereIdx ? 1 : 2);
+
+		//sphere orientations as local debug, white vectors
+		Vector3d<FLOAT> orientVec;
+		for (int i=0; i < futureGeometry.getNoOfSpheres(); ++i)
+		{
+			getLocalOrientation(futureGeometry,i,orientVec);
+			du.DrawVector(ldID++,futureGeometry.getCentres()[i],orientVec,0);
+		}
+	}
+
+private:
+	const int activeSphereIdx;
 };
 
 
@@ -114,7 +138,7 @@ void Scenario_Tetris::initializeAgents(FrontOfficer* fo,int p,int)
 
 		fo->startNewAgent( new TetrisNucleus(
 				fo->getNextAvailAgentID(),
-				agentName,spheres,
+				agentName,spheres,y < 2 ? y+1 : spheres.getNoOfSpheres()+y-4,
 				params.constants.initTime,params.constants.incrTime
 			) );
 	}
