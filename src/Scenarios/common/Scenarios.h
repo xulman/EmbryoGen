@@ -66,6 +66,7 @@ SCENARIO_DECLARATION_withDefOptSynthoscopy( Scenario_dragRotateAndTexture )
 SCENARIO_DECLARATION_withDefOptSynthoscopy( Scenario_phaseIIandIII )
 SCENARIO_DECLARATION_withDefOptSynthoscopy( Scenario_PerlinShowCase )
 SCENARIO_DECLARATION_withDefOptSynthoscopy( Scenario_Parallel )
+SCENARIO_DECLARATION_withDefOptSynthoscopy( Scenario_Tetris )
 //  ---> ADD NEW SCENARIO HERE AND ALSO BELOW <---
 
 class Scenarios
@@ -93,6 +94,7 @@ public:
 		SCENARIO_MATCHING( "synthoscopy",       Scenario_phaseIIandIII )
 		SCENARIO_MATCHING( "PerlinShowCase",    Scenario_PerlinShowCase )
 		SCENARIO_MATCHING( "parallel",          Scenario_Parallel )
+		SCENARIO_MATCHING( "tetris",            Scenario_Tetris )
 		//  ---> ADD NEW SCENARIO HERE (and add definition *cpp file, re-run cmake!) <---
 
 		if (scenario == NULL)
