@@ -52,6 +52,20 @@ public:
 			getLocalOrientation(futureGeometry,i,orientVec);
 			du.DrawVector(ldID++,futureGeometry.getCentres()[i],orientVec,0);
 		}
+
+		drawForDebug(du);
+	}
+
+	void advanceAgent(float time) override
+	{
+		const FLOAT velocity = (FLOAT)1.0f;
+		const Vector3d<FLOAT> travellingVelocity(0,velocity,0);
+		if ( ((int)time % 18) < 8 )
+		{
+			exertForceOnSphere(activeSphereIdx,
+			                   (weights[activeSphereIdx]/velocity_PersistenceTime) * travellingVelocity,
+			                   ftype_drive );
+		}
 	}
 
 private:
