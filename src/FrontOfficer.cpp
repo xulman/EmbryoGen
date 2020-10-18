@@ -174,11 +174,9 @@ void FrontOfficer::executeEndSub2()
 
 void FrontOfficer::executeInternals()
 {
-	const float incrTime = scenario.params.constants.incrTime;
-
 	//after this simulation round is done, all agents should
 	//reach local times greater than this global time
-	const float futureTime = currTime + incrTime -0.0001f;
+	const float futureTime = currTime + scenario.params.constants.incrTime -0.0001f;
 
 	//develop (willingly) new shapes... (can run in parallel),
 	//the agents' (external at least!) geometries must not change during this phase
