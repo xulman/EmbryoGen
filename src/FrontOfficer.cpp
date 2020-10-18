@@ -143,8 +143,7 @@ void FrontOfficer::execute(void)
 		postprocessAfterUpdateAndPublishAgents();
 
 		// move to the next simulation time point
-		currTime += incrTime;
-		reportSituation();
+		executeEndSub1();
 
 		// is this the right time to export data?
 		if (willRenderNextFrameFlag)
@@ -154,11 +153,23 @@ void FrontOfficer::execute(void)
 			renderNextFrame();
 		}
 
-		//this was promised to happen after every simulation round is over
-		scenario.declareFOcontext(ID); //NB: this statement is redundant in DISTRIBUTED
-		scenario.updateScene( currTime );
+		executeEndSub2();
 		waitHereUntilEveryoneIsHereToo();
 	}
+}
+
+void FrontOfficer::executeEndSub1()
+{
+	// move to the next simulation time point
+	currTime += scenario.params.constants.incrTime;
+	reportSituation();
+}
+
+void FrontOfficer::executeEndSub2()
+{
+	//this was promised to happen after every simulation round is over
+	scenario.declareFOcontext(ID); //NB: this statement is redundant in DISTRIBUTED
+	scenario.updateScene( currTime );
 }
 
 void FrontOfficer::executeInternals()

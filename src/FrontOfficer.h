@@ -56,6 +56,11 @@ public:
 	/** does the simulation loops, i.e. calls AbstractAgent's methods */
 	void execute(void);
 
+	/** aiders for the execute() that are called directly from it (when running
+	    as distributed), or from the Direktor's execute() (when in SMP mode) */
+	void executeEndSub1(void);
+	void executeEndSub2(void);
+
 	/** frees simulation agents */
 	void close(void);
 

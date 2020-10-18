@@ -134,6 +134,9 @@ void Director::execute(void)
 		postprocessAfterUpdateAndPublishAgents();
 
 		// move to the next simulation time point
+#ifndef DISTRIBUTED
+		FO->executeEndSub1();
+#endif
 		currTime += incrTime;
 		reportSituation();
 #ifdef DISTRIBUTED
@@ -150,6 +153,9 @@ void Director::execute(void)
 		}
 
 		//this was promised to happen after every simulation round is over
+#ifndef DISTRIBUTED
+		FO->executeEndSub2();
+#endif
 		scenario.declareDirektorContext(); //NB: this statement is redundant in DISTRIBUTED
 		scenario.updateScene( currTime );
 		waitHereUntilEveryoneIsHereToo();
