@@ -63,7 +63,7 @@ public:
 	/** the callback method that is regularly executed by the
 	    Direktor and all FOs after every full simulation round is over */
 	virtual void updateControls(const float)
-	{ DEBUG_REPORT("This scenario is not updating its controls."); }
+	{ DEBUG_REPORT_NOHEADER("This scenario is not updating its controls."); }
 
 
 	/** a subset of controls that are treated immutable in the scenario,
@@ -412,7 +412,17 @@ public:
 	    full simulation round is over. This method is called from the Direktor
 	    and all FOs. */
 	void updateScene(const float currTime)
-	{ params.updateControls(currTime); }
+	{
+		if (amIinDirektorContext())
+		{
+			DEBUG_REPORT_NOENDL("by Direktor: ");
+		}
+		else
+		{
+			DEBUG_REPORT_NOENDL("by FO #" << contextID << ": ");
+		}
+		params.updateControls(currTime);
+	}
 
 	/** A callback to ask this scenario to set up its digital phantom to final
 	    image conversion stack. This method is called only from the Direktor,

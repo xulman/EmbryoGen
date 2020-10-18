@@ -138,8 +138,8 @@ void Director::execute(void)
 		FO->executeEndSub1();
 #endif
 		currTime += incrTime;
-		reportSituation();
 #ifdef DISTRIBUTED
+		reportSituation();
 #ifdef DEBUG
 		reportAgentsAllocation();
 #endif
