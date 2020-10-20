@@ -332,16 +332,7 @@ public:
 		  prevOrientation(noOfSpheres),
 		  __weights(new float[noOfSpheres])
 	{
-		resetNeigWeightMatrix(geom,maxNoOfNeighs);
-
-		//allocate and init properly
-		Vector3d<FLOAT> orientVec;
-		cu.reserve(noOfSpheres);
-		for (int i=0; i < noOfSpheres; ++i)
-		{
-			getLocalOrientation(geom,i,orientVec);
-			cu.emplace_back(geom.centres[i],geom.radii[i],orientVec);
-		}
+		reset(geom, maxNoOfNeighs);
 	}
 
 	/** total number of spheres, including the special two; this would have been
@@ -355,6 +346,23 @@ public:
 	/** this method tracks the NS geometry changes and updates, in accord, the coordinates
 	    of the given list of texture dots */
 	void updateTextureCoords(std::vector<Dot>& dots, const Spheres& newGeom);
+
+	/** allocate and init properly */
+	void reset(const Spheres& geom, int maxNoOfNeighs = 1)
+	{
+		//NB: this method also tests for sanity, so we don't have to do it here
+		resetNeigWeightMatrix(geom,maxNoOfNeighs);
+
+		Vector3d<FLOAT> orientVec;
+		cu.clear();
+		cu.reserve(noOfSpheres);
+		for (int i=0; i < noOfSpheres; ++i)
+		{
+			getLocalOrientation(geom,i,orientVec);
+			cu.emplace_back(geom.centres[i],geom.radii[i],orientVec);
+		}
+
+	}
 
 	/** For each sphere, all overlapping (that is, neighboring) spheres are sorted
 	    first according to their radii, and according to the size of the overlap of
