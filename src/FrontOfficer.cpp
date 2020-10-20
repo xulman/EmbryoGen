@@ -7,7 +7,6 @@ void FrontOfficer::init1_SMP()
 	REPORT("FO #" << ID << " initializing now...");
 	currTime = scenario.params.constants.initTime;
 
-	scenario.declareFOcontext(ID); //NB: this statement is redundant in DISTRIBUTED
 	scenario.initializeScene();
 	scenario.initializeAgents(this,ID,FOsCount);
 }
@@ -168,7 +167,6 @@ void FrontOfficer::executeEndSub1()
 void FrontOfficer::executeEndSub2()
 {
 	//this was promised to happen after every simulation round is over
-	scenario.declareFOcontext(ID); //NB: this statement is redundant in DISTRIBUTED
 	scenario.updateScene( currTime );
 }
 
