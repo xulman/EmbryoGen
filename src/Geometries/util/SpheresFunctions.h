@@ -105,6 +105,17 @@ public:
 		void prepareUpdating(const Vector3d<FT>& newCentre, const FT newRadius,
 		                     const Vector3d<FT>& newOrientation)
 		{
+#ifdef DEBUG
+			//some sanity checks (and warnings)
+			if (prevRadius <= 0)
+				REPORT("WARNING: updating coords from negative previous radius (" << prevRadius << ")");
+			if (newRadius <= 0)
+				REPORT("WARNING: updating coords into negative (current) radius (" << newRadius << ")");
+			if (prevOrientation.len2() == 0)
+				REPORT("WARNING: updating coords and there is no previous orientation, the vec is (0,0,0)");
+			if (newOrientation.len2() == 0)
+				REPORT("WARNING: updating coords and there is no current orientation, the vec is (0,0,0)");
+#endif
 			coordBase = prevCentre;
 			radiusStretch = newRadius / prevRadius;
 
