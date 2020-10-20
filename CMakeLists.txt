@@ -94,6 +94,7 @@ set(SOURCES
 		src/Geometries/Mesh.cpp
 		src/Agents/util/CellCycle.cpp
 		src/Agents/util/Texture.cpp
+		src/Agents/util/TextureFunctions.cpp
 		src/Agents/NucleusAgent.cpp
 		src/Agents/Nucleus4SAgent.cpp
 		src/Agents/NucleusNSAgent.cpp
