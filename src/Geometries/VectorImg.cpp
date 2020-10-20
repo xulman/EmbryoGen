@@ -297,3 +297,9 @@ VectorImg* VectorImg::createAndDeserializeFrom(char* buffer)
 	vimg->deserializeFrom(buffer);
 	return vimg;
 }
+
+
+void VectorImg::renderIntoMask(i3d::Image3d<i3d::GRAY16>&, const i3d::GRAY16) const
+{
+	REPORT("NOT IMPLEMENTED YED!");
+}

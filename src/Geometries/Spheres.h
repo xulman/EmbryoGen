@@ -169,5 +169,8 @@ public:
 	void deserializeFrom(char* buffer) override;
 
 	static Spheres* createAndDeserializeFrom(char* buffer);
+
+	// ----------------- support for rasterization -----------------
+	void renderIntoMask(i3d::Image3d<i3d::GRAY16>& mask, const i3d::GRAY16 drawID) const override;
 };
 #endif
