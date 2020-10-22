@@ -14,10 +14,40 @@ void Director::init1_SMP(void)
 	const auto& sSum = scenario.params.constants.sceneSize;
 	Vector3d<float> sSpx(sSum);
 	sSpx.elemMult(scenario.params.constants.imgRes);
-	REPORT("scenario suggests that scene size will be: "
+	std::string sMsg = buildStringFromStream(
+	     "scenario suggests this scene size: "
 	  << sSum.x << " x " << sSum.y << " x " << sSum.z
 	  << " um -> "
 	  << sSpx.x << " x " << sSpx.y << " x " << sSpx.z << " px");
+
+	double sSpxTotal = sSpx.x * sSpx.y * sSpx.z;
+	if (sSpxTotal > 1024.0*1024.0*1024.0)
+	{
+		sSpxTotal /= 1024.0*1024.0*1024.0;
+		int sSpxTotal_int  = (int)sSpxTotal;
+		int sSpxTotal_frac = (int)(sSpxTotal*10.0) %10;
+		REPORT(sMsg << " (" << sSpxTotal_int << "." << sSpxTotal_frac << " " << "Gvoxels)");
+	}
+	else
+	if (sSpxTotal > 1024.0*1024.0)
+	{
+		sSpxTotal /= 1024.0*1024.0;
+		int sSpxTotal_int  = (int)sSpxTotal;
+		int sSpxTotal_frac = (int)(sSpxTotal*10.0) %10;
+		REPORT(sMsg << " (" << sSpxTotal_int << "." << sSpxTotal_frac << " " << "Mvoxels)");
+	}
+	else
+	if (sSpxTotal > 1024.0)
+	{
+		sSpxTotal /= 1024.0;
+		int sSpxTotal_int  = (int)sSpxTotal;
+		int sSpxTotal_frac = (int)(sSpxTotal*10.0) %10;
+		REPORT(sMsg << " (" << sSpxTotal_int << "." << sSpxTotal_frac << " " << "Kvoxels)");
+	}
+	else
+	{
+		REPORT(sMsg << " (" << sSpxTotal << " voxels)");
+	}
 
 	scenario.initializeScene();
 	scenario.initializePhaseIIandIII();
