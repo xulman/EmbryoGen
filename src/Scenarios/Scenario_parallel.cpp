@@ -194,8 +194,8 @@ SceneControls& Scenario_Parallel::provideSceneControls()
 			if (currTime == 0.1f)
 			{
 				DEBUG_REPORT("stopping the production of the maskXXX.tif files");
-				this->disableProducingOutput(this->imgMask);
-				//this->displayChannel_delete("localFiji");
+				ctx().disks.disableImgMaskTIFFs();
+				//ctx().displays.unregisterImagingUnit("localFiji");
 			}
 
 			//DisplayUnits handling: variant A
