@@ -467,10 +467,23 @@ private:
 
 	/** Internal method to be executed only during a FrontOfficer construction
 	    to define the appropriate context of this particular scenario object */
-	void declareFOcontext(const int myPortion) { contextID = myPortion; }
+	void declareFOcontext(const int myPortion)
+	{
+		contextID = myPortion;
+#ifndef DISTRIBUTED
+		REPORT("Not distributed: Down-sizing local images because they are (normally) not used from FO.");
+		params.setOutputImgSpecs(params.constants.sceneOffset,Vector3d<float>(0.000001f));
+#endif
+	}
 
 	/** Similar to Scenario::declareFOcontext() but for Direktor */
-	void declareDirektorContext() { contextID = -1; }
+	void declareDirektorContext()
+	{
+		contextID = -1;
+#ifndef DISTRIBUTED
+		REPORT("Not distributed: Keeping local images because they are used directly from FO.");
+#endif
+	}
 protected:
 	bool amIinDirektorContext() { return contextID == -1; }
 	bool amIinFOContext()       { return contextID != -1; }
