@@ -14,6 +14,7 @@
 //and the same holds for the Director type
 class FrontOfficer;
 class Director;
+class Scenario;
 template <typename T> void transferImgs(const i3d::Image3d<T>& img, DAIS::ImagesAsEventsSender& channel);
 
 /**
@@ -307,6 +308,20 @@ public:
 	/** the same as Director::disableWaitForUserPrompt() */
 	void disableWaitForUserPrompt(void)
 	{ shallWaitForUserPromptFlag = false; }
+
+	/** reference back on the containing scenario that this object is controlling */
+	Scenario* scenario = NULL;
+	/** only a visually more pleasing access to the containing scenario */
+	Scenario& ctx()
+	{
+#ifdef DEBUG
+		if (scenario == NULL)
+			throw ERROR_REPORT("back reference on containing Scenario is not initiated!");
+#endif
+		return *scenario;
+	}
+	/** shortcut for the SCENARIO_DECLARATION_* macros */
+	SceneControls& setCtx(Scenario* ctx) { scenario = ctx; return *this; }
 };
 
 /** an alias to a convenience shared instance with default SceneControls,
