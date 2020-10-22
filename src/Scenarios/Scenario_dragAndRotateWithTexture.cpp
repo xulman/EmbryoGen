@@ -4,6 +4,7 @@
 #include "../Geometries/util/SpheresFunctions.h"
 #include "../Agents/NucleusNSAgent.h"
 #include "../Agents/util/Texture.h"
+#include "../Agents/util/TextureFunctions.h"
 #include "common/Scenarios.h"
 
 class myDragAndTextureNucleus_common: public NucleusNSAgent, Texture
@@ -14,27 +15,20 @@ public:
 	          const float _currTime, const float _incrTime):
 		NucleusNSAgent(_ID,_type, shape, _currTime,_incrTime),
 		//TextureQuantized(60000, Vector3d<float>(2.0f,2.0f,2.0f), 8) //does not tear the texture in phantoms  (5x slower)
-		Texture(10000) //tears the texture a bit in phantom images but it is not apparent in finalPreviews (5x faster)
+		Texture(20000) //tears the texture a bit in phantom images but it is not apparent in finalPreviews (5x faster)
 	{
 		cytoplasmWidth = 0.0f;
 
+		/*
 		for (int i=2; i < shape.getNoOfSpheres(); ++i)
 		{
-			addTextureAlongLine(futureGeometry.getCentres()[0],futureGeometry.getCentres()[i],2000);
-			addTextureAlongLine(futureGeometry.getCentres()[1],futureGeometry.getCentres()[i],2000);
+			TextureFunctions::addTextureAlongLine(dots, futureGeometry.getCentres()[0],futureGeometry.getCentres()[i],2000);
+			TextureFunctions::addTextureAlongLine(dots, futureGeometry.getCentres()[1],futureGeometry.getCentres()[i],2000);
 		}
-	}
-
-	void addTextureAlongLine(const Vector3d<float>& from, const Vector3d<float>& to,
-	                         const size_t noOfParticles = 5000)
-	{
-		Vector3d<float> delta = to - from;
-		delta /= (float)noOfParticles;
-
-		for (size_t i=0; i < noOfParticles; ++i)
-		{
-			dots.emplace_back(from + (float)i*delta);
-		}
+		*/
+		TextureFunctions::addTextureAlongGrid(dots, geometryAlias,
+		         Vector3d<FLOAT>(0),Vector3d<FLOAT>(3),
+		         Vector3d<FLOAT>(0.5f));
 	}
 
 	void advanceAndBuildIntForces(const float futureGlobalTime) override
