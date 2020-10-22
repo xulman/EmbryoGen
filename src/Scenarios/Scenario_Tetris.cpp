@@ -1,11 +1,10 @@
 #include "../DisplayUnits/SceneryBufferedDisplayUnit.h"
-#include "../util/Vector3d.h"
 #include "../Geometries/Spheres.h"
+#include "../Geometries/util/SpheresFunctions.h"
 #include "common/Scenarios.h"
 #include "../Agents/NucleusNSAgent.h"
 #include "../Agents/util/Texture.h"
 #include "../util/texture/texture.h"
-#include "../util/rnd_generators.h"
 
 class TetrisNucleus: public NucleusNSAgent, TextureUpdaterNS
 {
@@ -165,28 +164,54 @@ void Scenario_Tetris::initializeAgents(FrontOfficer* fo,int p,int)
 		currGridPos += gridStart;
 		agentName = buildStringFromStream("" << y << "__2SModel");
 
-		Spheres twoS(2);
+		const int connLines = 5;
+		const int inbetweeners = 5;
+		Spheres twoS(2 + connLines*inbetweeners);
+
+		std::vector< Vector3d<FLOAT>* > lineUps;
+		for (int i = 0; i < inbetweeners; ++i)
+			lineUps.push_back( new Vector3d<FLOAT>() );
+
+		const float maxAxisDev = 1.4f;
 		twoS.updateCentre(0, currGridPos + Vector3d<float>(-9.f,
-					GetRandomUniform(-0.8f*sDist,+0.8f*sDist),
-					GetRandomUniform(-0.8f*sDist,+0.8f*sDist)));
+					GetRandomUniform(-maxAxisDev*sDist,+maxAxisDev*sDist),
+					GetRandomUniform(-maxAxisDev*sDist,+maxAxisDev*sDist)));
 		twoS.updateCentre(1, currGridPos + Vector3d<float>(+9.f,
-					GetRandomUniform(-0.8f*sDist,+0.8f*sDist),
-					GetRandomUniform(-0.8f*sDist,+0.8f*sDist)));
+					GetRandomUniform(-maxAxisDev*sDist,+maxAxisDev*sDist),
+					GetRandomUniform(-maxAxisDev*sDist,+maxAxisDev*sDist)));
 		twoS.updateRadius(0, 4);
 		twoS.updateRadius(1, 4);
 
+		SpheresFunctions::SpheresBuilder<float> builder(twoS.getCentres()[0], twoS.getCentres()[1], Vector3d<float>(0,1,0));
+		for (int dir = 0; dir < connLines; ++dir)
+		{
+			//for now easy = independent of the main axis
+			float dy = std::cos((float)dir/(float)connLines *2.f*3.14159f);
+			float dz = std::sin((float)dir/(float)connLines *2.f*3.14159f);
+			builder.setExtrusionDir(Vector3d<float>(0,dy,dz));
+			builder.populate(lineUps);
+			for (int i = 0; (size_t)i < lineUps.size(); ++i)
+			{
+				twoS.updateCentre(2 + dir*inbetweeners + i, *lineUps[i]);
+				twoS.updateRadius(2 + dir*inbetweeners + i, 1);
+			}
+			REPORT("dir " << dir << ": " << builder.extrusionDirRectified);
+		}
+
 		/*
 		fo->startNewAgent( new TetrisNucleus(
-		       fo->getNextAvailAgentID(),
-		       agentName,twoS,y < 2 ? 0 : 1,
-		       params.constants.initTime,params.constants.incrTime
+		        fo->getNextAvailAgentID(),
+		        agentName,twoS,y < 2 ? 0 : 1,
+		        params.constants.initTime,params.constants.incrTime
 			));
 		*/
-		fo->startNewAgent( new NucleusNSAgent(
+		fo->startNewAgent( new NucleusAgent(
 		        fo->getNextAvailAgentID(),
 		        agentName,twoS,
 		        params.constants.initTime,params.constants.incrTime
 			));
+
+		for (auto v : lineUps) delete v;
 	}
 }
 
