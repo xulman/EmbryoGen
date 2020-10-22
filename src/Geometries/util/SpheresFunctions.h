@@ -2,6 +2,7 @@
 #define GEOMETRY_UTIL_SPHERESFUNCTIONS_H
 
 #include <cmath>
+#include <functional>
 #include "../Spheres.h"
 
 class SpheresFunctions
@@ -276,6 +277,22 @@ public:
 		    according to the expansion plan using linear interpolation */
 		void expandSrcIntoThis(Spheres& targetGeom)
 		{
+			expandSrcIntoThis(targetGeom, [](Vector3d<FT>&,FT){}, [](FT r,FT){ return r; });
+		}
+
+		/** Rebuilds the associated target geometry (Spheres) from the source geometry
+		    according to the expansion plan using the provided shakers. The purpose of
+		    a shaker is to bias (or randomize) its first argument. The argument is always
+		    computed with linear interpolation, and the shaker is expected only to figure
+		    out and apply some "delta" to it. The bias (or randomization) may be a function
+		    itself of the second shaker's argument, which is between 0 and 1 and is suggesting
+		    how far is the originally linearly interpolated first argument in the job.
+		    The position shaker adjusts (or don't) the sphere's centre. The radius shaker
+		    reads in sphere's radius and returns an adjusted (or the same) value. */
+		void expandSrcIntoThis(Spheres& targetGeom,
+		                       const std::function< void(Vector3d<FT>&,FT) >& positionShaker,
+		                       const std::function< FT(FT,FT) >& radiusShaker)
+		{
 			//test appropriate size of the target geom
 #ifdef DEBUG
 			if (targetGeom.noOfSpheres != optimalTargetSpheresNo)
@@ -293,7 +310,7 @@ public:
 
 			//add interpolated spheres according to the plan
 			Vector3d<FT> distVec, newCentre;
-			float deltaRadius,newRadius;
+			FT deltaRadius,newRadius;
 			for (const auto& plan : expansionPlan)
 			{
 				distVec  = sourceGeom.centres[plan.toSrcIdx];
@@ -302,13 +319,16 @@ public:
 
 				for (int i = 1; i <= plan.noOfSpheresInBetween; ++i)
 				{
+					const FT fraction = static_cast<FT>(i) / static_cast<FT>(plan.noOfSpheresInBetween + 1);
 					newCentre = distVec;
-					newCentre *= (float)i / (float)(plan.noOfSpheresInBetween+1);
+					newCentre *= fraction;
 					newCentre += sourceGeom.centres[plan.fromSrcIdx];
+					positionShaker(newCentre, fraction);
 
 					newRadius = deltaRadius;
-					newRadius *= (float)i / (float)(plan.noOfSpheresInBetween+1);
+					newRadius *= fraction;
 					newRadius += sourceGeom.radii[plan.fromSrcIdx];
+					newRadius = radiusShaker(newRadius, fraction);
 
 					targetGeom.centres[nextTargetIdx] = newCentre;
 					targetGeom.radii[  nextTargetIdx] = newRadius;
@@ -316,15 +336,6 @@ public:
 				}
 			}
 		}
-
-		/** rebuilds the associated target geometry (Spheres) from the source geometry
-		    according to the expansion plan using the given interpolation functions */
-/*		void expandSrcIntoThis(Spheres& targetGeom, INTERPOLATORS& iFooTors)
-		{
-			//test appropriate size of the target geom
-			//copy the source as is
-			//add interpolated spheres according to the plan
-		} */
 
 		void addToPlan(const int fromSrcIdx, const int toSrcIdx, const float relativeRadiusOverlap = 0.8f)
 		{
