@@ -27,7 +27,7 @@ void showGeom(DisplayUnit& du, const Spheres* srcGeom, const Spheres* expandedGe
 
 void testBuildAndShowPlan(const Spheres& srcGeom)
 {
-	SpheresFunctions::SpheresInterpolator<FLOAT> si(srcGeom);
+	SpheresFunctions::Interpolator<FLOAT> si(srcGeom);
 	si.printPlan();
 
 	si.addToPlan(0,1,1);
@@ -49,7 +49,7 @@ void testBuildAndShowPlan(const Spheres& srcGeom)
 
 void testExpansion(DisplayUnit& du, const Spheres& srcGeom)
 {
-	SpheresFunctions::SpheresInterpolator<FLOAT> si(srcGeom);
+	SpheresFunctions::Interpolator<FLOAT> si(srcGeom);
 	si.addToPlan(0,1,2);
 	si.addToPlan(1,2,2);
 	si.addToPlan(0,3,2);

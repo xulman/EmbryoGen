@@ -251,13 +251,13 @@ public:
 
 
 	template <typename FT>
-	class SpheresInterpolator
+	class Interpolator
 	{
 	public:
 		/** bind this Interpolator to the input (source) fixed geometry of Spheres, this source one will
 		    be expanded into some given target one according to the expansion plan; the source geom
 		    cannot be changed later to prevent form potential inconsistencies with the expansion plan */
-		SpheresInterpolator(const Spheres& _sourceGeom)
+		Interpolator(const Spheres& _sourceGeom)
 		  : optimalTargetSpheresNo(_sourceGeom.getNoOfSpheres()),
 		    sourceGeom(_sourceGeom)
 		{}
