@@ -23,9 +23,8 @@ int main(int argc, char** argv)
 
 	try
 	{
-		//the Scenario object is always created because it contains
-		//scenario-specific parameters and is used by the Director and all FOs
-		Scenario& s = Scenarios(argc,argv).getScenario();
+		//the Scenario object paradigm: there's always (independent) one per Direktor
+		//and each FO; thus, it is always created inline in respective c'tor calls
 
 #ifdef DISTRIBUTED
 		//these two has to come from MPI stack,
@@ -41,7 +40,7 @@ int main(int argc, char** argv)
 		if (MPI_IDOfThisInstance == 0)
 		{
 			//hoho, I'm the Direktor  (NB: Direktor == main simulation loop)
-			d = new Director(s,1,MPI_noOfNodesInTotal-1);
+			d = new Director(Scenarios(argc,argv).getScenario(), 1,MPI_noOfNodesInTotal-1);
 			d->initMPI();  //init the simulation, and render the first frame
 			d->execute();  //execute the simulation, and render frames
 			d->close();    //close the simulation, deletes agents, and save tracks.txt
@@ -55,15 +54,15 @@ int main(int argc, char** argv)
 			//tell the last FO to send data back to the Direktor
 			if (nextFOsID == MPI_noOfNodesInTotal) nextFOsID = 0;
 
-			fo = new FrontOfficer(s,nextFOsID, MPI_IDOfThisInstance,MPI_noOfNodesInTotal-1);
+			fo = new FrontOfficer(Scenarios(argc,argv).getScenario(), nextFOsID, MPI_IDOfThisInstance,MPI_noOfNodesInTotal-1);
 			fo->initMPI(); //populate/create my part of the scene
 			fo->execute(); //wait for Direktor's events
 			fo->close();   //deletes my agents
 		}
 #else
 		//single machine case
-		d = new Director(s,1,1);
-		fo = new FrontOfficer(s,0, 1,1);
+		d  = new     Director(Scenarios(argc,argv).getScenario(), 1,1);
+		fo = new FrontOfficer(Scenarios(argc,argv).getScenario(), 0, 1,1);
 
 		fo->connectWithDirektor(d);
 		d->connectWithFrontOfficer(fo);

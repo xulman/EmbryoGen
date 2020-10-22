@@ -7,7 +7,6 @@ void FrontOfficer::init1_SMP()
 	REPORT("FO #" << ID << " initializing now...");
 	currTime = scenario.params.constants.initTime;
 
-	scenario.declareFOcontext(ID); //NB: this statement is redundant in DISTRIBUTED
 	scenario.initializeScene();
 	scenario.initializeAgents(this,ID,FOsCount);
 }
@@ -143,8 +142,7 @@ void FrontOfficer::execute(void)
 		postprocessAfterUpdateAndPublishAgents();
 
 		// move to the next simulation time point
-		currTime += incrTime;
-		reportSituation();
+		executeEndSub1();
 
 		// is this the right time to export data?
 		if (willRenderNextFrameFlag)
@@ -154,20 +152,29 @@ void FrontOfficer::execute(void)
 			renderNextFrame();
 		}
 
-		//this was promised to happen after every simulation round is over
-		scenario.declareFOcontext(ID); //NB: this statement is redundant in DISTRIBUTED
-		scenario.updateScene( currTime );
+		executeEndSub2();
 		waitHereUntilEveryoneIsHereToo();
 	}
 }
 
+void FrontOfficer::executeEndSub1()
+{
+	// move to the next simulation time point
+	currTime += scenario.params.constants.incrTime;
+	reportSituation();
+}
+
+void FrontOfficer::executeEndSub2()
+{
+	//this was promised to happen after every simulation round is over
+	scenario.updateScene( currTime );
+}
+
 void FrontOfficer::executeInternals()
 {
-	const float incrTime = scenario.params.constants.incrTime;
-
 	//after this simulation round is done, all agents should
 	//reach local times greater than this global time
-	const float futureTime = currTime + incrTime -0.0001f;
+	const float futureTime = currTime + scenario.params.constants.incrTime -0.0001f;
 
 	//develop (willingly) new shapes... (can run in parallel),
 	//the agents' (external at least!) geometries must not change during this phase

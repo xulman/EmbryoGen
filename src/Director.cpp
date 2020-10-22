@@ -14,12 +14,41 @@ void Director::init1_SMP(void)
 	const auto& sSum = scenario.params.constants.sceneSize;
 	Vector3d<float> sSpx(sSum);
 	sSpx.elemMult(scenario.params.constants.imgRes);
-	REPORT("scenario suggests that scene size will be: "
+	std::string sMsg = buildStringFromStream(
+	     "scenario suggests this scene size: "
 	  << sSum.x << " x " << sSum.y << " x " << sSum.z
 	  << " um -> "
 	  << sSpx.x << " x " << sSpx.y << " x " << sSpx.z << " px");
 
-	scenario.declareDirektorContext(); //NB: this statement is redundant in DISTRIBUTED
+	double sSpxTotal = sSpx.x * sSpx.y * sSpx.z;
+	if (sSpxTotal > 1024.0*1024.0*1024.0)
+	{
+		sSpxTotal /= 1024.0*1024.0*1024.0;
+		int sSpxTotal_int  = (int)sSpxTotal;
+		int sSpxTotal_frac = (int)(sSpxTotal*10.0) %10;
+		REPORT(sMsg << " (" << sSpxTotal_int << "." << sSpxTotal_frac << " " << "Gvoxels)");
+	}
+	else
+	if (sSpxTotal > 1024.0*1024.0)
+	{
+		sSpxTotal /= 1024.0*1024.0;
+		int sSpxTotal_int  = (int)sSpxTotal;
+		int sSpxTotal_frac = (int)(sSpxTotal*10.0) %10;
+		REPORT(sMsg << " (" << sSpxTotal_int << "." << sSpxTotal_frac << " " << "Mvoxels)");
+	}
+	else
+	if (sSpxTotal > 1024.0)
+	{
+		sSpxTotal /= 1024.0;
+		int sSpxTotal_int  = (int)sSpxTotal;
+		int sSpxTotal_frac = (int)(sSpxTotal*10.0) %10;
+		REPORT(sMsg << " (" << sSpxTotal_int << "." << sSpxTotal_frac << " " << "Kvoxels)");
+	}
+	else
+	{
+		REPORT(sMsg << " (" << sSpxTotal << " voxels)");
+	}
+
 	scenario.initializeScene();
 	scenario.initializePhaseIIandIII();
 
@@ -134,9 +163,12 @@ void Director::execute(void)
 		postprocessAfterUpdateAndPublishAgents();
 
 		// move to the next simulation time point
+#ifndef DISTRIBUTED
+		FO->executeEndSub1();
+#endif
 		currTime += incrTime;
-		reportSituation();
 #ifdef DISTRIBUTED
+		reportSituation();
 #ifdef DEBUG
 		reportAgentsAllocation();
 #endif
@@ -150,7 +182,9 @@ void Director::execute(void)
 		}
 
 		//this was promised to happen after every simulation round is over
-		scenario.declareDirektorContext(); //NB: this statement is redundant in DISTRIBUTED
+#ifndef DISTRIBUTED
+		FO->executeEndSub2();
+#endif
 		scenario.updateScene( currTime );
 		waitHereUntilEveryoneIsHereToo();
 	}
@@ -361,7 +395,6 @@ void Director::renderNextFrame()
 	{
 		sprintf(fn,"finalPreview%03d.tif",frameCnt);
 		REPORT("Creating " << fn << ", hold on...");
-		scenario.declareDirektorContext(); //NB: this statement is redundant in DISTRIBUTED
 		scenario.doPhaseIIandIII();
 		REPORT("Saving " << fn << ", hold on...");
 		sc.imgFinal.SaveImage(fn);
