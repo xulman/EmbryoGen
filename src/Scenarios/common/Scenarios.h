@@ -11,12 +11,15 @@ class FrontOfficer;
 /** template to create a new scenario that has all the required API to allow it
     to be successfully plugged into the simulator, it uses the DEFAULT digital
     phantom to final image conversion routine, which is however disabled by default
-    (and one has to enable it with this->params.imagesSaving_enableForImg*()) called
-    from this->initializeScene() */
+    (and one has to enable it with disks.enableImgFinalTIFFs() called from
+    this->initializeScene(), or with ctx().disks.enableImgFinalTIFFs() called
+    from SceneControls::updateControls() */
 #define SCENARIO_DECLARATION_withDefOptSynthoscopy(c) \
 	class c: public Scenario {                                                 \
 	public:                                                                    \
-	c(): Scenario( provideSceneControls() ) {};                                \
+	c(): Scenario( provideSceneControls(this) ) {};                            \
+	SceneControls& provideSceneControls(Scenario* ctx)                         \
+	{ return provideSceneControls().setCtx(ctx); }                             \
 	SceneControls& provideSceneControls();                                     \
 	void initializeScene() override;                                           \
 	void initializeAgents(FrontOfficer*,int,int) override; };
@@ -24,12 +27,15 @@ class FrontOfficer;
 /** template to create a new scenario that has all the required API to allow it
     to be successfully plugged into the simulator, it provides OWN digital
     phantom to final image conversion routine, which is however disabled by default
-    (and one has to enable it with this->params.imagesSaving_enableForImg*()) called
-    from this->initializeScene() */
+    (and one has to enable it with disks.enableImgFinalTIFFs() called from
+    this->initializeScene(), or with ctx().disks.enableImgFinalTIFFs() called
+    from SceneControls::updateControls() */
 #define SCENARIO_DECLARATION_withItsOwnSynthoscopy(c) \
 	class c: public Scenario {                                                 \
 	public:                                                                    \
-	c(): Scenario( provideSceneControls() ) {};                                \
+	c(): Scenario( provideSceneControls(this) ) {};                            \
+	SceneControls& provideSceneControls(Scenario* ctx)                         \
+	{ return provideSceneControls().setCtx(ctx); }                             \
 	SceneControls& provideSceneControls();                                     \
 	void initializeScene() override;                                           \
 	void initializeAgents(FrontOfficer*,int,int) override;                     \
