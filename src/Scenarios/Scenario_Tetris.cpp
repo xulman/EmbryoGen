@@ -102,7 +102,7 @@ void Scenario_Tetris::initializeAgents(FrontOfficer* fo,int p,int)
 		currGridPos += gridStart;
 
 		switch (x) {
-		case 0:
+		case -1:
 			agentName = buildStringFromStream("" << y << "__Box");
 			spheres.updateCentre(0,currGridPos);
 			spheres.updateCentre(1,currGridPos + Vector3d<float>(-sDist,-sDist/2.0f,0));
@@ -112,7 +112,7 @@ void Scenario_Tetris::initializeAgents(FrontOfficer* fo,int p,int)
 			spheres.updateCentre(5,currGridPos + Vector3d<float>(+sDist,-sDist/2.0f,0));
 			spheres.updateCentre(6,currGridPos + Vector3d<float>(+sDist,+sDist/2.0f,0));
 			break;
-		case 1:
+		case 0:
 			agentName = buildStringFromStream("" << y << "__Line");
 			spheres.updateCentre(0,currGridPos);
 			spheres.updateCentre(1,currGridPos + Vector3d<float>(-sDist*3,-sDist*0.9f,0));
@@ -122,7 +122,7 @@ void Scenario_Tetris::initializeAgents(FrontOfficer* fo,int p,int)
 			spheres.updateCentre(5,currGridPos + Vector3d<float>(+sDist*2,+sDist*0.6f,0));
 			spheres.updateCentre(6,currGridPos + Vector3d<float>(+sDist*3,+sDist*0.9f,0));
 			break;
-		case 2:
+		case 1:
 			agentName = buildStringFromStream("" << y << "__BigT");
 			spheres.updateCentre(0,currGridPos);
 			spheres.updateCentre(1,currGridPos + Vector3d<float>(-sDist*2,       0,0));
@@ -132,7 +132,7 @@ void Scenario_Tetris::initializeAgents(FrontOfficer* fo,int p,int)
 			spheres.updateCentre(5,currGridPos + Vector3d<float>(+sDist*1,       0,0));
 			spheres.updateCentre(6,currGridPos + Vector3d<float>(+sDist*2,       0,0));
 			break;
-		case 3:
+		case 2:
 			agentName = buildStringFromStream("" << y << "__Bulk");
 			for (int i=0; i < spheres.getNoOfSpheres(); ++i)
 			{
@@ -155,6 +155,38 @@ void Scenario_Tetris::initializeAgents(FrontOfficer* fo,int p,int)
 				agentName,spheres,y < 2 ? y+1 : spheres.getNoOfSpheres()+y-4,
 				params.constants.initTime,params.constants.incrTime
 			) );
+	}
+
+	//right-most column with 2S
+	int x = 3;
+	for (int y = 0; y < 4; ++y)
+	{
+		currGridPos.fromScalars(x,y,2).elemMult(gridStep);
+		currGridPos += gridStart;
+		agentName = buildStringFromStream("" << y << "__2SModel");
+
+		Spheres twoS(2);
+		twoS.updateCentre(0, currGridPos + Vector3d<float>(-9.f,
+					GetRandomUniform(-0.8f*sDist,+0.8f*sDist),
+					GetRandomUniform(-0.8f*sDist,+0.8f*sDist)));
+		twoS.updateCentre(1, currGridPos + Vector3d<float>(+9.f,
+					GetRandomUniform(-0.8f*sDist,+0.8f*sDist),
+					GetRandomUniform(-0.8f*sDist,+0.8f*sDist)));
+		twoS.updateRadius(0, 4);
+		twoS.updateRadius(1, 4);
+
+		/*
+		fo->startNewAgent( new TetrisNucleus(
+		       fo->getNextAvailAgentID(),
+		       agentName,twoS,y < 2 ? 0 : 1,
+		       params.constants.initTime,params.constants.incrTime
+			));
+		*/
+		fo->startNewAgent( new NucleusNSAgent(
+		        fo->getNextAvailAgentID(),
+		        agentName,twoS,
+		        params.constants.initTime,params.constants.incrTime
+			));
 	}
 }
 
