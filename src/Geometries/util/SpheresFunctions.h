@@ -442,6 +442,12 @@ public:
 		// ------------------- main routine -------------------
 		void populate(std::vector< Vector3d<FT>* >& newLineUp)
 		{
+			populate(newLineUp, [](FT frac){ return std::sin(frac *(FT)3.14159) * (FT)6; } );
+		}
+
+		void populate(std::vector< Vector3d<FT>* >& newLineUp,
+		              const std::function<FT(FT)>& extrusionDist)
+		{
 			Vector3d<FT> distVec, newCentre;
 
 			//main axis to sample along plus extrusionDir
@@ -466,7 +472,7 @@ public:
 				newCentre += fromPos;
 
 				//extrusion offset
-				newCentre += static_cast<float>(std::sin(frac *3.14159)) * 7.f * extrusionDirRectified;
+				newCentre += extrusionDist(frac) * extrusionDirRectified;
 
 				*(newLineUp[i]) = newCentre;
 			}
