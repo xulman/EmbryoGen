@@ -455,7 +455,7 @@ void TextureUpdater4S::updateTextureCoords(std::vector<Dot>& dots, const Spheres
 
 #ifdef DEBUG
 	if (outsideDots > 0)
-		REPORT(outsideDots << " could not be updated (no matching sphere found, weird...)");
+		REPORT(outsideDots << " dots could not be updated (no matching sphere found, weird...)");
 #endif
 }
 
@@ -522,7 +522,7 @@ void TextureUpdater2pNS::updateTextureCoords(std::vector<Dot>& dots, const Spher
 
 #ifdef DEBUG
 	if (outsideDots > 0)
-		REPORT(outsideDots << " could not be updated (no matching sphere found, weird...)");
+		REPORT(outsideDots << " dots could not be updated (no matching sphere found, weird...)");
 #endif
 }
 
@@ -735,6 +735,6 @@ void TextureUpdaterNS::updateTextureCoords(std::vector<Dot>& dots, const Spheres
 
 #ifdef DEBUG
 	if (outsideDots > 0)
-		REPORT(outsideDots << " could not be updated (no matching sphere found, weird...)");
+		REPORT(outsideDots << " dots could not be updated (no matching sphere found, weird...)");
 #endif
 }

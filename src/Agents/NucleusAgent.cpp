@@ -1,6 +1,25 @@
 #include "../util/surfacesamplers.h"
 #include "NucleusAgent.h"
 
+const ForceName ftype_s2s       = "sphere-sphere";     //internal forces
+const ForceName ftype_drive     = "desired movement";
+const ForceName ftype_friction  = "friction";
+
+const ForceName ftype_repulsive = "repulsive";         //due to external events with nuclei
+const ForceName ftype_body      = "no overlap (body)";
+const ForceName ftype_slide     = "no sliding";
+
+const ForceName ftype_hinter    = "sphere-hinter";     //due to external events with shape hinters
+
+const FLOAT fstrength_body_scale     = (FLOAT)0.4;     // [N/um]      TRAgen: N/A
+const FLOAT fstrength_overlap_scale  = (FLOAT)0.2;     // [N/um]      TRAgen: k
+const FLOAT fstrength_overlap_level  = (FLOAT)0.1;     // [N]         TRAgen: A
+const FLOAT fstrength_overlap_depth  = (FLOAT)0.5;     // [um]        TRAgen: delta_o (do)
+const FLOAT fstrength_rep_scale      = (FLOAT)0.6;     // [1/um]      TRAgen: B
+const FLOAT fstrength_slide_scale    = (FLOAT)1.0;     // unitless
+const FLOAT fstrength_hinter_scale   = (FLOAT)0.25;    // [1/um^2]
+
+
 void NucleusAgent::adjustGeometryByForces(void)
 {
 	//TRAgen paper, eq (1):
@@ -361,45 +380,5 @@ void NucleusAgent::drawForDebug(DisplayUnit& du)
 
 void NucleusAgent::drawMask(i3d::Image3d<i3d::GRAY16>& img)
 {
-	//shortcuts to the mask image parameters
-	const Vector3d<FLOAT> res(img.GetResolution().GetRes());
-	const Vector3d<FLOAT> off(img.GetOffset());
-
-	//shortcuts to our Own spheres
-	const Vector3d<FLOAT>* const centresO = futureGeometry.getCentres();
-	const FLOAT* const radiiO             = futureGeometry.getRadii();
-	const int iO                          = futureGeometry.getNoOfSpheres();
-
-	//project and "clip" this AABB into the img frame
-	//so that voxels to sweep can be narrowed down...
-	//
-	//   sweeping position and boundaries (relevant to the 'img')
-	Vector3d<size_t> curPos, minSweepPX,maxSweepPX;
-	futureGeometry.AABB.exportInPixelCoords(img, minSweepPX,maxSweepPX);
-	//
-	//micron coordinate of the running voxel 'curPos'
-	Vector3d<FLOAT> centre;
-
-	//sweep and check intersection with spheres' volumes
-	for (curPos.z = minSweepPX.z; curPos.z < maxSweepPX.z; curPos.z++)
-	for (curPos.y = minSweepPX.y; curPos.y < maxSweepPX.y; curPos.y++)
-	for (curPos.x = minSweepPX.x; curPos.x < maxSweepPX.x; curPos.x++)
-	{
-		//get micron coordinate of the current voxel's centre
-		centre.toMicronsFrom(curPos, res,off);
-
-		//check the current voxel against all spheres
-		for (int i = 0; i < iO; ++i)
-		{
-			if ((centre-centresO[i]).len() <= radiiO[i])
-			{
-#ifdef DEBUG
-				i3d::GRAY16 val = img.GetVoxel(curPos.x,curPos.y,curPos.z);
-				if (val > 0 && val != (i3d::GRAY16)ID)
-					REPORT(IDSIGN << " overwrites mask of " << val << " at " << curPos);
-#endif
-				img.SetVoxel(curPos.x,curPos.y,curPos.z, (i3d::GRAY16)ID);
-			}
-		}
-	}
+	futureGeometry.renderIntoMask(img,(i3d::GRAY16)ID);
 }

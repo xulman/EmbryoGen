@@ -307,5 +307,8 @@ public:
 
 	virtual void serializeTo(char* buffer) const =0;
 	virtual void deserializeFrom(char* buffer) =0;
+
+	// ----------------- support for rasterization -----------------
+	virtual void renderIntoMask(i3d::Image3d<i3d::GRAY16>& mask, const i3d::GRAY16 drawID) const =0;
 };
 #endif

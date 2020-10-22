@@ -14,6 +14,7 @@
 //and the same holds for the Director type
 class FrontOfficer;
 class Director;
+class Scenario;
 template <typename T> void transferImgs(const i3d::Image3d<T>& img, DAIS::ImagesAsEventsSender& channel);
 
 /**
@@ -63,7 +64,7 @@ public:
 	/** the callback method that is regularly executed by the
 	    Direktor and all FOs after every full simulation round is over */
 	virtual void updateControls(const float)
-	{ DEBUG_REPORT("This scenario is not updating its controls."); }
+	{ DEBUG_REPORT_NOHEADER("This scenario is not updating its controls."); }
 
 
 	/** a subset of controls that are treated immutable in the scenario,
@@ -307,6 +308,20 @@ public:
 	/** the same as Director::disableWaitForUserPrompt() */
 	void disableWaitForUserPrompt(void)
 	{ shallWaitForUserPromptFlag = false; }
+
+	/** reference back on the containing scenario that this object is controlling */
+	Scenario* scenario = NULL;
+	/** only a visually more pleasing access to the containing scenario */
+	Scenario& ctx()
+	{
+#ifdef DEBUG
+		if (scenario == NULL)
+			throw ERROR_REPORT("back reference on containing Scenario is not initiated!");
+#endif
+		return *scenario;
+	}
+	/** shortcut for the SCENARIO_DECLARATION_* macros */
+	SceneControls& setCtx(Scenario* ctx) { scenario = ctx; return *this; }
 };
 
 /** an alias to a convenience shared instance with default SceneControls,
@@ -412,7 +427,17 @@ public:
 	    full simulation round is over. This method is called from the Direktor
 	    and all FOs. */
 	void updateScene(const float currTime)
-	{ params.updateControls(currTime); }
+	{
+		if (amIinDirektorContext())
+		{
+			DEBUG_REPORT_NOENDL("by Direktor: ");
+		}
+		else
+		{
+			DEBUG_REPORT_NOENDL("by FO #" << contextID << ": ");
+		}
+		params.updateControls(currTime);
+	}
 
 	/** A callback to ask this scenario to set up its digital phantom to final
 	    image conversion stack. This method is called only from the Direktor,
@@ -457,10 +482,23 @@ private:
 
 	/** Internal method to be executed only during a FrontOfficer construction
 	    to define the appropriate context of this particular scenario object */
-	void declareFOcontext(const int myPortion) { contextID = myPortion; }
+	void declareFOcontext(const int myPortion)
+	{
+		contextID = myPortion;
+#ifndef DISTRIBUTED
+		REPORT("Not distributed: Down-sizing local images because they are (normally) not used from FO.");
+		params.setOutputImgSpecs(params.constants.sceneOffset,Vector3d<float>(0.000001f));
+#endif
+	}
 
 	/** Similar to Scenario::declareFOcontext() but for Direktor */
-	void declareDirektorContext() { contextID = -1; }
+	void declareDirektorContext()
+	{
+		contextID = -1;
+#ifndef DISTRIBUTED
+		REPORT("Not distributed: Keeping local images because they are used directly from FO.");
+#endif
+	}
 protected:
 	bool amIinDirektorContext() { return contextID == -1; }
 	bool amIinFOContext()       { return contextID != -1; }
