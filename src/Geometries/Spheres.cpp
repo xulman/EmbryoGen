@@ -173,3 +173,45 @@ Spheres* Spheres::createAndDeserializeFrom(char* buffer)
 	s->deserializeFrom(buffer);
 	return s;
 }
+
+
+void Spheres::renderIntoMask(i3d::Image3d<i3d::GRAY16>& mask, const i3d::GRAY16 drawID) const
+{
+	//shortcuts to the mask image parameters
+	const Vector3d<FLOAT> res(mask.GetResolution().GetRes());
+	const Vector3d<FLOAT> off(mask.GetOffset());
+
+	//project and "clip" this AABB into the img frame
+	//so that voxels to sweep can be narrowed down...
+	//
+	//   sweeping position and boundaries (relevant to the 'mask')
+	Vector3d<size_t> curPos, minSweepPX,maxSweepPX;
+	AABB.exportInPixelCoords(mask, minSweepPX,maxSweepPX);
+	//
+	//micron coordinate of the running voxel 'curPos'
+	Vector3d<FLOAT> centre;
+
+	//sweep and check intersection with spheres' volumes
+	for (curPos.z = minSweepPX.z; curPos.z < maxSweepPX.z; curPos.z++)
+	for (curPos.y = minSweepPX.y; curPos.y < maxSweepPX.y; curPos.y++)
+	for (curPos.x = minSweepPX.x; curPos.x < maxSweepPX.x; curPos.x++)
+	{
+		//get micron coordinate of the current voxel's centre
+		centre.toMicronsFrom(curPos, res,off);
+
+		//check the current voxel against all spheres
+		for (int i = 0; i < noOfSpheres; ++i)
+		{
+			if ((centre-centres[i]).len() <= radii[i])
+			{
+#ifdef DEBUG
+				i3d::GRAY16 val = mask.GetVoxel(curPos.x,curPos.y,curPos.z);
+				if (val > 0 && val != drawID)
+					REPORT(drawID << " overwrites mask of " << val << " at " << curPos);
+#endif
+				mask.SetVoxel(curPos.x,curPos.y,curPos.z, drawID);
+				break; //no need to test against the remaining spheres
+			}
+		}
+	}
+}

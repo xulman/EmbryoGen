@@ -235,5 +235,149 @@ public:
 			}
 		}
 	};
+
+
+	template <typename FT>
+	class SpheresInterpolator
+	{
+	public:
+		/** bind this Interpolator to the input (source) fixed geometry of Spheres, this source one will
+		    be expanded into some given target one according to the expansion plan; the source geom
+		    cannot be changed later to prevent form potential inconsistencies with the expansion plan */
+		SpheresInterpolator(const Spheres& _sourceGeom)
+		  : optimalTargetSpheresNo(_sourceGeom.getNoOfSpheres()),
+		    sourceGeom(_sourceGeom)
+		{}
+
+		/** considering the current expansion plan and the associated source geometry,
+		    it creates and shares an appropriately sized geometry */
+		Spheres createAppropriateTargetGeom()
+		{ return Spheres(optimalTargetSpheresNo); }
+		//NB, in action: copy elision or move constructor from Spheres
+
+		/** considering the current expansion plan and the associated source geometry,
+		    it reports how many spheres must the target geometry be consisting of */
+		int getOptimalTargetSpheresNo()
+		{ return optimalTargetSpheresNo; }
+
+		/** rebuilds the associated target geometry (Spheres) from the source geometry
+		    according to the expansion plan using linear interpolation */
+		void expandSrcIntoThis(Spheres& targetGeom)
+		{
+			//test appropriate size of the target geom
+#ifdef DEBUG
+			if (targetGeom.noOfSpheres != optimalTargetSpheresNo)
+				throw ERROR_REPORT("Target geom is made of " << targetGeom.noOfSpheres
+				  << " spheres but " << optimalTargetSpheresNo << " is expected.");
+#endif
+
+			//copy the source as is
+			for (int i = 0; i < sourceGeom.noOfSpheres; ++i)
+			{
+				targetGeom.centres[i] = sourceGeom.centres[i];
+				targetGeom.radii[i] = sourceGeom.radii[i];
+			}
+			int nextTargetIdx = sourceGeom.noOfSpheres;
+
+			//add interpolated spheres according to the plan
+			Vector3d<FT> distVec, newCentre;
+			float deltaRadius,newRadius;
+			for (const auto& plan : expansionPlan)
+			{
+				distVec  = sourceGeom.centres[plan.toSrcIdx];
+				distVec -= sourceGeom.centres[plan.fromSrcIdx];
+				deltaRadius = sourceGeom.radii[plan.toSrcIdx] - sourceGeom.radii[plan.fromSrcIdx];
+
+				for (int i = 1; i <= plan.noOfSpheresInBetween; ++i)
+				{
+					newCentre = distVec;
+					newCentre *= (float)i / (float)(plan.noOfSpheresInBetween+1);
+					newCentre += sourceGeom.centres[plan.fromSrcIdx];
+
+					newRadius = deltaRadius;
+					newRadius *= (float)i / (float)(plan.noOfSpheresInBetween+1);
+					newRadius += sourceGeom.radii[plan.fromSrcIdx];
+
+					targetGeom.centres[nextTargetIdx] = newCentre;
+					targetGeom.radii[  nextTargetIdx] = newRadius;
+					++nextTargetIdx;
+				}
+			}
+		}
+
+		/** rebuilds the associated target geometry (Spheres) from the source geometry
+		    according to the expansion plan using the given interpolation functions */
+/*		void expandSrcIntoThis(Spheres& targetGeom, INTERPOLATORS& iFooTors)
+		{
+			//test appropriate size of the target geom
+			//copy the source as is
+			//add interpolated spheres according to the plan
+		} */
+
+		void addToPlan(const int fromSrcIdx, const int toSrcIdx, const float relativeRadiusOverlap = 0.8f)
+		{
+			//computes noOfSpheresInBetween and calls the one above
+			//TODO
+		}
+
+		/** adds another plan item to the expansion plan, even if similar plan item already exists (no checks are done) */
+		void addToPlan(const int fromSrcIdx, const int toSrcIdx, const int noOfSpheresInBetween)
+		{
+#ifdef DEBUG
+			if (fromSrcIdx < 0 || fromSrcIdx >= sourceGeom.noOfSpheres)
+				throw ERROR_REPORT("src index is invalid, should be within [0," << sourceGeom.noOfSpheres-1 << "]");
+			if (toSrcIdx < 0 || toSrcIdx >= sourceGeom.noOfSpheres)
+				throw ERROR_REPORT("to index is invalid, should be within [0," << sourceGeom.noOfSpheres-1 << "]");
+			if (noOfSpheresInBetween <= 0)
+				throw ERROR_REPORT("illegal number of requested spheres: " << noOfSpheresInBetween);
+#endif
+			expansionPlan.emplace_back(fromSrcIdx, toSrcIdx, noOfSpheresInBetween);
+			optimalTargetSpheresNo += noOfSpheresInBetween;
+		}
+
+		/** removes this item from the overall plan,  */
+		void removeFromPlan(const int fromSrcIdx, const int toSrcIdx, const bool removeAllMatching = false)
+		{
+			bool keepFinding = true;
+
+			typename std::list<planItem_t>::iterator i = expansionPlan.begin();
+			while (i != expansionPlan.end() && keepFinding)
+			{
+				if (i->fromSrcIdx == fromSrcIdx && i->toSrcIdx == toSrcIdx)
+				{
+					//found a match:
+					optimalTargetSpheresNo -= i->noOfSpheresInBetween;
+					i = expansionPlan.erase(i); //NB: sets 'i' to elem right after the erased one
+					keepFinding = removeAllMatching;
+				}
+				else ++i;
+			}
+		}
+
+		void printPlan()
+		{
+			REPORT("Exact copy of the src geometry (" << sourceGeom.noOfSpheres << ")");
+			for (const auto& plan : expansionPlan)
+				REPORT("Between " << plan.fromSrcIdx << " and " << plan.toSrcIdx
+				  << " (" << plan.noOfSpheresInBetween << ")");
+			REPORT("Total no. of spheres: " << optimalTargetSpheresNo);
+		}
+
+	protected:
+		struct planItem_t
+		{
+			planItem_t(int f,int t,int n): fromSrcIdx(f), toSrcIdx(t), noOfSpheresInBetween(n) {};
+			const int fromSrcIdx, toSrcIdx; //primary key
+			const int noOfSpheresInBetween; //value
+		};
+
+		/** essentially a multimap (permitting multiple values for the same key)
+		    that preserves the order in which items were added */
+		std::list<planItem_t> expansionPlan;
+
+		int optimalTargetSpheresNo;
+
+		const Spheres& sourceGeom;
+	};
 };
 #endif

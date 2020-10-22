@@ -371,3 +371,9 @@ void ScalarImg::updateWithNewMask(const i3d::Image3d<float>& _mask);
 
 template
 void ScalarImg::updateWithNewMask(const i3d::Image3d<double>& _mask);
+
+
+void ScalarImg::renderIntoMask(i3d::Image3d<i3d::GRAY16>&, const i3d::GRAY16) const
+{
+	REPORT("NOT IMPLEMENTED YED!");
+}

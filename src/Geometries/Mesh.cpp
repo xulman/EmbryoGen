@@ -64,3 +64,9 @@ Mesh* Mesh::createAndDeserializeFrom(char*)
 	REPORT("NOT SUPPORTED YET!");
 	return NULL;
 }
+
+
+void Mesh::renderIntoMask(i3d::Image3d<i3d::GRAY16>&, const i3d::GRAY16) const
+{
+	REPORT("NOT IMPLEMENTED YED!");
+}

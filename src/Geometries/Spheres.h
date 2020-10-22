@@ -22,6 +22,12 @@ protected:
 	/** list of radii of the spheres */
 	FLOAT* const radii;
 
+	/** a flag to prevent this object from freeing both 'centres' and 'radii'
+	    attributes in its (*this) destructor; this flag is set only in its
+	    (*this) moving constructor to signal arrays are "stolen" (technically,
+	    shared) into another object; note both attribs are immutable... */
+	bool dataMovedAwayDontDelete = false;
+
 public:
 	/** empty shape constructor */
 	Spheres(const int _noOfSpheres)
@@ -35,6 +41,21 @@ public:
 			throw ERROR_REPORT("Cannot construct geometry with negative number of spheres.");
 
 		for (int i=0; i < noOfSpheres; ++i) radii[i] = 0.0;
+		//REPORT("Constructing spheres @ " << this);
+		//REPORT("Obtaining new arrays in spheres @ " << this);
+	}
+
+	/** move constructor */
+	Spheres(Spheres&& s)
+		: Geometry(ListOfShapeForms::Spheres),
+		  noOfSpheres(s.noOfSpheres),
+		  centres(s.centres),
+		  radii(s.radii)
+	{
+		s.dataMovedAwayDontDelete = true;
+		//REPORT( "/ Moving spheres from " << &s);
+		//REPORT("\\ Moving spheres into " << this);
+		//REPORT("Stealing arrays into spheres @ " << this);
 	}
 
 	/** copy constructor */
@@ -52,13 +73,21 @@ public:
 			centres[i] = sCentres[i];
 			radii[i]   = sRadii[i];
 		}
+		//REPORT( "/ Copying spheres from " << &s);
+		//REPORT("\\ Copying spheres into " << this);
+		//REPORT("Duplicating arrays into spheres @ " << this);
 	}
 
 	~Spheres(void)
 	{
-		//c'tor guarantees that these arrays were always created
-		delete[] centres;
-		delete[] radii;
+		//free only if we still "own" both arrays
+		if (dataMovedAwayDontDelete == false)
+		{
+			delete[] centres;
+			delete[] radii;
+			//REPORT("Freeing arrays in spheres @ " << this);
+		}
+		//REPORT("Destructing spheres @ " << this);
 	}
 
 
@@ -140,5 +169,8 @@ public:
 	void deserializeFrom(char* buffer) override;
 
 	static Spheres* createAndDeserializeFrom(char* buffer);
+
+	// ----------------- support for rasterization -----------------
+	void renderIntoMask(i3d::Image3d<i3d::GRAY16>& mask, const i3d::GRAY16 drawID) const override;
 };
 #endif
