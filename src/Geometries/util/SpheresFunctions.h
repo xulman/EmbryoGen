@@ -1,6 +1,7 @@
 #ifndef GEOMETRY_UTIL_SPHERESFUNCTIONS_H
 #define GEOMETRY_UTIL_SPHERESFUNCTIONS_H
 
+#include <cmath>
 #include "../Spheres.h"
 
 class SpheresFunctions
@@ -389,6 +390,76 @@ public:
 		int optimalTargetSpheresNo;
 
 		const Spheres& sourceGeom;
+	};
+
+
+	template <typename FT>
+	class SpheresBuilder
+	{
+	public:
+		// ------------------- setters -------------------
+		SpheresBuilder(const Vector3d<FT>& fromPos, const Vector3d<FT>& tillPos, const Vector3d<FT>& extrusionDir)
+		{
+			reset(fromPos,tillPos,extrusionDir);
+		}
+
+		void reset(const Vector3d<FT>& fromPos, const Vector3d<FT>& tillPos, const Vector3d<FT>& extrusionDir)
+		{
+			this->fromPos = fromPos;
+			this->tillPos = tillPos;
+			this->extrusionDir = extrusionDir;
+		}
+
+		void setConnectionLine(const Vector3d<FT>& fromPos, const Vector3d<FT>& tillPos)
+		{
+			this->fromPos = fromPos;
+			this->tillPos = tillPos;
+		}
+
+		void setExtrusionDir(const Vector3d<FT>& extrusionDir)
+		{
+			this->extrusionDir = extrusionDir;
+		}
+
+		// ------------------- task settings/inputs -------------------
+		Vector3d<FT> fromPos, tillPos;
+		Vector3d<FT> extrusionDir;
+
+		// ------------------- temporaries/outputs -------------------
+		Vector3d<FT> extrusionDirRectified;
+
+		// ------------------- main routine -------------------
+		void populate(std::vector< Vector3d<FT>* >& newLineUp)
+		{
+			Vector3d<FT> distVec, newCentre;
+
+			//main axis to sample along plus extrusionDir
+			distVec  = tillPos;
+			distVec -= fromPos;
+
+			//aux axis to extrude along that is quasi-parallel with the extrusionDir
+			//
+			//that is in the plane given by the main axis and the extrusionDir,
+			//and that is perpendicular to the main axis
+			extrusionDirRectified = crossProduct(extrusionDir,distVec);
+			extrusionDirRectified = crossProduct(distVec,extrusionDirRectified);
+			extrusionDirRectified.changeToUnitOrZero();
+
+			for (size_t i = 0; (size_t)i < newLineUp.size(); ++i)
+			{
+				const FT frac = (FT)(i+1) / (FT)(newLineUp.size()+1);
+
+				//position along the direct line
+				newCentre = distVec;
+				newCentre *= frac;
+				newCentre += fromPos;
+
+				//extrusion offset
+				newCentre += static_cast<float>(std::sin(frac *3.14159)) * 7.f * extrusionDirRectified;
+
+				*(newLineUp[i]) = newCentre;
+			}
+		}
 	};
 };
 #endif
