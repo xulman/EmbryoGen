@@ -1,3 +1,5 @@
+#include <iostream>
+#include <cmath>
 #include "../DisplayUnits/SceneryDisplayUnit.h"
 #include "../Geometries/util/SpheresFunctions.h"
 
@@ -7,7 +9,7 @@ void showGeom(DisplayUnit& du, const Spheres* srcGeom, const Spheres* expandedGe
 	std::cout << "showing " << srcGeom->getNoOfSpheres() << " src spheres\n";
 	for (; i < srcGeom->getNoOfSpheres(); ++i)
 	{
-		du.DrawPoint(i,srcGeom->getCentres()[i],srcGeom->getRadii()[i],2);
+		du.DrawPoint(i,srcGeom->getCentres()[i],srcGeom->getRadii()[i],3);
 		//du.DrawVector(i,futureGeometry.getCentres()[i],orientVec,0);
 	}
 
@@ -19,7 +21,7 @@ void showGeom(DisplayUnit& du, const Spheres* srcGeom, const Spheres* expandedGe
 	std::cout << "showing " << expandedGeom->getNoOfSpheres() << " expanded spheres\n";
 	for (; i < expandedGeom->getNoOfSpheres(); ++i)
 	{
-		du.DrawPoint(i,expandedGeom->getCentres()[i],expandedGeom->getRadii()[i],3);
+		du.DrawPoint(i,expandedGeom->getCentres()[i],expandedGeom->getRadii()[i],2);
 		//du.DrawVector(i,futureGeometry.getCentres()[i],orientVec,0);
 	}
 }
@@ -63,7 +65,7 @@ void testExpansion(DisplayUnit& du, const Spheres& srcGeom)
 }
 
 
-int main(void)
+void mainForInterpolator(void)
 {
 	SceneryDisplayUnit du("localhost:8765");
 
@@ -82,6 +84,90 @@ int main(void)
 
 	//testBuildAndShowPlan(s);
 	testExpansion(du,s);
+}
+//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+
+#include "../util/rnd_generators.h"
+
+void mainForLinkedSpheres(DisplayUnit& du)
+{
+	//reference two balls
+	Spheres twoS(2);
+
+	//initial geom of the two balls
+	const float sDist = 4;
+	const float maxAxisDev = 2.4f;
+	twoS.updateCentre(0, Vector3d<float>(-9.f,
+				GetRandomUniform(-maxAxisDev*sDist,+maxAxisDev*sDist),
+				GetRandomUniform(-maxAxisDev*sDist,+maxAxisDev*sDist)));
+	twoS.updateCentre(1, Vector3d<float>(+9.f,
+				GetRandomUniform(-maxAxisDev*sDist,+maxAxisDev*sDist),
+				GetRandomUniform(-maxAxisDev*sDist,+maxAxisDev*sDist)));
+	twoS.updateRadius(0, 3.0);
+	twoS.updateRadius(1, 4.5);
+
+	//populate via LinkedSpheres
+	SpheresFunctions::LinkedSpheres<float> builder(twoS, Vector3d<float>(0,1,3));
+
+	//regularly placed lines
+	float minAngle = -M_PI_2 *0.5f;
+	float maxAngle = +M_PI_2 *0.5f;
+	float stepAngle = (maxAngle-minAngle)/3.0f;
+	builder.resetAllAzimuthsToExtrusions(minAngle, stepAngle, maxAngle);
+	builder.resetNoOfSpheresInAllAzimuths(5);
+
+	//explicitly placed lines
+	builder.defaultNoOfSpheresOnConnectionLines=2;
+	builder.addOrChangeAzimuthToExtrusion(M_PI-0.2);
+	builder.addOrChangeAzimuthToExtrusion(M_PI+0.2);
+
+	//explicitly placed lines with specialities
+	builder.addOrChangeAzimuth(0, builder.defaultPosNoAdjustment, [](float,float f){return 2.f - 2.f*std::abs(f-0.5f);}, 4);
+	//builder.addOrChangeAzimuth(M_PI,[](Vector3d<float>& v,float f){v += Vector3d<float>(0,0,f-0.5f +15);},builder.defaultRadiusNoChg, 4);
+	//builder.addOrChangeAzimuth(M_PI, builder.defaultPosNoAdjustment, builder.defaultRadiusNoChg, 4);
+
+	//test for removal
+	//builder.removeAzimuth(M_PI+0.2);
+
+	//builder.addToPlan(0,1,3); //content of Interpolator is forbidden in LinkedSpheres
+	builder.printPlan();
+	REPORT("necessary cnt: " << builder.getNoOfNecessarySpheres());
+
+	//finally, commit the case and draw it
+	Spheres manyS(builder.getNoOfNecessarySpheres());
+	builder.buildInto(manyS);
+	builder.printPlan();
+
+	Vector3d<float> centre(twoS.getCentres()[0]);
+	centre += twoS.getCentres()[1];
+	centre *= 0.5f;
+
+	int vecID = 1000;
+	du.DrawVector(vecID++, centre, builder.basalSideDir, 1); //basal vector red
+	du.DrawVector(vecID++, centre, builder.rectifiedBasalDir, 5); //rectified basal vector magenta
+	du.DrawVector(vecID++, centre, builder.aux3rdDir, 4); //aux 3rd cyan
+	du.DrawLine(vecID++, twoS.getCentres()[0], twoS.getCentres()[1], 1); //main axis in red
+
+	showGeom(du, &twoS, &manyS);
+}
+//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+
+
+int main(void)
+{
+	//mainForInterpolator();
+
+	//SceneryDisplayUnit du("localhost:8765");
+	SceneryDisplayUnit du("192.168.3.105:8765");
+
+	char key = 0;
+	while (key != 27)
+	{
+		mainForLinkedSpheres(du);
+		std::cin >> key;
+	}
 
 	return 0;
 }
