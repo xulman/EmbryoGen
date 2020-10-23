@@ -528,11 +528,13 @@ public:
 
 		static void defaultPosNoAdjustment(Vector3d<FT>&,FT) {}
 		static FT defaultRadiusNoChg(FT r,FT) { return r; }
-
-		const posShakerType defaultPosNoAdjustmentRef = defaultPosNoAdjustment;
-		const radiusShakerType defaultRadiusNoChgRef = defaultRadiusNoChg;
 		int defaultNoOfSpheresOnConnectionLines = 1;
 
+	protected:
+		const posShakerType defaultPosNoAdjustmentRef = defaultPosNoAdjustment;
+		const radiusShakerType defaultRadiusNoChgRef = defaultRadiusNoChg;
+
+	public:
 		class AzimuthDrivenPositionExtruder {
 		public:
 			AzimuthDrivenPositionExtruder(const Vector3d<FT>& azimuthDir) : extender(azimuthDir) {}
