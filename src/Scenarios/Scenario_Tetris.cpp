@@ -179,8 +179,8 @@ void Scenario_Tetris::initializeAgents(FrontOfficer* fo,int p,int)
 		twoS.updateCentre(1, currGridPos + Vector3d<float>(+9.f,
 					GetRandomUniform(-maxAxisDev*sDist,+maxAxisDev*sDist),
 					GetRandomUniform(-maxAxisDev*sDist,+maxAxisDev*sDist)));
-		twoS.updateRadius(0, 4);
-		twoS.updateRadius(1, 4);
+		twoS.updateRadius(0, 3.5);
+		twoS.updateRadius(1, 4.5);
 
 		REPORT("-------------------------------------");
 		SpheresFunctions::LinkedSpheres<float> builder(twoS, Vector3d<float>(0,1,0));
@@ -192,9 +192,11 @@ void Scenario_Tetris::initializeAgents(FrontOfficer* fo,int p,int)
 		builder.defaultNoOfSpheresOnConnectionLines=2;
 		builder.addOrChangeAzimuthToExtrusion(M_PI-0.2);
 		builder.addOrChangeAzimuthToExtrusion(M_PI+0.2);
-		builder.addOrChangeAzimuth(M_PI, builder.defaultPosNoAdjustmentRef, builder.defaultRadiusNoChgRef, 4);
+		builder.addOrChangeAzimuth(M_PI, builder.defaultPosNoAdjustment, [](float,float){return 2;}, 4);
+		builder.addOrChangeAzimuth(M_PI,[](Vector3d<float>& v,float f){v += Vector3d<float>(0,0,f-0.5f +15);},builder.defaultRadiusNoChg, 4);
+		builder.addOrChangeAzimuth(M_PI, builder.defaultPosNoAdjustment, builder.defaultRadiusNoChg, 4);
 		builder.removeAzimuth(M_PI+0.2);
-		//builder.addToPlan(0,1,3);
+		//builder.addToPlan(0,1,3); //content of Interpolator is forbidden in LinkedSpheres
 		builder.printPlan();
 		REPORT("necessary cnt: " << builder.getNoOfNecessarySpheres());
 		Spheres manyS(builder.getNoOfNecessarySpheres());
