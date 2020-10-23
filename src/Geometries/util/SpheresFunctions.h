@@ -483,10 +483,10 @@ public:
 			updateLocalDirs();
 		}
 
-		const Vector3d<FT>& getMainAxis()          { return mainDir; }
-		const Vector3d<FT>& getBasalSideAxis()     { return basalSideDir; }
-		const Vector3d<FT>& getAux3rdAxis()        { return aux3rdDir; }
-		const Vector3d<FT>& getRectifiedBasalDir() { return rectifiedBasalDir; }
+		const Vector3d<FT>& getMainAxis()          const { return mainDir; }
+		const Vector3d<FT>& getBasalSideAxis()     const { return basalSideDir; }
+		const Vector3d<FT>& getAux3rdAxis()        const { return aux3rdDir; }
+		const Vector3d<FT>& getRectifiedBasalDir() const { return rectifiedBasalDir; }
 
 	protected:
 		Vector3d<FT> mainDir, basalSideDir;            //inputs, given
@@ -626,7 +626,7 @@ public:
 		}
 
 		// ------------------- task implementation: create the layout -------------------
-		int getNoOfNecessarySpheres()
+		int getNoOfNecessarySpheres() const
 		{
 			int cnt = this->sourceGeom.getNoOfSpheres();
 			for (auto& m : azimuthToNoOfSpheres) cnt += m.second;
@@ -634,7 +634,21 @@ public:
 		}
 
 		/** accessor of the inherited (but protected) method */
-		void printPlan() { Interpolator<FT>::printPlan(); }
+		void printPlan() const { Interpolator<FT>::printPlan(); }
+
+		int printSkeleton(DisplayUnit& du, const int firstDuID, const int color, const Spheres& generatedGeom, const int skipSpheres = 2)
+		const
+		{
+			int ID = firstDuID-1;
+			int sNo = skipSpheres;
+
+			for (const auto& m : azimuthToNoOfSpheres)
+			{
+				du.DrawLine(ID)
+			}
+
+			return ID;
+		}
 
 
 		/** rebuilds ino the given geometry according to the pre-defined line ups (azimuths) */
