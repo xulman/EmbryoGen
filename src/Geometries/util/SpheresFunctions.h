@@ -280,6 +280,11 @@ public:
 			expandSrcIntoThis(targetGeom, [](Vector3d<FT>&,FT){}, [](FT r,FT){ return r; });
 		}
 
+		typedef const std::function< void(Vector3d<FT>&,FT) >   posShakerType;
+		typedef const std::function< FT(FT,FT) >                radiusShakerType;
+		typedef posShakerType*      posShakerPtr;
+		typedef radiusShakerType*   radiusShakerPtr;
+
 		/** Rebuilds the associated target geometry (Spheres) from the source geometry
 		    according to the expansion plan using the provided shakers. The purpose of
 		    a shaker is to bias (or randomize) its first argument. The argument is always
@@ -293,13 +298,40 @@ public:
 		                       const std::function< void(Vector3d<FT>&,FT) >& positionShaker,
 		                       const std::function< FT(FT,FT) >& radiusShaker)
 		{
-			//test appropriate size of the target geom
 #ifdef DEBUG
+			//test appropriate size of the target geom
 			if (targetGeom.noOfSpheres != optimalTargetSpheresNo)
 				throw ERROR_REPORT("Target geom is made of " << targetGeom.noOfSpheres
 				  << " spheres but " << optimalTargetSpheresNo << " is expected.");
 #endif
+			//create a single purpose receipt of constant content
+			std::list<posShakerPtr> positionShakers;
+			std::list<radiusShakerPtr> radiusShakers;
+			for (size_t i = 0; i < expansionPlan.size(); ++i)
+			{
+				positionShakers.push_back(&positionShaker);
+				radiusShakers.push_back(&radiusShaker);
+			}
+			expandSrcIntoThis(targetGeom, positionShakers,radiusShakers);
+		}
 
+		void expandSrcIntoThis(Spheres& targetGeom,
+		                       const std::list<posShakerPtr>& positionShakers,
+		                       const std::list<radiusShakerPtr>& radiusShakers)
+		{
+#ifdef DEBUG
+			if (positionShakers.size() != radiusShakers.size())
+				throw ERROR_REPORT("position shakers length (" << positionShakers.size()
+				        << " differs from radii shakers length (" << radiusShakers.size() << ")");
+			if (positionShakers.size() != expansionPlan.size())
+				throw ERROR_REPORT("shakers length (" << positionShakers.size()
+				        << " differs from the expected length (" << expansionPlan.size() << ")");
+
+			//test appropriate size of the target geom
+			if (targetGeom.noOfSpheres != optimalTargetSpheresNo)
+				throw ERROR_REPORT("Target geom is made of " << targetGeom.noOfSpheres
+				  << " spheres but " << optimalTargetSpheresNo << " is expected.");
+#endif
 			//copy the source as is
 			for (int i = 0; i < sourceGeom.noOfSpheres; ++i)
 			{
@@ -311,6 +343,8 @@ public:
 			//add interpolated spheres according to the plan
 			Vector3d<FT> distVec, newCentre;
 			FT deltaRadius,newRadius;
+			typename std::list<posShakerPtr>::const_iterator positionShakers_iter = positionShakers.begin();
+			typename std::list<radiusShakerPtr>::const_iterator radiusShakers_iter = radiusShakers.begin();
 			for (const auto& plan : expansionPlan)
 			{
 				distVec  = sourceGeom.centres[plan.toSrcIdx];
@@ -323,17 +357,20 @@ public:
 					newCentre = distVec;
 					newCentre *= fraction;
 					newCentre += sourceGeom.centres[plan.fromSrcIdx];
-					positionShaker(newCentre, fraction);
+					(**positionShakers_iter)(newCentre, fraction);
 
 					newRadius = deltaRadius;
 					newRadius *= fraction;
 					newRadius += sourceGeom.radii[plan.fromSrcIdx];
-					newRadius = radiusShaker(newRadius, fraction);
+					newRadius = (**radiusShakers_iter)(newRadius, fraction);
 
 					targetGeom.centres[nextTargetIdx] = newCentre;
 					targetGeom.radii[  nextTargetIdx] = newRadius;
 					++nextTargetIdx;
 				}
+
+				++positionShakers_iter;
+				++radiusShakers_iter;
 			}
 		}
 
@@ -417,30 +454,20 @@ public:
 	 * defining spheres. Finally, the net shape "follows" (is updated with) the changes in
 	 * position and radius of the two spheres. */
 	template <typename FT>
-	class LinkedSpheres
+	class LinkedSpheres: public Interpolator<FT>
 	{
 	public:
-		//dam tomu: dve pozice a polomery (aka main axis), basal axis - to je nutnost
-
-		//optional, pres settery:
-		//minAzimuth, maxAzimuth, stepAzimuth - skonci v citelne mape azimutu
-		//pocty na retizku
-		//muzu nastavit default shaker
-		//muzu nastavit kazdemu azimutu jeho shaker, jinak se pouzije ten default
-
-		//gettery:
-		//celkovy pocet spheres
-		//rebuild zadanou geometrii from scratch
-		//update zadanou geometrii na zaklade detekovanych zmen v referencni geometrii
-
 		// ------------------- task settings: spatial layout -------------------
 		LinkedSpheres(Spheres& referenceGeom, const Vector3d<FT>& basalSideDir)
+		  : Interpolator<FT>(referenceGeom)
 		{
 			if (referenceGeom.noOfSpheres < 2)
-				throw ERROR_REPORT("reference geometry must be at least of two spheres");
+				throw ERROR_REPORT("reference geometry must include at least two spheres");
 
-			setCentres(referenceGeom.centres[0],referenceGeom.centres[1]);
-			setRadii(referenceGeom.radii[0],referenceGeom.radii[1]);
+			this->fromCentre = referenceGeom.centres[0];
+			this->toCentre   = referenceGeom.centres[1];
+			this->fromRadius = referenceGeom.radii[0];
+			this->toRadius   = referenceGeom.radii[1];
 			setBasalSideDir(basalSideDir);
 		}
 
@@ -448,6 +475,7 @@ public:
 		{
 			this->fromCentre = fromCentre;
 			this->toCentre   = toCentre;
+			update3rdDir();
 		}
 
 		void setRadii(const FT fromRadius, const FT toRadius)
@@ -459,37 +487,86 @@ public:
 		void setBasalSideDir(const Vector3d<FT>& basalSideDir)
 		{
 			this->basalSideDir = basalSideDir;
+			update3rdDir();
 		}
 
 		Vector3d<FT> fromCentre, toCentre;
 		FT fromRadius, toRadius;
 		Vector3d<FT> basalSideDir;
 
-		// ------------------- task settings: lines layout -------------------
-		typedef const std::function< void(Vector3d<FT>&,FT) >* posShakerPtr;
-		typedef const std::function< FT(FT,FT) >* radiusShakerPtr;
-
-		static const posShakerPtr defaultPosNoAdjustment = [](Vector3d<FT>&,FT){};
-		static const radiusShakerPtr defaultRadiusNoChg  = [](FT r,FT){ return r; };
-		int defaultNoOfSpheresOnConnectionLines = 1;
+		Vector3d<FT> rectifiedBasalDir, aux3rdDir;
 
 	protected:
-		//list of lines, NULL ptr amounts to default*Ptr
-		std::map<float, posShakerPtr    > azimuthToPosShaker;
-		std::map<float, radiusShakerPtr > azimuthToRadiusShaker;
-		std::map<float, int >             azimuthToNoOfSpheres;
+		void update3rdDir()
+		{
+			//tmp storage of the main/polarity axis
+			rectifiedBasalDir  = toCentre;
+			rectifiedBasalDir -= fromCentre;
+
+			//axis in the plane given by the main axis and the basalSideDir,
+			//and that is perpendicular to the main axis
+			aux3rdDir = crossProduct(basalSideDir,rectifiedBasalDir);
+			aux3rdDir.changeToUnitOrZero();
+
+			rectifiedBasalDir = crossProduct(rectifiedBasalDir,aux3rdDir);
+			rectifiedBasalDir.changeToUnitOrZero();
+		}
+
+		void setupAzimuthDir(const FT azimuth, const FT extrusionMaxDist, Vector3d<FT>& extrusionDir)
+		{
+			extrusionDir  = std::cos(azimuth) * rectifiedBasalDir;
+			extrusionDir += std::sin(azimuth) * aux3rdDir;
+			extrusionDir *= extrusionMaxDist;
+		}
+
+		// ------------------- task settings: lines layout -------------------
+	public:
+		using typename Interpolator<FT>::posShakerType;
+		using typename Interpolator<FT>::radiusShakerType;
+		using typename Interpolator<FT>::posShakerPtr;
+		using typename Interpolator<FT>::radiusShakerPtr;
+
+		static void defaultPosNoAdjustment(Vector3d<FT>&,FT) {}
+		static FT defaultRadiusNoChg(FT r,FT) { return r; }
+
+		const posShakerType defaultPosNoAdjustmentRef = defaultPosNoAdjustment;
+		const radiusShakerType defaultRadiusNoChgRef = defaultRadiusNoChg;
+		int defaultNoOfSpheresOnConnectionLines = 1;
+
+		class AzimuthDrivenPositionExtruder {
+		public:
+			AzimuthDrivenPositionExtruder(const Vector3d<FT>& azimuthDir) : extender(azimuthDir) {}
+			const Vector3d<FT> extender;
+			void operator()(Vector3d<FT>& position,FT frac) const
+			{
+				REPORT("extruder for vector " << extender << " at frac=" << frac);
+				position += static_cast<FT>(std::sin(frac*M_PI)) * extender;
+			}
+			//NB: the operator's type must be addressable with posShakerPtr
+		};
+		//std::list<AzimuthDrivenPositionExtruder*> poolOfExtenders;
+
+	protected:
+		//list of lines/azimuths, NULL ptr amounts to default*Ptr
+		std::map<float,posShakerType>    azimuthToPosShaker;
+		std::map<float,radiusShakerType> azimuthToRadiusShaker;
+		std::map<float,int>              azimuthToNoOfSpheres;
 
 	public:
-		void resetAllAzimuthsWithDefaults(const float minAzimuth, const float stepAzimuth, const float maxAzimuth)
+		void resetAllAzimuthsToExtrusions(const float minAzimuth, const float stepAzimuth, const float maxAzimuth)
 		{
 			azimuthToPosShaker.clear();
 			azimuthToRadiusShaker.clear();
 			azimuthToNoOfSpheres.clear();
 
+			const FT mag = (toCentre-fromCentre).len() *static_cast<FT>(0.5);
+			Vector3d<FT> azimuthDir;
+
 			for (float a = minAzimuth; a <= maxAzimuth; a += stepAzimuth)
 			{
-				azimuthToPosShaker[a] = defaultPosNoAdjustment;
-				azimuthToRadiusShaker[a] = defaultRadiusNoChg;
+				setupAzimuthDir(a,mag,azimuthDir);
+				azimuthToPosShaker.insert(std::pair<float,posShakerType>(a,AzimuthDrivenPositionExtruder(azimuthDir)));
+				azimuthToRadiusShaker.insert(std::pair<float,radiusShakerType>(a,defaultRadiusNoChg));
 				azimuthToNoOfSpheres[a] = defaultNoOfSpheresOnConnectionLines;
 			}
 		}
@@ -499,16 +576,20 @@ public:
 			for (auto& m : azimuthToNoOfSpheres) m.second = noOfSpheres;
 		}
 
-		void addOrChangeAzimuthToDefaults(const float azimuth)
+		void addOrChangeAzimuthToExtrusion(const float azimuth)
 		{
-			azimuthToPosShaker[azimuth] = defaultPosNoAdjustment;
-			azimuthToRadiusShaker[azimuth] = defaultRadiusNoChg;
+			const FT mag = (toCentre-fromCentre).len() *0.5;
+			Vector3d<FT> azimuthDir;
+			setupAzimuthDir(azimuth,mag,azimuthDir);
+
+			azimuthToPosShaker.insert(std::pair<float,posShakerType>(azimuth,AzimuthDrivenPositionExtruder(azimuthDir)));
+			azimuthToRadiusShaker.insert(std::pair<float,radiusShakerType>(azimuth,defaultRadiusNoChg));
 			azimuthToNoOfSpheres[azimuth] = defaultNoOfSpheresOnConnectionLines;
 		}
 
 		void addOrChangeAzimuth(const float azimuth,
-		               posShakerPtr posShaker,
-		               radiusShakerPtr radiusShaker,
+		               posShakerType& posShaker,
+		               radiusShakerType& radiusShaker,
 		               int noOfSpheres)
 		{
 			azimuthToPosShaker[azimuth] = posShaker;
@@ -523,71 +604,46 @@ public:
 			azimuthToNoOfSpheres.erase(azimuth);
 		}
 
+		// ------------------- task implementation: create the layout -------------------
 		int getNoOfNecessarySpheres()
 		{
-			int cnt = 0;
+			int cnt = this->sourceGeom.getNoOfSpheres();
 			for (auto& m : azimuthToNoOfSpheres) cnt += m.second;
 			return cnt;
 		}
 
-
-
-
-
-
-
-
-
-
-
-		//----------------------------
-
-
-		// ------------------- task settings/inputs -------------------
-		Vector3d<FT> fromPos, tillPos;
-		Vector3d<FT> extrusionDir;
-
-		// ------------------- temporaries/outputs -------------------
-		Vector3d<FT> extrusionDirRectified;
-
-		// ------------------- main routine -------------------
-		void populate(std::vector< Vector3d<FT>* >& newLineUp)
+		//rebuild zadanou geometrii from scratch
+		void buildInto(Spheres& newGeom)
 		{
-			populate(newLineUp, [](FT frac){ return std::sin(frac *(FT)3.14159) * (FT)6; } );
-		}
+			if (newGeom.noOfSpheres != getNoOfNecessarySpheres())
+				throw ERROR_REPORT("Given geometry cannot host the one defined here.");
 
-		void populate(std::vector< Vector3d<FT>* >& newLineUp,
-		              const std::function<FT(FT)>& extrusionDist)
-		{
-			Vector3d<FT> distVec, newCentre;
+			//iterate over all azimuths, set up and apply the up-stream Interpolator
+			this->expansionPlan.clear();
+			std::list<posShakerPtr> positionShakers;
+			std::list<radiusShakerPtr> radiusShakers;
 
-			//main axis to sample along plus extrusionDir
-			distVec  = tillPos;
-			distVec -= fromPos;
-
-			//aux axis to extrude along that is quasi-parallel with the extrusionDir
-			//
-			//that is in the plane given by the main axis and the extrusionDir,
-			//and that is perpendicular to the main axis
-			extrusionDirRectified = crossProduct(extrusionDir,distVec);
-			extrusionDirRectified = crossProduct(distVec,extrusionDirRectified);
-			extrusionDirRectified.changeToUnitOrZero();
-
-			for (size_t i = 0; (size_t)i < newLineUp.size(); ++i)
+			//prepare direction vectors
+			for (const auto& map : azimuthToNoOfSpheres)
 			{
-				const FT frac = (FT)(i+1) / (FT)(newLineUp.size()+1);
+				this->addToPlan(0,1, map.second);
 
-				//position along the direct line
-				newCentre = distVec;
-				newCentre *= frac;
-				newCentre += fromPos;
+				posShakerPtr pSP = &azimuthToPosShaker[map.first];
+				DEBUG_REPORT(map.first << ": posShaker @ " << pSP);
+				if (pSP != NULL) positionShakers.push_back(pSP);
+				else             positionShakers.push_back(&defaultPosNoAdjustmentRef);
 
-				//extrusion offset
-				newCentre += extrusionDist(frac) * extrusionDirRectified;
-
-				*(newLineUp[i]) = newCentre;
+				radiusShakerPtr rSP = &azimuthToRadiusShaker[map.first];
+				DEBUG_REPORT(map.first << ": radiusShaker @ " << rSP);
+				if (rSP != NULL) radiusShakers.push_back(rSP);
+				else             radiusShakers.push_back(&defaultRadiusNoChgRef);
 			}
+			this->expandSrcIntoThis(newGeom, positionShakers,radiusShakers);
 		}
+
+		// ------------------- task implementation: maintain the layout -------------------
+
+		//update zadanou geometrii na zaklade detekovanych zmen v referencni geometrii
 	};
 };
 #endif

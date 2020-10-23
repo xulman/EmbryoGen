@@ -166,7 +166,7 @@ void Scenario_Tetris::initializeAgents(FrontOfficer* fo,int p,int)
 
 		const int connLines = 5;
 		const int inbetweeners = 5;
-		Spheres twoS(2 + connLines*inbetweeners);
+		Spheres twoS(2); // + connLines*inbetweeners);
 
 		std::vector< Vector3d<FLOAT>* > lineUps;
 		for (int i = 0; i < inbetweeners; ++i)
@@ -182,21 +182,16 @@ void Scenario_Tetris::initializeAgents(FrontOfficer* fo,int p,int)
 		twoS.updateRadius(0, 4);
 		twoS.updateRadius(1, 4);
 
-		SpheresFunctions::SpheresBuilder<float> builder(twoS.getCentres()[0], twoS.getCentres()[1], Vector3d<float>(0,1,0));
-		for (int dir = 0; dir < connLines; ++dir)
-		{
-			//for now easy = independent of the main axis
-			float dy = std::cos((float)dir/(float)connLines *2.f*3.14159f);
-			float dz = std::sin((float)dir/(float)connLines *2.f*3.14159f);
-			builder.setExtrusionDir(Vector3d<float>(0,dy,dz));
-			builder.populate(lineUps);
-			for (int i = 0; (size_t)i < lineUps.size(); ++i)
-			{
-				twoS.updateCentre(2 + dir*inbetweeners + i, *lineUps[i]);
-				twoS.updateRadius(2 + dir*inbetweeners + i, 1);
-			}
-			REPORT("dir " << dir << ": " << builder.extrusionDirRectified);
-		}
+		REPORT("-------------------------------------");
+		SpheresFunctions::LinkedSpheres<float> builder(twoS, Vector3d<float>(0,1,0));
+		float stepAngle = (float)(2.*M_PI)/(float)connLines;
+		builder.resetAllAzimuthsToExtrusions(0, stepAngle, (connLines-1)*stepAngle);
+		builder.resetNoOfSpheresInAllAzimuths(inbetweeners);
+		builder.printPlan();
+		REPORT("necessary cnt: " << builder.getNoOfNecessarySpheres());
+		Spheres manyS(builder.getNoOfNecessarySpheres());
+		builder.buildInto(manyS);
+		builder.printPlan();
 
 		/*
 		fo->startNewAgent( new TetrisNucleus(
@@ -207,7 +202,7 @@ void Scenario_Tetris::initializeAgents(FrontOfficer* fo,int p,int)
 		*/
 		fo->startNewAgent( new NucleusAgent(
 		        fo->getNextAvailAgentID(),
-		        agentName,twoS,
+		        agentName,manyS,
 		        params.constants.initTime,params.constants.incrTime
 			));
 
