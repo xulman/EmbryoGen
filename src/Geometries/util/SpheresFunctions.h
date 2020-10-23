@@ -459,68 +459,59 @@ public:
 	public:
 		// ------------------- task settings: spatial layout -------------------
 		LinkedSpheres(Spheres& referenceGeom, const Vector3d<FT>& basalSideDir)
-		  : Interpolator<FT>(referenceGeom)
+		  : Interpolator<FT>(referenceGeom), basalSideDir(1,0,0)
 		{
 			if (referenceGeom.noOfSpheres < 2)
 				throw ERROR_REPORT("reference geometry must include at least two spheres");
 
-			this->fromCentre = referenceGeom.centres[0];
-			this->toCentre   = referenceGeom.centres[1];
-			this->fromRadius = referenceGeom.radii[0];
-			this->toRadius   = referenceGeom.radii[1];
+			refreshFromChangedGeom();
 			setBasalSideDir(basalSideDir);
 		}
 
-		void setCentres(const Vector3d<FT>& fromCentre, const Vector3d<FT>& toCentre)
+		/** reinspects the associated Sphere geometry and re-reads the main axis from it */
+		void refreshFromChangedGeom()
 		{
-			this->fromCentre = fromCentre;
-			this->toCentre   = toCentre;
-			update3rdDir();
+			this->mainDir  = this->sourceGeom.getCentres()[1];
+			this->mainDir -= this->sourceGeom.getCentres()[0];
+			updateLocalDirs();
 		}
 
-		void setRadii(const FT fromRadius, const FT toRadius)
-		{
-			this->fromRadius = fromRadius;
-			this->toRadius   = toRadius;
-		}
-
+		/** (re)set the direction towards agent's basal side */
 		void setBasalSideDir(const Vector3d<FT>& basalSideDir)
 		{
 			this->basalSideDir = basalSideDir;
-			update3rdDir();
+			updateLocalDirs();
 		}
 
-		Vector3d<FT> fromCentre, toCentre;
-		FT fromRadius, toRadius;
-		Vector3d<FT> basalSideDir;
-
-		Vector3d<FT> rectifiedBasalDir, aux3rdDir;
+		const Vector3d<FT>& getMainAxis()          { return mainDir; }
+		const Vector3d<FT>& getBasalSideAxis()     { return basalSideDir; }
+		const Vector3d<FT>& getAux3rdAxis()        { return aux3rdDir; }
+		const Vector3d<FT>& getRectifiedBasalDir() { return rectifiedBasalDir; }
 
 	protected:
-		void update3rdDir()
-		{
-			//tmp storage of the main/polarity axis
-			rectifiedBasalDir  = toCentre;
-			rectifiedBasalDir -= fromCentre;
+		Vector3d<FT> mainDir, basalSideDir;            //inputs, given
+		Vector3d<FT> rectifiedBasalDir, aux3rdDir;     //aux, computed
 
-			//axis in the plane given by the main axis and the basalSideDir,
-			//and that is perpendicular to the main axis
-			aux3rdDir = crossProduct(basalSideDir,rectifiedBasalDir);
+		void updateLocalDirs()
+		{
+			//3rd axis, perpendicular to the main and to the basal axes
+			aux3rdDir = crossProduct(basalSideDir,mainDir);
 			aux3rdDir.changeToUnitOrZero();
 
-			rectifiedBasalDir = crossProduct(rectifiedBasalDir,aux3rdDir);
+			//axis in the plane given by the main axis and the basalSideDir
+			//and that is perpendicular to the main axis
+			rectifiedBasalDir = crossProduct(mainDir,aux3rdDir);
 			rectifiedBasalDir.changeToUnitOrZero();
 		}
 
-		void setupAzimuthDir(const FT azimuth, const FT extrusionMaxDist, Vector3d<FT>& extrusionDir)
+	public:
+		void setupUnitAzimuthDir(const FT azimuth, Vector3d<FT>& extrusionDir)
 		{
 			extrusionDir  = std::cos(azimuth) * rectifiedBasalDir;
 			extrusionDir += std::sin(azimuth) * aux3rdDir;
-			extrusionDir *= extrusionMaxDist;
 		}
 
 		// ------------------- task settings: lines layout -------------------
-	public:
 		using typename Interpolator<FT>::posShakerType;
 		using typename Interpolator<FT>::radiusShakerType;
 		using typename Interpolator<FT>::posShakerPtr;
@@ -530,44 +521,65 @@ public:
 		static FT defaultRadiusNoChg(FT r,FT) { return r; }
 		int defaultNoOfSpheresOnConnectionLines = 1;
 
+		class AzimuthDrivenPositionExtruder {
+		public:
+			AzimuthDrivenPositionExtruder(const FT azimuth,
+			                              const std::function< FT(FT) >& extrusionProfile_)
+			  : extrusionProfile(extrusionProfile_) { this->setupUnitAzimuthDir(azimuth,extender); }
+
+			AzimuthDrivenPositionExtruder(const Vector3d<FT>& azimuthDir_,
+			                              const std::function< FT(FT) >& extrusionProfile_)
+			  : extender(azimuthDir_), extrusionProfile(extrusionProfile_) {}
+
+			const Vector3d<FT> extender;
+			const std::function< FT(FT) > extrusionProfile;
+
+			void operator()(Vector3d<FT>& position,FT frac) const
+			{
+				//DEBUG_REPORT("extruder for vector " << extender << " at frac=" << frac);
+				position += extrusionProfile(frac) * extender;
+			}
+			//NB: the operator's type must be compatible with posShakerType
+		};
+
 	protected:
 		const posShakerType defaultPosNoAdjustmentRef = defaultPosNoAdjustment;
 		const radiusShakerType defaultRadiusNoChgRef = defaultRadiusNoChg;
 
-	public:
-		class AzimuthDrivenPositionExtruder {
-		public:
-			AzimuthDrivenPositionExtruder(const Vector3d<FT>& azimuthDir) : extender(azimuthDir) {}
-			const Vector3d<FT> extender;
-			void operator()(Vector3d<FT>& position,FT frac) const
-			{
-				REPORT("extruder for vector " << extender << " at frac=" << frac);
-				position += static_cast<FT>(std::sin(frac*M_PI)) * extender;
-			}
-			//NB: the operator's type must be addressable with posShakerPtr
-		};
-		//std::list<AzimuthDrivenPositionExtruder*> poolOfExtenders;
-
-	protected:
-		//list of lines/azimuths, NULL ptr amounts to default*Ptr
+		//list of lines/azimuths, NULL ptr amounts to default*Ptr //TODO
 		std::map<float,posShakerType>    azimuthToPosShaker;
 		std::map<float,radiusShakerType> azimuthToRadiusShaker;
 		std::map<float,int>              azimuthToNoOfSpheres;
 
 	public:
+		/** resets the line ups: starting from 'minAzimuth' in steps of 'stepAzimuth' up to (incluside) 'maxAzimuth',
+		    series of spheres are created and placed (lined up) at each azimuth and along an extrusion profile. The
+		    latter is a curve that dictates how far from the main dir (connection line between 1st and 2nd sphere
+		    in the associated geometry) given sphere should be placed. In this method, a sin() curve is used. */
 		void resetAllAzimuthsToExtrusions(const float minAzimuth, const float stepAzimuth, const float maxAzimuth)
+		{
+			const FT mag = static_cast<FT>(0.5) * mainDir.len();
+			resetAllAzimuthsToExtrusions(minAzimuth,stepAzimuth,maxAzimuth, [mag](FT f){ return mag*std::sin(f*M_PI); });
+		}
+
+		/** resets the same as the other resetAllAzimuthsToExtrusions() but caller needs to provide
+		    his/her own function for domain [0,1] */
+		void resetAllAzimuthsToExtrusions(const float minAzimuth, const float stepAzimuth, const float maxAzimuth,
+		                                  const std::function< FT(FT) >& extrusionProfile)
 		{
 			azimuthToPosShaker.clear();
 			azimuthToRadiusShaker.clear();
 			azimuthToNoOfSpheres.clear();
 
-			const FT mag = (toCentre-fromCentre).len() *static_cast<FT>(0.5);
 			Vector3d<FT> azimuthDir;
-
 			for (float a = minAzimuth; a <= maxAzimuth; a += stepAzimuth)
 			{
-				setupAzimuthDir(a,mag,azimuthDir);
-				azimuthToPosShaker.insert(std::pair<float,posShakerType>(a,AzimuthDrivenPositionExtruder(azimuthDir)));
+				setupUnitAzimuthDir(a,azimuthDir);
+
+				azimuthToPosShaker.insert(std::pair<float,posShakerType>(
+					a,
+					AzimuthDrivenPositionExtruder(azimuthDir,extrusionProfile) ));
+				//
 				azimuthToRadiusShaker.insert(std::pair<float,radiusShakerType>(a,defaultRadiusNoChg));
 				azimuthToNoOfSpheres[a] = defaultNoOfSpheresOnConnectionLines;
 			}
@@ -580,11 +592,16 @@ public:
 
 		void addOrChangeAzimuthToExtrusion(const float azimuth)
 		{
-			const FT mag = (toCentre-fromCentre).len() *static_cast<FT>(0.5);
-			Vector3d<FT> azimuthDir;
-			setupAzimuthDir(azimuth,mag,azimuthDir);
+			//TODO: erase() it first?
 
-			azimuthToPosShaker.insert(std::pair<float,posShakerType>(azimuth,AzimuthDrivenPositionExtruder(azimuthDir)));
+			Vector3d<FT> azimuthDir;
+			setupUnitAzimuthDir(azimuth,azimuthDir);
+
+			const FT mag = static_cast<FT>(0.5) * mainDir.len();
+			azimuthToPosShaker.insert(std::pair<float,posShakerType>(
+				azimuth,
+				AzimuthDrivenPositionExtruder(azimuthDir,[mag](FT f){ return mag*std::sin(f*M_PI); }) ));
+			//
 			azimuthToRadiusShaker.insert(std::pair<float,radiusShakerType>(azimuth,defaultRadiusNoChg));
 			azimuthToNoOfSpheres[azimuth] = defaultNoOfSpheresOnConnectionLines;
 		}
@@ -594,6 +611,8 @@ public:
 		               radiusShakerType& radiusShaker,
 		               int noOfSpheres)
 		{
+			//TODO: erase() it first?
+
 			azimuthToPosShaker.insert(std::pair<float,posShakerType>(azimuth,posShaker));
 			azimuthToRadiusShaker.insert(std::pair<float,radiusShakerType>(azimuth,radiusShaker));
 			azimuthToNoOfSpheres[azimuth] = noOfSpheres;
@@ -617,7 +636,8 @@ public:
 		/** accessor of the inherited (but protected) method */
 		void printPlan() { Interpolator<FT>::printPlan(); }
 
-		//rebuild zadanou geometrii from scratch
+
+		/** rebuilds ino the given geometry according to the pre-defined line ups (azimuths) */
 		void buildInto(Spheres& newGeom)
 		{
 			if (newGeom.noOfSpheres != getNoOfNecessarySpheres())
@@ -647,7 +667,6 @@ public:
 		}
 
 		// ------------------- task implementation: maintain the layout -------------------
-
 		//update zadanou geometrii na zaklade detekovanych zmen v referencni geometrii
 	};
 };
