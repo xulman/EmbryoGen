@@ -184,9 +184,17 @@ void Scenario_Tetris::initializeAgents(FrontOfficer* fo,int p,int)
 
 		REPORT("-------------------------------------");
 		SpheresFunctions::LinkedSpheres<float> builder(twoS, Vector3d<float>(0,1,0));
-		float stepAngle = (float)(2.*M_PI)/(float)connLines;
-		builder.resetAllAzimuthsToExtrusions(0, stepAngle, (connLines-1)*stepAngle);
+		float minAngle = -M_PI_2;
+		float maxAngle = +M_PI_2;
+		float stepAngle = (maxAngle-minAngle)/(float)connLines;
+		builder.resetAllAzimuthsToExtrusions(minAngle, stepAngle, maxAngle);
 		builder.resetNoOfSpheresInAllAzimuths(inbetweeners);
+		builder.defaultNoOfSpheresOnConnectionLines=2;
+		builder.addOrChangeAzimuthToExtrusion(M_PI-0.2);
+		builder.addOrChangeAzimuthToExtrusion(M_PI+0.2);
+		builder.addOrChangeAzimuth(M_PI, builder.defaultPosNoAdjustmentRef, builder.defaultRadiusNoChgRef, 4);
+		builder.removeAzimuth(M_PI+0.2);
+		//builder.addToPlan(0,1,3);
 		builder.printPlan();
 		REPORT("necessary cnt: " << builder.getNoOfNecessarySpheres());
 		Spheres manyS(builder.getNoOfNecessarySpheres());

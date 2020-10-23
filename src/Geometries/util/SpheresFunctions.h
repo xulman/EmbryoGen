@@ -578,7 +578,7 @@ public:
 
 		void addOrChangeAzimuthToExtrusion(const float azimuth)
 		{
-			const FT mag = (toCentre-fromCentre).len() *0.5;
+			const FT mag = (toCentre-fromCentre).len() *static_cast<FT>(0.5);
 			Vector3d<FT> azimuthDir;
 			setupAzimuthDir(azimuth,mag,azimuthDir);
 
@@ -592,8 +592,8 @@ public:
 		               radiusShakerType& radiusShaker,
 		               int noOfSpheres)
 		{
-			azimuthToPosShaker[azimuth] = posShaker;
-			azimuthToRadiusShaker[azimuth] = radiusShaker;
+			azimuthToPosShaker.insert(std::pair<float,posShakerType>(azimuth,posShaker));
+			azimuthToRadiusShaker.insert(std::pair<float,radiusShakerType>(azimuth,radiusShaker));
 			azimuthToNoOfSpheres[azimuth] = noOfSpheres;
 		}
 
