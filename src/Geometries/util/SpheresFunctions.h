@@ -454,7 +454,7 @@ public:
 	 * defining spheres. Finally, the net shape "follows" (is updated with) the changes in
 	 * position and radius of the two spheres. */
 	template <typename FT>
-	class LinkedSpheres: public Interpolator<FT>
+	class LinkedSpheres: protected Interpolator<FT>
 	{
 	public:
 		// ------------------- task settings: spatial layout -------------------
@@ -611,6 +611,9 @@ public:
 			for (auto& m : azimuthToNoOfSpheres) cnt += m.second;
 			return cnt;
 		}
+
+		/** accessor of the inherited (but protected) method */
+		void printPlan() { Interpolator<FT>::printPlan(); }
 
 		//rebuild zadanou geometrii from scratch
 		void buildInto(Spheres& newGeom)
