@@ -404,33 +404,144 @@ public:
 	};
 
 
+	/**
+	 * Builds, maintains and updates a spheres-based geometry of an agent that recognizes
+	 * its own polarity and direction towards its basal side. The polarity is given by two
+	 * (main) spheres, which define the gross basis of the overall shape of the agent. The
+	 * net shape is established by adding "links of spheres" between the two spheres. Each
+	 * link is defined by its "azimuth": consider a plane whose normal coincides with the
+	 * polarity axis and in which lies the vector towards the basal side of the agent -- this
+	 * vector represents the azimuth at 0 deg. Net shape is obtained by utilizing multiple
+	 * such azimuths, each defines a direction of extrusion that is applied on given number
+	 * of new spheres that would otherwise be placed on a straight line between the two polarity-
+	 * defining spheres. Finally, the net shape "follows" (is updated with) the changes in
+	 * position and radius of the two spheres. */
 	template <typename FT>
-	class SpheresBuilder
+	class LinkedSpheres
 	{
 	public:
-		// ------------------- setters -------------------
-		SpheresBuilder(const Vector3d<FT>& fromPos, const Vector3d<FT>& tillPos, const Vector3d<FT>& extrusionDir)
+		//dam tomu: dve pozice a polomery (aka main axis), basal axis - to je nutnost
+
+		//optional, pres settery:
+		//minAzimuth, maxAzimuth, stepAzimuth - skonci v citelne mape azimutu
+		//pocty na retizku
+		//muzu nastavit default shaker
+		//muzu nastavit kazdemu azimutu jeho shaker, jinak se pouzije ten default
+
+		//gettery:
+		//celkovy pocet spheres
+		//rebuild zadanou geometrii from scratch
+		//update zadanou geometrii na zaklade detekovanych zmen v referencni geometrii
+
+		// ------------------- task settings: spatial layout -------------------
+		LinkedSpheres(Spheres& referenceGeom, const Vector3d<FT>& basalSideDir)
 		{
-			reset(fromPos,tillPos,extrusionDir);
+			if (referenceGeom.noOfSpheres < 2)
+				throw ERROR_REPORT("reference geometry must be at least of two spheres");
+
+			setCentres(referenceGeom.centres[0],referenceGeom.centres[1]);
+			setRadii(referenceGeom.radii[0],referenceGeom.radii[1]);
+			setBasalSideDir(basalSideDir);
 		}
 
-		void reset(const Vector3d<FT>& fromPos, const Vector3d<FT>& tillPos, const Vector3d<FT>& extrusionDir)
+		void setCentres(const Vector3d<FT>& fromCentre, const Vector3d<FT>& toCentre)
 		{
-			this->fromPos = fromPos;
-			this->tillPos = tillPos;
-			this->extrusionDir = extrusionDir;
+			this->fromCentre = fromCentre;
+			this->toCentre   = toCentre;
 		}
 
-		void setConnectionLine(const Vector3d<FT>& fromPos, const Vector3d<FT>& tillPos)
+		void setRadii(const FT fromRadius, const FT toRadius)
 		{
-			this->fromPos = fromPos;
-			this->tillPos = tillPos;
+			this->fromRadius = fromRadius;
+			this->toRadius   = toRadius;
 		}
 
-		void setExtrusionDir(const Vector3d<FT>& extrusionDir)
+		void setBasalSideDir(const Vector3d<FT>& basalSideDir)
 		{
-			this->extrusionDir = extrusionDir;
+			this->basalSideDir = basalSideDir;
 		}
+
+		Vector3d<FT> fromCentre, toCentre;
+		FT fromRadius, toRadius;
+		Vector3d<FT> basalSideDir;
+
+		// ------------------- task settings: lines layout -------------------
+		typedef const std::function< void(Vector3d<FT>&,FT) >* posShakerPtr;
+		typedef const std::function< FT(FT,FT) >* radiusShakerPtr;
+
+		static const posShakerPtr defaultPosNoAdjustment = [](Vector3d<FT>&,FT){};
+		static const radiusShakerPtr defaultRadiusNoChg  = [](FT r,FT){ return r; };
+		int defaultNoOfSpheresOnConnectionLines = 1;
+
+	protected:
+		//list of lines, NULL ptr amounts to default*Ptr
+		std::map<float, posShakerPtr    > azimuthToPosShaker;
+		std::map<float, radiusShakerPtr > azimuthToRadiusShaker;
+		std::map<float, int >             azimuthToNoOfSpheres;
+
+	public:
+		void resetAllAzimuthsWithDefaults(const float minAzimuth, const float stepAzimuth, const float maxAzimuth)
+		{
+			azimuthToPosShaker.clear();
+			azimuthToRadiusShaker.clear();
+			azimuthToNoOfSpheres.clear();
+
+			for (float a = minAzimuth; a <= maxAzimuth; a += stepAzimuth)
+			{
+				azimuthToPosShaker[a] = defaultPosNoAdjustment;
+				azimuthToRadiusShaker[a] = defaultRadiusNoChg;
+				azimuthToNoOfSpheres[a] = defaultNoOfSpheresOnConnectionLines;
+			}
+		}
+
+		void resetNoOfSpheresInAllAzimuths(const int noOfSpheres)
+		{
+			for (auto& m : azimuthToNoOfSpheres) m.second = noOfSpheres;
+		}
+
+		void addOrChangeAzimuthToDefaults(const float azimuth)
+		{
+			azimuthToPosShaker[azimuth] = defaultPosNoAdjustment;
+			azimuthToRadiusShaker[azimuth] = defaultRadiusNoChg;
+			azimuthToNoOfSpheres[azimuth] = defaultNoOfSpheresOnConnectionLines;
+		}
+
+		void addOrChangeAzimuth(const float azimuth,
+		               posShakerPtr posShaker,
+		               radiusShakerPtr radiusShaker,
+		               int noOfSpheres)
+		{
+			azimuthToPosShaker[azimuth] = posShaker;
+			azimuthToRadiusShaker[azimuth] = radiusShaker;
+			azimuthToNoOfSpheres[azimuth] = noOfSpheres;
+		}
+
+		void removeAzimuth(const float azimuth)
+		{
+			azimuthToPosShaker.erase(azimuth);
+			azimuthToRadiusShaker.erase(azimuth);
+			azimuthToNoOfSpheres.erase(azimuth);
+		}
+
+		int getNoOfNecessarySpheres()
+		{
+			int cnt = 0;
+			for (auto& m : azimuthToNoOfSpheres) cnt += m.second;
+			return cnt;
+		}
+
+
+
+
+
+
+
+
+
+
+
+		//----------------------------
+
 
 		// ------------------- task settings/inputs -------------------
 		Vector3d<FT> fromPos, tillPos;
