@@ -599,7 +599,8 @@ public:
 
 		void addOrChangeAzimuthToExtrusion(const float azimuth)
 		{
-			//TODO: erase() it first?
+			//insert cannot overwrite, we have to clean beforehand
+			removeAzimuth(azimuth);
 
 			Vector3d<FT> azimuthDir;
 			setupUnitAzimuthDir(azimuth,azimuthDir);
@@ -618,7 +619,8 @@ public:
 		               radiusShakerType& radiusShaker,
 		               int noOfSpheres)
 		{
-			//TODO: erase() it first?
+			//insert cannot overwrite, we have to clean beforehand
+			removeAzimuth(azimuth);
 
 			azimuthToPosShaker.insert(std::pair<float,posShakerType>(azimuth,posShaker));
 			azimuthToRadiusShaker.insert(std::pair<float,radiusShakerType>(azimuth,radiusShaker));
@@ -643,15 +645,20 @@ public:
 		/** accessor of the inherited (but protected) method */
 		void printPlan() const { Interpolator<FT>::printPlan(); }
 
-		int printSkeleton(DisplayUnit& du, const int firstDuID, const int color, const Spheres& generatedGeom, const int skipSpheres = 2)
-		const
+		int printSkeleton(DisplayUnit& du, const int startWithThisID, const int color,
+		                  const Spheres& generatedGeom, const int skipSpheres = 2) const
 		{
-			int ID = firstDuID-1;
-			int sNo = skipSpheres;
+			int ID = startWithThisID-1;
+			int sNo = skipSpheres-1;
+			const Vector3d<FLOAT>* centres = generatedGeom.getCentres();
 
 			for (const auto& m : azimuthToNoOfSpheres)
+			if (m.second > 0)
 			{
-				du.DrawLine(ID)
+				du.DrawLine(++ID, centres[0], centres[++sNo], color);
+				for (int i = 1; i < m.second; ++i, ++sNo)
+					du.DrawLine(++ID, centres[sNo], centres[sNo+1], color);
+				du.DrawLine(++ID, centres[sNo], centres[1], color);
 			}
 
 			return ID;
