@@ -19,9 +19,9 @@ void showGeom(DisplayUnit& du, const Spheres* srcGeom, const Spheres* expandedGe
 		return;
 	}
 	std::cout << "showing " << expandedGeom->getNoOfSpheres() << " expanded spheres\n";
-	for (; i < expandedGeom->getNoOfSpheres(); ++i)
+	for (i=0; i < expandedGeom->getNoOfSpheres(); ++i)
 	{
-		du.DrawPoint(i,expandedGeom->getCentres()[i],expandedGeom->getRadii()[i],2);
+		du.DrawPoint(10+i,expandedGeom->getCentres()[i],expandedGeom->getRadii()[i],2);
 		//du.DrawVector(i,futureGeometry.getCentres()[i],orientVec,0);
 	}
 }
@@ -171,18 +171,83 @@ void mainForLinkedSpheres(DisplayUnit& du)
 		builder.printSkeleton(du,3000,7, manyS);
 
 		std::cin >> key;
+
 		if (key == 'r')
 		{
 			twoS.updateRadius(0, refRadius + 2*sin(cnt));
-			builder.rebuildInto(manyS);
 		}
 		if (key == 'p')
 		{
 			twoS.updateCentre(1, refCentre + Vector3d<float>(0, 4*sin(0.4*cnt), 0));
-			builder.rebuildInto(manyS);
+		}
+		if (key == 'u')
+		{
+			builder.refreshThis(manyS);
 		}
 		if (key == 'n')
 		{
+			builder.rebuildInto(manyS);
+		}
+		++cnt;
+	}
+
+}
+
+
+void mainForSimplyLinkedSpheres(DisplayUnit& du)
+{
+	//reference two balls
+	Spheres twoS(2);
+
+	//initial geom of the two balls
+	const float sDist = 4;
+	const float maxAxisDev = 2.4f;
+	twoS.updateCentre(0, Vector3d<float>(-9.f,
+				GetRandomUniform(-maxAxisDev*sDist,+maxAxisDev*sDist),
+				GetRandomUniform(-maxAxisDev*sDist,+maxAxisDev*sDist)));
+	twoS.updateCentre(1, Vector3d<float>(+9.f,
+				GetRandomUniform(-maxAxisDev*sDist,+maxAxisDev*sDist),
+				GetRandomUniform(-maxAxisDev*sDist,+maxAxisDev*sDist)));
+	//twoS.updateRadius(0, 3.0);
+	//twoS.updateRadius(1, 4.5);
+	twoS.updateRadius(0, 3.0);
+	twoS.updateRadius(1, 1.0);
+
+	//populate via LinkedSpheres
+	SpheresFunctions::LinkedSpheres<float> builder(twoS, Vector3d<float>(0,1,0));
+	builder.addOrChangeAzimuth(0, builder.defaultPosNoAdjustment, builder.defaultRadiusNoChg, 4);
+
+	//commit the case and draw it
+	Spheres manyS(builder.getNoOfNecessarySpheres());
+	builder.buildInto(manyS);
+	builder.printPlan();
+
+	int cnt = 1;
+	float refRadius = twoS.getRadii()[0];
+	Vector3d<float> refCentre = twoS.getCentres()[1];
+
+	char key = 0;
+	while (key != 'a')
+	{
+		showGeom(du, &twoS, &manyS);
+
+		std::cin >> key;
+
+		if (key == 'r')
+		{
+			twoS.updateRadius(0, refRadius + 2*sin(cnt));
+		}
+		if (key == 'p')
+		{
+			twoS.updateCentre(1, refCentre + Vector3d<float>(0, 4*sin(0.4*cnt), 0));
+		}
+		if (key == 'u')
+		{
+			builder.refreshThis(manyS);
+		}
+		if (key == 'n')
+		{
+			builder.printPlan();
 			builder.buildInto(manyS);
 		}
 		++cnt;
@@ -191,7 +256,7 @@ void mainForLinkedSpheres(DisplayUnit& du)
 //---------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------
 
-
+#define REPORT_EXCEPTION(x) std::cout << x << "\n";
 int main(void)
 {
 	//mainForInterpolator();
@@ -199,12 +264,46 @@ int main(void)
 	//SceneryDisplayUnit du("localhost:8765");
 	SceneryDisplayUnit du("192.168.3.105:8765");
 
+	try
+	{
+
 	char key = 0;
 	while (key != 27)
 	{
 		std::cout << "=============== NEW MODEL ===============\n";
 		mainForLinkedSpheres(du);
+		//mainForSimplyLinkedSpheres(du);
 		std::cin >> key;
+	}
+
+	}
+	catch (const char* e)
+	{
+		REPORT_EXCEPTION("Got this message: " << e)
+	}
+	catch (std::string& e)
+	{
+		REPORT_EXCEPTION("Got this message: " << e)
+	}
+	catch (std::runtime_error* e)
+	{
+		REPORT_EXCEPTION("RuntimeError: " << e->what())
+	}
+	catch (i3d::IOException* e)
+	{
+		REPORT_EXCEPTION("i3d::IOException: " << e->what)
+	}
+	catch (i3d::LibException* e)
+	{
+		REPORT_EXCEPTION("i3d::LibException: " << e->what)
+	}
+	catch (std::bad_alloc&)
+	{
+		REPORT_EXCEPTION("Not enough memory.")
+	}
+	catch (...)
+	{
+		REPORT_EXCEPTION("System exception.")
 	}
 
 	return 0;
