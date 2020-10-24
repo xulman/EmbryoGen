@@ -665,16 +665,17 @@ public:
 		}
 
 
-		/** rebuilds ino the given geometry according to the pre-defined line ups (azimuths) */
+		/** builds ino the given geometry according to the pre-defined line ups (azimuths) */
 		void buildInto(Spheres& newGeom)
 		{
+#ifdef DEBUG
 			if (newGeom.noOfSpheres != getNoOfNecessarySpheres())
 				throw ERROR_REPORT("Given geometry cannot host the one defined here.");
-
+#endif
 			//iterate over all azimuths, set up and apply the up-stream Interpolator
 			this->expansionPlan.clear();
-			std::list<posShakerPtr> positionShakers;
-			std::list<radiusShakerPtr> radiusShakers;
+			positionShakers.clear();
+			radiusShakers.clear();
 
 			//prepare direction vectors
 			for (const auto& map : azimuthToNoOfSpheres)
@@ -694,7 +695,22 @@ public:
 			this->expandSrcIntoThis(newGeom, positionShakers,radiusShakers);
 		}
 
+		void rebuildInto(Spheres& newGeom)
+		{
+#ifdef DEBUG
+			if (newGeom.noOfSpheres != getNoOfNecessarySpheres())
+				throw ERROR_REPORT("Given geometry cannot host the one defined here.");
+#endif
+			this->expandSrcIntoThis(newGeom, positionShakers,radiusShakers);
+		}
+
+	protected:
+		std::list<posShakerPtr> positionShakers;
+		std::list<radiusShakerPtr> radiusShakers;
+
+
 		// ------------------- task implementation: maintain the layout -------------------
+	public:
 		//update zadanou geometrii na zaklade detekovanych zmen v referencni geometrii
 	};
 };
