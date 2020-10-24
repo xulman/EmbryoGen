@@ -104,31 +104,42 @@ void mainForLinkedSpheres(DisplayUnit& du)
 	twoS.updateCentre(1, Vector3d<float>(+9.f,
 				GetRandomUniform(-maxAxisDev*sDist,+maxAxisDev*sDist),
 				GetRandomUniform(-maxAxisDev*sDist,+maxAxisDev*sDist)));
+	//twoS.updateRadius(0, 3.0);
+	//twoS.updateRadius(1, 4.5);
 	twoS.updateRadius(0, 3.0);
-	twoS.updateRadius(1, 4.5);
+	twoS.updateRadius(1, 1.0);
 
 	//populate via LinkedSpheres
-	SpheresFunctions::LinkedSpheres<float> builder(twoS, Vector3d<float>(0,1,3));
+	SpheresFunctions::LinkedSpheres<float> builder(twoS, Vector3d<float>(0,1,0));
 
 	//regularly placed lines
 	float minAngle = -M_PI_2 *0.5f;
 	float maxAngle = +M_PI_2 *0.5f;
 	float stepAngle = (maxAngle-minAngle)/3.0f;
-	builder.resetAllAzimuthsToExtrusions(minAngle, stepAngle, maxAngle);
-	builder.resetNoOfSpheresInAllAzimuths(5);
+	//builder.resetAllAzimuthsToExtrusions(minAngle, stepAngle, maxAngle);
+	builder.resetAllAzimuthsToExtrusions(minAngle, stepAngle, maxAngle, [](float f){ return 10*(sin(f*M_PI)+0.3*sin(f*4*M_PI));});
+	builder.resetNoOfSpheresInAllAzimuths(19);
 
 	//explicitly placed lines
 	builder.defaultNoOfSpheresOnConnectionLines=2;
-	builder.addOrChangeAzimuthToExtrusion(M_PI-0.2);
-	builder.addOrChangeAzimuthToExtrusion(M_PI+0.2);
+	builder.addOrChangeAzimuthToExtrusion(M_PI-0.4);
+	builder.addOrChangeAzimuthToExtrusion(M_PI+0.4);
+
+	//explicitly placed lines with own azimuth-shaker
+	float myAng = M_PI;
+	builder.addOrChangeAzimuth(myAng,
+		SpheresFunctions::LinkedSpheres<float>::AzimuthDrivenPositionExtruder(myAng,builder,[](float){return 5.f;}),
+		builder.defaultRadiusNoChg,
+		5);
 
 	//explicitly placed lines with specialities
-	builder.addOrChangeAzimuth(0, builder.defaultPosNoAdjustment, [](float,float f){return 2.f - 2.f*std::abs(f-0.5f);}, 4);
+	builder.addOrChangeAzimuth(myAng+000.1, builder.defaultPosNoAdjustment, [](float,float f){return 2.f - 2.f*std::abs(f-0.5f);}, 4);
 	//builder.addOrChangeAzimuth(M_PI,[](Vector3d<float>& v,float f){v += Vector3d<float>(0,0,f-0.5f +15);},builder.defaultRadiusNoChg, 4);
 	//builder.addOrChangeAzimuth(M_PI, builder.defaultPosNoAdjustment, builder.defaultRadiusNoChg, 4);
 
 	//test for removal
 	//builder.removeAzimuth(M_PI+0.2);
+	//builder.removeAzimuth(8432903482);
 
 	//builder.addToPlan(0,1,3); //content of Interpolator is forbidden in LinkedSpheres
 	builder.printPlan();
@@ -144,12 +155,13 @@ void mainForLinkedSpheres(DisplayUnit& du)
 	centre *= 0.5f;
 
 	int vecID = 1000;
-	du.DrawVector(vecID++, centre, builder.basalSideDir, 1); //basal vector red
-	du.DrawVector(vecID++, centre, builder.rectifiedBasalDir, 5); //rectified basal vector magenta
-	du.DrawVector(vecID++, centre, builder.aux3rdDir, 4); //aux 3rd cyan
+	du.DrawVector(vecID++, centre, builder.getBasalSideAxis(), 1); //basal vector red
+	du.DrawVector(vecID++, centre, builder.getRectifiedBasalDir(), 5); //rectified basal vector magenta
+	du.DrawVector(vecID++, centre, builder.getAux3rdAxis(), 4); //aux 3rd cyan
 	du.DrawLine(vecID++, twoS.getCentres()[0], twoS.getCentres()[1], 1); //main axis in red
 
 	showGeom(du, &twoS, &manyS);
+	builder.printSkeleton(du,3000,7, manyS);
 }
 //---------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------
