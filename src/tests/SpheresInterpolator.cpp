@@ -160,8 +160,33 @@ void mainForLinkedSpheres(DisplayUnit& du)
 	du.DrawVector(vecID++, centre, builder.getAux3rdAxis(), 4); //aux 3rd cyan
 	du.DrawLine(vecID++, twoS.getCentres()[0], twoS.getCentres()[1], 1); //main axis in red
 
-	showGeom(du, &twoS, &manyS);
-	builder.printSkeleton(du,3000,7, manyS);
+	int cnt = 1;
+	float refRadius = twoS.getRadii()[0];
+	Vector3d<float> refCentre = twoS.getCentres()[1];
+
+	char key = 0;
+	while (key != 'a')
+	{
+		showGeom(du, &twoS, &manyS);
+		builder.printSkeleton(du,3000,7, manyS);
+
+		std::cin >> key;
+		if (key == 'r')
+		{
+			twoS.updateRadius(0, refRadius + 2*sin(cnt));
+			builder.rebuildInto(manyS);
+		}
+		if (key == 'p')
+		{
+			twoS.updateCentre(1, refCentre + Vector3d<float>(0, 4*sin(0.4*cnt), 0));
+			builder.rebuildInto(manyS);
+		}
+		if (key == 'n')
+		{
+			builder.buildInto(manyS);
+		}
+		++cnt;
+	}
 }
 //---------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------
@@ -177,6 +202,7 @@ int main(void)
 	char key = 0;
 	while (key != 27)
 	{
+		std::cout << "=============== NEW MODEL ===============\n";
 		mainForLinkedSpheres(du);
 		std::cin >> key;
 	}
