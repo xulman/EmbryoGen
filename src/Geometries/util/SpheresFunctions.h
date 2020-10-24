@@ -264,18 +264,18 @@ public:
 
 		/** considering the current expansion plan and the associated source geometry,
 		    it creates and shares an appropriately sized geometry */
-		Spheres createAppropriateTargetGeom()
+		Spheres createAppropriateTargetGeom() const
 		{ return Spheres(optimalTargetSpheresNo); }
 		//NB, in action: copy elision or move constructor from Spheres
 
 		/** considering the current expansion plan and the associated source geometry,
 		    it reports how many spheres must the target geometry be consisting of */
-		int getOptimalTargetSpheresNo()
+		int getOptimalTargetSpheresNo() const
 		{ return optimalTargetSpheresNo; }
 
 		/** rebuilds the associated target geometry (Spheres) from the source geometry
 		    according to the expansion plan using linear interpolation */
-		void expandSrcIntoThis(Spheres& targetGeom)
+		void expandSrcIntoThis(Spheres& targetGeom) const
 		{
 			expandSrcIntoThis(targetGeom, [](Vector3d<FT>&,FT){}, [](FT r,FT){ return r; });
 		}
@@ -296,7 +296,7 @@ public:
 		    reads in sphere's radius and returns an adjusted (or the same) value. */
 		void expandSrcIntoThis(Spheres& targetGeom,
 		                       const std::function< void(Vector3d<FT>&,FT) >& positionShaker,
-		                       const std::function< FT(FT,FT) >& radiusShaker)
+		                       const std::function< FT(FT,FT) >& radiusShaker) const
 		{
 #ifdef DEBUG
 			//test appropriate size of the target geom
@@ -312,12 +312,13 @@ public:
 				positionShakers.push_back(&positionShaker);
 				radiusShakers.push_back(&radiusShaker);
 			}
+
 			expandSrcIntoThis(targetGeom, positionShakers,radiusShakers);
 		}
 
 		void expandSrcIntoThis(Spheres& targetGeom,
 		                       const std::list<posShakerPtr>& positionShakers,
-		                       const std::list<radiusShakerPtr>& radiusShakers)
+		                       const std::list<radiusShakerPtr>& radiusShakers) const
 		{
 #ifdef DEBUG
 			if (positionShakers.size() != radiusShakers.size())
@@ -414,7 +415,7 @@ public:
 			}
 		}
 
-		void printPlan()
+		void printPlan() const
 		{
 			REPORT("Exact copy of the src geometry (" << sourceGeom.noOfSpheres << ")");
 			for (const auto& plan : expansionPlan)
