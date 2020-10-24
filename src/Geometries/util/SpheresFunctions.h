@@ -712,7 +712,53 @@ public:
 
 		// ------------------- task implementation: maintain the layout -------------------
 	public:
-		//update zadanou geometrii na zaklade detekovanych zmen v referencni geometrii
+		/** given the current state in 'geom' and some new state from the associated
+		    reference geom (the one provided at this object's construction), changes
+		    in radii of the first two spheres and in their mutual distance are detected,
+		    and distributed along the line ups */
+		void refreshThis(Spheres& geom)
+		{
+#ifdef DEBUG
+			if (geom.noOfSpheres != getNoOfNecessarySpheres())
+				throw ERROR_REPORT("Given geometry is not compatible with the one defined here.");
+#endif
+			const float deltaRadius0 = this->sourceGeom.getRadii()[0] - geom.getRadii()[0];
+			const float deltaRadius1 = this->sourceGeom.getRadii()[1] - geom.getRadii()[1];
+
+			Vector3d<FT> posDeltaDir(geom.getCentres()[1]);
+			posDeltaDir -= geom.getCentres()[0];
+
+			const float deltaMainAxisDist
+				= (this->sourceGeom.getCentres()[1] - this->sourceGeom.getCentres()[0]).len()
+				- posDeltaDir.len();
+			posDeltaDir.changeToUnitOrZero();
+
+			DEBUG_REPORT("deltaRad0=" << deltaRadius0 << ", deltaRad1=" << deltaRadius1
+				<< ", deltaDist=" << deltaMainAxisDist);
+
+			geom.updateRadius(0, this->sourceGeom.getRadii()[0]);
+			geom.updateRadius(1, this->sourceGeom.getRadii()[1]);
+			geom.updateCentre(0, geom.getCentres()[0] - 0.5f*deltaMainAxisDist*posDeltaDir);
+			geom.updateCentre(1, geom.getCentres()[1] + 0.5f*deltaMainAxisDist*posDeltaDir);
+
+			//iterate the lineups and update, based on detected changes, the radii
+			//and positions along the main axis
+			int sNo = this->sourceGeom.getNoOfSpheres();
+			for (const auto& m : azimuthToNoOfSpheres)
+			if (m.second > 0)
+			{
+				const float intersections = static_cast<float>(m.second+1);
+				for (int i = 1; i <= m.second; ++i, ++sNo)
+				{
+					float frac = (float)i/intersections;
+					geom.updateRadius(sNo, geom.getRadii()[sNo]
+					                       + (1-frac)*deltaRadius0
+					                       + frac*deltaRadius1);
+					geom.updateCentre(sNo, geom.getCentres()[sNo]
+					                       + deltaMainAxisDist*(frac-0.5f)*posDeltaDir);
+				}
+			}
+		}
 	};
 };
 #endif
