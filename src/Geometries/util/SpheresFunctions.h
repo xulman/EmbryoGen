@@ -506,10 +506,16 @@ public:
 		}
 
 	public:
-		void setupUnitAzimuthDir(const FT azimuth, Vector3d<FT>& extrusionDir)
+		void setupUnitAzimuthDir(const FT azimuth, Vector3d<FT>& extrusionDir) const
 		{
 			extrusionDir  = std::cos(azimuth) * rectifiedBasalDir;
 			extrusionDir += std::sin(azimuth) * aux3rdDir;
+		}
+		Vector3d<FT> setupUnitAzimuthDir(const FT azimuth) const
+		{
+			Vector3d<FT> tmp;
+			setupUnitAzimuthDir(azimuth,tmp);
+			return tmp;
 		}
 
 		// ------------------- task settings: lines layout -------------------
@@ -524,9 +530,9 @@ public:
 
 		class AzimuthDrivenPositionExtruder {
 		public:
-			AzimuthDrivenPositionExtruder(const FT azimuth,
+			AzimuthDrivenPositionExtruder(const FT azimuth, const LinkedSpheres<FT>& context,
 			                              const std::function< FT(FT) >& extrusionProfile_)
-			  : extrusionProfile(extrusionProfile_) { this->setupUnitAzimuthDir(azimuth,extender); }
+			  : extender(context.setupUnitAzimuthDir(azimuth)), extrusionProfile(extrusionProfile_) {}
 
 			AzimuthDrivenPositionExtruder(const Vector3d<FT>& azimuthDir_,
 			                              const std::function< FT(FT) >& extrusionProfile_)
