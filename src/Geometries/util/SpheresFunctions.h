@@ -674,6 +674,7 @@ public:
 #endif
 			//iterate over all azimuths, set up and apply the up-stream Interpolator
 			this->expansionPlan.clear();
+			this->optimalTargetSpheresNo = this->sourceGeom.getNoOfSpheres();
 			positionShakers.clear();
 			radiusShakers.clear();
 
