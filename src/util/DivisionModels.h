@@ -375,7 +375,7 @@ public:
 		for (int m=0; m < M; ++m) w[m] = norm;
 
 		//spread the extra "(boxMagnitude-1) * norm" value onto weights that are around the boxPos
-		const float remainder = boxPos - std::floorf(boxPos);
+		const float remainder = boxPos - std::floor(boxPos);
 		w[ (int)boxPos      ] += (boxMagnitude-1.f) * norm * (1.f-remainder);
 		w[((int)boxPos +1)%M] += (boxMagnitude-1.f) * norm * remainder;
 	}
