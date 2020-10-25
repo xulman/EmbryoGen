@@ -562,4 +562,15 @@ public:
 	  DivisionModels<4,TB,TA,2>(filename,_timeStep)
 	{}
 };
+
+
+/** dedicated type for sphered agents that divide into 2 daughters */
+template <int N, int TB, int TA>
+class DivisionModelsNS: public DivisionModels<N,TB,TA,2>
+{
+public:
+	DivisionModelsNS(const char* filename, const float _timeStep):
+	  DivisionModels<N,TB,TA,2>(filename,_timeStep)
+	{}
+};
 #endif
