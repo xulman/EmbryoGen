@@ -10,7 +10,7 @@
 constexpr const int divModel_noOfSamples = 5;
 constexpr const float divModel_deltaTimeBetweenSamples = 3;
 
-class SimpleDividingAgent: public NucleusNSAgent
+class SimpleDividingAgent: public NucleusAgent
 {
 public:
 	/** c'tor for 1st generation of agents */
@@ -18,7 +18,7 @@ public:
 	              const DivisionModels2S<divModel_noOfSamples,divModel_noOfSamples>& divModel2S,
 	              const Spheres& shape,
 	              const float _currTime, const float _incrTime):
-		NucleusNSAgent(_ID,_type, shape, _currTime,_incrTime),
+		NucleusAgent(_ID,_type, shape, _currTime,_incrTime),
 		divModels(divModel2S), divGeomModelled(2), futureGeometryBuilder(divGeomModelled,Vector3d<FLOAT>(1))
 	{
 		rotateDivModels();       //define the future division model
@@ -57,7 +57,7 @@ public:
 	              const Spheres& shape, const int daughterNo,
 	              const DivisionModels2S<divModel_noOfSamples,divModel_noOfSamples>::DivModelType* daughterModel,
 	              const float _currTime, const float _incrTime):
-		NucleusNSAgent(_ID,_type, shape, _currTime,_incrTime),
+		NucleusAgent(_ID,_type, shape, _currTime,_incrTime),
 		divModels(divModel2S), divGeomModelled(2), futureGeometryBuilder(divGeomModelled,Vector3d<FLOAT>(1))
 	{
 		//we gonna continue in the given division model
