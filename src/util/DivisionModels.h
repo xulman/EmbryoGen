@@ -191,7 +191,7 @@ public:
 
 	const DivModelType& getRandomModel() const
 	{
-		const int id = (int)GetRandomUniform(0,models.size()-0.001);
+		const int id = (int)GetRandomUniform(0,(float)models.size()-0.001f);
 		return getModel(id);
 	}
 
