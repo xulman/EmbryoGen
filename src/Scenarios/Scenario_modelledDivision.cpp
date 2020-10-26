@@ -19,7 +19,7 @@ public:
 	              const Spheres& shape,
 	              const float _currTime, const float _incrTime):
 		NucleusNSAgent(_ID,_type, shape, _currTime,_incrTime),
-		divModels(divModel2S), divGeomModelled(2)
+		divModels(divModel2S), divGeomModelled(2), futureGeometryBuilder(divGeomModelled,Vector3d<FLOAT>(1))
 	{
 		rotateDivModels();       //define the future division model
 		rotateDivModels();       //to make it the current model and to obtain a new valid future one
@@ -27,6 +27,27 @@ public:
 		//TODO: randomize timeOfNextDivision
 
 		advanceAgent(_currTime); //start up the agent's shape
+
+		//set up agent's actual shape:
+		Vector3d<FLOAT> position = getRandomPositionOnBigSphere();
+		//
+		//-position is our basal direction...
+		position *= -1;
+		Vector3d<FLOAT> polarity = getRandomPolarityVecGivenBasalDir(position);
+		float centreHalfDist = 0.5f * (divGeomModelled.getCentres()[0] - divGeomModelled.getCentres()[1]).len();
+		REPORT("Placing agent " << ID << " at " << position << ", with polarity " << polarity);
+		//
+		futureGeometry.updateCentre(0,-centreHalfDist*polarity -position);
+		futureGeometry.updateCentre(1,+centreHalfDist*polarity -position);
+		futureGeometry.updateRadius(0,divGeomModelled.getRadii()[0]);
+		futureGeometry.updateRadius(1,divGeomModelled.getRadii()[1]);
+
+		//setup the (re)builder that can iteratively update given geometry (here used
+		//with 'futureGeometry') to the reference one (here 'divGeomModelled')
+		basalBaseDir = position;
+		basalBaseDir.changeToUnitOrZero();
+		futureGeometryBuilder.setBasalSideDir(basalBaseDir);
+
 		publishGeometry();       //publish/propagate the shape to geometries for forces and for collisions
 	}
 
@@ -37,7 +58,7 @@ public:
 	              const DivisionModels2S<divModel_noOfSamples,divModel_noOfSamples>::DivModelType* daughterModel,
 	              const float _currTime, const float _incrTime):
 		NucleusNSAgent(_ID,_type, shape, _currTime,_incrTime),
-		divModels(divModel2S), divGeomModelled(2)
+		divModels(divModel2S), divGeomModelled(2), futureGeometryBuilder(divGeomModelled,Vector3d<FLOAT>(1))
 	{
 		//we gonna continue in the given division model
 		divFutureModel = daughterModel;
@@ -48,21 +69,15 @@ public:
 		timeOfNextDivision = _currTime;
 		whichDaughterAmI = daughterNo;
 
-		advanceAgent(_currTime); //start up the agent's shape
+		advanceAgent(_currTime); //start up agent's reference shape
 		publishGeometry();       //publish/propagate the shape to geometries for forces and for collisions
 	}
 
-	void publishGeometry() override
+	void adjustGeometryByIntForces() override
 	{
-		for (int i = 0; i < divGeomModelled.getNoOfSpheres(); ++i)
-		{
-			futureGeometry.updateCentre(i, divGeomModelled.getCentres()[i]);
-			futureGeometry.updateRadius(i, divGeomModelled.getRadii()[i]);
-		}
-		//finish up the futureGeometry with SphereBuilder
-
-		//call the upstream to clone futureGeometry into geometryAlias
-		NucleusNSAgent::publishGeometry();
+		//update the futureGeometry with SphereBuilder
+		futureGeometryBuilder.refreshThis(futureGeometry);
+		futureGeometry.updateOwnAABB();
 	}
 
 	/*
@@ -91,9 +106,17 @@ public:
 			du.DrawVector(ldID++,futureGeometry.getCentres()[i],orientVec,0);
 		}
 		*/
+		int dID  = DisplayUnit::firstIdForAgentObjects(ID) + 10;
+		du.DrawVector(++dID,0.5f*(futureGeometry.getCentres()[0]+futureGeometry.getCentres()[1]),basalBaseDir,0);
+		REPORT("Current polarity: " << (futureGeometry.getCentres()[1]-futureGeometry.getCentres()[0]).changeToUnitOrZero());
 
-		NucleusNSAgent::drawMask(du);
-		drawForDebug(du);
+		for (int i = 0; i < futureGeometry.getNoOfSpheres(); ++i)
+			du.DrawPoint(++dID,futureGeometry.getCentres()[i],futureGeometry.getRadii()[i],i);
+		for (int i = 0; i < divGeomModelled.getNoOfSpheres(); ++i)
+			du.DrawPoint(++dID,divGeomModelled.getCentres()[i],divGeomModelled.getRadii()[i],i);
+
+		//NucleusNSAgent::drawMask(du);
+		//drawForDebug(du);
 	}
 
 	void advanceAgent(float time) override
@@ -177,6 +200,8 @@ private:
 
 	// ------------------------ model reference geometry ------------------------
 	Spheres divGeomModelled;
+	SpheresFunctions::LinkedSpheres<FLOAT> futureGeometryBuilder;
+	Vector3d<FLOAT> basalBaseDir;
 
 	void updateDivGeom_asMother(float currTime)
 	{
@@ -253,14 +278,44 @@ private:
 		);
 
 		divGeomModelled.updateRadius(0,
-            (1.f-progress) * divModel->getDaughterRadius(+divModel_halfTimeSpan,whichDaughterAmI,0)
+		      (1.f-progress) * divModel->getDaughterRadius(+divModel_halfTimeSpan,whichDaughterAmI,0)
 		      +     progress * divFutureModel->getMotherRadius(-divModel_halfTimeSpan,0)
 		);
 
 		divGeomModelled.updateRadius(1,
-            (1.f-progress) * divModel->getDaughterRadius(+divModel_halfTimeSpan,whichDaughterAmI,1)
+		      (1.f-progress) * divModel->getDaughterRadius(+divModel_halfTimeSpan,whichDaughterAmI,1)
 		      +     progress * divFutureModel->getMotherRadius(-divModel_halfTimeSpan,1)
 		);
+	}
+
+	static Vector3d<FLOAT> getRandomPolarityVecGivenBasalDir(const Vector3d<FLOAT>& basalDir)
+	{
+		//suppose we're at coordinate centre,
+		//we consider the equation for a plane through centre with normal of 'basalDir',
+		//we find some random point in that plane
+		FLOAT x,y,z;
+		x = GetRandomUniform(-5.f,+5.f);
+		y = GetRandomUniform(-5.f,+5.f);
+		z = (basalDir.x*x + basalDir.y*y) / -basalDir.z;
+
+		Vector3d<FLOAT> polarity;
+		polarity.fromScalars(x,y,z);
+		polarity.changeToUnitOrZero();
+		return polarity; //"copy ellision", thank you!
+	}
+
+	static Vector3d<FLOAT> getRandomPositionOnBigSphere(const float radius=50)
+	{
+		FLOAT x,y,z;
+		x = GetRandomUniform(-5.f,+5.f);
+		y = GetRandomUniform(-5.f,+5.f);
+		z = GetRandomUniform(-5.f,+5.f);
+
+		Vector3d<FLOAT> position;
+		position.fromScalars(x,y,z);
+		position.changeToUnitOrZero();
+		position *= radius;
+		return position; //"copy ellision", thank you!
 	}
 };
 
