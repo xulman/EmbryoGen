@@ -465,12 +465,12 @@ public:
 			if (referenceGeom.noOfSpheres < 2)
 				throw ERROR_REPORT("reference geometry must include at least two spheres");
 
-			refreshFromChangedGeom();
+			resetFromAssociatedGeom();
 			setBasalSideDir(basalSideDir);
 		}
 
 		/** reinspects the associated Sphere geometry and re-reads the main axis from it */
-		void refreshFromChangedGeom()
+		void resetFromAssociatedGeom()
 		{
 			this->mainDir  = this->sourceGeom.getCentres()[1];
 			this->mainDir -= this->sourceGeom.getCentres()[0];
