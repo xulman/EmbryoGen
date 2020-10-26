@@ -7,18 +7,47 @@
 #include "../util/texture/texture.h"
 #include "../util/DivisionModels.h"
 
+constexpr const int divModel_noOfSamples = 5;
+constexpr const float divModel_deltaTimeBetweenSamples = 3;
+
 class SimpleDividingAgent: public NucleusNSAgent
 {
 public:
+	/** c'tor for 1st generation of agents */
 	SimpleDividingAgent(const int _ID, const std::string& _type,
+	              const DivisionModels2S<divModel_noOfSamples,divModel_noOfSamples>& divModel2S,
 	              const Spheres& shape,
 	              const float _currTime, const float _incrTime):
 		NucleusNSAgent(_ID,_type, shape, _currTime,_incrTime),
-		divModels("../src/tests/data/divisionModelsForEmbryoGen.dat",divModel_deltaTimeBetweenSamples),
-		divGeomModelled(2)
+		divModels(divModel2S), divGeomModelled(2)
 	{
 		rotateDivModels();       //define the future division model
-		rotateDivModels();       //define the current division model
+		rotateDivModels();       //to make it the current model and to obtain a new valid future one
+		//NB: the rest comes already well defined for this case
+		//TODO: randomize timeOfNextDivision
+
+		advanceAgent(_currTime); //start up the agent's shape
+		publishGeometry();       //publish/propagate the shape to geometries for forces and for collisions
+	}
+
+	/** c'tor for 2nd and on generation of agents */
+	SimpleDividingAgent(const int _ID, const std::string& _type,
+	              const DivisionModels2S<divModel_noOfSamples,divModel_noOfSamples>& divModel2S,
+	              const Spheres& shape, const int daughterNo,
+	              const DivisionModels2S<divModel_noOfSamples,divModel_noOfSamples>::DivModelType* daughterModel,
+	              const float _currTime, const float _incrTime):
+		NucleusNSAgent(_ID,_type, shape, _currTime,_incrTime),
+		divModels(divModel2S), divGeomModelled(2)
+	{
+		//we gonna continue in the given division model
+		divFutureModel = daughterModel;
+		rotateDivModels(); //NB: daughterModel becomes the current model, future model becomes valid too
+
+		divModelState = modelMeAsDaughter;
+		//I am a daughter, what else needs to be defined for this to work well?
+		timeOfNextDivision = _currTime;
+		whichDaughterAmI = daughterNo;
+
 		advanceAgent(_currTime); //start up the agent's shape
 		publishGeometry();       //publish/propagate the shape to geometries for forces and for collisions
 	}
@@ -71,15 +100,26 @@ public:
 	{
 		if (divModelState == shouldBeDividedByNow)
 		{
-			REPORT("============== switching to daughter regime ==============")
-			//easy for now! TODO
-			//restart as the first daughter
-			whichDaughterAmI = 0;
-			divModelState = modelMeAsDaughter;
+			int currentGen = std::stoi( this->getAgentType() ) +1;
+			std::string agName = std::to_string(currentGen); agName += " gen";
+
+			AbstractAgent *d1 = new SimpleDividingAgent(
+			     Officer->getNextAvailAgentID(),agName,divModels,Spheres(futureGeometry.getNoOfSpheres()),
+			     0,divModel,time,this->incrTime );
+
+			AbstractAgent *d2 = new SimpleDividingAgent(
+			     Officer->getNextAvailAgentID(),agName,divModels,Spheres(futureGeometry.getNoOfSpheres()),
+			     1,divModel,time,this->incrTime );
+
+			Officer->closeMotherStartDaughters(this,d1,d2);
+
+			REPORT("============== divided ID " << ID << " to daughters' IDs " << d1->getID() << " & " << d2->getID() << " ==============");
+			//we're done here, don't advance anything
+			return;
 		}
 		if (divModelState == shouldBeModelledAsInterphase)
 		{
-			REPORT("============== switching to interphase regime ==============")
+			REPORT("============== switching to interphase regime ==============");
 			//start planning the next division
 			timeOfNextDivision += 2.5f * divModel_halfTimeSpan;
 			timeOfInterphaseStart = time;
@@ -94,7 +134,7 @@ public:
 		}
 		if (divModelState == shouldBeModelledAsMother)
 		{
-			REPORT("============== switching back to mother regime ==============")
+			REPORT("============== switching back to mother regime ==============");
 			//restart as mother again (in a new division model)
 			whichDaughterAmI = -1;
 			rotateDivModels();
@@ -110,13 +150,11 @@ public:
 
 private:
 	// ------------------------ division model data ------------------------
-	static constexpr const int divModel_noOfSamples = 5;
-	static constexpr const float divModel_deltaTimeBetweenSamples = 3;
 	const float divModel_halfTimeSpan = divModel_deltaTimeBetweenSamples * divModel_noOfSamples;
 
-	DivisionModels2S<divModel_noOfSamples,divModel_noOfSamples> divModels;
-	DivisionModels2S<divModel_noOfSamples,divModel_noOfSamples>::DivModelType* divModel;
-	DivisionModels2S<divModel_noOfSamples,divModel_noOfSamples>::DivModelType* divFutureModel;
+	const DivisionModels2S<divModel_noOfSamples,divModel_noOfSamples>& divModels;
+	const DivisionModels2S<divModel_noOfSamples,divModel_noOfSamples>::DivModelType* divModel;
+	const DivisionModels2S<divModel_noOfSamples,divModel_noOfSamples>::DivModelType* divFutureModel;
 
 	void rotateDivModels()
 	{
@@ -236,6 +274,9 @@ void Scenario_modelledDivision::initializeAgents(FrontOfficer* fo,int p,int)
 		return;
 	}
 
+	static DivisionModels2S<divModel_noOfSamples,divModel_noOfSamples>
+		divModel2S("../src/tests/data/divisionModelsForEmbryoGen.dat",divModel_deltaTimeBetweenSamples);
+
 	const Vector3d<float> gridStart(params.constants.sceneOffset.x+10,params.constants.sceneSize.y,params.constants.sceneSize.z);
 	const Vector3d<float> gridStep(20,0,0);
 
@@ -243,7 +284,7 @@ void Scenario_modelledDivision::initializeAgents(FrontOfficer* fo,int p,int)
 	for (int i = 0; i < 1; ++i)
 	{
 		fo->startNewAgent(new SimpleDividingAgent(
-				fo->getNextAvailAgentID(),"1 gen",twoS,params.constants.initTime,params.constants.incrTime
+				fo->getNextAvailAgentID(),"1 gen",divModel2S,twoS,params.constants.initTime,params.constants.incrTime
 				));
 	}
 }
@@ -272,7 +313,7 @@ SceneControls& Scenario_modelledDivision::provideSceneControls()
 	myConstants.sceneSize.fromScalars(300,20,20);
 	myConstants.sceneOffset = -0.5f * myConstants.sceneSize;
 
-	myConstants.expoTime = myConstants.incrTime;
+	myConstants.expoTime = 3.f*myConstants.incrTime;
 
 	return *(new SceneControls(myConstants));
 }
