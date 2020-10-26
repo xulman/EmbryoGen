@@ -10,6 +10,8 @@
 constexpr const int divModel_noOfSamples = 5;
 constexpr const float divModel_deltaTimeBetweenSamples = 3;
 
+float globeRadius = 40;
+
 class SimpleDividingAgent: public NucleusAgent
 {
 public:
@@ -29,7 +31,7 @@ public:
 		advanceAgent(_currTime); //start up the agent's shape
 
 		//set up agent's actual shape:
-		Vector3d<FLOAT> position = getRandomPositionOnBigSphere();
+		Vector3d<FLOAT> position = getRandomPositionOnBigSphere(globeRadius);
 		//
 		//-position is our basal direction...
 		position *= -1;
@@ -48,15 +50,16 @@ public:
 		basalBaseDir.changeToUnitOrZero();
 		futureGeometryBuilder.setBasalSideDir(basalBaseDir);
 
-		publishGeometry();       //publish/propagate the shape to geometries for forces and for collisions
+		//only synchronizes geometryAlias with futureGeometry
+		publishGeometry();
 	}
 
 	/** c'tor for 2nd and on generation of agents */
 	SimpleDividingAgent(const int _ID, const std::string& _type,
+	              const Spheres& shape, const Vector3d<FLOAT>& _basalSideDir,
 	              const DivisionModels2S<divModel_noOfSamples,divModel_noOfSamples>& divModel2S,
-	              const Spheres& shape, const int daughterNo,
 	              const DivisionModels2S<divModel_noOfSamples,divModel_noOfSamples>::DivModelType* daughterModel,
-	              const float _currTime, const float _incrTime):
+	              const int daughterNo, const float _currTime, const float _incrTime):
 		NucleusAgent(_ID,_type, shape, _currTime,_incrTime),
 		divModels(divModel2S), divGeomModelled(2), futureGeometryBuilder(divGeomModelled,Vector3d<FLOAT>(1))
 	{
@@ -70,14 +73,31 @@ public:
 		whichDaughterAmI = daughterNo;
 
 		advanceAgent(_currTime); //start up agent's reference shape
-		publishGeometry();       //publish/propagate the shape to geometries for forces and for collisions
+
+		//set up agent's actual shape:
+		basalBaseDir = _basalSideDir;
+		basalBaseDir.changeToUnitOrZero();
+		futureGeometryBuilder.setBasalSideDir(basalBaseDir);
+		futureGeometryBuilder.refreshThis(futureGeometry);
+		futureGeometry.updateOwnAABB();
+
+		//only synchronizes geometryAlias with futureGeometry
+		publishGeometry();
 	}
 
 	void adjustGeometryByIntForces() override
 	{
-		//update the futureGeometry with SphereBuilder
+		//let the forces do their job first...
+		NucleusAgent::adjustGeometryByForces();
+
+		//...and then update the fresh futureGeometry with SphereBuilder
 		futureGeometryBuilder.refreshThis(futureGeometry);
 		futureGeometry.updateOwnAABB();
+
+		basalBaseDir  = futureGeometry.getCentres()[0];
+		basalBaseDir += futureGeometry.getCentres()[1];
+		basalBaseDir.changeToUnitOrZero();
+		basalBaseDir *= -1;
 	}
 
 	/*
@@ -89,50 +109,69 @@ public:
 
 	void drawMask(DisplayUnit& du) override
 	{
-		/*
-		int dID  = DisplayUnit::firstIdForAgentObjects(ID);
-		int ldID = DisplayUnit::firstIdForAgentDebugObjects(ID);
-
-		//spheres all green, except: 0th is white, "active" is red
-		du.DrawPoint(dID++,futureGeometry.getCentres()[0],futureGeometry.getRadii()[0],0);
-		for (int i=1; i < futureGeometry.getNoOfSpheres(); ++i)
-			du.DrawPoint(dID++,futureGeometry.getCentres()[i],futureGeometry.getRadii()[i],i == activeSphereIdx ? 1 : 2);
-
-		//sphere orientations as local debug, white vectors
-		Vector3d<FLOAT> orientVec;
-		for (int i=0; i < futureGeometry.getNoOfSpheres(); ++i)
-		{
-			getLocalOrientation(futureGeometry,i,orientVec);
-			du.DrawVector(ldID++,futureGeometry.getCentres()[i],orientVec,0);
-		}
-		*/
 		int dID  = DisplayUnit::firstIdForAgentObjects(ID) + 10;
 		du.DrawVector(++dID,0.5f*(futureGeometry.getCentres()[0]+futureGeometry.getCentres()[1]),basalBaseDir,0);
-		REPORT("Current polarity: " << (futureGeometry.getCentres()[1]-futureGeometry.getCentres()[0]).changeToUnitOrZero());
+		//REPORT("Current polarity: " << (futureGeometry.getCentres()[1]-futureGeometry.getCentres()[0]).changeToUnitOrZero());
 
+		/*
 		for (int i = 0; i < futureGeometry.getNoOfSpheres(); ++i)
 			du.DrawPoint(++dID,futureGeometry.getCentres()[i],futureGeometry.getRadii()[i],i);
 		for (int i = 0; i < divGeomModelled.getNoOfSpheres(); ++i)
 			du.DrawPoint(++dID,divGeomModelled.getCentres()[i],divGeomModelled.getRadii()[i],i);
+		*/
+		for (int i = 0; i < geometryAlias.getNoOfSpheres(); ++i)
+			du.DrawPoint(++dID,geometryAlias.getCentres()[i],geometryAlias.getRadii()[i],(ID%3 +1)*2);
+	}
 
-		//NucleusNSAgent::drawMask(du);
-		//drawForDebug(du);
+	void drawForDebug(DisplayUnit& du) override
+	{
+	#ifdef DEBUG
+		int gdID = DisplayUnit::firstIdForSceneDebugObjects() + ID*40 +10000;
+
+		//forces:
+		for (const auto& f : forcesForDisplay)
+		{
+			int color = 2; //default color: green (for shape hinter)
+			if      (f.type == ftype_body)      color = 4; //cyan
+			else if (f.type == ftype_repulsive || f.type == ftype_drive) color = 5; //magenta
+			else if (f.type == ftype_slide)     color = 6; //yellow
+			else if (f.type == ftype_friction)  color = 3; //blue
+			else if (f.type == ftype_s2s) color = -1; //don't draw
+			if (color > 0) du.DrawVector(gdID++, f.base,f, color);
+		}
+	#endif
 	}
 
 	void advanceAgent(float time) override
 	{
 		if (divModelState == shouldBeDividedByNow)
 		{
-			int currentGen = std::stoi( this->getAgentType() ) +1;
-			std::string agName = std::to_string(currentGen); agName += " gen";
+			//int currentGen = std::stoi( this->getAgentType() ) +1;
+			std::string agName = "nucleus"; //std::to_string(currentGen); agName += " gen";
+
+			//syntactic short-cut
+			const Vector3d<FLOAT>& mc0 = futureGeometry.getCentres()[0];
+			const Vector3d<FLOAT>& mc1 = futureGeometry.getCentres()[1];
+
+			Vector3d<FLOAT> sideStepDir = crossProduct(mc1-mc0,basalBaseDir);
+			sideStepDir.changeToUnitOrZero();
+
+			Spheres d1Geom(futureGeometry.getNoOfSpheres());
+			Spheres d2Geom(futureGeometry.getNoOfSpheres());
+			d1Geom.updateCentre(0,mc0-sideStepDir);
+			d1Geom.updateCentre(1,mc0+sideStepDir);
+			d2Geom.updateCentre(0,mc1-sideStepDir);
+			d2Geom.updateCentre(1,mc1+sideStepDir);
+			//NB: this just sets the initial direction, the actual shape of the daughters
+			//will be "injected" into this later from their division model ref. geometries
 
 			AbstractAgent *d1 = new SimpleDividingAgent(
-			     Officer->getNextAvailAgentID(),agName,divModels,Spheres(futureGeometry.getNoOfSpheres()),
-			     0,divModel,time,this->incrTime );
+			     Officer->getNextAvailAgentID(),agName,d1Geom,basalBaseDir,
+			     divModels,divModel,0,time,this->incrTime );
 
 			AbstractAgent *d2 = new SimpleDividingAgent(
-			     Officer->getNextAvailAgentID(),agName,divModels,Spheres(futureGeometry.getNoOfSpheres()),
-			     1,divModel,time,this->incrTime );
+			     Officer->getNextAvailAgentID(),agName,d2Geom,basalBaseDir,
+			     divModels,divModel,1,time,this->incrTime );
 
 			Officer->closeMotherStartDaughters(this,d1,d2);
 
@@ -339,7 +378,7 @@ void Scenario_modelledDivision::initializeAgents(FrontOfficer* fo,int p,int)
 	for (int i = 0; i < 1; ++i)
 	{
 		fo->startNewAgent(new SimpleDividingAgent(
-				fo->getNextAvailAgentID(),"1 gen",divModel2S,twoS,params.constants.initTime,params.constants.incrTime
+				fo->getNextAvailAgentID(),"nucleus",divModel2S,twoS,params.constants.initTime,params.constants.incrTime
 				));
 	}
 }
