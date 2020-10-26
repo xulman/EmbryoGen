@@ -15,8 +15,10 @@ public:
 	              const float _currTime, const float _incrTime):
 		NucleusNSAgent(_ID,_type, shape, _currTime,_incrTime),
 		divModels("../src/tests/data/divisionModelsForEmbryoGen.dat",divModel_deltaTimeBetweenSamples),
-		divModel( divModels.getRandomModel() ), divGeomModelled(2)
+		divGeomModelled(2)
 	{
+		rotateDivModels();       //define the future division model
+		rotateDivModels();       //define the current division model
 		advanceAgent(_currTime); //start up the agent's shape
 		publishGeometry();       //publish/propagate the shape to geometries for forces and for collisions
 	}
@@ -69,39 +71,74 @@ public:
 	{
 		if (divModelState == shouldBeDividedByNow)
 		{
-			REPORT("switching to daughter regime")
+			REPORT("============== switching to daughter regime ==============")
 			//easy for now! TODO
 			//restart as the first daughter
 			whichDaughterAmI = 0;
 			divModelState = modelMeAsDaughter;
 		}
+		if (divModelState == shouldBeModelledAsInterphase)
+		{
+			REPORT("============== switching to interphase regime ==============")
+			//start planning the next division
+			timeOfNextDivision += 2.5f * divModel_halfTimeSpan;
+			timeOfInterphaseStart = time;
+			timeOfInterphaseStop = timeOfNextDivision - divModel_halfTimeSpan;
+
+			divModelState = modelMeAsInterphase;
+			if (timeOfInterphaseStop <= timeOfInterphaseStart)
+			{
+				REPORT("WARNING: skipping the interphase stage completely...");
+				divModelState = shouldBeModelledAsMother;
+			}
+		}
 		if (divModelState == shouldBeModelledAsMother)
 		{
-			REPORT("switching back to mother regime")
-			//restart as mother again
+			REPORT("============== switching back to mother regime ==============")
+			//restart as mother again (in a new division model)
 			whichDaughterAmI = -1;
+			rotateDivModels();
+
 			divModelState = modelMeAsMother;
-			timeOfNextDivision += 2.5f * divModel_halfTimeSpan;
 		}
 
 		if (divModelState == modelMeAsMother) updateDivGeom_asMother(time);
 		else if (divModelState == modelMeAsDaughter) updateDivGeom_asDaughter(time);
+		else if (divModelState == modelMeAsInterphase) updateDivGeom_asInterphase(time);
 		else REPORT("?????? should never get here!");
 	}
 
 private:
-	const static int divModel_noOfSamples = 5;
-	const float divModel_deltaTimeBetweenSamples = 3;
+	// ------------------------ division model data ------------------------
+	static constexpr const int divModel_noOfSamples = 5;
+	static constexpr const float divModel_deltaTimeBetweenSamples = 3;
 	const float divModel_halfTimeSpan = divModel_deltaTimeBetweenSamples * divModel_noOfSamples;
 
 	DivisionModels2S<divModel_noOfSamples,divModel_noOfSamples> divModels;
-	DivisionModels2S<divModel_noOfSamples,divModel_noOfSamples>::DivModelType &divModel;
-	Spheres divGeomModelled;
+	DivisionModels2S<divModel_noOfSamples,divModel_noOfSamples>::DivModelType* divModel;
+	DivisionModels2S<divModel_noOfSamples,divModel_noOfSamples>::DivModelType* divFutureModel;
 
-	enum divModelStates { modelMeAsMother, shouldBeDividedByNow, modelMeAsDaughter, shouldBeModelledAsMother };
+	void rotateDivModels()
+	{
+		divModel = divFutureModel;
+		divFutureModel = &divModels.getRandomModel();
+	}
+
+	// ------------------------ division model state and planning ------------------------
+	enum divModelStates
+	{
+		modelMeAsMother, shouldBeDividedByNow,
+		modelMeAsDaughter, shouldBeModelledAsInterphase,
+		modelMeAsInterphase, shouldBeModelledAsMother
+	};
 	divModelStates divModelState = modelMeAsMother;
+
+	float timeOfInterphaseStart, timeOfInterphaseStop;
 	float timeOfNextDivision = 18.7f; //when switch to 'shouldBeDividedByNow' should occur
-	int whichDaughterAmI = -1;        //when in 'modelMeAsDaughter'
+	int whichDaughterAmI = -1;        //used also in 'modelMeAsDaughter'
+
+	// ------------------------ model reference geometry ------------------------
+	Spheres divGeomModelled;
 
 	void updateDivGeom_asMother(float currTime)
 	{
@@ -122,10 +159,11 @@ private:
 		          << " ==> relative Mother time for the model = " << modelRelativeTime);
 
 		divGeomModelled.updateCentre(0, Vector3d<FLOAT>(0));
-		divGeomModelled.updateCentre(1, Vector3d<FLOAT>(0,divModel.getMotherDist(modelRelativeTime,0),0));
-		divGeomModelled.updateRadius(0, divModel.getMotherRadius(modelRelativeTime,0));
-		divGeomModelled.updateRadius(1, divModel.getMotherRadius(modelRelativeTime,1));
+		divGeomModelled.updateCentre(1, Vector3d<FLOAT>(0,divModel->getMotherDist(modelRelativeTime,0),0));
+		divGeomModelled.updateRadius(0, divModel->getMotherRadius(modelRelativeTime,0));
+		divGeomModelled.updateRadius(1, divModel->getMotherRadius(modelRelativeTime,1));
 	}
+
 
 	void updateDivGeom_asDaughter(float currTime)
 	{
@@ -136,7 +174,7 @@ private:
 		}
 
 		float modelRelativeTime = currTime - timeOfNextDivision;
-		if (modelRelativeTime > divModel_halfTimeSpan) divModelState = shouldBeModelledAsMother;
+		if (modelRelativeTime > divModel_halfTimeSpan) divModelState = shouldBeModelledAsInterphase;
 
 		//assure the time is within sensible bounds
 		modelRelativeTime = std::max(modelRelativeTime, 0.f);
@@ -146,9 +184,45 @@ private:
 		          << " ==> relative Daughter #" << whichDaughterAmI << " time for the model = " << modelRelativeTime);
 
 		divGeomModelled.updateCentre(0, Vector3d<FLOAT>(0));
-		divGeomModelled.updateCentre(1, Vector3d<FLOAT>(0,divModel.getDaughterDist(modelRelativeTime,whichDaughterAmI,0),0));
-		divGeomModelled.updateRadius(0, divModel.getDaughterRadius(modelRelativeTime,whichDaughterAmI,0));
-		divGeomModelled.updateRadius(1, divModel.getDaughterRadius(modelRelativeTime,whichDaughterAmI,1));
+		divGeomModelled.updateCentre(1, Vector3d<FLOAT>(0,divModel->getDaughterDist(modelRelativeTime,whichDaughterAmI,0),0));
+		divGeomModelled.updateRadius(0, divModel->getDaughterRadius(modelRelativeTime,whichDaughterAmI,0));
+		divGeomModelled.updateRadius(1, divModel->getDaughterRadius(modelRelativeTime,whichDaughterAmI,1));
+	}
+
+
+	void updateDivGeom_asInterphase(float currTime)
+	{
+		if (divModelState != modelMeAsInterphase)
+		{
+			DEBUG_REPORT("skipping... because my state (" << divModelState << ") is different");
+			return;
+		}
+
+		float progress = (currTime - timeOfInterphaseStart) / (timeOfInterphaseStop - timeOfInterphaseStart);
+		if (currTime > timeOfInterphaseStop) divModelState = shouldBeModelledAsMother;
+
+		//assure the progress is within sensible bounds
+		progress = std::max(progress, 0.f);
+		progress = std::min(progress, 1.f);
+
+		DEBUG_REPORT("abs. time = " << currTime << ", progress = " << progress);
+
+		//interpolate linearly between the last daughter state to the first mother state
+		divGeomModelled.updateCentre(0, Vector3d<FLOAT>(0));
+		divGeomModelled.updateCentre(1,
+		      (1.f-progress) * Vector3d<FLOAT>(0,divModel->getDaughterDist(+divModel_halfTimeSpan,whichDaughterAmI,0),0)
+		      +     progress * Vector3d<FLOAT>(0,divFutureModel->getMotherDist(-divModel_halfTimeSpan,0),0)
+		);
+
+		divGeomModelled.updateRadius(0,
+            (1.f-progress) * divModel->getDaughterRadius(+divModel_halfTimeSpan,whichDaughterAmI,0)
+		      +     progress * divFutureModel->getMotherRadius(-divModel_halfTimeSpan,0)
+		);
+
+		divGeomModelled.updateRadius(1,
+            (1.f-progress) * divModel->getDaughterRadius(+divModel_halfTimeSpan,whichDaughterAmI,1)
+		      +     progress * divFutureModel->getMotherRadius(-divModel_halfTimeSpan,1)
+		);
 	}
 };
 
@@ -197,6 +271,8 @@ SceneControls& Scenario_modelledDivision::provideSceneControls()
 	myConstants.imgRes.fromScalar(0.5f);
 	myConstants.sceneSize.fromScalars(300,20,20);
 	myConstants.sceneOffset = -0.5f * myConstants.sceneSize;
+
+	myConstants.expoTime = myConstants.incrTime;
 
 	return *(new SceneControls(myConstants));
 }
