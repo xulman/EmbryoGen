@@ -43,11 +43,16 @@ public:
 		futureGeometry.updateCentre(1,+centreHalfDist*polarity -position);
 		futureGeometry.updateRadius(0,divGeomModelled.getRadii()[0]);
 		futureGeometry.updateRadius(1,divGeomModelled.getRadii()[1]);
+		//
+		//also move spheres on a surface of the Globus
+		position.changeToUnitOrZero();
+		futureGeometry.updateCentre(0, futureGeometry.getCentres()[0] -futureGeometry.getRadii()[0]*position);
+		futureGeometry.updateCentre(1, futureGeometry.getCentres()[1] -futureGeometry.getRadii()[1]*position);
 
 		//setup the (re)builder that can iteratively update given geometry (here used
 		//with 'futureGeometry') to the reference one (here 'divGeomModelled')
 		basalBaseDir = position;
-		basalBaseDir.changeToUnitOrZero();
+		//basalBaseDir.changeToUnitOrZero();
 		futureGeometryBuilder.setBasalSideDir(basalBaseDir);
 
 		//only synchronizes geometryAlias with futureGeometry
@@ -83,6 +88,28 @@ public:
 
 		//only synchronizes geometryAlias with futureGeometry
 		publishGeometry();
+	}
+
+	void advanceAndBuildIntForces(const float futureGlobalTime) override
+	{
+		NucleusAgent::advanceAndBuildIntForces(futureGlobalTime);
+
+		//create forces based on the distance to the Globus
+		for (int i = 0; i < futureGeometry.getNoOfSpheres(); ++i)
+		{
+			//(signed) distance between the Globus surface and this sphere's surface
+			float carrierVecLen = futureGeometry.getCentres()[i].len();
+			float surface = (globeRadius + futureGeometry.getRadii()[i]) - carrierVecLen;
+			//the get-back-to-hinter force, now it is a (signed) force magnitude
+			surface = (surface > 0 ? +1.f : -1.f) * 2*fstrength_overlap_level
+			        * std::min(surface*surface*fstrength_hinter_scale,(FLOAT)1);
+			exertForceOnSphere(i,(surface/carrierVecLen)*futureGeometry.getCentres()[i],ftype_hinter);
+		}
+
+#ifdef DEBUG
+		//export forces for display:
+		forcesForDisplay = forces;
+#endif
 	}
 
 	void adjustGeometryByIntForces() override
@@ -121,6 +148,8 @@ public:
 		*/
 		for (int i = 0; i < geometryAlias.getNoOfSpheres(); ++i)
 			du.DrawPoint(++dID,geometryAlias.getCentres()[i],geometryAlias.getRadii()[i],(ID%3 +1)*2);
+
+		drawForDebug(du);
 	}
 
 	void drawForDebug(DisplayUnit& du) override
@@ -136,6 +165,7 @@ public:
 			else if (f.type == ftype_repulsive || f.type == ftype_drive) color = 5; //magenta
 			else if (f.type == ftype_slide)     color = 6; //yellow
 			else if (f.type == ftype_friction)  color = 3; //blue
+			else if (f.type == ftype_hinter)  color = 1; //red
 			else if (f.type == ftype_s2s) color = -1; //don't draw
 			if (color > 0) du.DrawVector(gdID++, f.base,f, color);
 		}
@@ -153,15 +183,25 @@ public:
 			const Vector3d<FLOAT>& mc0 = futureGeometry.getCentres()[0];
 			const Vector3d<FLOAT>& mc1 = futureGeometry.getCentres()[1];
 
-			Vector3d<FLOAT> sideStepDir = crossProduct(mc1-mc0,basalBaseDir);
+			Vector3d<FLOAT> mainDir = mc1-mc0;
+			Vector3d<FLOAT> sideStepDir = crossProduct(mainDir,basalBaseDir);
 			sideStepDir.changeToUnitOrZero();
+
+			//get optimal centre distance of spheres that will most likely be positioned "against each other"
+			float r0 = divModel->getDaughterRadius(0,0,0) + divModel->getDaughterRadius(0,1,0);
+			float r1 = divModel->getDaughterRadius(0,0,1) + divModel->getDaughterRadius(0,1,1);
+			r0 -= mainDir.len(); // the same w.r.t. mainDir's length
+			r1 -= mainDir.len();
+			r0 /= 2.0f;          // contributions per sphere
+			r1 /= 2.0f;
+			mainDir.changeToUnitOrZero();
 
 			Spheres d1Geom(futureGeometry.getNoOfSpheres());
 			Spheres d2Geom(futureGeometry.getNoOfSpheres());
-			d1Geom.updateCentre(0,mc0-sideStepDir);
-			d1Geom.updateCentre(1,mc0+sideStepDir);
-			d2Geom.updateCentre(0,mc1-sideStepDir);
-			d2Geom.updateCentre(1,mc1+sideStepDir);
+			d1Geom.updateCentre(0,mc0 -sideStepDir -r0*mainDir);
+			d1Geom.updateCentre(1,mc0 +sideStepDir -r1*mainDir);
+			d2Geom.updateCentre(0,mc1 -sideStepDir +r0*mainDir);
+			d2Geom.updateCentre(1,mc1 +sideStepDir +r1*mainDir);
 			//NB: this just sets the initial direction, the actual shape of the daughters
 			//will be "injected" into this later from their division model ref. geometries
 
