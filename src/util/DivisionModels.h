@@ -126,7 +126,7 @@ private:
 	                           const float valA,                  const float valB) const
 	{
 		float wA = (posB-pos) / (posB-posA);
-		return ( wA*valA + (1.-wA)*valB );
+		return ( wA*valA + (1.f-wA)*valB );
 	}
 };
 
@@ -204,7 +204,7 @@ public:
 
 	DivModelType& getRandomModel()
 	{
-		const int id = (int)GetRandomUniform(0,models.size()-0.001);
+		const int id = (int)GetRandomUniform(0,(float)models.size()-0.001f);
 		return getModel(id);
 	}
 
@@ -435,13 +435,13 @@ public:
 		firstChar = f.get();
 		while (firstChar != std::ifstream::traits_type::eof() && !isdigit(firstChar))
 		{
-			f.putback(firstChar);
+			f.putback(static_cast<char>(firstChar));
 			f.getline(skipLine,1024);
 			firstChar = f.get();
 		}
 		if (firstChar != std::ifstream::traits_type::eof())
 		{
-			f.putback(firstChar);
+			f.putback(static_cast<char>(firstChar));
 			//std::cout << "scrolled down till: " << (char)firstChar << "\n";
 			return true;
 		}
@@ -463,7 +463,7 @@ public:
 		firstChar = f.get();
 		while (firstChar != std::ifstream::traits_type::eof() && std::isdigit(firstChar))
 		{
-			f.putback(firstChar);
+			f.putback(static_cast<char>(firstChar));
 
 			//read the line's first part
 			float time,spotA,spotB,r,dist;
@@ -477,7 +477,7 @@ public:
 					throw ERROR_REPORT("Too many mother (role 0) lines defined.");
 
 				//filling up mother record, role should be 0
-				dm.Mtimes[lines[0]] = -timeStep * (TB-lines[0]);
+				dm.Mtimes[lines[0]] = -timeStep * static_cast<float>(TB-lines[0]);
 			}
 			else if (role < 0 || role > D)
 			{
@@ -489,7 +489,7 @@ public:
 				if (lines[role] == TA)
 					throw ERROR_REPORT("Too many daughter (role " << role << ") lines defined.");
 
-				dm.Dtimes[role-1][lines[role]] = timeStep * (lines[role]);
+				dm.Dtimes[role-1][lines[role]] = timeStep * static_cast<float>(lines[role]);
 			}
 
 			//read the radii+dist pairs for the N-1 spheres
@@ -525,7 +525,7 @@ public:
 			firstChar = f.get();
 			while (firstChar != std::ifstream::traits_type::eof() && firstChar == '#')
 			{
-				f.putback(firstChar);
+				f.putback(static_cast<char>(firstChar));
 				f.getline(skipLine,512);
 				firstChar = f.get();
 			}
