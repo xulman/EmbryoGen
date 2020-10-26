@@ -728,9 +728,10 @@ public:
 			Vector3d<FT> posDeltaDir(geom.getCentres()[1]);
 			posDeltaDir -= geom.getCentres()[0];
 
-			const float deltaMainAxisDist
+			float deltaMainAxisDist
 				= (this->sourceGeom.getCentres()[1] - this->sourceGeom.getCentres()[0]).len()
 				- posDeltaDir.len();
+			if (std::abs(deltaMainAxisDist) < 0.001f) deltaMainAxisDist = 0; //stabilizes the mainDir axis
 			posDeltaDir.changeToUnitOrZero();
 
 			DEBUG_REPORT("deltaRad0=" << deltaRadius0 << ", deltaRad1=" << deltaRadius1
