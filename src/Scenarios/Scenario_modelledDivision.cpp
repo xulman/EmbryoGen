@@ -26,7 +26,7 @@ public:
 		rotateDivModels();       //define the future division model
 		rotateDivModels();       //to make it the current model and to obtain a new valid future one
 		//NB: the rest comes already well defined for this case
-		//TODO: randomize timeOfNextDivision
+		timeOfNextDivision = _currTime + getRandomizedCellCycleLength();
 
 		advanceAgent(_currTime); //start up the agent's shape
 
@@ -223,7 +223,7 @@ public:
 		{
 			REPORT("============== switching to interphase regime ==============");
 			//start planning the next division
-			timeOfNextDivision += 2.5f * divModel_halfTimeSpan;
+			timeOfNextDivision += std::max(getRandomizedCellCycleLength(), 2.5f*divModel_halfTimeSpan);
 			timeOfInterphaseStart = time;
 			timeOfInterphaseStop = timeOfNextDivision - divModel_halfTimeSpan;
 
@@ -395,6 +395,16 @@ private:
 		position.changeToUnitOrZero();
 		position *= radius;
 		return position; //"copy ellision", thank you!
+	}
+
+	static float getRandomizedCellCycleLength(const float meanLength, const float variance)
+	{
+		static rndGeneratorHandle handle;
+		return GetRandomGauss(meanLength,variance,handle);
+	}
+	static float getRandomizedCellCycleLength(const float meanLength=50)
+	{
+		return getRandomizedCellCycleLength(meanLength,meanLength/6.f);
 	}
 };
 
