@@ -734,8 +734,10 @@ public:
 			if (std::abs(deltaMainAxisDist) < 0.001f) deltaMainAxisDist = 0; //stabilizes the mainDir axis
 			posDeltaDir.changeToUnitOrZero();
 
+			/*
 			DEBUG_REPORT("deltaRad0=" << deltaRadius0 << ", deltaRad1=" << deltaRadius1
 				<< ", deltaDist=" << deltaMainAxisDist);
+			*/
 
 			geom.updateRadius(0, this->sourceGeom.getRadii()[0]);
 			geom.updateRadius(1, this->sourceGeom.getRadii()[1]);
