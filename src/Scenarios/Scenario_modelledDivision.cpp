@@ -1,4 +1,5 @@
 #include "../DisplayUnits/SceneryBufferedDisplayUnit.h"
+#include "../DisplayUnits/FlightRecorderDisplayUnit.h"
 #include "../Geometries/Spheres.h"
 #include "../Geometries/util/SpheresFunctions.h"
 #include "common/Scenarios.h"
@@ -8,7 +9,7 @@
 #include "../util/DivisionModels.h"
 
 constexpr const int divModel_noOfSamples = 5;
-constexpr const float divModel_deltaTimeBetweenSamples = 3;
+constexpr const float divModel_deltaTimeBetweenSamples = 1;
 
 float globeRadius = 40;
 
@@ -102,7 +103,7 @@ public:
 			float surface = (globeRadius + futureGeometry.getRadii()[i]) - carrierVecLen;
 			//the get-back-to-hinter force, now it is a (signed) force magnitude
 			surface = (surface > 0 ? +1.f : -1.f) * 2*fstrength_overlap_level
-			        * std::min(surface*surface*fstrength_hinter_scale,(FLOAT)1);
+			        * std::min(surface*surface*fstrength_hinter_scale,(FLOAT)10);
 			exertForceOnSphere(i,(surface/carrierVecLen)*futureGeometry.getCentres()[i],ftype_hinter);
 		}
 
@@ -137,7 +138,7 @@ public:
 	void drawMask(DisplayUnit& du) override
 	{
 		int dID  = DisplayUnit::firstIdForAgentObjects(ID) + 10;
-		du.DrawVector(++dID,0.5f*(futureGeometry.getCentres()[0]+futureGeometry.getCentres()[1]),basalBaseDir,0);
+		//du.DrawVector(++dID,0.5f*(futureGeometry.getCentres()[0]+futureGeometry.getCentres()[1]),basalBaseDir,0);
 		//REPORT("Current polarity: " << (futureGeometry.getCentres()[1]-futureGeometry.getCentres()[0]).changeToUnitOrZero());
 
 		/*
@@ -437,7 +438,7 @@ void Scenario_modelledDivision::initializeAgents(FrontOfficer* fo,int p,int)
 void Scenario_modelledDivision::initializeScene()
 {
 	displays.registerDisplayUnit( [](){ return new SceneryBufferedDisplayUnit("localhost:8765"); } );
-	//displays.registerDisplayUnit( [](){ return new FlightRecorderDisplayUnit("/temp/FR_tetris.txt"); } );
+	displays.registerDisplayUnit( [](){ return new FlightRecorderDisplayUnit("/temp/FR_modelledDivision.txt"); } );
 
 	//disks.enableImgMaskTIFFs();
 	//disks.enableImgPhantomTIFFs();
@@ -452,7 +453,7 @@ SceneControls& Scenario_modelledDivision::provideSceneControls()
 {
 	//override the some defaults
 	SceneControls::Constants myConstants;
-	myConstants.stopTime = 100.2f;
+	myConstants.stopTime = 10000.2f;
 	myConstants.imgRes.fromScalar(0.5f);
 	myConstants.sceneSize.fromScalars(300,20,20);
 	myConstants.sceneOffset = -0.5f * myConstants.sceneSize;
