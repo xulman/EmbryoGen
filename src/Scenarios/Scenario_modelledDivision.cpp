@@ -12,6 +12,39 @@ constexpr const int divModel_noOfSamples = 5;
 constexpr const float divModel_deltaTimeBetweenSamples = 1;
 
 float globeRadius = 40;
+double overlapSum;
+long overlapCnt;
+
+class GlobusManagingAgent: public AbstractAgent
+{
+public:
+	GlobusManagingAgent(const int _ID, Spheres& fakeGeom, const float _currTime, const float _incrTime):
+	  AbstractAgent(_ID,"manager",fakeGeom,_currTime,_incrTime)
+	{}
+
+	void advanceAgent(float) override
+	{
+		double averageOverlap = overlapCnt > 0 ? overlapSum / (double)overlapCnt : 0;
+		if (averageOverlap > 1.0) globeRadius += 0.5f;
+
+		if (averageOverlap > 0)
+			REPORT("AVERAGE OVERLAP = " << averageOverlap << ", current Globe radius = " << globeRadius);
+
+		overlapSum = 0;
+		overlapCnt = 0;
+	}
+
+	void advanceAndBuildIntForces(const float futureGlobalTime) override
+	{
+		advanceAgent(futureGlobalTime);
+		currTime = futureGlobalTime;
+	}
+
+	void adjustGeometryByIntForces(void) {}
+	void collectExtForces(void) {}
+	void adjustGeometryByExtForces(void) {}
+	void publishGeometry(void) {}
+};
 
 class SimpleDividingAgent: public NucleusAgent
 {
@@ -151,6 +184,13 @@ public:
 			du.DrawPoint(++dID,geometryAlias.getCentres()[i],geometryAlias.getRadii()[i],(ID%3 +1)*2);
 
 		drawForDebug(du);
+
+		for (const auto& p : proximityPairs_toNuclei)
+		if (p.distance < 0)
+		{
+			overlapSum -= (double)p.distance; //p.distance is negative!
+			++overlapCnt;
+		}
 	}
 
 	void drawForDebug(DisplayUnit& du) override
@@ -298,8 +338,10 @@ private:
 		modelRelativeTime = std::max(modelRelativeTime, -divModel_halfTimeSpan);
 		modelRelativeTime = std::min(modelRelativeTime, -0.0001f);
 
+		/*
 		DEBUG_REPORT("abs. time = " << currTime << ", planned div time = " << timeOfNextDivision
 		          << " ==> relative Mother time for the model = " << modelRelativeTime);
+		*/
 
 		divGeomModelled.updateCentre(0, Vector3d<FLOAT>(0));
 		divGeomModelled.updateCentre(1, Vector3d<FLOAT>(0,divModel->getMotherDist(modelRelativeTime,0),0));
@@ -323,8 +365,10 @@ private:
 		modelRelativeTime = std::max(modelRelativeTime, 0.f);
 		modelRelativeTime = std::min(modelRelativeTime, divModel_halfTimeSpan);
 
+		/*
 		DEBUG_REPORT("abs. time = " << currTime << ", planned div time = " << timeOfNextDivision
 		          << " ==> relative Daughter #" << whichDaughterAmI << " time for the model = " << modelRelativeTime);
+		*/
 
 		divGeomModelled.updateCentre(0, Vector3d<FLOAT>(0));
 		divGeomModelled.updateCentre(1, Vector3d<FLOAT>(0,divModel->getDaughterDist(modelRelativeTime,whichDaughterAmI,0),0));
@@ -348,7 +392,7 @@ private:
 		progress = std::max(progress, 0.f);
 		progress = std::min(progress, 1.f);
 
-		DEBUG_REPORT("abs. time = " << currTime << ", progress = " << progress);
+		//DEBUG_REPORT("abs. time = " << currTime << ", progress = " << progress);
 
 		//interpolate linearly between the last daughter state to the first mother state
 		divGeomModelled.updateCentre(0, Vector3d<FLOAT>(0));
@@ -418,6 +462,9 @@ void Scenario_modelledDivision::initializeAgents(FrontOfficer* fo,int p,int)
 		REPORT("Populating only the first FO (which is not this one).");
 		return;
 	}
+	Spheres fakeGeom(1);
+	fo->startNewAgent(new GlobusManagingAgent(fo->getNextAvailAgentID(),fakeGeom,params.constants.initTime,params.constants.incrTime));
+
 
 	static DivisionModels2S<divModel_noOfSamples,divModel_noOfSamples>
 		divModel2S("../src/tests/data/divisionModelsForEmbryoGen.dat",divModel_deltaTimeBetweenSamples);
