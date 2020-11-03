@@ -102,6 +102,7 @@ set(SOURCES
 		src/Agents/TrajectoriesHinter.cpp
 		src/Scenarios/common/Scenario.cpp
 		src/TrackRecord.cpp
+		src/Communication/DistributedCommunicator.cpp
 		src/Director.cpp
 		src/FrontOfficer.cpp
 		src/main.cpp)
@@ -221,6 +222,12 @@ endif (SEARCH_ALL_DEPLIBS)
 #----------------
 #set(CMAKE_CXX_FLAGS "-ldl -lm -lpthread -pthread")
 
+if (FEATURE_RUNDISTRIBUTED)
+	find_package(MPI REQUIRED)
+	set(CMAKE_C_COMPILER "mpicc")
+	set(CMAKE_CXX_COMPILER "mpic++")
+endif (FEATURE_RUNDISTRIBUTED)
+
 if(FEATURE_USEOpenMP)
 	if (APPLE)
 		if(CMAKE_C_COMPILER_ID MATCHES "Clang")
@@ -247,7 +254,6 @@ if(FEATURE_USEOpenMP)
 endif(FEATURE_USEOpenMP)
 
 if (FEATURE_RUNDISTRIBUTED)
-	find_package(MPI REQUIRED)
 	if (FEATURE_USEOpenMP)
 	  target_link_libraries(embryogen PRIVATE ${MPI_C_LIBRARIES} OpenMP::OpenMP_CXX ${LIBS} libzmq)
 	else(FEATURE_USEOpenMP)
