@@ -26,7 +26,7 @@ protected:
 	// ------------- internals state -------------
 
 	// ------------- internals geometry -------------
-	SpheresFunctions::SquareMatrix<FLOAT> distanceMatrix;
+	SpheresFunctions::SquareMatrix<G_FLOAT> distanceMatrix;
 
 	void resetDistanceMatrix();
 	void printDistanceMatrix();

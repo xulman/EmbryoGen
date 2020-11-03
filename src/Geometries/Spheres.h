@@ -17,7 +17,7 @@ protected:
 	const int noOfSpheres;
 
 	/** list of centres of the spheres */
-	Vector3d<FLOAT>* const centres;
+	Vector3d<G_FLOAT>* const centres;
 
 	/** list of radii of the spheres */
 	FLOAT* const radii;
@@ -33,7 +33,7 @@ public:
 	Spheres(const int _noOfSpheres)
 		: Geometry(ListOfShapeForms::Spheres),
 		  noOfSpheres(_noOfSpheres),
-		  centres(new Vector3d<FLOAT>[noOfSpheres]),
+		  centres(new Vector3d<G_FLOAT>[noOfSpheres]),
 		  radii(new FLOAT[noOfSpheres])
 	{
 		//sanity check...

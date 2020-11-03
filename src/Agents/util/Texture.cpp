@@ -607,7 +607,7 @@ void TextureUpdaterNS::resetNeigWeightMatrix(const Spheres& spheres, int maxNoOf
 
 			//only when not enough of neighs has been discovered so far,
 			//but consider only overlapping neighs!
-			const FLOAT overlap = std::max<FLOAT>(
+			const FLOAT overlap = std::max<G_FLOAT>(
 				-(spheres.centres[row] - spheres.centres[col]).len()
 				+ spheres.radii[row] + spheres.radii[col] , 0);
 			if (overlap > 0)
@@ -631,7 +631,7 @@ void TextureUpdaterNS::resetNeigWeightMatrix(const Spheres& spheres, int maxNoOf
 }
 
 
-void TextureUpdaterNS::setNeigWeightMatrix(const SpheresFunctions::SquareMatrix<FLOAT>& newWeightMatrix)
+void TextureUpdaterNS::setNeigWeightMatrix(const SpheresFunctions::SquareMatrix<G_FLOAT>& newWeightMatrix)
 {
 #ifdef DEBUG
 	if (neigWeightMatrix.side != newWeightMatrix.side)

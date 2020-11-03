@@ -27,7 +27,7 @@ void showGeom(DisplayUnit& du, const Spheres* srcGeom, const Spheres* expandedGe
 
 void testBuildAndShowPlan(const Spheres& srcGeom)
 {
-	SpheresFunctions::SpheresInterpolator<FLOAT> si(srcGeom);
+	SpheresFunctions::SpheresInterpolator<G_FLOAT> si(srcGeom);
 	si.printPlan();
 
 	si.addToPlan(0,1,1);
@@ -49,7 +49,7 @@ void testBuildAndShowPlan(const Spheres& srcGeom)
 
 void testExpansion(DisplayUnit& du, const Spheres& srcGeom)
 {
-	SpheresFunctions::SpheresInterpolator<FLOAT> si(srcGeom);
+	SpheresFunctions::SpheresInterpolator<G_FLOAT> si(srcGeom);
 	si.addToPlan(0,1,2);
 	si.addToPlan(1,2,2);
 	si.addToPlan(0,3,2);
@@ -68,11 +68,11 @@ int main(void)
 	SceneryDisplayUnit du("localhost:8765");
 
 	Spheres s(5);
-	s.updateCentre(0,Vector3d<FLOAT>(10, 0,0));
-	s.updateCentre(1,Vector3d<FLOAT>(20, 0,0));
-	s.updateCentre(2,Vector3d<FLOAT>(30, 0,0));
-	s.updateCentre(3,Vector3d<FLOAT>(15,10,0));
-	s.updateCentre(4,Vector3d<FLOAT>(25,10,0));
+	s.updateCentre(0,Vector3d<G_FLOAT>(10, 0,0));
+	s.updateCentre(1,Vector3d<G_FLOAT>(20, 0,0));
+	s.updateCentre(2,Vector3d<G_FLOAT>(30, 0,0));
+	s.updateCentre(3,Vector3d<G_FLOAT>(15,10,0));
+	s.updateCentre(4,Vector3d<G_FLOAT>(25,10,0));
 	s.updateRadius(0,6);
 	s.updateRadius(1,4);
 	s.updateRadius(2,6);

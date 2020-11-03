@@ -29,9 +29,9 @@ void testSpheres(void)
 	//some testing sphere
 	Spheres s(5);
 
-	s.updateCentre(0, Vector3d<FLOAT>(1.f,2.f,3.f));
-	s.updateCentre(1, Vector3d<FLOAT>(44.f,5.f,6.f));
-	s.updateCentre(2, Vector3d<FLOAT>(7.f,8.f,9.f));
+	s.updateCentre(0, Vector3d<G_FLOAT>(1.f,2.f,3.f));
+	s.updateCentre(1, Vector3d<G_FLOAT>(44.f,5.f,6.f));
+	s.updateCentre(2, Vector3d<G_FLOAT>(7.f,8.f,9.f));
 	s.updateRadius(0, 10.f);
 	s.updateRadius(1, 22.f);
 	s.updateRadius(2, 30.f);
@@ -265,7 +265,7 @@ void testVectorImgGeometry()
 	std::cout << "orig image size: " <<  vi.getSizeInBytes() << "\n";
 	std::cout << " new image size: " << vii.getSizeInBytes() << "\n";
 	//
-	Vector3d<FLOAT> vec;
+	Vector3d<G_FLOAT> vec;
 	vi.getVector(20,30,40,vec);
 	std::cout << "orig vector: " << vec << "\n";
 	vii.getVector(20,30,40,vec);

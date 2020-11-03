@@ -27,15 +27,15 @@ public:
 		}
 		*/
 		TextureFunctions::addTextureAlongGrid(dots, geometryAlias,
-		         Vector3d<FLOAT>(0),Vector3d<FLOAT>(3),
-		         Vector3d<FLOAT>(0.5f));
+		         Vector3d<G_FLOAT>(0),Vector3d<G_FLOAT>(3),
+		         Vector3d<G_FLOAT>(0.5f));
 	}
 
 	void advanceAndBuildIntForces(const float futureGlobalTime) override
 	{
 		//add own forces (mutually opposite) to "head&tail" spheres (to spin it)
 		/*
-		Vector3d<FLOAT> rotationVelocity;
+		Vector3d<G_FLOAT> rotationVelocity;
 		rotationVelocity.y = 1.5f* std::cos(currTime/30.f * 6.28f);
 		rotationVelocity.z = 1.5f* std::sin(currTime/30.f * 6.28f);
 		*/
@@ -46,7 +46,7 @@ public:
 		*/
 		const FLOAT velocity = (float)1.0f;
 		//REPORT("ID=" << ID << " radialPos=" << radialPos << ", velocity=" << velocity);
-		Vector3d<FLOAT> travellingVelocity(0,velocity,0);
+		Vector3d<G_FLOAT> travellingVelocity(0,velocity,0);
 		exertForceOnSphere(1,
 			(weights[0]/velocity_PersistenceTime) * travellingVelocity,
 			ftype_drive );
@@ -99,11 +99,11 @@ public:
 	void drawMask(i3d::Image3d<i3d::GRAY16>& img) override
 	{
 		//shortcuts to the mask image parameters
-		const Vector3d<FLOAT> res(img.GetResolution().GetRes());
-		const Vector3d<FLOAT> off(img.GetOffset());
+		const Vector3d<G_FLOAT> res(img.GetResolution().GetRes());
+		const Vector3d<G_FLOAT> off(img.GetOffset());
 
 		//shortcuts to our Own spheres
-		const Vector3d<FLOAT>* const centresO = futureGeometry.getCentres();
+		const Vector3d<G_FLOAT>* const centresO = futureGeometry.getCentres();
 		const FLOAT* const radiiO             = futureGeometry.getRadii();
 		const int iO                          = futureGeometry.getNoOfSpheres();
 
@@ -115,7 +115,7 @@ public:
 		futureGeometry.AABB.exportInPixelCoords(img, minSweepPX,maxSweepPX);
 		//
 		//micron coordinate of the running voxel 'curPos'
-		Vector3d<FLOAT> centre;
+		Vector3d<G_FLOAT> centre;
 
 		//sweep and check intersection with spheres' volumes
 		for (curPos.z = minSweepPX.z; curPos.z < maxSweepPX.z; curPos.z++)

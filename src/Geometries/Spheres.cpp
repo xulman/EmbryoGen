@@ -178,8 +178,8 @@ Spheres* Spheres::createAndDeserializeFrom(char* buffer)
 void Spheres::renderIntoMask(i3d::Image3d<i3d::GRAY16>& mask, const i3d::GRAY16 drawID) const
 {
 	//shortcuts to the mask image parameters
-	const Vector3d<FLOAT> res(mask.GetResolution().GetRes());
-	const Vector3d<FLOAT> off(mask.GetOffset());
+	const Vector3d<G_FLOAT> res(mask.GetResolution().GetRes());
+	const Vector3d<G_FLOAT> off(mask.GetOffset());
 
 	//project and "clip" this AABB into the img frame
 	//so that voxels to sweep can be narrowed down...
@@ -189,7 +189,7 @@ void Spheres::renderIntoMask(i3d::Image3d<i3d::GRAY16>& mask, const i3d::GRAY16 
 	AABB.exportInPixelCoords(mask, minSweepPX,maxSweepPX);
 	//
 	//micron coordinate of the running voxel 'curPos'
-	Vector3d<FLOAT> centre;
+	Vector3d<G_FLOAT> centre;
 
 	//sweep and check intersection with spheres' volumes
 	for (curPos.z = minSweepPX.z; curPos.z < maxSweepPX.z; curPos.z++)

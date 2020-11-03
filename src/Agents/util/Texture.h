@@ -308,7 +308,7 @@ private:
 	}
 
 	/** coordinate updaters, one per sphere */
-	std::vector< SpheresFunctions::CoordsUpdater<FLOAT> > cu;
+	std::vector< SpheresFunctions::CoordsUpdater<G_FLOAT> > cu;
 
 	/** aux arrays for the updateTextureCoords() */
 	std::vector< Vector3d<G_FLOAT> > prevCentre;
@@ -372,7 +372,7 @@ public:
 	void resetNeigWeightMatrix(const Spheres& spheres, int maxNoOfNeighs = 1);
 
 	/** an alternative to resetNeigWeightMatrix() */
-	void setNeigWeightMatrix(const SpheresFunctions::SquareMatrix<FLOAT>& newWeightMatrix);
+	void setNeigWeightMatrix(const SpheresFunctions::SquareMatrix<G_FLOAT>& newWeightMatrix);
 
 	/** prints on the console */
 	void printNeigWeightMatrix();
@@ -389,11 +389,11 @@ private:
 	}
 
 	/** coordinate updaters, one per sphere */
-	std::vector< SpheresFunctions::CoordsUpdater<FLOAT> > cu;
+	std::vector< SpheresFunctions::CoordsUpdater<G_FLOAT> > cu;
 
 	/** neighbors and their weights, in this implementation the weights are binary:
 	    a sphere is influenced by another one sphere (or equally by a few others) */
-	SpheresFunctions::SquareMatrix<FLOAT> neigWeightMatrix;
+	SpheresFunctions::SquareMatrix<G_FLOAT> neigWeightMatrix;
 
 	/** aux arrays for the updateTextureCoords() */
 	std::vector< Vector3d<G_FLOAT> > prevCentre;
