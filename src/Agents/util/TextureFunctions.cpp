@@ -7,10 +7,10 @@ void TextureFunctions::addTextureAlongGrid(std::vector<Dot>& dots,
                          const Spheres& geom,
                          const Vector3d<FT>& gridFrom,
                          const Vector3d<FT>& gridStep,
-                         const Vector3d<FLOAT>& vxSize,
+                         const Vector3d<G_FLOAT>& vxSize,
                          const size_t noOfParticlesPerVoxel)
 {
-	Vector3d<FLOAT> pos;
+	Vector3d<G_FLOAT> pos;
 	Vector3d<FT> lineStart;
 	lineStart.from(geom.AABB.minCorner) += gridFrom;
 	for (; lineStart.z < geom.AABB.maxCorner.z; lineStart.z += gridStep.z)
@@ -51,8 +51,8 @@ void TextureFunctions::addTextureAlongGrid(std::vector<Dot>& dots,
 template
 void TextureFunctions::addTextureAlongGrid(std::vector<Dot> &dots, const Spheres &geom,
                                            const Vector3d<float> &gridFrom, const Vector3d<float> &gridStep,
-                                           const Vector3d<FLOAT> &vxSize, const size_t noOfParticlesPerVoxel);
+                                           const Vector3d<G_FLOAT> &vxSize, const size_t noOfParticlesPerVoxel);
 template
 void TextureFunctions::addTextureAlongGrid(std::vector<Dot> &dots, const Spheres &geom,
                                            const Vector3d<double> &gridFrom, const Vector3d<double> &gridStep,
-                                           const Vector3d<FLOAT> &vxSize, const size_t noOfParticlesPerVoxel);
+                                           const Vector3d<G_FLOAT> &vxSize, const size_t noOfParticlesPerVoxel);

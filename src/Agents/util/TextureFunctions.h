@@ -27,7 +27,7 @@ public:
 	                         const Spheres& geom,
 	                         const Vector3d<FT>& gridFrom,
 	                         const Vector3d<FT>& gridStep,
-	                         const Vector3d<FLOAT>& vxSize,
+	                         const Vector3d<G_FLOAT>& vxSize,
 	                         const size_t noOfParticlesPerVoxel = 10);
 };
 #endif

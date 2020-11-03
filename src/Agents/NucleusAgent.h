@@ -142,7 +142,7 @@ protected:
 	/** helper method to (correctly) create a force acting on a sphere */
 	inline
 	void exertForceOnSphere(const int sphereIdx,
-	                        const Vector3d<FLOAT>& forceVector,
+	                        const Vector3d<G_FLOAT>& forceVector,
 	                        const ForceName forceType)
 	{
 		forces.emplace_back( forceVector, futureGeometry.centres[sphereIdx],sphereIdx, forceType);

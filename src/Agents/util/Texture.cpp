@@ -61,7 +61,7 @@ void Texture::sampleDotsFromImage(const i3d::Image3d<VT>& img,
 
 
 void Texture::createPerlinTexture(const Spheres& geom,
-                                  const Vector3d<FLOAT>& textureResolution,
+                                  const Vector3d<G_FLOAT>& textureResolution,
                                   const double var,
                                   const double alpha,
                                   const double beta,
@@ -469,7 +469,7 @@ void TextureUpdater2pNS::updateTextureCoords(std::vector<Dot>& dots, const Spher
 #endif
 	// backup: last geometry for which texture coordinates were valid
 	// and prepare the updating routines where "orientation is global"
-	Vector3d<FLOAT> tmp( newGeom.centres[sphereOnMainAxis] );
+	Vector3d<G_FLOAT> tmp( newGeom.centres[sphereOnMainAxis] );
 	tmp -= newGeom.centres[sphereAtCentre];
 	for (int i=0; i < noOfSpheres; ++i)
 	{
@@ -480,7 +480,7 @@ void TextureUpdater2pNS::updateTextureCoords(std::vector<Dot>& dots, const Spher
 
 	//aux variables
 	float sum;
-	Vector3d<FLOAT> newPos;
+	Vector3d<G_FLOAT> newPos;
 #ifdef DEBUG
 	int outsideDots = 0;
 #endif
@@ -651,9 +651,9 @@ void TextureUpdaterNS::printNeigWeightMatrix()
 }
 
 
-void TextureUpdaterNS::getLocalOrientation(const Spheres& spheres, const int idx, Vector3d<FLOAT>& orientVec)
+void TextureUpdaterNS::getLocalOrientation(const Spheres& spheres, const int idx, Vector3d<G_FLOAT>& orientVec)
 {
-	Vector3d<FLOAT> tmpVec;
+	Vector3d<G_FLOAT> tmpVec;
 
 	orientVec = 0;
 	for (int i=0; i < spheres.noOfSpheres; ++i)
@@ -682,7 +682,7 @@ void TextureUpdaterNS::updateTextureCoords(std::vector<Dot>& dots, const Spheres
 #endif
 	// backup: last geometry for which user coordinates were valid
 	// and prepare the updating routines...
-	Vector3d<FLOAT> tmp;
+	Vector3d<G_FLOAT> tmp;
 	for (int i=0; i < noOfSpheres; ++i)
 	{
 		prevCentre[i] = cu[i].prevCentre;
@@ -693,7 +693,7 @@ void TextureUpdaterNS::updateTextureCoords(std::vector<Dot>& dots, const Spheres
 
 	//aux variables
 	float sum;
-	Vector3d<FLOAT> newPos;
+	Vector3d<G_FLOAT> newPos;
 #ifdef DEBUG
 	int outsideDots = 0;
 #endif

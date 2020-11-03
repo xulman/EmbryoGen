@@ -37,7 +37,7 @@ void NucleusNSAgent::advanceAndBuildIntForces(const float futureGlobalTime)
 	forces_s2sInducers.clear();
 #endif
 
-	Vector3d<FLOAT> forceVec;
+	Vector3d<G_FLOAT> forceVec;
 	for (int row=0; row < futureGeometry.noOfSpheres; ++row)
 	{
 		for (int col=row+1; col < futureGeometry.noOfSpheres; ++col)

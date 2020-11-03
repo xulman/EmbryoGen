@@ -99,7 +99,7 @@ public:
 	    Hence, with the higher value of the 'textureAverageIntensity', the contrast (ratio of
 	    the highest over smallest intensity value) of the texture is essentially worsened. */
 	void createPerlinTexture(const Spheres& geom,
-	                         const Vector3d<FLOAT>& textureResolution,
+	                         const Vector3d<G_FLOAT>& textureResolution,
 	                         const double var,
 	                         const double alpha = 8,
 	                         const double beta = 4,
@@ -277,7 +277,7 @@ public:
 		  __weights(new float[noOfSpheres])
 	{
 		//allocate and init properly
-		const Vector3d<FLOAT> orientVec(geom.centres[sphereOnMainAxis]-geom.centres[sphereAtCentre]);
+		const Vector3d<G_FLOAT> orientVec(geom.centres[sphereOnMainAxis]-geom.centres[sphereAtCentre]);
 		cu.reserve(noOfSpheres);
 		for (int i=0; i < noOfSpheres; ++i)
 			cu.emplace_back(geom.centres[i],geom.radii[i],orientVec);
@@ -311,7 +311,7 @@ private:
 	std::vector< SpheresFunctions::CoordsUpdater<FLOAT> > cu;
 
 	/** aux arrays for the updateTextureCoords() */
-	std::vector< Vector3d<FLOAT> > prevCentre;
+	std::vector< Vector3d<G_FLOAT> > prevCentre;
 	std::vector< FLOAT >           prevRadius;
 
 	/** aux array to be allocated once and not repeatedly in updateTextureCoords();
@@ -341,7 +341,7 @@ public:
 	const int noOfSpheres;
 
 	/** extract "orientation" (into 'orientVec') of 'idx'-sphere in the given 'spheres' geometry */
-	void getLocalOrientation(const Spheres& spheres, const int idx, Vector3d<FLOAT>& orientVec);
+	void getLocalOrientation(const Spheres& spheres, const int idx, Vector3d<G_FLOAT>& orientVec);
 
 	/** this method tracks the NS geometry changes and updates, in accord, the coordinates
 	    of the given list of texture dots */
@@ -353,7 +353,7 @@ public:
 		//NB: this method also tests for sanity, so we don't have to do it here
 		resetNeigWeightMatrix(geom,maxNoOfNeighs);
 
-		Vector3d<FLOAT> orientVec;
+		Vector3d<G_FLOAT> orientVec;
 		cu.clear();
 		cu.reserve(noOfSpheres);
 		for (int i=0; i < noOfSpheres; ++i)
@@ -396,9 +396,9 @@ private:
 	SpheresFunctions::SquareMatrix<FLOAT> neigWeightMatrix;
 
 	/** aux arrays for the updateTextureCoords() */
-	std::vector< Vector3d<FLOAT> > prevCentre;
+	std::vector< Vector3d<G_FLOAT> > prevCentre;
 	std::vector< FLOAT >           prevRadius;
-	std::vector< Vector3d<FLOAT> > prevOrientation;
+	std::vector< Vector3d<G_FLOAT> > prevOrientation;
 
 	/** aux array to be allocated once and not repeatedly in updateTextureCoords();
 	    despite private, gcc finds it in derived classes and complains about confusion
