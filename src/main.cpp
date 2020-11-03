@@ -1,5 +1,6 @@
 #include <iostream>
 #include <i3d/basic.h>
+#include "Communication/DistributedCommunicator.h"
 #include "Scenarios/common/Scenario.h"
 #include "Scenarios/common/Scenarios.h"
 #include "Director.h"
@@ -27,10 +28,13 @@ int main(int argc, char** argv)
 		//and each FO; thus, it is always created inline in respective c'tor calls
 
 #ifdef DISTRIBUTED
+ 		DistributedCommunicator * dc = new MPI_Communicator(&argc, &argv);
+ 
+
 		//these two has to come from MPI stack,
 		//for now some fake values:
-		const int MPI_noOfNodesInTotal = 72;
-		const int MPI_IDOfThisInstance = 0;
+                const int MPI_IDOfThisInstance = dc->getInstanceID();
+                const int MPI_noOfNodesInTotal = dc->getNumberOfNodes();
 
 		//this is assuming that MPI clients' IDs form a full
 		//integer interval between 0 and MPI_noOfNodesInTotal-1,
