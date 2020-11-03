@@ -2,12 +2,12 @@
 #include "../FrontOfficer.h"
 #include "../Director.h"
 #include "../util/strings.h"
+#include <chrono>
+#include <thread>
 
 int FrontOfficer::request_getNextAvailAgentID()
 {
-	//return Direktor->getNextAvailAgentID();
-	//blocks and waits until it gets int back from the Director
-	return 1;
+	return communicator->getNextAvailAgentID();
 }
 
 
@@ -15,44 +15,38 @@ void FrontOfficer::request_startNewAgent(const int newAgentID,
                                          const int associatedFO,
                                          const bool wantsToAppearInCTCtracksTXTfile)
 {
-	//Direktor->startNewAgent(newAgentID,associatedFO,wantsToAppearInCTCtracksTXTfile);
-	//may block and wait until Direktor confirms the request was processed
+	communicator->startNewAgent(newAgentID,associatedFO,wantsToAppearInCTCtracksTXTfile);
 }
 
 
 void FrontOfficer::request_closeAgent(const int agentID,
                                       const int associatedFO)
 {
-	//Direktor->closeAgent(agentID,associatedFO);
-	//may block and wait until Direktor confirms the request was processed
+	communicator->closeAgent(agentID,associatedFO);
 }
 
 
 void FrontOfficer::request_updateParentalLink(const int childID, const int parentID)
 {
-	//Direktor->startNewDaughterAgent(childID,parentID);
-	//may block and wait until Direktor confirms the request was processed
+	communicator->startNewDaughterAgent(childID,parentID);
 }
 
 
 void FrontOfficer::waitFor_publishAgentsAABBs()
 {
-	//wait here until we're told to start the broadcast which
-	//our agents were removed and AABBs of the remaining ones
-
-	//in MPI case, really do wait for the event to come
+	e_comm_tags tag = e_comm_tags::unspecified;
+	for (int i = 1 ; i < communicator->getInstanceID() ; i++) {
+		//communicator->appendAABBs(/*AABBs list*/);
+	} 
 }
 
-void FrontOfficer::notify_publishAgentsAABBs(const int /* FOsID */)
+void FrontOfficer::notify_publishAgentsAABBs(const int FOsID)
 {
-	//once our broadcasting is over, notify next FO to do the same
-	//(or notify the Direktor if we're the last on the round-robin-chain)
+	//send the broadcasts here with  broadcast_AABBofAgent ???
+	//HOW to get N? -> vzít z std::map<int,AbstractAgent*> agents  
 
-	//in this SMP particular implementation we do nothing because
-	//there is no other FO, and the Direktor called us directly
-
-	//in MPI case, tell the next FO (or the Direktor)
-	//MPI_signalThisEvent_to( FOsID );
+	char data[] = {0}; // Use NULL instead? Would it be OK for MPI to work with?
+	communicator->sendNextFO(data,0, e_comm_tags::send_AABB);
 }
 
 
@@ -129,24 +123,14 @@ void FrontOfficer::respond_AABBofAgent()
 
 void FrontOfficer::respond_CntOfAABBs()
 {
-	//MPI world:
-
-	//gets : nothing
-	//gives: int
-
-	/*
 	size_t sendBackMyCount = getSizeOfAABBsList();
-	*/
+	communicator->sendCntOfAABBs(sendBackMyCount);
 }
 
 
 void FrontOfficer::broadcast_newAgentsTypes()
 {
-	//MPI world:
-
-	//gets : nothing
-	//gives: N-times pairs of size_t, char[StringsImprintSize]
-
+	// howManyShouldBeBroadcast()
 	for (const auto& dItem : agentsTypesDictionary.theseShouldBeBroadcast())
 	{
 		size_t hash = dItem.first;
@@ -224,36 +208,70 @@ void FrontOfficer::respond_ShadowAgentCopy()
 
 void FrontOfficer::respond_setDetailedDrawingMode()
 {
-	//MPI world:
-
-	//gets : int, bool
-	//gives: nothing
-
-	/*
-	int agentID = 1;
-	bool state = false;
-	setAgentsDetailedDrawingMode(agentID,state);
-	*/
+	communicator->sendACKtoDirector();
 }
 
 
 void FrontOfficer::respond_setDetailedReportingMode()
 {
-	//MPI world:
-
-	//gets : int, bool
-	//gives: nothing
-
-	/*
-	int agentID = 1;
-	bool state = false;
-	setAgentsDetailedReportingMode(agentID,state);
-	*/
+	communicator->sendACKtoDirector();
 }
 
 
-void FrontOfficer::waitHereUntilEveryoneIsHereToo()
-{}
+void FrontOfficer::waitHereUntilEveryoneIsHereToo() //Will this work without specification of stage as an argument?
+{
+	// For cycle like in the Director to process D->FO messages? 
+	int ibuffer[DIRECTOR_RECV_MAX] = {0};
+	char buffer[DIRECTOR_RECV_MAX] = {0};
+	int items;
+	e_comm_tags tag;
+	communicator->unblockNextIfSent();
+	fprintf(stderr, "Running detection loop in FO %i\n", ID);
+	do {
+		int instance = FO_INSTANCE_ANY;
+		if ((tag = communicator->detectFOMessage()) < 0) {
+			// Detect other FO messages (are there any?) and broadcasts here...
+			std::this_thread::sleep_for((std::chrono::milliseconds)10);
+			continue;
+		}
+		switch (tag) {
+			case e_comm_tags::set_detailed_drawing:
+				communicator->receiveDirectorMessage(buffer, items, tag);
+				assert(items == 2);
+				setAgentsDetailedDrawingMode(buffer[0], buffer[1] != 0);
+				respond_setDetailedDrawingMode();
+				break;
+			case e_comm_tags::set_detailed_reporting:
+				communicator->receiveDirectorMessage(buffer, items, tag);
+				assert(items == 2);
+				setAgentsDetailedReportingMode(buffer[0], buffer[1] != 0);
+				respond_setDetailedReportingMode();
+				break;
+			case e_comm_tags::send_AABB:
+				communicator->receiveFOMessage(ibuffer, items, instance, tag);
+				assert(items == 0);
+				//Is something else called here?
+				notify_publishAgentsAABBs(nextFOsID);
+				break;
+			case e_comm_tags::render_frame:
+				communicator->receiveFOMessage(ibuffer, items, instance, tag);
+				assert(items == 0);
+				//Is something else called here?
+				request_renderNextFrame(nextFOsID);
+				break;
+			case e_comm_tags::next_stage:
+				communicator->receiveFOMessage(buffer, items, instance, tag);
+				break;
+			default:
+				 fprintf(stderr,"Unprocessed communication tag %i on FO %i\n", tag, ID);
+				 communicator->receiveFOMessage(buffer, items, instance, tag);
+				 break;
+		}
+		
+	} while (tag != e_comm_tags::next_stage);
+	fprintf(stderr, "Ending detection loop in FO %i and waiting for sync\n", ID);
+	communicator->waitSync(); //waitFor_publishAgentsAABBs();
+}
 
 
 void FrontOfficer::waitFor_renderNextFrame()
@@ -320,6 +338,7 @@ void FrontOfficer::respond_setRenderingDebug()
 
 void FrontOfficer::broadcast_throwException(const char* /* exceptionMessage */)
 {
+	// To Director only?
 	//MPI world:
 
 	//gets : nothing

@@ -40,7 +40,7 @@ int main(int argc, char** argv)
 		if (MPI_IDOfThisInstance == 0)
 		{
 			//hoho, I'm the Direktor  (NB: Direktor == main simulation loop)
-			d = new Director(Scenarios(argc,argv).getScenario(), 1,MPI_noOfNodesInTotal-1);
+			d = new Director(Scenarios(argc,argv).getScenario(), 1,MPI_noOfNodesInTotal-1, dc);
 			d->initMPI();  //init the simulation, and render the first frame
 			d->execute();  //execute the simulation, and render frames
 			d->close();    //close the simulation, deletes agents, and save tracks.txt
@@ -56,6 +56,7 @@ int main(int argc, char** argv)
 
 			fo = new FrontOfficer(Scenarios(argc,argv).getScenario(), nextFOsID, MPI_IDOfThisInstance,MPI_noOfNodesInTotal-1);
 			fo->initMPI(); //populate/create my part of the scene
+			fprintf(stderr, "Multi node case, init MPI: %i nodes, instance %i\n", MPI_noOfNodesInTotal, MPI_IDOfThisInstance);
 			fo->execute(); //wait for Direktor's events
 			fo->close();   //deletes my agents
 		}

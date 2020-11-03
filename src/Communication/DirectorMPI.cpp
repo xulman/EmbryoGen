@@ -1,86 +1,39 @@
 #include "../Director.h"
 #include "../FrontOfficer.h"
 
-//in the SMP world, a lot of respond_...() methods are actually
-//empty because the FOs reach directly the implementing code
-
 void Director::respond_getNextAvailAgentID()
 {
-	//MPI world:
-
-	//gets : nothing
-	//gives: int
-
-	/*
-	int sendBackThisNewID = getNextAvailAgentID();
-	*/
+	communicator->sendNextID(getNextAvailAgentID());	
 }
 
 
 void Director::respond_startNewAgent()
 {
-	//MPI world:
-
-	//gets : int, int, bool
-	//gives: nothing
-
-	//have to learn from the other party:
-	/*
-	int newAgentID;
-	int associatedFO;
-	bool wantsToAppearInCTCtracksTXTfile;
-
-	startNewAgent(newAgentID,associatedFO,wantsToAppearInCTCtracksTXTfile);
-	*/
+	communicator->sendACKtoLastFO();  //send requested ACK back, maybe unneccessary? 
 }
 
 
 void Director::respond_closeAgent()
 {
-	//MPI world:
-
-	//gets : int, int
-	//gives: nothing
-
-	//have to learn from the other party:
-	/*
-	int agentID;
-	int associatedFO;
-
-	closeAgent(agentID,associatedFO);
-	*/
+	communicator->sendACKtoLastFO();  //send requested ACK back, maybe unneccessary? 
 }
 
 
 void Director::respond_updateParentalLink()
 {
-	//MPI world:
-
-	//gets : int, int
-	//gives: nothing
-
-	//have to learn from the other party:
-	/*
-	int childID;
-	int parentID;
-
-	startNewDaughterAgent(childID,parentID);
-	*/
+	communicator->sendACKtoLastFO();  //send requested ACK back, maybe unneccessary? 
 }
 
 
-void Director::notify_publishAgentsAABBs(const int /* FOsID */)
+void Director::notify_publishAgentsAABBs(const int FOsID)
 {
-	//notify the first FO
-	//MPI_signalThisEvent_to( FOsID );
+	communicator->publishAgentsAABBs(FOsID);
 }
 
 
 void Director::waitFor_publishAgentsAABBs()
 {
-	//wait here until we're told (that the broadcasting is over)
-
-	//in MPI case, really do wait for the event to come
+	communicator->waitFor_publishAgentsAABBs();
 }
 
 
@@ -96,58 +49,96 @@ void Director::respond_AABBofAgent()
 }
 
 
-size_t Director::request_CntOfAABBs(const int /* FOsID */)
+size_t Director::request_CntOfAABBs(const int FOsID)
 {
-	//block and wait until size_t comes back from the front officer FOsID
-	return 10; //faked value!
+	return communicator->cntOfAABBs(FOsID);
 }
 
 
 void Director::respond_newAgentsTypes(int)
 {
-	//we ignore these notifications entirely
-	//
-	//perhaps we would see a reason later why Direktor would need
-	//to know the content of the agentsTypesDictionary
 }
 
 
-void Director::notify_setDetailedDrawingMode(const int /* FOsID */, const int agentID, const bool state)
+void Director::notify_setDetailedDrawingMode(const int FOsID , const int agentID, const bool state)
 {
-	//in the SMP world:
-	//FO->setAgentsDetailedDrawingMode(agentID,state);
-	//
-	//in the MPI, send the above to the front officer FOsID
+	//PM: During rendering of the next frame, here the FOs should listen for director messages instead vice versa?
+	communicator->setAgentsDetailedDrawingMode(FOsID, agentID, state);
 }
 
 
-void Director::notify_setDetailedReportingMode(const int /* FOsID */, const int agentID, const bool state)
+void Director::notify_setDetailedReportingMode(const int FOsID , const int agentID, const bool state)
 {
-	//in the SMP world:
-	//FO->setAgentsDetailedReportingMode(agentID,state);
-	//
-	//in the MPI, send the above to the agent FOsID
+	//PM: During rendering of the next frame, here the FOs should listen for director messages instead vice versa?
+	communicator->setAgentsDetailedReportingMode(FOsID, agentID, state);
 }
 
 
-void Director::waitHereUntilEveryoneIsHereToo()
-{}
-
-
-void Director::request_renderNextFrame(const int /* FOsID */)
+void Director::waitHereUntilEveryoneIsHereToo(/*int stage?*/) //Will this work without specification of stage as an argument?
 {
-	//in the SMP:
-	//FO->renderNextFrame();
+	char buffer[DIRECTOR_RECV_MAX] = {0};
+	int ibuffer[DIRECTOR_RECV_MAX] = {0};
+	
+	int items;
+	e_comm_tags tag;
+	fprintf(stderr, "Running detection loop in Director\n");
+	do {
+		int instance = FO_INSTANCE_ANY;
+		if ((tag = communicator->detectFOMessage()) < 0) {
+			std::this_thread::sleep_for((std::chrono::milliseconds)10);
+			continue;
+		}
+		items = DIRECTOR_RECV_MAX;
+		switch (tag) {
+			case e_comm_tags::next_ID:
+				communicator->receiveFOMessage(buffer, items, instance, tag);
+				assert(items == 0);
+				respond_getNextAvailAgentID();
+				break;
+			case e_comm_tags::new_agent:
+				communicator->receiveFOMessage(ibuffer, items, instance, tag);
+				assert(items == 3);
+				startNewAgent(ibuffer[0], ibuffer[1], ibuffer[2] != 0);
+				respond_startNewAgent();
+				break;
+			case e_comm_tags::update_parent:
+				communicator->receiveFOMessage(ibuffer, items, instance, tag);
+				assert(items == 2);
+				startNewDaughterAgent(ibuffer[0], ibuffer[1]);
+				respond_updateParentalLink();
+				break;
+			case e_comm_tags::close_agent:
+				communicator->receiveFOMessage(ibuffer, items, instance, tag);
+				assert(items == 2);
+				closeAgent(ibuffer[0], ibuffer[1]);
+				respond_closeAgent();
+				break;		
+			case e_comm_tags::next_stage:
+				communicator->receiveFOMessage(buffer, items, instance, tag);
+				break;
+			default:
+				 fprintf(stderr,"Unprocessed communication tag %i on Director\n", tag);
+				 communicator->receiveFOMessage(buffer, items, instance, tag);
+				 //PM: Mark client as done and if all are done leave the cycle 
+				 break;
+				 
+		}
+		
+	} while(tag != e_comm_tags::next_stage);
+	fprintf(stderr, "Ending detection loop in Director, will send sync\n");
+	//communicator->sendSync()
+}
 
-	//MPI world:
-	//this exactly the same code as in FrontOfficer::request_renderNextFrame(FOsID)
+
+void Director::request_renderNextFrame(const int FOsID)
+{
+	communicator->renderNextFrame(FOsID);
 }
 
 
 void Director::waitFor_renderNextFrame()
 {
-	//MPI world:
-	//this exactly the same code as in FrontOfficer::waitFor_renderNextFrame()
+	communicator->waitFor_renderNextFrame();
 }
 
 
@@ -163,6 +154,9 @@ void Director::broadcast_setRenderingDebug(const bool setFlagToThis)
 
 void Director::broadcast_throwException(const char* /* exceptionMessage */)
 {
+	//fprintf(stderr, ...)
+	//exit(-1);
+
 	//MPI world:
 	//the same as FrontOfficer::broadcast_throwException(exceptionMessage)
 }
