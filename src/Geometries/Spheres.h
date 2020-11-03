@@ -62,11 +62,11 @@ public:
 	Spheres(const Spheres& s)
 		: Geometry(ListOfShapeForms::Spheres),
 		  noOfSpheres(s.getNoOfSpheres()),
-		  centres(new Vector3d<FLOAT>[noOfSpheres]),
-		  radii(new FLOAT[noOfSpheres])
+		  centres(new Vector3d<G_FLOAT>[noOfSpheres]),
+		  radii(new G_FLOAT[noOfSpheres])
 	{
-		const Vector3d<FLOAT>* sCentres = s.getCentres();
-		const FLOAT*           sRadii   = s.getRadii();
+		const Vector3d<G_FLOAT>* sCentres = s.getCentres();
+		const G_FLOAT*           sRadii   = s.getRadii();
 
 		for (int i=0; i < noOfSpheres; ++i)
 		{
@@ -115,7 +115,7 @@ public:
 	    there is no collision at all (with no sphere); the sphere at
 	    the 'ignore' index is omitted from the tests (note the default
 	    ignoreIdx is -1, which means to consider all spheres for the test) */
-	int collideWithPoint(const Vector3d<FLOAT>& point,
+	int collideWithPoint(const Vector3d<G_FLOAT>& point,
 	                     const int ignoreIdx = -1) const;
 
 
@@ -129,23 +129,23 @@ public:
 		return noOfSpheres;
 	}
 
-	const Vector3d<FLOAT>* getCentres(void) const
+	const Vector3d<G_FLOAT>* getCentres(void) const
 	{
 		return centres;
 	}
 
-	const FLOAT* getRadii(void) const
+	const G_FLOAT* getRadii(void) const
 	{
 		return radii;
 	}
 
 
-	void updateCentre(const int i, const Vector3d<FLOAT>& centre)
+	void updateCentre(const int i, const Vector3d<G_FLOAT>& centre)
 	{
 		centres[i] = centre;
 	}
 
-	void updateRadius(const int i, const FLOAT radius)
+	void updateRadius(const int i, const G_FLOAT radius)
 	{
 		radii[i] = radius;
 	}

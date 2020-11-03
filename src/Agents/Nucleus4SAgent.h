@@ -34,7 +34,7 @@ protected:
 	    method computes vector for every sphere centre that show how much
 	    it is displaced from its expected position given that the assumed line
 	    goes through the inner two spheres */
-	void getCurrentOffVectorsForCentres(Vector3d<FLOAT> offs[4]);
+	void getCurrentOffVectorsForCentres(Vector3d<G_FLOAT> offs[4]);
 
 	// ------------- externals geometry -------------
 

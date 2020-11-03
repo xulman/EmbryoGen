@@ -10,13 +10,14 @@
 class AbstractAgent;
 class ShadowAgent;
 class Director;
+class DistributedCommunicator;
 
 /** has access to Simulation, to reach its initializeAgents() */
 class FrontOfficer//: public Simulation
 {
 public:
-	FrontOfficer(Scenario& s, const int nextFO, const int myPortion, const int allPortions)
-		: scenario(s), ID(myPortion), nextFOsID(nextFO), FOsCount(allPortions),
+	FrontOfficer(Scenario& s, const int nextFO, const int myPortion, const int allPortions, DistributedCommunicator * dc = NULL)
+		: scenario(s), ID(myPortion), nextFOsID(nextFO), FOsCount(allPortions), communicator(dc),
 		  __agentTypeBuf(new char[StringsImprintSize]) //freed in FrontOfficer::close()
 	{
 		scenario.declareFOcontext(myPortion);
@@ -25,6 +26,7 @@ public:
 
 protected:
 	Scenario& scenario;
+	DistributedCommunicator * communicator;
 
 public:
 	const int ID, nextFOsID, FOsCount;

@@ -4,6 +4,8 @@
 
 //Collect external forces
 
+//Collect external forces
+
 void FrontOfficer::init1_SMP()
 {
 	REPORT("FO #" << ID << " initializing now...");

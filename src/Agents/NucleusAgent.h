@@ -45,11 +45,11 @@ public:
 		: AbstractAgent(_ID,_type, geometryAlias, _currTime,_incrTime),
 		  geometryAlias(shape),
 		  futureGeometry(shape),
-		  accels(new Vector3d<FLOAT>[2*shape.noOfSpheres]),
+		  accels(new Vector3d<G_FLOAT>[2*shape.noOfSpheres]),
 		  //NB: relies on the fact that geometryAlias.noOfSpheres == futureGeometry.noOfSpheres
 		  //NB: accels[] and velocities[] together form one buffer (cache friendlier)
 		  velocities(accels+shape.noOfSpheres),
-		  weights(new FLOAT[shape.noOfSpheres])
+		  weights(new G_FLOAT[shape.noOfSpheres])
 	{
 		//update AABBs
 		geometryAlias.Geometry::updateOwnAABB();
@@ -60,9 +60,9 @@ public:
 		//and "up-rounded"...
 		forces.reserve(200);
 		velocity_CurrentlyDesired = 0; //no own movement desired yet
-		velocity_PersistenceTime  = (FLOAT)2.0;
+		velocity_PersistenceTime  = (G_FLOAT)2.0;
 
-		for (int i=0; i < shape.noOfSpheres; ++i) weights[i] = (FLOAT)1.0;
+		for (int i=0; i < shape.noOfSpheres; ++i) weights[i] = (G_FLOAT)1.0;
 
 		//DEBUG_REPORT("Nucleus with ID=" << ID << " was just created");
 	}
@@ -79,13 +79,13 @@ public:
 protected:
 	// ------------- internals state -------------
 	/** motion: desired current velocity [um/min] */
-	Vector3d<FLOAT> velocity_CurrentlyDesired;
+	Vector3d<G_FLOAT> velocity_CurrentlyDesired;
 
 	/** motion: adaptation time, that is, how fast the desired velocity
 	    should be reached (from zero movement); this param is in
 	    the original literature termed as persistence time and so
 	    we keep to that term [min] */
-	FLOAT velocity_PersistenceTime;
+	G_FLOAT velocity_PersistenceTime;
 
 	// ------------- internals geometry -------------
 	/** reference to my exposed geometry ShadowAgents::geometry */
@@ -117,19 +117,19 @@ protected:
 
 	// ------------- forces & movement (physics) -------------
 	/** all forces that are in present acting on this agent */
-	std::vector< ForceVector3d<FLOAT> > forces;
+	std::vector< ForceVector3d<G_FLOAT> > forces;
 
 	/** an aux array of acceleration vectors calculated for every sphere, the length
 	    of this array must match the length of the spheres in the 'futureGeometry' */
-	Vector3d<FLOAT>* const accels;
+	Vector3d<G_FLOAT>* const accels;
 
 	/** an array of velocities vectors of the spheres, the length of this array must match
 	    the length of the spheres that are exposed (geometryAlias) to the outer world */
-	Vector3d<FLOAT>* const velocities;
+	Vector3d<G_FLOAT>* const velocities;
 
 	/** an aux array of weights of the spheres, the length of this array must match
 	    the length of the spheres in the 'futureGeometry' */
-	FLOAT* const weights;
+	G_FLOAT* const weights;
 
 	/** essentially creates a new version (next iteration) of 'futureGeometry' given
 	    the current content of the 'forces'; note that, in this particular agent type,
@@ -181,7 +181,7 @@ protected:
 
 
 public:
-	const Vector3d<FLOAT>& getVelocityOfSphere(const long index) const
+	const Vector3d<G_FLOAT>& getVelocityOfSphere(const long index) const
 	{
 #ifdef DEBUG
 		if (index >= geometryAlias.noOfSpheres)
@@ -200,7 +200,7 @@ protected:
 #ifdef DEBUG
 	/** aux memory of the recently generated forces in advanceAndBuildIntForces()
 	    and in collectExtForces(), and displayed via drawForDebug() */
-	std::vector< ForceVector3d<FLOAT> > forcesForDisplay;
+	std::vector< ForceVector3d<G_FLOAT> > forcesForDisplay;
 #endif
 };
 #endif

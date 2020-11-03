@@ -126,13 +126,13 @@ int Texture::collectOutlyingDots(const Spheres& geom)
 	auto stopWatch = tic();
 #endif
 
-	Vector3d<FLOAT> tmp;
-	FLOAT tmpLen;
+	Vector3d<G_FLOAT> tmp;
+	G_FLOAT tmpLen;
 
 	for (auto& dot : dots)
 	{
 		bool foundInside = false;
-		FLOAT nearestDist = TOOFAR;
+		G_FLOAT nearestDist = TOOFAR;
 		int nearestIdx  = -1;
 
 		for (int i=0; i < geom.noOfSpheres && !foundInside; ++i)
@@ -426,7 +426,7 @@ void TextureUpdater4S::updateTextureCoords(std::vector<Dot>& dots, const Spheres
 		{
 			tmp  = dot.pos;
 			tmp -= prevCentre[i];
-			weights[i] = std::max(prevRadius[i] - tmp.len(), (FLOAT)0);
+			weights[i] = std::max(prevRadius[i] - tmp.len(), (G_FLOAT)0);
 		}
 
 		//normalization factor

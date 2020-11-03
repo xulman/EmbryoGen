@@ -310,6 +310,7 @@ void FrontOfficer::waitFor_renderNextFrame()
 
 	(i3d::GRAY16 maps into short type)
 	*/
+	communicator->waitFor_renderNextFrame();
 }
 
 
@@ -352,6 +353,7 @@ void FrontOfficer::broadcast_throwException(const char* /* exceptionMessage */)
 
 void FrontOfficer::respond_throwException()
 {
+	// To Director only?
 	//MPI world:
 
 	//gets : bool

@@ -22,6 +22,7 @@ public:
 
 protected:
 	Scenario& scenario;
+	DistributedCommunicator * communicator;
 
 public:
 	/** the firstFOsID is where the round robin chain starts */
@@ -185,7 +186,7 @@ protected:
 
 	void respond_getNextAvailAgentID();
 
-	void respond_startNewAgent();
+	void respond_startNewAgent(); //TBD - add parameters from start*
 	void respond_closeAgent();
 	void respond_updateParentalLink();
 
@@ -210,7 +211,6 @@ public:
 	void broadcast_throwException(const char* exceptionMessage);
 protected:
 	void respond_throwException();
-
 
 #ifndef DISTRIBUTED
 	FrontOfficer* FO = NULL;

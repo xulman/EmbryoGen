@@ -19,7 +19,7 @@ class Spheres;
  * call getDistance() at all (or inherit from this class overriding getDistance()
  * with no-code-function) and can directly inspect the stored vectors.
  *
- * This class is, in fact, an alternative to the FlowField<FLOAT>, they both
+ * This class is, in fact, an alternative to the FlowField<G_FLOAT>, they both
  * represent x,y,z elements of a spatial distribution of 3D real vectors.
  *
  * Author: Vladimir Ulman, 2018
@@ -40,14 +40,14 @@ private:
 	/** Images that together represent the 3D vector field, aka FF.
 	    They are of the same offset, size, resolution as the sample
 	    one given during construction of this object. */
-	i3d::Image3d<FLOAT> X,Y,Z;
+	i3d::Image3d<G_FLOAT> X,Y,Z;
 
 	/** (cached) resolution of the FF [pixels per micrometer] */
-	Vector3d<FLOAT> imgRes;
+	Vector3d<G_FLOAT> imgRes;
 	/** (cached) offset of the FF's "minCorner" [micrometer] */
-	Vector3d<FLOAT> imgOff;
+	Vector3d<G_FLOAT> imgOff;
 	/** (cached) offset of the FF's "maxCorner" [micrometer] */
-	Vector3d<FLOAT> imgFarEnd;
+	Vector3d<G_FLOAT> imgFarEnd;
 
 	/** This is the chosen policy for VectorImg::getDistance() */
 	const ChoosingPolicy policy;
@@ -110,9 +110,9 @@ public:
 		mImg.CopyMetaData(X);
 
 		//running pointers...
-		const FLOAT* x = X.GetFirstVoxelAddr();     //input vector elements
-		const FLOAT* y = Y.GetFirstVoxelAddr();
-		const FLOAT* z = Z.GetFirstVoxelAddr();
+		const G_FLOAT* x = X.GetFirstVoxelAddr();     //input vector elements
+		const G_FLOAT* y = Y.GetFirstVoxelAddr();
+		const G_FLOAT* z = Z.GetFirstVoxelAddr();
 		float* m = mImg.GetFirstVoxelAddr();        //for vector magnitude
 		float* const mE = m + mImg.GetImageSize();
 
@@ -168,14 +168,14 @@ public:
 
 
 	// ------------- get/set methods -------------
-	Vector3d<FLOAT> getVector(const size_t x,const size_t y,const size_t z) const
+	Vector3d<G_FLOAT> getVector(const size_t x,const size_t y,const size_t z) const
 	{
 		const size_t index = X.GetIndex(x,y,z);
-		return Vector3d<FLOAT>(X.GetVoxel(index), Y.GetVoxel(index), Z.GetVoxel(index));
+		return Vector3d<G_FLOAT>(X.GetVoxel(index), Y.GetVoxel(index), Z.GetVoxel(index));
 	}
 
 	void getVector(const size_t x,const size_t y,const size_t z, //input
-	               Vector3d<FLOAT>& v) const                     //output
+	               Vector3d<G_FLOAT>& v) const                     //output
 	{
 		const size_t index = X.GetIndex(x,y,z);
 		v.x = X.GetVoxel(index);
@@ -184,7 +184,7 @@ public:
 	}
 
 	void setVector(const size_t x,const size_t y,const size_t z, //input
-	               const Vector3d<FLOAT>& v)                     //input
+	               const Vector3d<G_FLOAT>& v)                     //input
 	{
 		const size_t index = X.GetIndex(x,y,z);
 		X.SetVoxel(index,v.x);
@@ -192,30 +192,30 @@ public:
 		Z.SetVoxel(index,v.z);
 	}
 
-	void proxifyFF(FlowField<FLOAT>& FF)
+	void proxifyFF(FlowField<G_FLOAT>& FF)
 	{
 		FF.proxify(&X,&Y,&Z);
 		DEBUG_REPORT("The FF.isConsistent() gives " << (FF.isConsistent() ? "true" : "false"));
 	}
 
-	const i3d::Image3d<FLOAT>& getImgX(void) const
+	const i3d::Image3d<G_FLOAT>& getImgX(void) const
 	{ return X; }
-	const i3d::Image3d<FLOAT>& getImgY(void) const
+	const i3d::Image3d<G_FLOAT>& getImgY(void) const
 	{ return Y; }
-	const i3d::Image3d<FLOAT>& getImgZ(void) const
+	const i3d::Image3d<G_FLOAT>& getImgZ(void) const
 	{ return Z; }
 
-	const Vector3d<FLOAT>& getImgRes(void) const
+	const Vector3d<G_FLOAT>& getImgRes(void) const
 	{
 		return imgRes;
 	}
 
-	const Vector3d<FLOAT>& getImgOff(void) const
+	const Vector3d<G_FLOAT>& getImgOff(void) const
 	{
 		return imgOff;
 	}
 
-	const Vector3d<FLOAT>& getImgFarEnd(void) const
+	const Vector3d<G_FLOAT>& getImgFarEnd(void) const
 	{
 		return imgFarEnd;
 	}

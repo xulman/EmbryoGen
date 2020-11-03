@@ -60,11 +60,11 @@ private:
 	i3d::Image3d<float> distImg;
 
 	/** (cached) resolution of the distImg [pixels per micrometer] */
-	Vector3d<FLOAT> distImgRes;
+	Vector3d<G_FLOAT> distImgRes;
 	/** (cached) offset of the distImg's "minCorner" [micrometer] */
-	Vector3d<FLOAT> distImgOff;
+	Vector3d<G_FLOAT> distImgOff;
 	/** (cached) offset of the distImg's "maxCorner" [micrometer] */
-	Vector3d<FLOAT> distImgFarEnd;
+	Vector3d<G_FLOAT> distImgFarEnd;
 
 	/** This is just a reminder of how the ScalarImg::distImg was created, since we don't
 	    have reference or copy to the original source image and we cannot reconstruct it
@@ -142,17 +142,17 @@ public:
 		return distImg;
 	}
 
-	const Vector3d<FLOAT>& getDistImgRes(void) const
+	const Vector3d<G_FLOAT>& getDistImgRes(void) const
 	{
 		return distImgRes;
 	}
 
-	const Vector3d<FLOAT>& getDistImgOff(void) const
+	const Vector3d<G_FLOAT>& getDistImgOff(void) const
 	{
 		return distImgOff;
 	}
 
-	const Vector3d<FLOAT>& getDistImgFarEnd(void) const
+	const Vector3d<G_FLOAT>& getDistImgFarEnd(void) const
 	{
 		return distImgFarEnd;
 	}

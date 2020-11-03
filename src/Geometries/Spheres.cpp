@@ -29,8 +29,8 @@ void Spheres::getDistanceToSpheres(const Spheres* otherSpheres,
                                    std::list<ProximityPair>& l) const
 {
 	//shortcuts to the otherGeometry's spheres
-	const Vector3d<FLOAT>* const centresO = otherSpheres->getCentres();
-	const FLOAT* const radiiO             = otherSpheres->getRadii();
+	const Vector3d<G_FLOAT>* const centresO = otherSpheres->getCentres();
+	const G_FLOAT* const radiiO             = otherSpheres->getRadii();
 
 	//for every my sphere: find nearest other sphere
 	for (int im = 0; im < noOfSpheres; ++im)
@@ -40,7 +40,7 @@ void Spheres::getDistanceToSpheres(const Spheres* otherSpheres,
 
 		//nearest other sphere discovered so far
 		int bestIo = -1;
-		FLOAT bestDist = TOOFAR;
+		G_FLOAT bestDist = TOOFAR;
 
 		for (int io = 0; io < otherSpheres->getNoOfSpheres(); ++io)
 		{
@@ -48,7 +48,7 @@ void Spheres::getDistanceToSpheres(const Spheres* otherSpheres,
 			if (radiiO[io] == 0) continue;
 
 			//dist between surfaces of the two spheres
-			FLOAT dist = (centres[im] - centresO[io]).len();
+			G_FLOAT dist = (centres[im] - centresO[io]).len();
 			dist -= radii[im] + radiiO[io];
 
 			//is nearer?
@@ -67,7 +67,7 @@ void Spheres::getDistanceToSpheres(const Spheres* otherSpheres,
 
 			//vector between the two centres (will be made
 			//'radius' longer, and offsets the 'centre' point)
-			Vector3d<FLOAT> dp = centresO[bestIo] - centres[im];
+			Vector3d<G_FLOAT> dp = centresO[bestIo] - centres[im];
 			dp.changeToUnitOrZero();
 
 			l.emplace_back( centres[im] + (radii[im] * dp),
@@ -78,13 +78,13 @@ void Spheres::getDistanceToSpheres(const Spheres* otherSpheres,
 }
 
 
-int Spheres::collideWithPoint(const Vector3d<FLOAT>& point,
+int Spheres::collideWithPoint(const Vector3d<G_FLOAT>& point,
                               const int ignoreIdx)
 const
 {
 	bool collision = false;
 
-	Vector3d<FLOAT> tmp;
+	Vector3d<G_FLOAT> tmp;
 	int testingIndex = ignoreIdx == 0? 1 : 0;
 	while (!collision && testingIndex < noOfSpheres)
 	{

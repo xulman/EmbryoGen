@@ -219,10 +219,10 @@ public:
 	/** init the class with the current 4S geometry */
 	TextureUpdater4S(const Spheres& geom)
 		: objectIsReady( testNoOfSpheres(geom) ),
-		  cu{ SpheresFunctions::CoordsUpdater<FLOAT>(geom.centres[0],geom.radii[0], geom.centres[0] - geom.centres[1]),
-		      SpheresFunctions::CoordsUpdater<FLOAT>(geom.centres[1],geom.radii[1], geom.centres[0] - geom.centres[2]),
-		      SpheresFunctions::CoordsUpdater<FLOAT>(geom.centres[2],geom.radii[2], geom.centres[1] - geom.centres[3]),
-		      SpheresFunctions::CoordsUpdater<FLOAT>(geom.centres[3],geom.radii[3], geom.centres[2] - geom.centres[3]) }
+		  cu{ SpheresFunctions::CoordsUpdater<G_FLOAT>(geom.centres[0],geom.radii[0], geom.centres[0] - geom.centres[1]),
+		      SpheresFunctions::CoordsUpdater<G_FLOAT>(geom.centres[1],geom.radii[1], geom.centres[0] - geom.centres[2]),
+		      SpheresFunctions::CoordsUpdater<G_FLOAT>(geom.centres[2],geom.radii[2], geom.centres[1] - geom.centres[3]),
+		      SpheresFunctions::CoordsUpdater<G_FLOAT>(geom.centres[3],geom.radii[3], geom.centres[2] - geom.centres[3]) }
 	{}
 
 	/** this method tracks the 4S geometry changes and updates, in accord, the coordinates
@@ -246,11 +246,11 @@ private:
 	}
 
 	/** coordinate updaters, one per sphere */
-	SpheresFunctions::CoordsUpdater<FLOAT> cu[4];
+	SpheresFunctions::CoordsUpdater<G_FLOAT> cu[4];
 
 	/** aux arrays for the updateTextureCoords() */
-	Vector3d<FLOAT> prevCentre[4];
-	FLOAT           prevRadius[4];
+	Vector3d<G_FLOAT> prevCentre[4];
+	G_FLOAT           prevRadius[4];
 };
 
 

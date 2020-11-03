@@ -49,10 +49,10 @@ void NucleusAgent::adjustGeometryByForces(void)
 		accels[i] /= weights[i];
 
 		//velocities: v=at
-		velocities[i] += (FLOAT)incrTime * accels[i];
+		velocities[i] += (G_FLOAT)incrTime * accels[i];
 
 		//displacement: |trajectory|=vt
-		futureGeometry.centres[i] += (FLOAT)incrTime * velocities[i];
+		futureGeometry.centres[i] += (G_FLOAT)incrTime * velocities[i];
 	}
 
 	//update AABB to the new geometry
@@ -147,7 +147,7 @@ void NucleusAgent::collectExtForces(void)
 #endif
 	//now, postprocess the proximityPairs, that is, to
 	//convert proximityPairs_toNuclei to forces according to TRAgen rules
-	Vector3d<FLOAT> f,g; //tmp vectors
+	Vector3d<G_FLOAT> f,g; //tmp vectors
 	for (const auto& pp : proximityPairs_toNuclei)
 	{
 		if (pp.distance > 0)
@@ -186,7 +186,7 @@ void NucleusAgent::collectExtForces(void)
 			f -= pp.localPos;
 			f.changeToUnitOrZero();
 
-			FLOAT fScale = fstrength_overlap_level;
+			G_FLOAT fScale = fstrength_overlap_level;
 			if (-pp.distance > fstrength_overlap_depth)
 			{
 				//in the non-calm response zone (where force increases with the penetration depth)
@@ -242,7 +242,7 @@ void NucleusAgent::collectExtForces(void)
 			REPORT(ID << ": hinter pp.distance=" << pp.distance);
 #endif
 		//the get-back-to-hinter force
-		f *= 2*fstrength_overlap_level * std::min(pp.distance*pp.distance * fstrength_hinter_scale,(FLOAT)1);
+		f *= 2*fstrength_overlap_level * std::min(pp.distance*pp.distance * fstrength_hinter_scale,(G_FLOAT)1);
 
 		//apply the same force to all spheres
 		for (int i=0; i < futureGeometry.noOfSpheres; ++i)

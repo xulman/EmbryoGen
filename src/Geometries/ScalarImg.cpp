@@ -67,23 +67,23 @@ void ScalarImg::getDistanceToSpheres(const class Spheres* otherSpheres,
 
 	//(squared) voxel's volume half-diagonal vector and its length
 	//(for detection of voxels that coincide with sphere's surface)
-	Vector3d<FLOAT> vecPXhd2(0.5f/distImgRes.x,0.5f/distImgRes.y,0.5f/distImgRes.z);
-	const FLOAT     lenPXhd = vecPXhd2.len();
+	Vector3d<G_FLOAT> vecPXhd2(0.5f/distImgRes.x,0.5f/distImgRes.y,0.5f/distImgRes.z);
+	const G_FLOAT     lenPXhd = vecPXhd2.len();
 	vecPXhd2.elemMult(vecPXhd2); //make it squared
 
 	//shortcuts to the otherGeometry's spheres
-	const Vector3d<FLOAT>* const centresO = otherSpheres->getCentres();
-	const FLOAT* const radiiO             = otherSpheres->getRadii();
+	const Vector3d<G_FLOAT>* const centresO = otherSpheres->getCentres();
+	const G_FLOAT* const radiiO             = otherSpheres->getRadii();
 	const int io                          = otherSpheres->getNoOfSpheres();
 
 	//remember the smallest distance observed so far for every foreign sphere...
-	FLOAT* distances = new FLOAT[io];
+	G_FLOAT* distances = new G_FLOAT[io];
 	for (int i = 0; i < io; ++i) distances[i] = TOOFAR;
 	//...and where it was observed
 	Vector3d<size_t>* hints = new Vector3d<size_t>[io];
 
 	//aux position vectors: current voxel's centre and somewhat sphere's surface point
-	Vector3d<FLOAT> centre, surfPoint;
+	Vector3d<G_FLOAT> centre, surfPoint;
 
 	//finally, sweep and check intersection with spheres' surfaces
 	for (curPos.z = minSweepPX.z; curPos.z < maxSweepPX.z; curPos.z++)
@@ -116,7 +116,7 @@ void ScalarImg::getDistanceToSpheres(const class Spheres* otherSpheres,
 				{
 					//hooray, a voxel whose volume is intersecting with i-th sphere's surface
 					//let's inspect the distImg at this position
-					const FLOAT dist = distImg.GetVoxel(curPos.x,curPos.y,curPos.z);
+					const G_FLOAT dist = distImg.GetVoxel(curPos.x,curPos.y,curPos.z);
 
 					if (dist < distances[i])
 					{
@@ -134,10 +134,10 @@ void ScalarImg::getDistanceToSpheres(const class Spheres* otherSpheres,
 	{
 		//found some pair:
 		//determine the local gradient at the coinciding voxel
-		Vector3d<FLOAT> grad;
+		Vector3d<G_FLOAT> grad;
 
 		//default value at the coinciding voxel to be used whenever we cannot retrieve proper value
-		const FLOAT defValue = distImg.GetVoxel(hints[i].x,hints[i].y,hints[i].z);
+		const G_FLOAT defValue = distImg.GetVoxel(hints[i].x,hints[i].y,hints[i].z);
 
 		//distance between voxels that occur in the difference calculation
 		char span = 2;
@@ -207,10 +207,10 @@ void ScalarImg::updateThisAABB(AxisAlignedBoundingBox& AABB) const
 		AABB.reset();
 
 		//micrometer [X,Y,Z] coordinates of pixels at [x,y,z]
-		Vector3d<FLOAT> umPos;
+		Vector3d<G_FLOAT> umPos;
 
 		//micrometer size of one voxel
-		const Vector3d<FLOAT> oneVxSize( Vector3d<FLOAT>(1).elemDivBy(distImgRes) );
+		const Vector3d<G_FLOAT> oneVxSize( Vector3d<G_FLOAT>(1).elemDivBy(distImgRes) );
 
 		Vector3d<size_t> pxPos;
 		const float* f = distImg.GetFirstVoxelAddr();

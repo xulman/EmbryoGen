@@ -8,7 +8,7 @@
 class DisplayUnit;
 
 /** accuracy of the geometry representation, choose float or double */
-#define FLOAT float
+#define G_FLOAT float
 
 /** a coordinate value that is way far outside of any scene... [micrometers] */
 #define TOOFAR 999999999.f
@@ -19,11 +19,11 @@ class AxisAlignedBoundingBox
 public:
 	/** defines the bounding box with its volumetric diagonal,
 	    this is the "bottom-left" corner of the box [micrometers] */
-	Vector3d<FLOAT> minCorner;
+	Vector3d<G_FLOAT> minCorner;
 
 	/** defines the bounding box with its volumetric diagonal,
 	    this is the "upper-right" corner of the box [micrometers] */
-	Vector3d<FLOAT> maxCorner;
+	Vector3d<G_FLOAT> maxCorner;
 
 	/** construct an empty AABB */
 	AxisAlignedBoundingBox(void)
@@ -41,9 +41,9 @@ public:
 	template <typename T>
 	AxisAlignedBoundingBox(const i3d::Image3d<T>& img)
 		: minCorner( img.GetOffset() ),
-		  maxCorner( Vector3d<size_t>(img.GetSize()).to<FLOAT>() )
+		  maxCorner( Vector3d<size_t>(img.GetSize()).to<G_FLOAT>() )
 	{
-		maxCorner.toMicrons(Vector3d<FLOAT>(img.GetResolution().GetRes()),minCorner);
+		maxCorner.toMicrons(Vector3d<G_FLOAT>(img.GetResolution().GetRes()),minCorner);
 	}
 
 	/** adjusts the image's resolution, offset and size to represent
@@ -76,7 +76,7 @@ public:
 
 	/** returns SQUARED shortest distance along any axis between this and
 	    the given AABB, or 0.0 if they intersect */
-	FLOAT minDistance(const AxisAlignedBoundingBox& AABB) const;
+	G_FLOAT minDistance(const AxisAlignedBoundingBox& AABB) const;
 
 
 	/** Uses RenderingFunctions::drawBox() to render this bounding box. */
@@ -151,15 +151,15 @@ public:
 struct ProximityPair
 {
 	/** position of 'local' colliding point [micrometers] */
-	Vector3d<FLOAT> localPos;
+	Vector3d<G_FLOAT> localPos;
 	/** position of 'other' colliding point [micrometers] */
-	Vector3d<FLOAT> otherPos;
+	Vector3d<G_FLOAT> otherPos;
 
 	/** Distance between the localPos and otherPos [micrometers].
 	    If the value is negative, the two points represent a collision pair.
 	    If the value is positive, the two points are assumed to form a pair
 	    of two nearest points between the two geometries. */
-	FLOAT distance;
+	G_FLOAT distance;
 
 	/** hinting data about the 'local' point */
 	long localHint;
@@ -171,20 +171,20 @@ struct ProximityPair
 	void* callerHint;
 
 	/** convenience constructor for just two colliding points */
-	ProximityPair(const Vector3d<FLOAT>& l, const Vector3d<FLOAT>& o,
-	              const FLOAT dist)
+	ProximityPair(const Vector3d<G_FLOAT>& l, const Vector3d<G_FLOAT>& o,
+	              const G_FLOAT dist)
 		: localPos(l), otherPos(o), distance(dist), localHint(0), otherHint(0), callerHint(NULL) {};
 
 	/** convenience constructor for points with hints */
-	ProximityPair(const Vector3d<FLOAT>& l, const Vector3d<FLOAT>& o,
-	              const FLOAT dist,
+	ProximityPair(const Vector3d<G_FLOAT>& l, const Vector3d<G_FLOAT>& o,
+	              const G_FLOAT dist,
 	              const long lh, const long oh)
 		: localPos(l), otherPos(o), distance(dist), localHint(lh), otherHint(oh), callerHint(NULL) {};
 
 	/** swap the notion of 'local' and 'other' */
 	void swap(void)
 	{
-		Vector3d<FLOAT> tmpV(localPos);
+		Vector3d<G_FLOAT> tmpV(localPos);
 		localPos = otherPos;
 		otherPos = tmpV;
 
@@ -226,7 +226,7 @@ public:
 	AxisAlignedBoundingBox AABB;
 
 	/** Calculate and determine proximity and collision pairs, if any,
-	    between myself and some other agent. A (scaled) ForceVector<FLOAT>
+	    between myself and some other agent. A (scaled) ForceVector<G_FLOAT>
 	    can be easily constructed from the points of the ProximityPair.
 	    The discovered ProximityPairs are added to the current list l. */
 	virtual
@@ -235,7 +235,7 @@ public:
 
 	/** Calculate and determine proximity and collision pairs, if any,
 	    between myself and some other agent. To facilitate construction
-	    of a (scaled) ForceVector<FLOAT> from the proximity pair, a caller
+	    of a (scaled) ForceVector<G_FLOAT> from the proximity pair, a caller
 	    may supply its own callerHint data. This data will be stored in
 	    ProximityPair::callerHint only in the newly added ProximityPairs.
 	    The discovered ProximityPairs are added to the current list l. */

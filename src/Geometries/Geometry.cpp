@@ -31,12 +31,12 @@ void AxisAlignedBoundingBox::exportInPixelCoords(const i3d::Image3d<T>& img,
                                                  Vector3d<size_t>& maxSweep) const
 {
 	//p is minCorner in img's px coordinates
-	Vector3d<FLOAT> p(minCorner);
+	Vector3d<G_FLOAT> p(minCorner);
 	p.toPixels(img.GetResolution().GetRes(),img.GetOffset());
 
 	//make sure minCorner is within the image
-	p.elemMax(Vector3d<FLOAT>(0));
-	p.elemMin(Vector3d<FLOAT>(img.GetSize()));
+	p.elemMax(Vector3d<G_FLOAT>(0));
+	p.elemMin(Vector3d<G_FLOAT>(img.GetSize()));
 
 	//obtain integer px coordinate that is already intersected with image dimensions
 	minSweep.toPixels(p);
@@ -46,8 +46,8 @@ void AxisAlignedBoundingBox::exportInPixelCoords(const i3d::Image3d<T>& img,
 	p.toPixels(img.GetResolution().GetRes(),img.GetOffset());
 
 	//make sure minCorner is within the image
-	p.elemMax(Vector3d<FLOAT>(0));
-	p.elemMin(Vector3d<FLOAT>(img.GetSize()));
+	p.elemMax(Vector3d<G_FLOAT>(0));
+	p.elemMin(Vector3d<G_FLOAT>(img.GetSize()));
 
 	//obtain integer px coordinate that is already intersected with image dimensions
 	maxSweep.toPixels(p);
@@ -56,19 +56,19 @@ void AxisAlignedBoundingBox::exportInPixelCoords(const i3d::Image3d<T>& img,
 
 /** returns SQUARED shortest distance along any axis between this and
     the given AABB, or 0.0 if they intersect */
-FLOAT AxisAlignedBoundingBox::minDistance(const AxisAlignedBoundingBox& AABB) const
+G_FLOAT AxisAlignedBoundingBox::minDistance(const AxisAlignedBoundingBox& AABB) const
 {
-	FLOAT M = std::max(minCorner.x,AABB.minCorner.x);
-	FLOAT m = std::min(maxCorner.x,AABB.maxCorner.x);
-	FLOAT dx = M > m ? M-m : 0; //min dist along x-axis
+	G_FLOAT M = std::max(minCorner.x,AABB.minCorner.x);
+	G_FLOAT m = std::min(maxCorner.x,AABB.maxCorner.x);
+	G_FLOAT dx = M > m ? M-m : 0; //min dist along x-axis
 
 	M = std::max(minCorner.y,AABB.minCorner.y);
 	m = std::min(maxCorner.y,AABB.maxCorner.y);
-	FLOAT dy = M > m ? M-m : 0; //min dist along y-axis
+	G_FLOAT dy = M > m ? M-m : 0; //min dist along y-axis
 
 	M = std::max(minCorner.z,AABB.minCorner.z);
 	m = std::min(maxCorner.z,AABB.maxCorner.z);
-	FLOAT dz = M > m ? M-m : 0; //min dist along z-axis
+	G_FLOAT dz = M > m ? M-m : 0; //min dist along z-axis
 
 	return (dx*dx + dy*dy + dz*dz);
 }

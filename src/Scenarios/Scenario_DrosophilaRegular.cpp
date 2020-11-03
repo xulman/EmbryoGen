@@ -28,8 +28,8 @@ protected:
 		if (currTime >= startGrowTime && currTime <= stopGrowTime && incrCnt < 30)
 		{
 			//"grow factor"
-			const FLOAT dR = 0.05f;    //radius
-			const FLOAT dD = 1.8f*dR;  //diameter
+			const G_FLOAT dR = 0.05f;    //radius
+			const G_FLOAT dD = 1.8f*dR;  //diameter
 
 			//grow the current geometry
 			SpheresFunctions::grow4SpheresBy(futureGeometry, dR,dD);

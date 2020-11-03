@@ -164,6 +164,9 @@ void Director::broadcast_throwException(const char* /* exceptionMessage */)
 
 void Director::respond_throwException()
 {
+	//fprintf(stderr, ...)
+	//exit(-1);
+
 	//MPI world:
 	//the same as FrontOfficer::respond_throwException()
 }
