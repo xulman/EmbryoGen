@@ -2,6 +2,8 @@
 #include "FrontOfficer.h"
 #include "Director.h"
 
+//Collect external forces
+
 void FrontOfficer::init1_SMP()
 {
 	REPORT("FO #" << ID << " initializing now...");

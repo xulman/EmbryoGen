@@ -250,6 +250,7 @@ void Scenario_Parallel::initializeScene()
 
 void Scenario_Parallel::initializeAgents(FrontOfficer* fo,int p,int P)
 {
+	REPORT("Parallel Scenario p=" <<  p << " P=" << P<< " initializing now...");
 	//scenario has two optional params: how many agents along x and y axes
 	const int howManyAlongX = argc > 2? atoi(argv[2]) : 5;
 	const int howManyAlongY = argc > 3? atoi(argv[3]) : 4;
@@ -263,7 +264,7 @@ void Scenario_Parallel::initializeAgents(FrontOfficer* fo,int p,int P)
 
 	//agents' metadata
 	char agentName[512];
-	int ID = 1;
+	int ID = 1000 * p;
 
 	const int batchSize = (int)std::ceil( howManyAlongX * howManyAlongY / P );
 	int createdAgents = 0;
@@ -271,7 +272,10 @@ void Scenario_Parallel::initializeAgents(FrontOfficer* fo,int p,int P)
 	for (int y = 0; y < howManyAlongY; ++y)
 	for (int x = 0; x < howManyAlongX; ++x)
 	{
+		++ID; //PM: Nemělo by tady být getNextAgentID? Nebo se předpokládá, že počáteční agenti jsou OK?
+		++createdAgents; // Bug který to udělal.
 		//skip this agent if it does not belong to our batch
+		//REPORT("Parallel Scenario created agents/batch size = " << (createdAgents/batchSize)+1 << " p=" << p << " howManyAlongX=" << howManyAlongX << " howManyAlongY=" << howManyAlongY);
 		if (createdAgents/batchSize +1 < p) continue;
 
 		//stop creating agents if we are over with our batch
@@ -292,8 +296,5 @@ void Scenario_Parallel::initializeAgents(FrontOfficer* fo,int p,int P)
 
 		ParallelNucleus* ag = new ParallelNucleus(ID,std::string(agentName),s,x,y,params.constants.initTime,params.constants.incrTime);
 		fo->startNewAgent(ag);
-
-		++ID;
-		++createdAgents;
 	}
 }
