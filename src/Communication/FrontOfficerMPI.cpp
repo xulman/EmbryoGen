@@ -2,6 +2,7 @@
 #include "../FrontOfficer.h"
 #include "../Director.h"
 #include "../util/strings.h"
+#include "DistributedCommunicator.h"
 #include <chrono>
 #include <thread>
 

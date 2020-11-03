@@ -1,5 +1,8 @@
+#include "DistributedCommunicator.h"
 #include "../Director.h"
 #include "../FrontOfficer.h"
+#include <chrono>
+#include <thread>
 
 void Director::respond_getNextAvailAgentID()
 {
