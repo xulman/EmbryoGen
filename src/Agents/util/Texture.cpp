@@ -494,7 +494,7 @@ void TextureUpdater2pNS::updateTextureCoords(std::vector<Dot>& dots, const Spher
 		{
 			tmp  = dot.pos;
 			tmp -= prevCentre[i];
-			__weights[i] = std::max(prevRadius[i] - tmp.len(), (FLOAT)0);
+			__weights[i] = std::max(prevRadius[i] - tmp.len(), (G_FLOAT)0);
 			sum += __weights[i];
 		}
 
@@ -555,15 +555,15 @@ void TextureUpdaterNS::resetNeigWeightMatrix(const Spheres& spheres, int maxNoOf
 			if (spheres.radii[l] == spheres.radii[r])
 			{
 				//secondary test: need to calculate overlaps
-				const FLOAT refRadius = spheres.radii[refIdx];
+				const G_FLOAT refRadius = spheres.radii[refIdx];
 
-				FLOAT otherRadius = spheres.radii[l];
-				FLOAT lOverlapSize = refRadius + otherRadius;
+				G_FLOAT otherRadius = spheres.radii[l];
+				G_FLOAT lOverlapSize = refRadius + otherRadius;
 				lOverlapSize -= (spheres.centres[refIdx] - spheres.centres[l]).len();
 				lOverlapSize = std::min(lOverlapSize, std::min(2*refRadius,2*otherRadius));
 
 				otherRadius = spheres.radii[r];
-				FLOAT rOverlapSize = refRadius + otherRadius;
+				G_FLOAT rOverlapSize = refRadius + otherRadius;
 				rOverlapSize -= (spheres.centres[refIdx] - spheres.centres[r]).len();
 				rOverlapSize = std::min(rOverlapSize, std::min(2*refRadius,2*otherRadius));
 
@@ -607,7 +607,7 @@ void TextureUpdaterNS::resetNeigWeightMatrix(const Spheres& spheres, int maxNoOf
 
 			//only when not enough of neighs has been discovered so far,
 			//but consider only overlapping neighs!
-			const FLOAT overlap = std::max<G_FLOAT>(
+			const G_FLOAT overlap = std::max<G_FLOAT>(
 				-(spheres.centres[row] - spheres.centres[col]).len()
 				+ spheres.radii[row] + spheres.radii[col] , 0);
 			if (overlap > 0)
@@ -707,7 +707,7 @@ void TextureUpdaterNS::updateTextureCoords(std::vector<Dot>& dots, const Spheres
 		{
 			tmp  = dot.pos;
 			tmp -= prevCentre[i];
-			__weights[i] = std::max(prevRadius[i] - tmp.len(), (FLOAT)0);
+			__weights[i] = std::max(prevRadius[i] - tmp.len(), (G_FLOAT)0);
 			sum += __weights[i];
 		}
 

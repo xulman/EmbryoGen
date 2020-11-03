@@ -20,7 +20,7 @@ protected:
 	Vector3d<G_FLOAT>* const centres;
 
 	/** list of radii of the spheres */
-	FLOAT* const radii;
+	G_FLOAT* const radii;
 
 	/** a flag to prevent this object from freeing both 'centres' and 'radii'
 	    attributes in its (*this) destructor; this flag is set only in its
@@ -34,7 +34,7 @@ public:
 		: Geometry(ListOfShapeForms::Spheres),
 		  noOfSpheres(_noOfSpheres),
 		  centres(new Vector3d<G_FLOAT>[noOfSpheres]),
-		  radii(new FLOAT[noOfSpheres])
+		  radii(new G_FLOAT[noOfSpheres])
 	{
 		//sanity check...
 		if (_noOfSpheres < 0)

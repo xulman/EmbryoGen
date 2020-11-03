@@ -312,7 +312,7 @@ private:
 
 	/** aux arrays for the updateTextureCoords() */
 	std::vector< Vector3d<G_FLOAT> > prevCentre;
-	std::vector< FLOAT >           prevRadius;
+	std::vector< G_FLOAT >           prevRadius;
 
 	/** aux array to be allocated once and not repeatedly in updateTextureCoords();
 	    despite private, gcc finds it in derived classes and complains about confusion
@@ -397,7 +397,7 @@ private:
 
 	/** aux arrays for the updateTextureCoords() */
 	std::vector< Vector3d<G_FLOAT> > prevCentre;
-	std::vector< FLOAT >           prevRadius;
+	std::vector< G_FLOAT >           prevRadius;
 	std::vector< Vector3d<G_FLOAT> > prevOrientation;
 
 	/** aux array to be allocated once and not repeatedly in updateTextureCoords();

@@ -11,13 +11,13 @@ const ForceName ftype_slide     = "no sliding";
 
 const ForceName ftype_hinter    = "sphere-hinter";     //due to external events with shape hinters
 
-const FLOAT fstrength_body_scale     = (FLOAT)0.4;     // [N/um]      TRAgen: N/A
-const FLOAT fstrength_overlap_scale  = (FLOAT)0.2;     // [N/um]      TRAgen: k
-const FLOAT fstrength_overlap_level  = (FLOAT)0.1;     // [N]         TRAgen: A
-const FLOAT fstrength_overlap_depth  = (FLOAT)0.5;     // [um]        TRAgen: delta_o (do)
-const FLOAT fstrength_rep_scale      = (FLOAT)0.6;     // [1/um]      TRAgen: B
-const FLOAT fstrength_slide_scale    = (FLOAT)1.0;     // unitless
-const FLOAT fstrength_hinter_scale   = (FLOAT)0.25;    // [1/um^2]
+const G_FLOAT fstrength_body_scale     = (G_FLOAT)0.4;     // [N/um]      TRAgen: N/A
+const G_FLOAT fstrength_overlap_scale  = (G_FLOAT)0.2;     // [N/um]      TRAgen: k
+const G_FLOAT fstrength_overlap_level  = (G_FLOAT)0.1;     // [N]         TRAgen: A
+const G_FLOAT fstrength_overlap_depth  = (G_FLOAT)0.5;     // [um]        TRAgen: delta_o (do)
+const G_FLOAT fstrength_rep_scale      = (G_FLOAT)0.6;     // [1/um]      TRAgen: B
+const G_FLOAT fstrength_slide_scale    = (G_FLOAT)1.0;     // unitless
+const G_FLOAT fstrength_hinter_scale   = (G_FLOAT)0.25;    // [1/um^2]
 
 
 void NucleusAgent::adjustGeometryByForces(void)

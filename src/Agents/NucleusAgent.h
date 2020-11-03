@@ -17,13 +17,13 @@ extern const ForceName ftype_slide;     //"no sliding"
 
 extern const ForceName ftype_hinter;    //"sphere-hinter"     //due to external events with shape hinters
 
-extern const FLOAT fstrength_body_scale;    // [N/um]      TRAgen: N/A
-extern const FLOAT fstrength_overlap_scale; // [N/um]      TRAgen: k
-extern const FLOAT fstrength_overlap_level; // [N]         TRAgen: A
-extern const FLOAT fstrength_overlap_depth; // [um]        TRAgen: delta_o (do)
-extern const FLOAT fstrength_rep_scale;     // [1/um]      TRAgen: B
-extern const FLOAT fstrength_slide_scale;   // unitless
-extern const FLOAT fstrength_hinter_scale;  // [1/um^2]
+extern const G_FLOAT fstrength_body_scale;    // [N/um]      TRAgen: N/A
+extern const G_FLOAT fstrength_overlap_scale; // [N/um]      TRAgen: k
+extern const G_FLOAT fstrength_overlap_level; // [N]         TRAgen: A
+extern const G_FLOAT fstrength_overlap_depth; // [um]        TRAgen: delta_o (do)
+extern const G_FLOAT fstrength_rep_scale;     // [1/um]      TRAgen: B
+extern const G_FLOAT fstrength_slide_scale;   // unitless
+extern const G_FLOAT fstrength_hinter_scale;  // [1/um^2]
 
 /** Color coding:
  0 - white

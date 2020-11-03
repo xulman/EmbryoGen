@@ -26,8 +26,8 @@ void NucleusNSAgent::printDistanceMatrix()
 void NucleusNSAgent::advanceAndBuildIntForces(const float futureGlobalTime)
 {
 	//tolerated mis-position (no "adjustment" s2s forces are created within this radius)
-	const FLOAT keepCalmDistance = (FLOAT)0.1;
-	//const FLOAT keepCalmDistanceSq = keepCalmDistance*keepCalmDistance;
+	const G_FLOAT keepCalmDistance = (G_FLOAT)0.1;
+	//const G_FLOAT keepCalmDistanceSq = keepCalmDistance*keepCalmDistance;
 
 #ifdef DEBUG
 	if (futureGeometry.noOfSpheres != distanceMatrix.side)
@@ -44,7 +44,7 @@ void NucleusNSAgent::advanceAndBuildIntForces(const float futureGlobalTime)
 		{
 			forceVec  = futureGeometry.centres[col];
 			forceVec -= futureGeometry.centres[row];
-			FLOAT diffDist = forceVec.len() - distanceMatrix.get(row,col);
+			G_FLOAT diffDist = forceVec.len() - distanceMatrix.get(row,col);
 			if (diffDist > keepCalmDistance || diffDist < -keepCalmDistance)
 			{
 				forceVec.changeToUnitOrZero();

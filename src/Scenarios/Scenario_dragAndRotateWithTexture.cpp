@@ -42,9 +42,9 @@ public:
 
 		/*
 		const int radialPos = (ID-1) % 3;
-		const FLOAT velocity = (float)radialPos*0.4f + 0.6f; - rings of different velocities
+		const G_FLOAT velocity = (float)radialPos*0.4f + 0.6f; - rings of different velocities
 		*/
-		const FLOAT velocity = (float)1.0f;
+		const G_FLOAT velocity = (float)1.0f;
 		//REPORT("ID=" << ID << " radialPos=" << radialPos << ", velocity=" << velocity);
 		Vector3d<G_FLOAT> travellingVelocity(0,velocity,0);
 		exertForceOnSphere(1,
@@ -104,7 +104,7 @@ public:
 
 		//shortcuts to our Own spheres
 		const Vector3d<G_FLOAT>* const centresO = futureGeometry.getCentres();
-		const FLOAT* const radiiO             = futureGeometry.getRadii();
+		const G_FLOAT* const radiiO             = futureGeometry.getRadii();
 		const int iO                          = futureGeometry.getNoOfSpheres();
 
 		//project and "clip" this AABB into the img frame

@@ -42,8 +42,8 @@ protected:
 			for (int j=1; j <= 3; ++j) // (neighbors-1) in between
 			for (int i=j; i < 4; ++i)
 			{
-				*distanceMatrix(i-j,i) += (FLOAT)j*dD;
-				*distanceMatrix(i,i-j) += (FLOAT)j*dD;
+				*distanceMatrix(i-j,i) += (G_FLOAT)j*dD;
+				*distanceMatrix(i,i-j) += (G_FLOAT)j*dD;
 			}
 
 			//emergency break...

@@ -123,7 +123,7 @@ void Spheres::updateThisAABB(AxisAlignedBoundingBox& AABB) const
 // ----------------- support for serialization and deserealization -----------------
 long Spheres::getSizeInBytes() const
 {
-	return 2*sizeof(int) + noOfSpheres*4*sizeof(FLOAT);
+	return 2*sizeof(int) + noOfSpheres*4*sizeof(G_FLOAT);
 }
 
 
