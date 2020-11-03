@@ -339,9 +339,9 @@ private:
 		modelRelativeTime = std::min(modelRelativeTime, -0.0001f);
 
 		/*
+		*/
 		DEBUG_REPORT("abs. time = " << currTime << ", planned div time = " << timeOfNextDivision
 		          << " ==> relative Mother time for the model = " << modelRelativeTime);
-		*/
 
 		divGeomModelled.updateCentre(0, Vector3d<FLOAT>(0));
 		divGeomModelled.updateCentre(1, Vector3d<FLOAT>(0,divModel->getMotherDist(modelRelativeTime,0),0));
@@ -366,9 +366,9 @@ private:
 		modelRelativeTime = std::min(modelRelativeTime, divModel_halfTimeSpan);
 
 		/*
+		*/
 		DEBUG_REPORT("abs. time = " << currTime << ", planned div time = " << timeOfNextDivision
 		          << " ==> relative Daughter #" << whichDaughterAmI << " time for the model = " << modelRelativeTime);
-		*/
 
 		divGeomModelled.updateCentre(0, Vector3d<FLOAT>(0));
 		divGeomModelled.updateCentre(1, Vector3d<FLOAT>(0,divModel->getDaughterDist(modelRelativeTime,whichDaughterAmI,0),0));
@@ -392,7 +392,7 @@ private:
 		progress = std::max(progress, 0.f);
 		progress = std::min(progress, 1.f);
 
-		//DEBUG_REPORT("abs. time = " << currTime << ", progress = " << progress);
+		DEBUG_REPORT("abs. time = " << currTime << ", progress = " << progress);
 
 		//interpolate linearly between the last daughter state to the first mother state
 		divGeomModelled.updateCentre(0, Vector3d<FLOAT>(0));

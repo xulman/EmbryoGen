@@ -74,7 +74,7 @@ void NucleusNSAgent::drawMask(DisplayUnit& du)
 
 	//draw spheres, each at different color
 	for (int i=0; i < futureGeometry.noOfSpheres; ++i)
-		du.DrawPoint(dID++, futureGeometry.centres[i],futureGeometry.radii[i], i);
+		du.DrawPoint(dID++, futureGeometry.centres[i],futureGeometry.radii[i], i%7);
 
 	//cell centres connection "line" (green)
 	for (int i=1; i < futureGeometry.noOfSpheres; ++i)
@@ -86,7 +86,7 @@ void NucleusNSAgent::drawMask(DisplayUnit& du)
 	for (const auto& f : forcesForDisplay)
 	{
 		if (f.type == ftype_s2s)
-			du.DrawVector(ldID++, f.base,f, *s2s_color++); //inducer's color
+			du.DrawVector(ldID++, f.base,f, (*s2s_color++)%7); //inducer's color
 	}
 #endif
 }
