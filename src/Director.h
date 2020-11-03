@@ -7,13 +7,14 @@
 #include "TrackRecord_CTC.h"
 #include "Scenarios/common/Scenario.h"
 class FrontOfficer;
+class DistributedCommunicator;
 
 /** has access to Scenario, to reach its doPhaseIIandIII() */
 class Director
 {
 public:
-	Director(Scenario& s, const int firstFO, const int allPortions)
-		: scenario(s), firstFOsID(firstFO), FOsCount(allPortions),
+	Director(Scenario& s, const int firstFO, const int allPortions, DistributedCommunicator * dc = NULL)
+		: scenario(s), firstFOsID(firstFO), FOsCount(allPortions), communicator(dc),
 		  shallWaitForUserPromptFlag( scenario.params.shallWaitForUserPromptFlag )
 	{
 		scenario.declareDirektorContext();
