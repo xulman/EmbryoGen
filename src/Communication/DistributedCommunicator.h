@@ -34,8 +34,9 @@ typedef enum {
 	send_AABB=4,
 	count_AABB=5,
 	new_type=6,
-	shadow_copy=7,
-	render_frame=8,
+	count_new_type=7,
+	shadow_copy=8,
+	render_frame=10,
 	set_detailed_drawing=20,
 	set_detailed_reporting=21,
 	set_debug=0x23, // rendering debug
@@ -192,6 +193,8 @@ public:
 					return "Set rendering debug";
 				case e_comm_tags::new_type:
 					return "New type";
+				case e_comm_tags::count_new_type:
+					return "New type count";
 				case e_comm_tags::shadow_copy:
 					return "Shadow copy";
 				case e_comm_tags::render_frame:
@@ -333,6 +336,7 @@ protected:
 				case e_comm_tags::update_parent:
 				case e_comm_tags::close_agent:
 					return MPI_INT64_T;				//Really? Or MPI_INT64_T or MPI_UINT64_T?
+				case e_comm_tags::count_new_type:
 				case e_comm_tags::count_AABB:
 					return MPI_UINT64_T;
 				case e_comm_tags::send_AABB:
@@ -355,6 +359,7 @@ protected:
 			switch (tag) {
 				case e_comm_tags::send_AABB:
 					return aabb_comm;			//Broadcast First Types, then AABBs
+				case e_comm_tags::count_new_type:
 				case e_comm_tags::new_type:
 					return type_comm;
 				default:

@@ -53,7 +53,7 @@ void Director::waitFor_publishAgentsAABBs()
 		//End of dummy code
 	}
 	DEBUG_REPORT("Director has finished AABB reporting cycle with global size " << total_AABBs);
-
+	respond_newAgentsTypes(0);
 	communicator->waitFor_publishAgentsAABBs();
 }
 
@@ -70,9 +70,22 @@ size_t Director::request_CntOfAABBs(const int FOsID)
 }
 
 
-void Director::respond_newAgentsTypes(int)
+void Director::respond_newAgentsTypes(int new_dict_count)
 {
-	//we ignore these notifications entirely
+	int total_cnt=0;
+	DEBUG_REPORT("Director is running New Agent Type reporting cycle");
+	t_hashed_str * receivedTypes;
+	for (int i = 1 ; i <= FOsCount ; i++) {
+		int cnt=1;
+		//In reality, following is dummy code needed to correctly distribute broadcasts through all nodes
+		communicator->receiveBroadcast(&new_dict_count, cnt, i, e_comm_tags::count_new_type);
+		total_cnt += new_dict_count;
+		receivedTypes = new t_hashed_str[new_dict_count];
+		communicator->receiveBroadcast(receivedTypes, new_dict_count, i, e_comm_tags::new_type);
+		delete receivedTypes;
+		//End of dummy code
+	}
+	DEBUG_REPORT("Director is running New Agent Type reporting cycle with global size " << total_cnt);
 }
 
 

@@ -35,7 +35,6 @@ void FrontOfficer::request_updateParentalLink(const int childID, const int paren
 
 void FrontOfficer::waitFor_publishAgentsAABBs()
 {
-	e_comm_tags tag = e_comm_tags::send_AABB;
 	DEBUG_REPORT("FO #" << this->ID << " is running AABB reporting cycle with local size " << agents.size());
 	t_aabb * sentAABBs;
 	for (int i = 1 ; i <= FOsCount ; i++) {
@@ -78,16 +77,13 @@ void FrontOfficer::waitFor_publishAgentsAABBs()
 		}
 	}
 	DEBUG_REPORT("FO #" << this->ID << " has finished AABB reporting cycle with global size " << (AABBs.size() + agents.size()) );
+	broadcast_newAgentsTypes(); //Force-call it here?
 	communicator->waitFor_publishAgentsAABBs();
 }
 
 void FrontOfficer::notify_publishAgentsAABBs(const int FOsID)
 {
 	//Dummy action due to running broadcast in cycle sending all items at once.
-
-	//char data[] = {0}; // Use NULL instead? Would it be OK for MPI to work with?
-	//communicator->sendNextFO(data,0, e_comm_tags::unblock_FO);
-	//communicator->sendNextFO(data,0, e_comm_tags::send_AABB);
 }
 
 
@@ -124,34 +120,47 @@ void FrontOfficer::respond_CntOfAABBs()
 
 void FrontOfficer::broadcast_newAgentsTypes()
 {
-	// howManyShouldBeBroadcast()
-	for (const auto& dItem : agentsTypesDictionary.theseShouldBeBroadcast())
-	{
-		size_t hash = dItem.first;
-		hashedString::printIntoBuffer(dItem.second, __agentTypeBuf,StringsImprintSize);
-		//sends away hash and agentTypeBuf
+	int new_dict_count = agentsTypesDictionary.howManyShouldBeBroadcast(), total_cnt=0;
+	DEBUG_REPORT("FO #" << this->ID << " is running New Agent Type reporting cycle with local size " << new_dict_count);
+	t_hashed_str * sentTypes;
+	for (int i = 1 ; i <= FOsCount ; i++) {
+		if (i == ID)
+		{
+			total_cnt += new_dict_count = agentsTypesDictionary.howManyShouldBeBroadcast();
+			int j = 0;
+			communicator->sendBroadcast(&new_dict_count, 1, i, e_comm_tags::count_new_type);
+			sentTypes = new t_hashed_str[new_dict_count];
+			for (const auto& dItem : agentsTypesDictionary.theseShouldBeBroadcast())
+			{
+				sentTypes[j].hash = dItem.first;
+				hashedString::printIntoBuffer(dItem.second, sentTypes[j].value,StringsImprintSize);
+				j++;
+			}
+			communicator->sendBroadcast(sentTypes, new_dict_count, i, e_comm_tags::new_type);
+			agentsTypesDictionary.markAllWasBroadcast();
+			delete sentTypes;
+		}
+		else
+		{
+			int cnt=1;
+			communicator->receiveBroadcast(&new_dict_count, cnt, i, e_comm_tags::count_new_type);
+			total_cnt += new_dict_count;
+			sentTypes = new t_hashed_str[new_dict_count];
+			communicator->receiveBroadcast(sentTypes, new_dict_count, i, e_comm_tags::new_type);
+			for (int j=0; j < new_dict_count; j++)
+			{
+				agentsTypesDictionary.enlistTheIncomingItem(sentTypes[j].hash, sentTypes[j].value);
+			}
+			delete sentTypes;
+		}
 	}
+	DEBUG_REPORT("FO #" << this->ID << " has finished New Agent Type reporting cycle with global size " << total_cnt);
 }
 
 
 void FrontOfficer::respond_newAgentsTypes(int noOfIncomingNewAgentTypes)
 {
-	//MPI world:
-
-	//gets : N-times pairs of size_t, char[StringsImprintSize]
-	//gives: nothing
-
-	while (noOfIncomingNewAgentTypes > 0)
-	{
-		//fake one input:
-		size_t hash = 79832748923742;
-		//__agentTypeBuf = "some fake string"
-
-		//this is how to process it:
-		agentsTypesDictionary.enlistTheIncomingItem(hash,__agentTypeBuf);
-
-		--noOfIncomingNewAgentTypes;
-	}
+	//This method would miss important parameters and is executed in global receiving stage so it is dummy
 }
 
 
