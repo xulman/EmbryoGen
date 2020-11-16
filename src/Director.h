@@ -6,6 +6,12 @@
 #include "util/report.h"
 #include "TrackRecord_CTC.h"
 #include "Scenarios/common/Scenario.h"
+
+#ifdef DISTRIBUTED
+#  include <thread>
+#endif
+
+
 class FrontOfficer;
 class DistributedCommunicator;
 
@@ -15,6 +21,9 @@ class Director
 public:
 	Director(Scenario& s, const int firstFO, const int allPortions, DistributedCommunicator * dc = NULL)
 		: scenario(s), firstFOsID(firstFO), FOsCount(allPortions), communicator(dc),
+#ifdef DISTRIBUTED
+		  responder([this] {respond_Loop();}),
+#endif
 		  shallWaitForUserPromptFlag( scenario.params.shallWaitForUserPromptFlag )
 	{
 		scenario.declareDirektorContext();
@@ -24,7 +33,6 @@ public:
 protected:
 	Scenario& scenario;
 	DistributedCommunicator * communicator;
-
 public:
 	/** the firstFOsID is where the round robin chain starts */
 	const int firstFOsID, FOsCount;
@@ -62,6 +70,9 @@ public:
 	/** attempts to clean up, if not done earlier */
 	~Director(void)
 	{
+#ifdef DISTRIBUTED
+		responder.join();
+#endif
 		DEBUG_REPORT("Direktor already closed? " << (isProperlyClosedFlag ? "yes":"no"));
 		if (!isProperlyClosedFlag) this->close();
 	}
@@ -233,6 +244,10 @@ public:
 		if (fo == NULL) throw ERROR_REPORT("Provided FrontOfficer is actually NULL.");
 		FO = fo;
 	}
+#endif
+#ifdef DISTRIBUTED
+	std::thread responder;
+	void respond_Loop();
 #endif
 };
 #endif

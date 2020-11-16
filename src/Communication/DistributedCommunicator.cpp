@@ -6,12 +6,15 @@
 
 
 #ifdef DISTRIBUTED
+char MPI_Communicator::no_message[1] = {0};
+
 MPI_Communicator::~MPI_Communicator() {
 // Did not work correctly:	MPI_Finalize();
 }
 
 int MPI_Communicator::init(int *argc, char ***argv) {
 	int cshift = 1, icnt;
+	const int director_id [1] = {0};
 	int state = MPI_Init(argc, argv);
 
 	if (state != MPI_SUCCESS) {  return state; }
@@ -32,7 +35,6 @@ int MPI_Communicator::init(int *argc, char ***argv) {
     MPI_Aint aabb_displ[] = {offsetof(t_aabb, minCorner), offsetof(t_aabb, maxCorner), offsetof(t_aabb, id), offsetof(t_aabb, version), offsetof(t_aabb, atype) };
     MPI_Datatype aabb_types[] = {MPI_VECTOR3D, MPI_VECTOR3D, MPI_INT, MPI_INT, MPI_INT};
 
-
     const int agentt_count = 2;
     int agentt_blocks[] = {1, StringsImprintSize};
     MPI_Aint agentt_displ[] = {offsetof(t_hashed_str, hash), offsetof(t_hashed_str, value)};
@@ -46,9 +48,29 @@ int MPI_Communicator::init(int *argc, char ***argv) {
 	director_comm = MPI_COMM_WORLD;
 	MPI_Comm_dup(MPI_COMM_WORLD, &director_comm);
 	MPI_Comm_set_name(director_comm, "Director_comm");
-	MPI_Comm_split(MPI_COMM_WORLD, 1, instance_ID, &id_sender);
-	MPI_Comm_dup(MPI_COMM_WORLD, &token_comm);
+
+	//MPI_Comm_dup(MPI_COMM_WORLD, &token_comm);
 	//MPI_Comm_split(MPI_COMM_WORLD, 1, instance_ID, &token_comm);
+
+	/*
+	//Does not work correctly why?
+	MPI_Group FO_group;
+	MPI_Group world_group;
+
+	MPI_Comm_group(MPI_COMM_WORLD, &world_group);
+	MPI_Group_excl(world_group, 1, director_id, &FO_group);
+	MPI_Comm_create(MPI_COMM_WORLD, FO_group, &aabb_comm);
+
+	//Probably does not work correctly either?
+	//MPI_Comm_split(MPI_COMM_WORLD, (instance_ID != *director_id), instance_ID, &aabb_comm);
+
+	// For both cases, we would have to renumber FOs from 0 to FOCnt-1 !
+	*/
+
+	MPI_Comm_dup(MPI_COMM_WORLD, &aabb_comm);
+	MPI_Comm_dup(/*MPI_COMM_WORLD*/aabb_comm, &type_comm); //TBD: Or aabb_comm?
+	MPI_Comm_set_name(aabb_comm, "AABB_comm");
+	MPI_Comm_set_name(type_comm, "AgentType_comm");
 
 	for (cshift=1, icnt=instances; icnt != 0 ; icnt = icnt	 >> 1) {
 		cshift++;
@@ -60,12 +82,19 @@ int MPI_Communicator::init(int *argc, char ***argv) {
 	return state;
 }
 
-bool MPI_Communicator::detectMPIMessage(MPI_Comm comm, int peer, e_comm_tags & tag) {
+bool MPI_Communicator::detectMPIMessage(MPI_Comm comm, int peer, e_comm_tags & tag, bool async) {
 	int flag;
 	MPI_Status status;
 	int MPI_tag = (tag == e_comm_tags::unspecified)?MPI_ANY_TAG:tag;
 
-	int state = MPI_Iprobe(peer, MPI_tag, comm, &flag, &status);
+	int state;
+
+	if (async) {
+		state = MPI_Iprobe(peer, MPI_tag, comm, &flag, &status);
+	} else {
+		state = MPI_Probe(peer, MPI_tag, comm, &status);
+		flag=1;
+	}
 
 	if (state != MPI_SUCCESS) { return false; }
 	if (flag) {
@@ -82,7 +111,7 @@ bool MPI_Communicator::receiveAndProcessDirectorMessage(void * buffer, int &recv
 	int state;
 
 //	do { --
-	result = detectMPIMessage(director_comm, DIRECTOR_ID, tag);
+	result = detectMPIMessage(director_comm, DIRECTOR_ID, tag, false);
 	if (result) {
 		return receiveDirectorMessage(buffer, recv_size, tag);
 	}
@@ -91,12 +120,12 @@ bool MPI_Communicator::receiveAndProcessDirectorMessage(void * buffer, int &recv
 	return false;
 }
 
-bool MPI_Communicator::receiveDirectorMessage(void * buffer, int &recv_size, e_comm_tags &tag) {
+bool MPI_Communicator::receiveDirectorMessage(void * buffer, int &recv_size, e_comm_tags &tag, bool async) {
 	MPI_Status status;
 	bool result;
 	int state;
 
-	state = receiveMPIMessage(director_comm, buffer, recv_size, MPI_CHAR, &status, DIRECTOR_ID, tag);
+	state = receiveMPIMessage(director_comm, buffer, recv_size, tagMap(tag), &status, DIRECTOR_ID, tag);
 	if (state == MPI_SUCCESS) {
 		tag = (e_comm_tags) status.MPI_TAG;
 		return true;
@@ -104,9 +133,9 @@ bool MPI_Communicator::receiveDirectorMessage(void * buffer, int &recv_size, e_c
 	return false;
 }
 
-e_comm_tags MPI_Communicator::detectFOMessage() {
+e_comm_tags MPI_Communicator::detectFOMessage(bool async) {
 	e_comm_tags tag = e_comm_tags::unspecified;
-	if (detectMPIMessage(director_comm, MPI_ANY_SOURCE, tag)) {
+	if (detectMPIMessage(director_comm, MPI_ANY_SOURCE, tag, async)) {
 		return tag;
 	} else {
 		return e_comm_tags::unspecified;
@@ -120,7 +149,7 @@ bool MPI_Communicator::receiveFOMessage(void * buffer, int &recv_size, int & ins
 
 	if (instance_ID == 0) { instance_ID = MPI_ANY_SOURCE;}
 
-	state = receiveMPIMessage(director_comm, buffer, recv_size, MPI_CHAR, &status, instance_ID, tag);
+	state = receiveMPIMessage(director_comm, buffer, recv_size, tagMap(tag), &status, instance_ID, tag);
 	if (state == MPI_SUCCESS) {
 		tag = (e_comm_tags) status.MPI_TAG;
 		lastFOID = status.MPI_SOURCE;
@@ -146,7 +175,7 @@ int MPI_Communicator::getNextAvailAgentID()
 void MPI_Communicator::startNewAgent(const int newAgentID, const int associatedFO, const bool wantsToAppearInCTCtracksTXTfile)
 {
 	int buffer [] = {newAgentID, associatedFO, wantsToAppearInCTCtracksTXTfile};
-	DEBUG_REPORT("From FO " << associatedFO << " to Director: tart new agent ID=" << newAgentID << ((wantsToAppearInCTCtracksTXTfile)?" (CTC)":"") );
+	DEBUG_REPORT("From FO " << associatedFO << " to Director: start new agent ID=" << newAgentID << ((wantsToAppearInCTCtracksTXTfile)?" (CTC)":"") );
 	sendDirector(buffer, sizeof(buffer)/sizeof(int), e_comm_tags::new_agent);
 	receiveDirectorACK();
 }
@@ -164,7 +193,6 @@ void MPI_Communicator::startNewDaughterAgent(const int childID, const int parent
 	int buffer [] = {childID, parentID};
 	sendDirector(buffer, sizeof(buffer)/sizeof(int), e_comm_tags::update_parent);
 	receiveDirectorACK();
-	//fprintf(stderr, "MPI_SEND to %i startNewDaughterAgent %i of agent %i\n", childID, parentID);
 }
 
 void MPI_Communicator::setAgentsDetailedDrawingMode(int FO, int agentID, bool state)
@@ -184,8 +212,8 @@ void MPI_Communicator::setAgentsDetailedReportingMode(int FO, int agentID, bool 
 void MPI_Communicator::publishAgentsAABBs(int FO)
 {
 	int buffer [] = {0};
-	sendFO(buffer, 0, FO, e_comm_tags::send_AABB);
-	receiveFOACK(FO);
+	sendFO(buffer, 0, FO, e_comm_tags::send_AABB); //FO!
+	//receiveFOACK(FO);
 }
 
 void MPI_Communicator::renderNextFrame(int FO)
@@ -196,21 +224,32 @@ void MPI_Communicator::renderNextFrame(int FO)
 }
 
 
-size_t MPI_Communicator::cntOfAABBs(int FO)
+size_t MPI_Communicator::cntOfAABBs(int FO, bool broadcast)
 {
 	e_comm_tags tag = e_comm_tags::count_AABB;
-	int buffer [] = {0};
-	int id_cnt = 1;
+	uint64_t buffer [] = {0};
+	int cnt = 1;
+	DEBUG_REPORT("Request AABBS total from " << FO);
 	sendFO(buffer, 0, FO, e_comm_tags::count_AABB);
-	receiveFOMessage(buffer, id_cnt, FO, tag);
+	//DEBUG_REPORT("Waiting for AABBs total from " << FO);
+	if (broadcast) {
+		receiveBroadcast(buffer, cnt, FO, e_comm_tags::count_AABB);
+	} else {
+		receiveFOMessage(buffer, cnt, FO, tag);
+	}
+	DEBUG_REPORT("AABBS total " << buffer[0] << " from " << FO);
 	return buffer[0];
 }
 
-void MPI_Communicator::sendCntOfAABBs(size_t count_AABBs)
+void MPI_Communicator::sendCntOfAABBs(size_t count_AABBs, bool broadcast)
 {
-	e_comm_tags tag = e_comm_tags::count_AABB;
 	size_t buffer [] = {count_AABBs};
-	sendDirector(buffer, 1, e_comm_tags::update_parent);
+	DEBUG_REPORT("Send AABBS from " << instance_ID <<" total " << buffer[0]);
+	if (broadcast) {
+		sendBroadcast(buffer, 1, instance_ID, e_comm_tags::count_AABB);
+	} else {
+		sendDirector(buffer, 1, e_comm_tags::count_AABB);
+	}
 }
 
 
@@ -224,7 +263,6 @@ void MPI_Communicator::waitFor_renderNextFrame() {
 
 void MPI_Communicator::sendNextID(int id) {
 	e_comm_tags tag = e_comm_tags::next_ID;
-	int id_cnt = 1;
 	sendLastFO(&id, 1, tag); /* MISSING Agent ID, for now solved with this variable !!!*/
 }
 

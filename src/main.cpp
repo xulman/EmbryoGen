@@ -58,9 +58,9 @@ int main(int argc, char** argv)
 			//tell the last FO to send data back to the Direktor
 			if (nextFOsID == MPI_noOfNodesInTotal) nextFOsID = 0;
 
-			fo = new FrontOfficer(Scenarios(argc,argv).getScenario(), nextFOsID, MPI_IDOfThisInstance,MPI_noOfNodesInTotal-1);
+			fo = new FrontOfficer(Scenarios(argc,argv).getScenario(), nextFOsID, MPI_IDOfThisInstance,MPI_noOfNodesInTotal-1, dc);
 			fo->initMPI(); //populate/create my part of the scene
-			fprintf(stderr, "Multi node case, init MPI: %i nodes, instance %i\n", MPI_noOfNodesInTotal, MPI_IDOfThisInstance);
+			REPORT("Multi node case, init MPI: " << MPI_noOfNodesInTotal << " nodes, instance " << MPI_IDOfThisInstance);
 			fo->execute(); //wait for Direktor's events
 			fo->close();   //deletes my agents
 		}

@@ -7,6 +7,12 @@
 #include "util/strings.h"
 #include "Scenarios/common/Scenario.h"
 #include "Geometries/Geometry.h"
+
+#ifdef DISTRIBUTED
+#  include <thread>
+#  include <atomic>
+#endif
+
 class AbstractAgent;
 class ShadowAgent;
 class Director;
@@ -18,8 +24,13 @@ class FrontOfficer//: public Simulation
 public:
 	FrontOfficer(Scenario& s, const int nextFO, const int myPortion, const int allPortions, DistributedCommunicator * dc = NULL)
 		: scenario(s), ID(myPortion), nextFOsID(nextFO), FOsCount(allPortions), communicator(dc),
+#ifdef DISTRIBUTED
+		  responder([this] {respond_Loop();}), finished(false),
+#endif
 		  __agentTypeBuf(new char[StringsImprintSize]) //freed in FrontOfficer::close()
 	{
+		if (dc) {
+		}
 		scenario.declareFOcontext(myPortion);
 		//TODO: create an extra thread to execute/service the respond_...() methods
 	}
@@ -27,6 +38,9 @@ public:
 protected:
 	Scenario& scenario;
 	DistributedCommunicator * communicator;
+#ifdef DISTRIBUTED
+	std::atomic_bool finished;
+#endif
 
 public:
 	const int ID, nextFOsID, FOsCount;
@@ -69,6 +83,9 @@ public:
 	/** attempts to clean up, if not done earlier */
 	~FrontOfficer(void)
 	{
+#ifdef DISTRIBUTED
+		responder.join();
+#endif
 		DEBUG_REPORT("FrontOfficer #" << ID << " already closed? " << (isProperlyClosedFlag ? "yes":"no"));
 		if (!isProperlyClosedFlag) this->close();
 	}
@@ -358,6 +375,10 @@ public:
 	//(in the MPI world) called from our internal methods, typically
 	//from the respond_...() ones
 	friend class Director;
+#endif
+#ifdef DISTRIBUTED
+	std::thread responder;
+	void respond_Loop();
 #endif
 };
 #endif

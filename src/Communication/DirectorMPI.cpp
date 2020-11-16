@@ -6,36 +6,54 @@
 
 void Director::respond_getNextAvailAgentID()
 {
-	communicator->sendNextID(getNextAvailAgentID());	
+	communicator->sendNextID(getNextAvailAgentID());
 }
 
 
 void Director::respond_startNewAgent()
 {
-	communicator->sendACKtoLastFO();  //send requested ACK back, maybe unneccessary? 
+	communicator->sendACKtoLastFO();  //send requested ACK back, maybe unneccessary?
 }
 
 
 void Director::respond_closeAgent()
 {
-	communicator->sendACKtoLastFO();  //send requested ACK back, maybe unneccessary? 
+	communicator->sendACKtoLastFO();  //send requested ACK back, maybe unneccessary?
 }
 
 
 void Director::respond_updateParentalLink()
 {
-	communicator->sendACKtoLastFO();  //send requested ACK back, maybe unneccessary? 
+	communicator->sendACKtoLastFO();  //send requested ACK back, maybe unneccessary?
 }
 
 
 void Director::notify_publishAgentsAABBs(const int FOsID)
 {
+	int buffer[1] = {0};
+	communicator->sendFO(buffer,0,FOsID, e_comm_tags::unblock_FO);
 	communicator->publishAgentsAABBs(FOsID);
+	waitHereUntilEveryoneIsHereToo();
 }
 
 
 void Director::waitFor_publishAgentsAABBs()
 {
+	//This method needs to be executed so that the broadcasted messages do not stay in the queue
+	DEBUG_REPORT("Director is running AABB reporting cycle");
+	t_aabb * sentAABBs;
+	int total_AABBs = 0;
+	for (int i = 1 ; i <= FOsCount ; i++) {
+		int aabb_count = communicator->cntOfAABBs(i, true);
+		//In reality, following is dummy code needed to correctly distribute broadcasts through all nodes
+		sentAABBs = new t_aabb[aabb_count];
+		total_AABBs += aabb_count;
+		communicator->receiveBroadcast(sentAABBs, aabb_count, i, e_comm_tags::send_AABB);
+		delete sentAABBs;
+		//End of dummy code
+	}
+	DEBUG_REPORT("Director has finished AABB reporting cycle with global size " << total_AABBs);
+
 	communicator->waitFor_publishAgentsAABBs();
 }
 
@@ -43,12 +61,6 @@ void Director::waitFor_publishAgentsAABBs()
 void Director::respond_AABBofAgent()
 {
 	//we ignore these notifications entirely
-	//
-	//perhaps we would see a reason later why Direktor would need
-	//to know spatial relation among all agents
-
-	//gets : AABB +agentID +agentTypeID +geomVersion as 6x float, int, size_t, int
-	//gives: nothing
 }
 
 
@@ -60,6 +72,7 @@ size_t Director::request_CntOfAABBs(const int FOsID)
 
 void Director::respond_newAgentsTypes(int)
 {
+	//we ignore these notifications entirely
 }
 
 
@@ -76,18 +89,27 @@ void Director::notify_setDetailedReportingMode(const int FOsID , const int agent
 	communicator->setAgentsDetailedReportingMode(FOsID, agentID, state);
 }
 
-
-void Director::waitHereUntilEveryoneIsHereToo(/*int stage?*/) //Will this work without specification of stage as an argument?
+void Director::respond_Loop()
 {
 	char buffer[DIRECTOR_RECV_MAX] = {0};
 	int ibuffer[DIRECTOR_RECV_MAX] = {0};
-	
+
 	int items;
 	e_comm_tags tag;
-	fprintf(stderr, "Running detection loop in Director\n");
+	int finished = 0;
+	int waiting = 0;
+	/*REPORT("Running detection loop in Director\n");
+	for (int i=1; i <= FOsCount; i++) {
+		communicator->sendFO(buffer,0,i, e_comm_tags::next_stage);
+	}*/
 	do {
 		int instance = FO_INSTANCE_ANY;
 		if ((tag = communicator->detectFOMessage()) < 0) {
+			std::this_thread::sleep_for((std::chrono::milliseconds)10);
+			continue;
+		}
+		//tag=communicator->detectFOMessage(false);
+		if (tag == e_comm_tags::ACK) {
 			std::this_thread::sleep_for((std::chrono::milliseconds)10);
 			continue;
 		}
@@ -115,21 +137,50 @@ void Director::waitHereUntilEveryoneIsHereToo(/*int stage?*/) //Will this work w
 				assert(items == 2);
 				closeAgent(ibuffer[0], ibuffer[1]);
 				respond_closeAgent();
-				break;		
+				break;
 			case e_comm_tags::next_stage:
 				communicator->receiveFOMessage(buffer, items, instance, tag);
+				waiting++;
+				REPORT("Waiting FOs total: " << waiting << " out of " << FOsCount << " on Director");
+				if (waiting == FOsCount) {
+					communicator->waitSync();
+					waiting=0;
+				}
+				break;
+			case e_comm_tags::send_AABB: //Forgotten round-robin
+				communicator->receiveFOMessage(ibuffer, items, instance, tag);
+				assert(items == 0);
+//				finished=FOsCount;
+				//Is something else called here?
+				break;
+/*			case e_comm_tags::unblock_FO:
+				finished=FOsCount;
+				communicator->receiveFOMessage(buffer, items, instance, tag);
+				break;*/
+			case e_comm_tags::set_debug:
+				communicator->receiveFOMessage(buffer, items, instance, tag);
+				break;
+			case e_comm_tags::finished:
+				finished++;
+				REPORT("Finished FOs total: " << finished << " out of " << FOsCount << " on Director");
 				break;
 			default:
-				 fprintf(stderr,"Unprocessed communication tag %i on Director\n", tag);
-				 communicator->receiveFOMessage(buffer, items, instance, tag);
-				 //PM: Mark client as done and if all are done leave the cycle 
-				 break;
-				 
+				REPORT("Unprocessed communication tag " << communicator->tagName(tag) << " on Director");
+				communicator->receiveFOMessage(buffer, items, instance, tag);
+				//PM: Mark client as done and if all are done leave the cycle
+				break;
 		}
-		
-	} while(tag != e_comm_tags::next_stage);
-	fprintf(stderr, "Ending detection loop in Director, will send sync\n");
-	//communicator->sendSync()
+
+	} while(finished != FOsCount);
+	REPORT("Ending detection loop in Director");
+	/*for (int i=1; i <= FOsCount; i++) {
+		communicator->sendFO(buffer,0,i, e_comm_tags::unblock_FO);
+	}*/
+}
+
+void Director::waitHereUntilEveryoneIsHereToo(/*int stage?*/) //Will this work without specification of stage as an argument?
+{
+	communicator->waitSync();
 }
 
 
@@ -147,29 +198,19 @@ void Director::waitFor_renderNextFrame()
 
 void Director::broadcast_setRenderingDebug(const bool setFlagToThis)
 {
-	//SMP:
-	//FO->setSimulationDebugRendering(setFlagToThis);
-
-	//MPI world:
-	//non-blocking send out to everyone
+	char buffer[1] = { setFlagToThis };
+	communicator->sendFO(buffer, 1, 1, e_comm_tags::set_debug); //Send to first FO and it will distribute it to others
 }
 
 
-void Director::broadcast_throwException(const char* /* exceptionMessage */)
+void Director::broadcast_throwException(const char* exceptionMessage)
 {
-	//fprintf(stderr, ...)
-	//exit(-1);
-
-	//MPI world:
-	//the same as FrontOfficer::broadcast_throwException(exceptionMessage)
+	REPORT(exceptionMessage);
+	exit(-1);
 }
 
 
 void Director::respond_throwException()
 {
-	//fprintf(stderr, ...)
-	//exit(-1);
-
-	//MPI world:
-	//the same as FrontOfficer::respond_throwException()
+   // Dummy method at least in MPI case, because exceptions can be sent to stdout/stderr and once process dies the rest of MPI does as well
 }
