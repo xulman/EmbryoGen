@@ -164,8 +164,15 @@ void FrontOfficer::respond_newAgentsTypes(int noOfIncomingNewAgentTypes)
 }
 
 
-ShadowAgent* FrontOfficer::request_ShadowAgentCopy(const int /* agentID */, const int /* FOsID */)
+ShadowAgent* FrontOfficer::request_ShadowAgentCopy(const int agentID, const int FOsID)
 {
+	int aid_buff[1] =  {agentID}, cnt = 1;
+	communicator->sendFO(aid_buff, 1, FOsID, e_comm_tags::shadow_copy);
+	//communicator->receiveFO(aid_buff, cnt, FOsID, e_comm_tags::shadow_copy);
+
+	//And what else as there are multiple types of shadow agents with different geometries!!!
+
+
 	//faked return!
 	return NULL;
 

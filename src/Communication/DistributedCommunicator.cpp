@@ -125,7 +125,8 @@ bool MPI_Communicator::receiveDirectorMessage(void * buffer, int &recv_size, e_c
 	bool result;
 	int state;
 
-	state = receiveMPIMessage(director_comm, buffer, recv_size, tagMap(tag), &status, DIRECTOR_ID, tag);
+	MPI_Comm comm = (tag == e_comm_tags::ACK)?MPI_COMM_WORLD:director_comm;
+	state = receiveMPIMessage(comm, buffer, recv_size, tagMap(tag), &status, DIRECTOR_ID, tag);
 	if (state == MPI_SUCCESS) {
 		tag = (e_comm_tags) status.MPI_TAG;
 		return true;
@@ -147,9 +148,10 @@ bool MPI_Communicator::receiveFOMessage(void * buffer, int &recv_size, int & ins
 	bool result;
 	int state;
 
+	MPI_Comm comm = (tag == e_comm_tags::ACK)?MPI_COMM_WORLD:director_comm;
 	if (instance_ID == 0) { instance_ID = MPI_ANY_SOURCE;}
 
-	state = receiveMPIMessage(director_comm, buffer, recv_size, tagMap(tag), &status, instance_ID, tag);
+	state = receiveMPIMessage(comm, buffer, recv_size, tagMap(tag), &status, instance_ID, tag);
 	if (state == MPI_SUCCESS) {
 		tag = (e_comm_tags) status.MPI_TAG;
 		lastFOID = status.MPI_SOURCE;

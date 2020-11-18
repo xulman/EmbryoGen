@@ -259,13 +259,15 @@ public:
 
 		/*** Communication channel to the director ***/
 		virtual int sendDirector(void *data, int count, e_comm_tags tag) {
-			return sendMPIMessage(director_comm, data, count, tagMap(tag), 0, tag);
+			MPI_Comm comm = (tag == e_comm_tags::ACK)?MPI_COMM_WORLD:director_comm;
+			return sendMPIMessage(comm, data, count, tagMap(tag), 0, tag);
 		}
 
 		virtual e_comm_tags detectFOMessage(bool async=true);
 
 		virtual int sendFO(void *data, int count, int instance_ID, e_comm_tags tag) {
-			return sendMPIMessage(director_comm, data, count, tagMap(tag), instance_ID, tag);
+			MPI_Comm comm = (tag == e_comm_tags::ACK)?MPI_COMM_WORLD:director_comm;
+			return sendMPIMessage(comm, data, count, tagMap(tag), instance_ID, tag);
 		}
 
 		//boot receiveAndProcessDirectorMessagesForDirector(Director & director....
@@ -335,6 +337,7 @@ protected:
 				case e_comm_tags::new_agent: //int, int, bool - special datype?
 				case e_comm_tags::update_parent:
 				case e_comm_tags::close_agent:
+				case e_comm_tags::shadow_copy:
 					return MPI_INT64_T;				//Really? Or MPI_INT64_T or MPI_UINT64_T?
 				case e_comm_tags::count_new_type:
 				case e_comm_tags::count_AABB:
