@@ -36,15 +36,18 @@ typedef enum {
 	new_type=6,
 	count_new_type=7,
 	shadow_copy=8,
+	shadow_copy_data=9,
 	render_frame=10,
-	set_detailed_drawing=20,
-	set_detailed_reporting=21,
+	set_detailed_drawing=0x20,
+	set_detailed_reporting=0x21,
 	set_debug=0x23, // rendering debug
 	next_stage=0x30, //FO finished
 	unblock_FO=0x31, //FO can start
 	finished=0x32, //All work done
-	ACK=40,
-	noop=80,
+	mask_data=0x41,
+	float_image_data=0x42,
+	ACK=0x80,
+	noop=0x81,
 	unspecified=-1
 } e_comm_tags;
 
@@ -93,6 +96,8 @@ public:
 
 		/*** Front officer communication channels */
 
+		inline int getLastFOID() { return lastFOID; }
+		
 		virtual e_comm_tags detectFOMessage(bool async=true) = 0;
 		virtual bool receiveFOMessage(void * buffer, int &recv_size, int & instance_ID,  e_comm_tags &tag) = 0; //Single reception step, for response messages
 		virtual int sendFO(void *data, int count, int instance_ID, e_comm_tags tag) = 0;
@@ -158,7 +163,8 @@ public:
 		virtual size_t cntOfAABBs(int FO, bool broadcast=false ) = 0;
 		virtual void sendCntOfAABBs(size_t count_AABBs, bool broadcast=false) = 0;
 
-		virtual void renderNextFrame(int FO) = 0;
+		virtual void renderNextFrame(int FO, size_t slice_size, size_t slices) = 0;
+		virtual void mergeImages(int FO, size_t slice_size, size_t slices, unsigned short * maskPixelBuffer, float * phantomBuffer, float * opticsBuffer) = 0;
 
 		inline const char * tagName(e_comm_tags tag) {
 			static char last_str [64] = { 0 };
@@ -197,8 +203,14 @@ public:
 					return "New type count";
 				case e_comm_tags::shadow_copy:
 					return "Shadow copy";
+				case e_comm_tags::shadow_copy_data:
+					return "Shadow copy data";
 				case e_comm_tags::render_frame:
 					return "Render frame";
+				case e_comm_tags::mask_data:
+					return "Send mask image slice";
+				case e_comm_tags::float_image_data:
+					return "Send image slice";
 				case e_comm_tags::unspecified:
 					return "ANY";
 				default:				// shadow_copy, render frame, // Conversions would be slow?
@@ -255,7 +267,9 @@ public:
 		virtual size_t cntOfAABBs(int FO, bool broadcast=false);
 		virtual void sendCntOfAABBs(size_t count_AABB, bool broadcast=false);
 
-		virtual void renderNextFrame(int FO);
+		virtual void renderNextFrame(int FO, size_t slice_size, size_t slices);
+		virtual size_t receiveRenderedFrame(int fromFO, size_t slice_size, size_t slices);
+		virtual void mergeImages(int FO, size_t slice_size, size_t slices, unsigned short * maskPixelBuffer, float * phantomBuffer, float * opticsBuffer);
 
 		/*** Communication channel to the director ***/
 		virtual int sendDirector(void *data, int count, e_comm_tags tag) {
@@ -341,6 +355,7 @@ protected:
 					return MPI_INT64_T;				//Really? Or MPI_INT64_T or MPI_UINT64_T?
 				case e_comm_tags::count_new_type:
 				case e_comm_tags::count_AABB:
+				case e_comm_tags::render_frame:
 					return MPI_UINT64_T;
 				case e_comm_tags::send_AABB:
 					return MPI_AABB;			//Broadcast First Types, then AABBs
@@ -349,7 +364,12 @@ protected:
 				case e_comm_tags::unblock_FO:
 				case e_comm_tags::finished:
 				case e_comm_tags::ACK:
+				case e_comm_tags::shadow_copy_data:
 					return MPI_CHAR;
+				case e_comm_tags::mask_data:
+					return MPI_UNSIGNED_SHORT;
+				case e_comm_tags::float_image_data:
+					return MPI_FLOAT;
 				//case e_comm_tags:: : //Image size -> define image type dynamically after start, each frame!!!
 				//case e_comm_tags::set_detailed_drawing: case e_comm_tags::set_debug: //could be also MPI_C_BOOL
 				//case e_comm_tags::new_type // byte array or a special MPI structure? - UINT64 + 256*Char !!!
@@ -365,6 +385,9 @@ protected:
 				case e_comm_tags::count_new_type:
 				case e_comm_tags::new_type:
 					return type_comm;
+				case e_comm_tags::mask_data:
+				case e_comm_tags::float_image_data:
+					return image_comm;
 				default:
 					return MPI_COMM_WORLD;
 			}
@@ -400,6 +423,7 @@ protected:
 		MPI_Comm director_comm; //Channel to/from Director
 		MPI_Comm aabb_comm; //AABB broadcasting exchange
 		MPI_Comm type_comm; //New agent type exchange
+		MPI_Comm image_comm; //Image exchanger
 
 };
 #endif /*DISTRIBUTED*/

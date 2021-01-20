@@ -45,7 +45,7 @@ int MPI_Communicator::init(int *argc, char ***argv) {
     MPI_Type_create_struct(aabb_count, aabb_blocks, aabb_displ, aabb_types, &MPI_AABB);
     state = MPI_Type_commit(&MPI_AABB);
 
-	director_comm = MPI_COMM_WORLD;
+	//director_comm = MPI_COMM_WORLD;
 	MPI_Comm_dup(MPI_COMM_WORLD, &director_comm);
 	MPI_Comm_set_name(director_comm, "Director_comm");
 
@@ -69,8 +69,11 @@ int MPI_Communicator::init(int *argc, char ***argv) {
 
 	MPI_Comm_dup(MPI_COMM_WORLD, &aabb_comm);
 	MPI_Comm_dup(/*MPI_COMM_WORLD*/aabb_comm, &type_comm); //TBD: Or aabb_comm?
+	MPI_Comm_dup(MPI_COMM_WORLD, &image_comm);
+
 	MPI_Comm_set_name(aabb_comm, "AABB_comm");
 	MPI_Comm_set_name(type_comm, "AgentType_comm");
+	MPI_Comm_set_name(image_comm, "Image_comm");
 
 	for (cshift=1, icnt=instances; icnt != 0 ; icnt = icnt	 >> 1) {
 		cshift++;
@@ -218,7 +221,7 @@ void MPI_Communicator::publishAgentsAABBs(int FO)
 	//receiveFOACK(FO);
 }
 
-void MPI_Communicator::renderNextFrame(int FO)
+void MPI_Communicator::renderNextFrame(int FO, size_t slice_size, size_t slices)
 {
 	int buffer [] = {0};
 	sendFO(buffer, 0, FO, e_comm_tags::render_frame);

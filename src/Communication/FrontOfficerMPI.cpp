@@ -120,7 +120,7 @@ void FrontOfficer::respond_CntOfAABBs()
 
 void FrontOfficer::broadcast_newAgentsTypes()
 {
-	int new_dict_count = agentsTypesDictionary.howManyShouldBeBroadcast(), total_cnt=0;
+	int new_dict_count = agentsTypesDictionary.howManyShouldBeBroadcast()/*Integer limit !!!*/, total_cnt=0;
 	DEBUG_REPORT("FO #" << this->ID << " is running New Agent Type reporting cycle with local size " << new_dict_count);
 	t_hashed_str * sentTypes;
 	for (int i = 1 ; i <= FOsCount ; i++) {
@@ -232,6 +232,7 @@ void FrontOfficer::respond_Loop()
 {
 	// For cycle like in the Director to process D->FO messages?
 	int ibuffer[DIRECTOR_RECV_MAX] = {0};
+	size_t sbuffer[DIRECTOR_RECV_MAX] = {0};
 	char buffer[DIRECTOR_RECV_MAX] = {0};
 	int items;
 	e_comm_tags tag;
@@ -321,7 +322,7 @@ void FrontOfficer::waitHereUntilEveryoneIsHereToo() //Will this work without spe
 
 void FrontOfficer::waitFor_renderNextFrame()
 {
-	//MPI world:
+	//MPI world:waitFor_renderNextFrame
 
 	//shall block and wait until 3 images come to us
 	//they will come in this order: mask, phantom, optics
