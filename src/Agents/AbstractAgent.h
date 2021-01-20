@@ -21,12 +21,13 @@
  */
 class ShadowAgent
 {
-protected:
+public:
 	/** Construct the object (which is an agent shape and position representation)
 	    by giving it a concrete implementation of Geometry, e.g. Mesh or Spheres object.
 	    The reference to this object is kept and used, i.e. no new object is created. */
 	ShadowAgent(Geometry& geom, const int id, const std::string& type)
 		: geometry(geom), ID(id), agentType(type) {};
+protected:
 
 	/** The geometry of an agent that is exposed to the world.
 	    It might be a light-weight version of the agent's exact geometry.

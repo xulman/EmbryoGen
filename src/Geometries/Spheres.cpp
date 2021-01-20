@@ -142,7 +142,6 @@ void Spheres::serializeTo(char* buffer) const
 	Serialization::toBuffer(version, buffer+off);
 }
 
-
 void Spheres::deserializeFrom(char* buffer)
 {
 	int recv_noOfSpheres;
