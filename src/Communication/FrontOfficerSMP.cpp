@@ -122,7 +122,7 @@ ShadowAgent* FrontOfficer::request_ShadowAgentCopy(const int /* agentID */, cons
 }
 
 
-void FrontOfficer::respond_ShadowAgentCopy()
+void FrontOfficer::respond_ShadowAgentCopy(const int)
 {
 	//this never happens here (as there is no other FO to hear from)
 	//MPI world:
