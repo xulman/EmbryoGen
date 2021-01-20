@@ -192,7 +192,7 @@ ShadowAgent* FrontOfficer::request_ShadowAgentCopy(const int agentID, const int 
 }
 
 
-void FrontOfficer::respond_ShadowAgentCopy()
+void FrontOfficer::respond_ShadowAgentCopy(const int agentID)
 {
 	//MPI world:
 
