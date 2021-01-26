@@ -28,8 +28,7 @@ int main(int argc, char** argv)
 		//and each FO; thus, it is always created inline in respective c'tor calls
 
 #ifdef DISTRIBUTED
- 		DistributedCommunicator * dc = new MPI_Communicator(&argc, &argv);
- 
+		DistributedCommunicator * dc = new MPI_Communicator(argc, argv);
 
 		//these two has to come from MPI stack,
 		//for now some fake values:

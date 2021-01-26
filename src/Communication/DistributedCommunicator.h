@@ -4,20 +4,23 @@
 #include "../Agents/AbstractAgent.h"
 #include "../util/report.h"
 
-typedef struct {
-        Vector3d<G_FLOAT> minCorner;  // AABB minCorner from geometry
-        Vector3d<G_FLOAT> maxCorner;  // AABB maxCorner from geometry
-        int version; // Version from geometry itself
-        int id;		 // Agent ID from agent
-        int atype;	 // Agent Type ID, from agent
-} t_aabb;
+extern "C" {
+	typedef struct {
+			Vector3d<G_FLOAT> minCorner;  // AABB minCorner from geometry
+			Vector3d<G_FLOAT> maxCorner;  // AABB maxCorner from geometry
+			int version; // Version from geometry itself
+			int id;		 // Agent ID from agent
+			unsigned long long atype;	 // Agent Type ID, from agent
+	} t_aabb;
 
-#define StringsImprintSize 256 //This should be moved to some common header file with strings
+	#define StringsImprintSize 256 //This should be moved to some common header file with strings
 
-typedef struct {
-		size_t hash;
-		char value [StringsImprintSize];
-} t_hashed_str;
+	typedef struct {
+			unsigned long long hash;
+			char value [StringsImprintSize];
+	} t_hashed_str;
+
+}
 
 #define DIRECTOR_RECV_MAX (1<<20) // Receive buffer for director-only communication
 #define DIRECTOR_ID 0 			  // Main node
@@ -37,7 +40,7 @@ typedef enum {
 	count_new_type=7,
 	shadow_copy=8,
 	shadow_copy_data=9,
-	render_frame=10,
+	render_frame=0x10,
 	set_detailed_drawing=0x20,
 	set_detailed_reporting=0x21,
 	set_debug=0x23, // rendering debug
@@ -74,6 +77,7 @@ public:
 
 		virtual bool receiveAndProcessDirectorMessage(void * buffer, int &recv_size, e_comm_tags &tag) = 0;
 		virtual bool receiveDirectorMessage(void * buffer, int &recv_size, e_comm_tags &tag, bool async=true) = 0;
+		virtual size_t receiveRenderedFrame(int fromFO, int slice_size, int slices) = 0;
 
 		inline int sendACKtoDirector() {
 			char id = 0;
@@ -97,7 +101,7 @@ public:
 		/*** Front officer communication channels */
 
 		inline int getLastFOID() { return lastFOID; }
-		
+
 		virtual e_comm_tags detectFOMessage(bool async=true) = 0;
 		virtual bool receiveFOMessage(void * buffer, int &recv_size, int & instance_ID,  e_comm_tags &tag) = 0; //Single reception step, for response messages
 		virtual int sendFO(void *data, int count, int instance_ID, e_comm_tags tag) = 0;
@@ -163,8 +167,8 @@ public:
 		virtual size_t cntOfAABBs(int FO, bool broadcast=false ) = 0;
 		virtual void sendCntOfAABBs(size_t count_AABBs, bool broadcast=false) = 0;
 
-		virtual void renderNextFrame(int FO, size_t slice_size, size_t slices) = 0;
-		virtual void mergeImages(int FO, size_t slice_size, size_t slices, unsigned short * maskPixelBuffer, float * phantomBuffer, float * opticsBuffer) = 0;
+		virtual void renderNextFrame(int FO, int slice_size, int slices) = 0;
+		virtual void mergeImages(int FO, int slice_size, int slices, unsigned short * maskPixelBuffer, float * phantomBuffer, float * opticsBuffer) = 0;
 
 		inline const char * tagName(e_comm_tags tag) {
 			static char last_str [64] = { 0 };
@@ -208,9 +212,9 @@ public:
 				case e_comm_tags::render_frame:
 					return "Render frame";
 				case e_comm_tags::mask_data:
-					return "Send mask image slice";
+					return "Mask image slice";
 				case e_comm_tags::float_image_data:
-					return "Send image slice";
+					return "Float image slice";
 				case e_comm_tags::unspecified:
 					return "ANY";
 				default:				// shadow_copy, render frame, // Conversions would be slow?
@@ -242,7 +246,7 @@ protected:
 class MPI_Communicator : public DistributedCommunicator
 {
 public:
-		MPI_Communicator(int *argc=NULL, char ***argv=NULL) : DistributedCommunicator()
+		MPI_Communicator(int argc, char **argv) : DistributedCommunicator()
 		{
 				lastFOID = -1;
 				init(argc, argv);
@@ -267,9 +271,9 @@ public:
 		virtual size_t cntOfAABBs(int FO, bool broadcast=false);
 		virtual void sendCntOfAABBs(size_t count_AABB, bool broadcast=false);
 
-		virtual void renderNextFrame(int FO, size_t slice_size, size_t slices);
-		virtual size_t receiveRenderedFrame(int fromFO, size_t slice_size, size_t slices);
-		virtual void mergeImages(int FO, size_t slice_size, size_t slices, unsigned short * maskPixelBuffer, float * phantomBuffer, float * opticsBuffer);
+		virtual void renderNextFrame(int FO, int slice_size, int slices);
+		virtual size_t receiveRenderedFrame(int fromFO, int slice_size, int slices);
+		virtual void mergeImages(int FO, int slice_size, int slices, unsigned short * maskPixelBuffer, float * phantomBuffer, float * opticsBuffer);
 
 		/*** Communication channel to the director ***/
 		virtual int sendDirector(void *data, int count, e_comm_tags tag) {
@@ -311,7 +315,7 @@ protected:
 		static char no_message[1];
 		int name_len;
 
-		int init(int *argc, char ***argv);
+		int init(int argc, char **argv);
 
 		inline void debugMPIComm(const char* what, MPI_Comm comm, int items, int peer=MPI_ANY_SOURCE, e_comm_tags tag = e_comm_tags::unspecified) {
 #ifdef DISTRIBUTED_DEBUG
@@ -354,6 +358,7 @@ protected:
 				case e_comm_tags::shadow_copy:
 					return MPI_INT64_T;				//Really? Or MPI_INT64_T or MPI_UINT64_T?
 				case e_comm_tags::count_new_type:
+					return MPI_INT;
 				case e_comm_tags::count_AABB:
 				case e_comm_tags::render_frame:
 					return MPI_UINT64_T;
@@ -370,9 +375,11 @@ protected:
 					return MPI_UNSIGNED_SHORT;
 				case e_comm_tags::float_image_data:
 					return MPI_FLOAT;
+				case e_comm_tags::new_type: // byte array or a special MPI structure? - UINT64 + 256*Char !!!
+					/*return MPI_CHAR;*/
+					return MPI_AGENTTYPE;
 				//case e_comm_tags:: : //Image size -> define image type dynamically after start, each frame!!!
 				//case e_comm_tags::set_detailed_drawing: case e_comm_tags::set_debug: //could be also MPI_C_BOOL
-				//case e_comm_tags::new_type // byte array or a special MPI structure? - UINT64 + 256*Char !!!
 				default:				// shadow_copy, render frame, // Conversions would be slow?
 					return MPI_BYTE;
 			}
@@ -380,6 +387,7 @@ protected:
 
 		inline MPI_Comm tagCommMap(e_comm_tags tag) {
 			switch (tag) {
+				case e_comm_tags::count_AABB:
 				case e_comm_tags::send_AABB:
 					return aabb_comm;			//Broadcast First Types, then AABBs
 				case e_comm_tags::count_new_type:
@@ -388,8 +396,10 @@ protected:
 				case e_comm_tags::mask_data:
 				case e_comm_tags::float_image_data:
 					return image_comm;
-				default:
+//				case e_comm_tags::ACK:
+				default: //Every other message should be passed by async director communication - but it may break something
 					return MPI_COMM_WORLD;
+//					return director_comm;
 			}
 		}
 

@@ -44,7 +44,8 @@ void FrontOfficer::waitFor_publishAgentsAABBs()
 			/* TBD: In future, will local AABB count in each FO always fit into integer? Otherwise we have a problem */
 			int j = 0;
 			communicator->sendCntOfAABBs(aabb_count, true);
-			sentAABBs = new t_aabb[aabb_count];
+			//sentAABBs = new t_aabb[aabb_count];
+			sentAABBs = (t_aabb*) malloc(sizeof(t_aabb)*(aabb_count+1));
 			for (auto ag : agents)
 			{
 				const AxisAlignedBoundingBox & aabb = ag.second->getAABB();
@@ -57,23 +58,34 @@ void FrontOfficer::waitFor_publishAgentsAABBs()
 				j++;
 			}
 			communicator->sendBroadcast(sentAABBs, aabb_count, i, e_comm_tags::send_AABB);
-			delete sentAABBs;
+			free(sentAABBs);
+			//delete [] sentAABBs;
 		}
 		else
 		{
 			int aabb_count = communicator->cntOfAABBs(i, true);
-			sentAABBs = new t_aabb[aabb_count];
+			//sentAABBs = new t_aabb[aabb_count];
+			DEBUG_REPORT("Receive " << aabb_count << "AABBs at FO#" << ID << " from FO #" << i);
+			sentAABBs = (t_aabb*) malloc(sizeof(t_aabb)*(aabb_count+1));
 			communicator->receiveBroadcast(sentAABBs, aabb_count, i, e_comm_tags::send_AABB);
 			for (int j=0; j < aabb_count; j++) {
 				AABBs.emplace_back();
 				AABBs.back().minCorner = sentAABBs[j].minCorner;
 				AABBs.back().maxCorner = sentAABBs[j].maxCorner;
+				/*DEBUG_REPORT("FO #" << ID << ", AABB #" << j
+				  << " Min: (" << sentAABBs[j].minCorner.x << "," << sentAABBs[j].minCorner.y << "," << sentAABBs[j].minCorner.z << ")"
+				  << " Max: (" << sentAABBs[j].maxCorner.x << "," << sentAABBs[j].maxCorner.y << "," << sentAABBs[j].maxCorner.z << ")"
+				);*/
 				AABBs.back().ID     = sentAABBs[j].id;
 				AABBs.back().nameID = sentAABBs[j].atype;
 				agentsAndBroadcastGeomVersions[sentAABBs[j].id] = sentAABBs[j].version;
+				/*DEBUG_REPORT("FO #" << ID << ", Agent #" << j << " ID: " << sentAABBs[j].id
+				  << " Name ID: " << sentAABBs[j].atype <<  ", Geometry version " <<sentAABBs[j].version
+				);*/
 				registerThatThisAgentIsAtThisFO(sentAABBs[j].id,i);
 			}
-			delete sentAABBs;
+			free(sentAABBs);
+//			delete [] sentAABBs;
 		}
 	}
 	DEBUG_REPORT("FO #" << this->ID << " has finished AABB reporting cycle with global size " << (AABBs.size() + agents.size()) );
@@ -123,38 +135,56 @@ void FrontOfficer::broadcast_newAgentsTypes()
 	int new_dict_count = agentsTypesDictionary.howManyShouldBeBroadcast()/*Integer limit !!!*/, total_cnt=0;
 	DEBUG_REPORT("FO #" << this->ID << " is running New Agent Type reporting cycle with local size " << new_dict_count);
 	t_hashed_str * sentTypes;
+/*	char * sentTypes;*/
 	for (int i = 1 ; i <= FOsCount ; i++) {
 		if (i == ID)
 		{
 			total_cnt += new_dict_count = agentsTypesDictionary.howManyShouldBeBroadcast();
 			int j = 0;
+			DEBUG_REPORT("New dictionary count From FO#" << i << ": " << new_dict_count);
 			communicator->sendBroadcast(&new_dict_count, 1, i, e_comm_tags::count_new_type);
-			sentTypes = new t_hashed_str[new_dict_count];
+			//sentTypes = new t_hashed_str[new_dict_count];
+			sentTypes = (t_hashed_str*)calloc(sizeof(t_hashed_str),new_dict_count+1);
+/*			new_dict_count *= StringsImprintSize;
+			sentTypes = new char[new_dict_count];*/
 			for (const auto& dItem : agentsTypesDictionary.theseShouldBeBroadcast())
 			{
 				sentTypes[j].hash = dItem.first;
 				hashedString::printIntoBuffer(dItem.second, sentTypes[j].value,StringsImprintSize);
+				//DEBUG_REPORT("Sending Type " <<  sentTypes[j].value << " with hash " << dItem.first << " from FO#" << i);
+				/*hashedString::printIntoBuffer(dItem.second, sentTypes+j*StringsImprintSize,StringsImprintSize);*/
 				j++;
 			}
 			communicator->sendBroadcast(sentTypes, new_dict_count, i, e_comm_tags::new_type);
-			agentsTypesDictionary.markAllWasBroadcast();
-			delete sentTypes;
+			free(sentTypes);
+//			delete [] sentTypes;
 		}
 		else
 		{
 			int cnt=1;
 			communicator->receiveBroadcast(&new_dict_count, cnt, i, e_comm_tags::count_new_type);
+			assert(cnt==1);
 			total_cnt += new_dict_count;
-			sentTypes = new t_hashed_str[new_dict_count];
+			//sentTypes = new t_hashed_str[new_dict_count];
+			sentTypes = (t_hashed_str*)calloc(sizeof(t_hashed_str),new_dict_count+1);
+/*			new_dict_count *= StringsImprintSize;
+			sentTypes = new char[new_dict_count];*/
 			communicator->receiveBroadcast(sentTypes, new_dict_count, i, e_comm_tags::new_type);
 			for (int j=0; j < new_dict_count; j++)
 			{
+				/*hashedString * hs = new hashedString(sentTypes+j*StringsImprintSize);
+				agentsTypesDictionary.enlistTheIncomingItem(hs->getHash(), hs->getString());*/
 				agentsTypesDictionary.enlistTheIncomingItem(sentTypes[j].hash, sentTypes[j].value);
+				DEBUG_REPORT("Receiving Type " <<  sentTypes[j].value << " with hash " << sentTypes[j].hash << " at FO#" << ID);
 			}
-			delete sentTypes;
+			free(sentTypes);
+//			delete [] sentTypes;
 		}
 	}
+	agentsTypesDictionary.markAllWasBroadcast();
+	//DEBUG_REPORT("Checking hash for nucleus 2015 @ 4,2:" << agentsTypesDictionary.translateIdToString(5627021567199719035l));
 	DEBUG_REPORT("FO #" << this->ID << " has finished New Agent Type reporting cycle with global size " << total_cnt);
+	agentsTypesDictionary.printKnownDictionary();
 }
 
 
@@ -166,53 +196,53 @@ void FrontOfficer::respond_newAgentsTypes(int noOfIncomingNewAgentTypes)
 
 ShadowAgent* FrontOfficer::request_ShadowAgentCopy(const int agentID, const int FOsID)
 {
-	int aid_buff[1] =  {agentID}, cnt = 1;
-	communicator->sendFO(aid_buff, 1, FOsID, e_comm_tags::shadow_copy);
-	//communicator->receiveFO(aid_buff, cnt, FOsID, e_comm_tags::shadow_copy);
+	long param_buff[4] =  {agentID,0,0,0};
+	int cnt = 4; //sizeof(param_buff) / sizeof(long*);
+	int fo_back = FOsID, items;
+	e_comm_tags tag = e_comm_tags::shadow_copy;
 
-	//And what else as there are multiple types of shadow agents with different geometries!!!
+	communicator->sendFO(param_buff, 1, FOsID, e_comm_tags::shadow_copy);
+	communicator->receiveFOMessage(param_buff, cnt, fo_back, tag);
 
+	char * data_buff = new char [param_buff[1]];
 
-	//faked return!
-	return NULL;
+	tag=e_comm_tags::shadow_copy_data;
+	communicator->receiveFOMessage(data_buff, items, fo_back, tag);
 
-	//MPI world:
-	//contacts FO at FOsID telling it that it needs agentID's ShadowAgent back
+	int         gotThisAgentID   = (int) param_buff[0];
+	std::string gotThisAgentType = agentsTypesDictionary.translateIdToString((size_t)param_buff[2]);
+	Geometry*   gotThisGeom      = Geometry::createAndDeserializeFrom((int)param_buff[3], data_buff);
+	delete [] data_buff;
 
-	//gives: agentID, this->ID (to tell the other party whom to talk back)
-	//waits
-	//gets : Geometry data, agentID and agentType
-
-	/* fake data!
-	Geometry*   gotThisGeom      = new Spheres(4);
-	int         gotThisAgentID   = 10;
-	std::string gotThisAgentType = "fake agent";
 	return new ShadowAgent(*gotThisGeom, gotThisAgentID,gotThisAgentType);
-	*/
 }
 
 
 void FrontOfficer::respond_ShadowAgentCopy(const int agentID)
 {
-	//MPI world:
-
-	//gets : requestedAgentID, askingFOsID
-	//gives: Geometry data, agentID and agentType
-
-	/*
-	int requestedAgentID = 10; //fake value
-
 #ifdef DEBUG
-	if (agents.find(requestedAgentID) == agents.end())
-		throw ERROR_REPORT("Cannot provide ShadowAgent for agent ID " << requestedAgentID);
+	if (agents.find(agentID) == agents.end())
+		throw ERROR_REPORT("Cannot provide ShadowAgent for agent ID " << agentID);
 #endif
 
-	const AbstractAgent& aaRef = *(agents[requestedAgentID]);
+	int foID = communicator->getLastFOID();
 
-	const Geometry&    sendBackGeom      = aaRef.getGeometry();
-	const int          sendBackAgentID   = aaRef.getID();
-	const std::string& sendBackAgentType = aaRef.getAgentType();
-	*/
+	const AbstractAgent& aaRef = *(agents[agentID]);
+	const Geometry& sendBackGeom = aaRef.getGeometry(); // Correct geometry -> simplified
+	int sendBackAgentID   = aaRef.getID();
+	const long geom_size = sendBackGeom.getSizeInBytes();
+	const size_t sendBackAgentType = aaRef.getAgentTypeID();
+	const int geom_type = (int) sendBackGeom.shapeForm;
+
+	long param_buff[4] =  {sendBackAgentID, geom_size, sendBackAgentType, geom_type};
+	int cnt = 4; //sizeof(param_buff) / sizeof(long*);
+
+	communicator->sendFO(param_buff, cnt, foID, e_comm_tags::shadow_copy);
+
+	char buffer_to_send [geom_size];
+	sendBackGeom.serializeTo(buffer_to_send);
+
+	communicator->sendFO(buffer_to_send, geom_size, foID, e_comm_tags::shadow_copy_data);
 }
 
 
@@ -232,7 +262,6 @@ void FrontOfficer::respond_Loop()
 {
 	// For cycle like in the Director to process D->FO messages?
 	int ibuffer[DIRECTOR_RECV_MAX] = {0};
-	size_t sbuffer[DIRECTOR_RECV_MAX] = {0};
 	char buffer[DIRECTOR_RECV_MAX] = {0};
 	int items;
 	e_comm_tags tag;
@@ -250,6 +279,7 @@ void FrontOfficer::respond_Loop()
 	}*/
 	REPORT("Running detection loop in FO " << ID);
 	do {
+		items = DIRECTOR_RECV_MAX;
 		int instance = FO_INSTANCE_ANY;
 		if ((tag = communicator->detectFOMessage()) < 0) {
 			// Detect other FO messages (are there any?) and broadcasts here...
@@ -285,11 +315,13 @@ void FrontOfficer::respond_Loop()
 				//Is something else called here?
 				notify_publishAgentsAABBs(nextFOsID);
 				break;
+			//Chyba je tady!
 			case e_comm_tags::render_frame:
 				communicator->receiveFOMessage(ibuffer, items, instance, tag);
-				assert(items == 0);
-				//Is something else called here?
+				assert(items == 2);
 				request_renderNextFrame(nextFOsID);
+				communicator->renderNextFrame(nextFOsID, ibuffer[0], ibuffer[1]);
+				//communicator->receiveRenderedFrame(instance, ibuffer[0], ibuffer[1]);
 				break;
 			case e_comm_tags::next_stage:
 				communicator->receiveFOMessage(buffer, items, instance, tag);
@@ -322,50 +354,29 @@ void FrontOfficer::waitHereUntilEveryoneIsHereToo() //Will this work without spe
 
 void FrontOfficer::waitFor_renderNextFrame()
 {
-	//MPI world:waitFor_renderNextFrame
-
-	//shall block and wait until 3 images come to us
-	//they will come in this order: mask, phantom, optics
-
-#ifdef DEBUG
-	//test this:
-	//the incomming images must be of the same size as ours sc.img*
-#endif
-
-	//one receives each image directly into our own sc.img* image,
-	//to "receive directly" is to sum (operation +) together corresponding
-	//pixels, that is pixel from the network with pixel in the sc.img*,
-	//the result is stored into the sc.img*
-
-	/*
-	SceneControls& sc = scenario.params;
-
-	//here's the handle on our sc.img* images
-	sc.imgMask
-	sc.imgPhantom
-	sc.imgOptics
-
-	//here's how to reach the pixels, they live in one long buffer, e.g.
-	i3d::GRAY16* maskPixelBuffer = sc.imgMask.GetFirstVoxelAddr();
-	const size_t maskPixelLength = sc.imgMask.GetImageSize();
-
-	//reminder of the types of the images:
-	i3d::Image3d<i3d::GRAY16> imgMask;
-	i3d::Image3d<float> imgPhantom;
-	i3d::Image3d<float> imgOptics;
-
-	(i3d::GRAY16 maps into short type)
-	*/
 	communicator->waitFor_renderNextFrame();
 }
 
 
-void FrontOfficer::request_renderNextFrame(const int /* FOsID */)
+void FrontOfficer::request_renderNextFrame(const int FOsID)
 {
-	//MPI world:
+	SceneControls& sc = scenario.params;
+	const size_t maskPixelLength = sc.imgMask.GetImageSize();
+	const int maskZSize= (int)sc.imgMask.GetSizeZ();
+	const int maskXYSize=(int)(maskPixelLength/maskZSize);
 
-	//this is the counterpart to the waitFor_renderNextFrame()
-	//one sends out the images in this order: mask, phantom, optics
+	communicator->renderNextFrame(FOsID,maskXYSize,maskZSize);
+	unsigned short * maskPixelBuffer = NULL;
+	float * phantomBuffer  = NULL;
+	float * opticsBuffer  = NULL;
+
+	if (sc.imagesSaving_isEnabledForImgMask()) { maskPixelBuffer = sc.imgMask.GetFirstVoxelAddr();}
+	if (sc.imagesSaving_isEnabledForImgPhantom()) { phantomBuffer = sc.imgPhantom.GetFirstVoxelAddr();}
+	if (sc.imagesSaving_isEnabledForImgOptics()) { opticsBuffer = sc.imgOptics.GetFirstVoxelAddr();}
+
+	REPORT("Request image merging from FO #" << ID << " to FO #" << FOsID);
+	communicator->mergeImages(FOsID, maskXYSize, maskZSize, maskPixelBuffer, phantomBuffer, opticsBuffer);
+	REPORT("Image merging done on FO #" << ID);
 }
 
 

@@ -33,7 +33,7 @@ void Director::notify_publishAgentsAABBs(const int FOsID)
 	int buffer[1] = {0};
 	communicator->sendFO(buffer,0,FOsID, e_comm_tags::unblock_FO);
 	communicator->publishAgentsAABBs(FOsID);
-	waitHereUntilEveryoneIsHereToo();
+	//waitHereUntilEveryoneIsHereToo();
 }
 
 
@@ -46,10 +46,12 @@ void Director::waitFor_publishAgentsAABBs()
 	for (int i = 1 ; i <= FOsCount ; i++) {
 		int aabb_count = communicator->cntOfAABBs(i, true);
 		//In reality, following is dummy code needed to correctly distribute broadcasts through all nodes
-		sentAABBs = new t_aabb[aabb_count];
+		//sentAABBs = new t_aabb[aabb_count];
+		sentAABBs = (t_aabb*) malloc(sizeof(t_aabb)*(aabb_count+1));
 		total_AABBs += aabb_count;
 		communicator->receiveBroadcast(sentAABBs, aabb_count, i, e_comm_tags::send_AABB);
-		delete sentAABBs;
+		//delete [] sentAABBs;
+		free(sentAABBs);
 		//End of dummy code
 	}
 	DEBUG_REPORT("Director has finished AABB reporting cycle with global size " << total_AABBs);
@@ -73,16 +75,20 @@ size_t Director::request_CntOfAABBs(const int FOsID)
 void Director::respond_newAgentsTypes(int new_dict_count)
 {
 	int total_cnt=0;
-	DEBUG_REPORT("Director is running New Agent Type reporting cycle");
 	t_hashed_str * receivedTypes;
+//	char * receivedTypes;
+	int partial_dict_count;
 	for (int i = 1 ; i <= FOsCount ; i++) {
 		int cnt=1;
 		//In reality, following is dummy code needed to correctly distribute broadcasts through all nodes
-		communicator->receiveBroadcast(&new_dict_count, cnt, i, e_comm_tags::count_new_type);
-		total_cnt += new_dict_count;
-		receivedTypes = new t_hashed_str[new_dict_count];
-		communicator->receiveBroadcast(receivedTypes, new_dict_count, i, e_comm_tags::new_type);
-		delete receivedTypes;
+		communicator->receiveBroadcast(&partial_dict_count, cnt, i, e_comm_tags::count_new_type);
+		DEBUG_REPORT("New dictionary count received on Director from FO#" << i << " (out of " << FOsCount << "): " << partial_dict_count << " (out of " << new_dict_count << ")");
+		total_cnt += partial_dict_count;
+		receivedTypes = (t_hashed_str*)calloc(sizeof(t_hashed_str),partial_dict_count+1);
+		/*partial_dict_count *= StringsImprintSize;
+		receivedTypes = new char[partial_dict_count];*/
+		communicator->receiveBroadcast(receivedTypes, partial_dict_count, i, e_comm_tags::new_type);
+		free(receivedTypes);
 		//End of dummy code
 	}
 	DEBUG_REPORT("Director is running New Agent Type reporting cycle with global size " << total_cnt);
@@ -170,6 +176,11 @@ void Director::respond_Loop()
 				finished=FOsCount;
 				communicator->receiveFOMessage(buffer, items, instance, tag);
 				break;*/
+			case e_comm_tags::render_frame:
+				communicator->receiveFOMessage(ibuffer, items, instance, tag);
+				assert(items == 2);
+				//communicator->receiveRenderedFrame(instance, ibuffer[0], ibuffer[1]);
+				break;
 			case e_comm_tags::set_debug:
 				communicator->receiveFOMessage(buffer, items, instance, tag);
 				break;
@@ -199,12 +210,25 @@ void Director::waitHereUntilEveryoneIsHereToo(/*int stage?*/) //Will this work w
 
 void Director::request_renderNextFrame(const int FOsID)
 {
-	communicator->renderNextFrame(FOsID);
+	SceneControls& sc = scenario.params;
+	const size_t maskPixelLength = sc.imgMask.GetImageSize();
+	const int maskZSize=(int)sc.imgMask.GetSizeZ();
+	const int maskXYSize=(int)(maskPixelLength/maskZSize);
+
+	communicator->renderNextFrame(FOsID,maskXYSize,maskZSize);
+	unsigned short * maskPixelBuffer = sc.imgMask.GetFirstVoxelAddr();
+	float * phantomBuffer  = sc.imgPhantom.GetFirstVoxelAddr();
+	float * opticsBuffer  = sc.imgOptics.GetFirstVoxelAddr();
+
+	REPORT("Request image merging from Director to FO #" << FOsID);
+	communicator->mergeImages(FOsID, maskXYSize, maskZSize, maskPixelBuffer, phantomBuffer, opticsBuffer);
+	REPORT("Image merging done on Director");
 }
 
 
 void Director::waitFor_renderNextFrame()
 {
+//	request_renderNextFrame(nextFOsID);
 	communicator->waitFor_renderNextFrame();
 }
 

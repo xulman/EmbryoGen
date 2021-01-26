@@ -12,10 +12,10 @@ MPI_Communicator::~MPI_Communicator() {
 // Did not work correctly:	MPI_Finalize();
 }
 
-int MPI_Communicator::init(int *argc, char ***argv) {
+int MPI_Communicator::init(int argc, char **argv) {
 	int cshift = 1, icnt;
 	const int director_id [1] = {0};
-	int state = MPI_Init(argc, argv);
+	int state = MPI_Init(&argc, &argv);
 
 	if (state != MPI_SUCCESS) {  return state; }
 
@@ -33,17 +33,18 @@ int MPI_Communicator::init(int *argc, char ***argv) {
     const int aabb_count = 5;
     int aabb_blocks[] = {1, 1, 1, 1, 1};
     MPI_Aint aabb_displ[] = {offsetof(t_aabb, minCorner), offsetof(t_aabb, maxCorner), offsetof(t_aabb, id), offsetof(t_aabb, version), offsetof(t_aabb, atype) };
-    MPI_Datatype aabb_types[] = {MPI_VECTOR3D, MPI_VECTOR3D, MPI_INT, MPI_INT, MPI_INT};
+    MPI_Datatype aabb_types[] = {MPI_VECTOR3D, MPI_VECTOR3D, MPI_INT, MPI_INT, MPI_UINT64_T};
+
+    MPI_Type_create_struct(aabb_count, aabb_blocks, aabb_displ, aabb_types, &MPI_AABB);
+    state = MPI_Type_commit(&MPI_AABB);
 
     const int agentt_count = 2;
     int agentt_blocks[] = {1, StringsImprintSize};
     MPI_Aint agentt_displ[] = {offsetof(t_hashed_str, hash), offsetof(t_hashed_str, value)};
-    MPI_Datatype agentt_types[] = {MPI_INT64_T, MPI_CHAR};
+    MPI_Datatype agentt_types[] = {MPI_UNSIGNED_LONG_LONG, MPI_CHAR};
     MPI_Type_create_struct(agentt_count, agentt_blocks, agentt_displ, agentt_types, &MPI_AGENTTYPE);
     MPI_Type_commit(&MPI_AGENTTYPE);
 
-    MPI_Type_create_struct(aabb_count, aabb_blocks, aabb_displ, aabb_types, &MPI_AABB);
-    state = MPI_Type_commit(&MPI_AABB);
 
 	//director_comm = MPI_COMM_WORLD;
 	MPI_Comm_dup(MPI_COMM_WORLD, &director_comm);
@@ -221,11 +222,58 @@ void MPI_Communicator::publishAgentsAABBs(int FO)
 	//receiveFOACK(FO);
 }
 
-void MPI_Communicator::renderNextFrame(int FO, size_t slice_size, size_t slices)
+void MPI_Communicator::renderNextFrame(int FO, int slice_size, int slices)
 {
-	int buffer [] = {0};
-	sendFO(buffer, 0, FO, e_comm_tags::render_frame);
-	receiveFOACK(FO);
+	int buffer [] = {slice_size, slices};
+	sendFO(buffer, 2, FO, e_comm_tags::render_frame);
+//	receiveFOACK(FO);
+}
+
+size_t MPI_Communicator::receiveRenderedFrame(int fromFO, int slice_size, int slices) {
+	/* Unused right now due to mergeImages method*/
+}
+
+void MPI_Communicator::mergeImages(int FO, int slice_size, int slices, unsigned short * maskPixelBuffer, float * phantomBuffer, float * opticsBuffer) {
+	unsigned short mask_add [slice_size] = {0};
+	float phantom_add [slice_size] = {0};
+	float optics_add [slice_size] = {0};
+	unsigned short MAX_LIGHT = 65536;
+	e_comm_tags rmask = e_comm_tags::mask_data;
+	e_comm_tags rimg = e_comm_tags::float_image_data;
+
+	REPORT("From #" << instance_ID << " to #" << FO << " merge images plane size " << slice_size << " slices " << slices);
+	for (int slice = 0 ; slice < slices; slice++) {
+		int received_slice_size = (int) slice_size;
+		int received_from = MPI_ANY_SOURCE;
+		unsigned short * mask_start = maskPixelBuffer+slice*sizeof(unsigned short);
+		float * phantom_start = phantomBuffer+slice*sizeof(float);
+		float * optics_start = opticsBuffer+slice*sizeof(float);
+		REPORT("From #" << instance_ID << " to #" << FO << " slice " << slice);
+		if (instance_ID) { // Front officer - receives and send later
+			if (maskPixelBuffer) { receiveMPIMessage(image_comm, mask_add, received_slice_size, tagMap(rmask), MPI_STATUSES_IGNORE, received_from, rmask); }
+			if (phantomBuffer) { receiveMPIMessage(image_comm, phantom_add, received_slice_size, tagMap(rimg), MPI_STATUSES_IGNORE, received_from, rimg);  }
+			if (opticsBuffer) { receiveMPIMessage(image_comm, optics_add, received_slice_size, tagMap(rimg), MPI_STATUSES_IGNORE, received_from, rimg); }
+//			assert(received_slice_size == slice_size && received_from == instance_ID - 1);
+			for (int idx=0; idx < slice_size; idx++) {
+				mask_start[idx] += mask_add[idx];
+				phantom_start[idx] += phantom_add[idx];
+				optics_start[idx] += optics_add[idx]; //Probably Not correct, should be mean/median later?
+			}
+		}
+
+		//TBD Check if Director's image is zeroed
+		if (maskPixelBuffer) { sendMPIMessage(image_comm, mask_start, slice_size, tagMap(e_comm_tags::mask_data), FO , e_comm_tags::mask_data); }
+		if (phantomBuffer) { sendMPIMessage(image_comm, phantom_start, slice_size, tagMap(e_comm_tags::float_image_data), FO, e_comm_tags::float_image_data); }
+		if (opticsBuffer) { sendMPIMessage(image_comm, optics_start, slice_size, tagMap(e_comm_tags::float_image_data), FO, e_comm_tags::float_image_data); }
+
+		if (!instance_ID) { // Director - receives last, directly apply to the buffer
+			if (maskPixelBuffer) { receiveMPIMessage(image_comm, mask_start, received_slice_size, tagMap(rmask), MPI_STATUSES_IGNORE, received_from, rmask); }
+			if (phantomBuffer) { receiveMPIMessage(image_comm, phantom_start, received_slice_size, tagMap(rimg), MPI_STATUSES_IGNORE, received_from, rimg);  }
+			if (opticsBuffer) { receiveMPIMessage(image_comm, optics_start, received_slice_size, tagMap(rimg), MPI_STATUSES_IGNORE, received_from, rimg); }
+			//assert(received_slice_size == slice_size && received_from == instances - 1);
+		}
+	}
+	REPORT("From #" << instance_ID << " to #" << FO << " done ");
 }
 
 
