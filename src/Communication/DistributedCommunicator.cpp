@@ -14,7 +14,7 @@ MPI_Communicator::~MPI_Communicator() {
 
 int MPI_Communicator::init(int argc, char **argv) {
 	int cshift = 1, icnt;
-	const int director_id [1] = {0};
+	//const int director_id [1] = {0};
 	int state = MPI_Init(&argc, &argv);
 
 	if (state != MPI_SUCCESS) {  return state; }
@@ -110,7 +110,7 @@ bool MPI_Communicator::detectMPIMessage(MPI_Comm comm, int peer, e_comm_tags & t
 }
 
 bool MPI_Communicator::receiveAndProcessDirectorMessage(void * buffer, int &recv_size, e_comm_tags &tag) {
-	MPI_Status status;
+//	MPI_Status status;
 	bool result;
 	int state;
 
@@ -137,6 +137,20 @@ bool MPI_Communicator::receiveDirectorMessage(void * buffer, int &recv_size, e_c
 	}
 	return false;
 }
+
+int MPI_Communicator::receiveMPIMessage(MPI_Comm comm, void * data,  int & items, MPI_Datatype datatype, MPI_Status *status, int peer, e_comm_tags tag) {
+	debugMPIComm("Ask to receive", comm, items, peer, tag);
+	MPI_Status local_status;
+	if (status == MPI_STATUSES_IGNORE) { status = &local_status; }
+
+	int state = MPI_Recv(data, items, datatype, peer, tag, comm, status);
+	if (state == MPI_SUCCESS) {
+		state = MPI_Get_count(status, datatype, &items);
+	}
+	debugMPIComm("Received", comm, items, peer, tag);
+	return state;
+}
+
 
 e_comm_tags MPI_Communicator::detectFOMessage(bool async) {
 	e_comm_tags tag = e_comm_tags::unspecified;
@@ -234,9 +248,9 @@ size_t MPI_Communicator::receiveRenderedFrame(int fromFO, int slice_size, int sl
 }
 
 void MPI_Communicator::mergeImages(int FO, int slice_size, int slices, unsigned short * maskPixelBuffer, float * phantomBuffer, float * opticsBuffer) {
-	unsigned short mask_add [slice_size] = {0};
-	float phantom_add [slice_size] = {0};
-	float optics_add [slice_size] = {0};
+	unsigned short * mask_add  = (unsigned short *)malloc((slice_size+1) * sizeof(unsigned short));
+	float * phantom_add = (float *)malloc((slice_size+1) * sizeof(float));
+	float * optics_add = (float *) malloc(slice_size * sizeof(float));
 	unsigned short MAX_LIGHT = 65536;
 	e_comm_tags rmask = e_comm_tags::mask_data;
 	e_comm_tags rimg = e_comm_tags::float_image_data;
@@ -273,6 +287,9 @@ void MPI_Communicator::mergeImages(int FO, int slice_size, int slices, unsigned 
 			//assert(received_slice_size == slice_size && received_from == instances - 1);
 		}
 	}
+	free(mask_add);
+	free(phantom_add);
+	free(optics_add);
 	REPORT("From #" << instance_ID << " to #" << FO << " done ");
 }
 

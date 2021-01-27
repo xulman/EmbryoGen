@@ -338,16 +338,7 @@ protected:
 			return MPI_Bcast(data, items, datatype, instance_ID, comm);
 		}
 
-		inline int receiveMPIMessage(MPI_Comm comm, void * data,  int & items, MPI_Datatype datatype, MPI_Status *status = MPI_STATUSES_IGNORE , int peer=MPI_ANY_SOURCE, e_comm_tags tag = e_comm_tags::unspecified) {
-			debugMPIComm("Ask to receive", comm, items, peer, tag);
-
-			int state = MPI_Recv(data, items, datatype, peer, tag, comm, status);
-			if (state == MPI_SUCCESS) {
-				state = MPI_Get_count(status, datatype, &items);
-			}
-			debugMPIComm("Received", comm, items, peer, tag);
-			return state;
-		}
+		int receiveMPIMessage(MPI_Comm comm, void * data,  int & items, MPI_Datatype datatype, MPI_Status *status = MPI_STATUSES_IGNORE , int peer=MPI_ANY_SOURCE, e_comm_tags tag = e_comm_tags::unspecified);
 
 		inline MPI_Datatype tagMap(e_comm_tags tag) {
 			switch (tag) {
