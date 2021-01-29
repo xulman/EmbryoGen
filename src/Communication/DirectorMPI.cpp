@@ -10,28 +10,28 @@ void Director::respond_getNextAvailAgentID()
 }
 
 
-void Director::respond_startNewAgent()
+void Director::respond_startNewAgent(int FO)
 {
-	communicator->sendACKtoLastFO();  //send requested ACK back, maybe unneccessary?
+	communicator->sendACKtoFO(FO);  //send requested ACK back, maybe unneccessary?
 }
 
 
-void Director::respond_closeAgent()
+void Director::respond_closeAgent(int FO)
 {
-	communicator->sendACKtoLastFO();  //send requested ACK back, maybe unneccessary?
+	communicator->sendACKtoFO(FO);  //send requested ACK back, maybe unneccessary?
 }
 
 
-void Director::respond_updateParentalLink()
+void Director::respond_updateParentalLink(int FO)
 {
-	communicator->sendACKtoLastFO();  //send requested ACK back, maybe unneccessary?
+	communicator->sendACKtoFO(FO);  //send requested ACK back, maybe unneccessary?
 }
 
 
 void Director::notify_publishAgentsAABBs(const int FOsID)
 {
 	int buffer[1] = {0};
-	communicator->sendFO(buffer,0,FOsID, e_comm_tags::unblock_FO);
+	//communicator->sendFO(buffer,0,FOsID, e_comm_tags::unblock_FO);
 	communicator->publishAgentsAABBs(FOsID);
 	//waitHereUntilEveryoneIsHereToo();
 }
@@ -123,12 +123,13 @@ void Director::respond_Loop()
 	}*/
 	do {
 		int instance = FO_INSTANCE_ANY;
-		if ((tag = communicator->detectFOMessage()) < 0) {
+		/*if ((tag = communicator->detectFOMessage()) < 0) {
 			std::this_thread::sleep_for((std::chrono::milliseconds)10);
 			continue;
-		}
-		//tag=communicator->detectFOMessage(false);
+		}*/
+		tag=communicator->detectFOMessage(false);
 		if (tag == e_comm_tags::ACK) {
+			REPORT("ACK on Director Communicator on Director");
 			std::this_thread::sleep_for((std::chrono::milliseconds)10);
 			continue;
 		}
@@ -143,29 +144,31 @@ void Director::respond_Loop()
 				communicator->receiveFOMessage(ibuffer, items, instance, tag);
 				assert(items == 3);
 				startNewAgent(ibuffer[0], ibuffer[1], ibuffer[2] != 0);
-				respond_startNewAgent();
+				respond_startNewAgent(instance);
 				break;
 			case e_comm_tags::update_parent:
 				communicator->receiveFOMessage(ibuffer, items, instance, tag);
 				assert(items == 2);
 				startNewDaughterAgent(ibuffer[0], ibuffer[1]);
-				respond_updateParentalLink();
+				respond_updateParentalLink(instance);
 				break;
 			case e_comm_tags::close_agent:
 				communicator->receiveFOMessage(ibuffer, items, instance, tag);
 				assert(items == 2);
 				closeAgent(ibuffer[0], ibuffer[1]);
-				respond_closeAgent();
+				respond_closeAgent(instance);
 				break;
 			case e_comm_tags::next_stage:
 				communicator->receiveFOMessage(buffer, items, instance, tag);
 				waiting++;
 				REPORT("Waiting FOs total: " << waiting << " out of " << FOsCount << " on Director");
 				if (waiting == FOsCount) {
-					communicator->waitSync();
+					communicator->waitSync(e_comm_tags::next_stage);
 					waiting=0;
 				}
 				break;
+/*			case e_comm_tags::get_count_AABB: 
+				continue;*/
 			case e_comm_tags::send_AABB: //Forgotten round-robin
 				communicator->receiveFOMessage(ibuffer, items, instance, tag);
 				assert(items == 0);
@@ -204,6 +207,7 @@ void Director::respond_Loop()
 
 void Director::waitHereUntilEveryoneIsHereToo(/*int stage?*/) //Will this work without specification of stage as an argument?
 {
+	DEBUG_REPORT("Wait Here Until Everyone Is Here Too Director");
 	communicator->waitSync();
 }
 

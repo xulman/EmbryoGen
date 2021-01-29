@@ -4,7 +4,7 @@
 //in the SMP world, a lot of respond_...() methods are actually
 //empty because the FOs reach directly the implementing code
 
-void Director::respond_getNextAvailAgentID()
+void Director::respond_getNextAvailAgentID(int)
 {
 	//this never happens (as FO here talks directly to the Direktor)
 	//MPI world:
@@ -18,7 +18,7 @@ void Director::respond_getNextAvailAgentID()
 }
 
 
-void Director::respond_startNewAgent()
+void Director::respond_startNewAgent(int )
 {
 	//this never happens (as FO here talks directly to the Direktor)
 	//MPI world:
@@ -37,7 +37,7 @@ void Director::respond_startNewAgent()
 }
 
 
-void Director::respond_closeAgent()
+void Director::respond_closeAgent(int )
 {
 	//this never happens (as FO here talks directly to the Direktor)
 	//MPI world:

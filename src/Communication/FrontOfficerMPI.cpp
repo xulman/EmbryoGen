@@ -65,7 +65,7 @@ void FrontOfficer::waitFor_publishAgentsAABBs()
 		{
 			int aabb_count = communicator->cntOfAABBs(i, true);
 			//sentAABBs = new t_aabb[aabb_count];
-			DEBUG_REPORT("Receive " << aabb_count << "AABBs at FO#" << ID << " from FO #" << i);
+			DEBUG_REPORT("Receive " << aabb_count << " AABBs at FO#" << ID << " from FO #" << i);
 			sentAABBs = (t_aabb*) malloc(sizeof(t_aabb)*(aabb_count+1));
 			communicator->receiveBroadcast(sentAABBs, aabb_count, i, e_comm_tags::send_AABB);
 			for (int j=0; j < aabb_count; j++) {
@@ -126,7 +126,8 @@ void FrontOfficer::respond_AABBofAgent()
 void FrontOfficer::respond_CntOfAABBs()
 {
 	size_t sendBackMyCount = getSizeOfAABBsList();
-	communicator->sendCntOfAABBs(sendBackMyCount);
+	DEBUG_REPORT("FO #" << ID << " Count: " << sendBackMyCount);
+	//communicator->sendCntOfAABBs(sendBackMyCount);
 }
 
 
@@ -196,15 +197,17 @@ void FrontOfficer::respond_newAgentsTypes(int noOfIncomingNewAgentTypes)
 
 ShadowAgent* FrontOfficer::request_ShadowAgentCopy(const int agentID, const int FOsID)
 {
-	long param_buff[4] =  {agentID,0,0,0};
+	size_t param_buff[4] =  {agentID,0,0,0};
 	int cnt = 4; //sizeof(param_buff) / sizeof(long*);
-	int fo_back = FOsID, items;
+	int fo_back = FOsID;
+	int items;
 	e_comm_tags tag = e_comm_tags::shadow_copy;
 
-	communicator->sendFO(param_buff, 1, FOsID, e_comm_tags::shadow_copy);
+	communicator->sendFO(param_buff, 1, FOsID, e_comm_tags::get_shadow_copy);
 	communicator->receiveFOMessage(param_buff, cnt, fo_back, tag);
-
-	char * data_buff = new char [param_buff[1]];
+	DEBUG_REPORT("Received shadow copy info at FO #"  << ID << ": ID=" << param_buff[0] << ", Type=" << param_buff[2] << ", Geom Type=" << param_buff[3]);
+	items= (int)param_buff[1];
+	char * data_buff = (char *) malloc(items);
 
 	tag=e_comm_tags::shadow_copy_data;
 	communicator->receiveFOMessage(data_buff, items, fo_back, tag);
@@ -212,7 +215,7 @@ ShadowAgent* FrontOfficer::request_ShadowAgentCopy(const int agentID, const int 
 	int         gotThisAgentID   = (int) param_buff[0];
 	std::string gotThisAgentType = agentsTypesDictionary.translateIdToString((size_t)param_buff[2]);
 	Geometry*   gotThisGeom      = Geometry::createAndDeserializeFrom((int)param_buff[3], data_buff);
-	delete [] data_buff;
+	free(data_buff);
 
 	return new ShadowAgent(*gotThisGeom, gotThisAgentID,gotThisAgentType);
 }
@@ -234,9 +237,10 @@ void FrontOfficer::respond_ShadowAgentCopy(const int agentID)
 	const size_t sendBackAgentType = aaRef.getAgentTypeID();
 	const int geom_type = (int) sendBackGeom.shapeForm;
 
-	long param_buff[4] =  {sendBackAgentID, geom_size, sendBackAgentType, geom_type};
+	size_t param_buff[4] =  {sendBackAgentID, geom_size, sendBackAgentType, geom_type};
 	int cnt = 4; //sizeof(param_buff) / sizeof(long*);
 
+	DEBUG_REPORT("Sent shadow copy info at FO #"  << ID << ": ID=" << param_buff[0] << ", Type=" << param_buff[2] << ", Geom Type=" << param_buff[3]);
 	communicator->sendFO(param_buff, cnt, foID, e_comm_tags::shadow_copy);
 
 	char buffer_to_send [geom_size];
@@ -281,13 +285,14 @@ void FrontOfficer::respond_Loop()
 	do {
 		items = DIRECTOR_RECV_MAX;
 		int instance = FO_INSTANCE_ANY;
-		if ((tag = communicator->detectFOMessage()) < 0) {
+		if ((tag = communicator->detectFOMessage(false/*we are runnung synchronously in the thread*/)) < 0) {
 			// Detect other FO messages (are there any?) and broadcasts here...
 			std::this_thread::sleep_for((std::chrono::milliseconds)10);
 			continue;
 		}
 		//tag=communicator->detectFOMessage(false);
-		if (tag == e_comm_tags::ACK) {
+		if (tag == e_comm_tags::ACK || tag == e_comm_tags::unblock_FO) {
+			REPORT("ACK/Unblock on Director Communicator on FO #" << ID);
 			std::this_thread::sleep_for((std::chrono::milliseconds)10);
 			continue;
 		}
@@ -304,10 +309,15 @@ void FrontOfficer::respond_Loop()
 				setAgentsDetailedReportingMode(buffer[0], buffer[1] != 0);
 				respond_setDetailedReportingMode();
 				break;
-			case e_comm_tags::count_AABB:
+			case e_comm_tags::get_count_AABB:
 				communicator->receiveFOMessage(ibuffer, items, instance, tag);
 				assert(items == 0);
 				respond_CntOfAABBs();
+				break;
+			case e_comm_tags::get_shadow_copy:
+				communicator->receiveFOMessage(ibuffer, items, instance, tag);
+				assert(items == 1);
+				respond_ShadowAgentCopy(ibuffer[0]);
 				break;
 			case e_comm_tags::send_AABB:
 				communicator->receiveFOMessage(ibuffer, items, instance, tag);
@@ -320,7 +330,7 @@ void FrontOfficer::respond_Loop()
 				communicator->receiveFOMessage(ibuffer, items, instance, tag);
 				assert(items == 2);
 				request_renderNextFrame(nextFOsID);
-				communicator->renderNextFrame(nextFOsID, ibuffer[0], ibuffer[1]);
+				waitFor_renderNextFrame();
 				//communicator->receiveRenderedFrame(instance, ibuffer[0], ibuffer[1]);
 				break;
 			case e_comm_tags::next_stage:
@@ -348,6 +358,7 @@ void FrontOfficer::respond_Loop()
 
 void FrontOfficer::waitHereUntilEveryoneIsHereToo() //Will this work without specification of stage as an argument?
 {
+	DEBUG_REPORT("Wait Here Until Everyone Is Here Too FO #" << ID);
 	communicator->waitSync();
 }
 

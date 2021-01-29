@@ -128,9 +128,12 @@ bool MPI_Communicator::receiveDirectorMessage(void * buffer, int &recv_size, e_c
 	MPI_Status status;
 	bool result;
 	int state;
+	static int did=DIRECTOR_ID;
 
-	MPI_Comm comm = (tag == e_comm_tags::ACK)?MPI_COMM_WORLD:director_comm;
-	state = receiveMPIMessage(comm, buffer, recv_size, tagMap(tag), &status, DIRECTOR_ID, tag);
+	//MPI_Comm comm = (tag == e_comm_tags::ACK)?MPI_COMM_WORLD:director_comm;
+	MPI_Comm comm = tagCommMap(tag, director_comm);
+
+	state = receiveMPIMessage(comm, buffer, recv_size, tagMap(tag), &status, did, tag);
 	if (state == MPI_SUCCESS) {
 		tag = (e_comm_tags) status.MPI_TAG;
 		return true;
@@ -138,7 +141,7 @@ bool MPI_Communicator::receiveDirectorMessage(void * buffer, int &recv_size, e_c
 	return false;
 }
 
-int MPI_Communicator::receiveMPIMessage(MPI_Comm comm, void * data,  int & items, MPI_Datatype datatype, MPI_Status *status, int peer, e_comm_tags tag) {
+int MPI_Communicator::receiveMPIMessage(MPI_Comm comm, void * data,  int & items, MPI_Datatype datatype, MPI_Status *status, int & peer, e_comm_tags tag) {
 	debugMPIComm("Ask to receive", comm, items, peer, tag);
 	MPI_Status local_status;
 	if (status == MPI_STATUSES_IGNORE) { status = &local_status; }
@@ -146,6 +149,7 @@ int MPI_Communicator::receiveMPIMessage(MPI_Comm comm, void * data,  int & items
 	int state = MPI_Recv(data, items, datatype, peer, tag, comm, status);
 	if (state == MPI_SUCCESS) {
 		state = MPI_Get_count(status, datatype, &items);
+		peer = status->MPI_SOURCE;
 	}
 	debugMPIComm("Received", comm, items, peer, tag);
 	return state;
@@ -166,7 +170,8 @@ bool MPI_Communicator::receiveFOMessage(void * buffer, int &recv_size, int & ins
 	bool result;
 	int state;
 
-	MPI_Comm comm = (tag == e_comm_tags::ACK)?MPI_COMM_WORLD:director_comm;
+	//MPI_Comm comm = (tag == e_comm_tags::ACK)?MPI_COMM_WORLD:director_comm;
+	MPI_Comm comm = tagCommMap(tag, director_comm);
 	if (instance_ID == 0) { instance_ID = MPI_ANY_SOURCE;}
 
 	state = receiveMPIMessage(comm, buffer, recv_size, tagMap(tag), &status, instance_ID, tag);
@@ -299,22 +304,22 @@ size_t MPI_Communicator::cntOfAABBs(int FO, bool broadcast)
 	e_comm_tags tag = e_comm_tags::count_AABB;
 	uint64_t buffer [] = {0};
 	int cnt = 1;
-	DEBUG_REPORT("Request AABBS total from " << FO);
-	sendFO(buffer, 0, FO, e_comm_tags::count_AABB);
+	DEBUG_REPORT("Request AABBS total from #" << FO << ((broadcast)?" (broadcast)":"") << " at #" << instance_ID);
+	sendFO(buffer, 0, FO, e_comm_tags::get_count_AABB);
 	//DEBUG_REPORT("Waiting for AABBs total from " << FO);
 	if (broadcast) {
 		receiveBroadcast(buffer, cnt, FO, e_comm_tags::count_AABB);
 	} else {
 		receiveFOMessage(buffer, cnt, FO, tag);
 	}
-	DEBUG_REPORT("AABBS total " << buffer[0] << " from " << FO);
+	DEBUG_REPORT("AABBS total " << buffer[0] << " from #" << FO);
 	return buffer[0];
 }
 
 void MPI_Communicator::sendCntOfAABBs(size_t count_AABBs, bool broadcast)
 {
 	size_t buffer [] = {count_AABBs};
-	DEBUG_REPORT("Send AABBS from " << instance_ID <<" total " << buffer[0]);
+	DEBUG_REPORT("Send AABBS total from #" << instance_ID << " total " << buffer[0] << ((broadcast)?" (broadcast)":""));
 	if (broadcast) {
 		sendBroadcast(buffer, 1, instance_ID, e_comm_tags::count_AABB);
 	} else {
@@ -324,11 +329,11 @@ void MPI_Communicator::sendCntOfAABBs(size_t count_AABBs, bool broadcast)
 
 
 void MPI_Communicator::waitFor_publishAgentsAABBs() {
-	waitSync();
+	waitSync(e_comm_tags::send_AABB);
 }
 
 void MPI_Communicator::waitFor_renderNextFrame() {
-	waitSync();
+	waitSync(e_comm_tags::float_image_data);
 }
 
 void MPI_Communicator::sendNextID(int id) {

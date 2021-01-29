@@ -71,8 +71,8 @@ public:
 	void advanceAndBuildIntForces(const float)
 	{
 		//random duration (in full 2-10 seconds) pause here to pretend "some work"
-		const int waitingTime = (int)GetRandomUniform(2,10);
-		REPORT(IDSIGN << "pretends work that would last for " << waitingTime << " seconds");
+		const int waitingTime = (int)GetRandomUniform(1,4);
+		REPORT(IDSIGN << "pretends work that would last for " << waitingTime << " second(s)");
 		std::this_thread::sleep_for(std::chrono::seconds( (long long)waitingTime ));
 
 		//ask to have the geometry updated as a result of the "some work"

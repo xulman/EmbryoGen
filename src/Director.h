@@ -198,9 +198,9 @@ protected:
 
 	void respond_getNextAvailAgentID();
 
-	void respond_startNewAgent(); //TBD - add parameters from start*
-	void respond_closeAgent();
-	void respond_updateParentalLink();
+	void respond_startNewAgent(int FO); //TBD - add parameters from start*
+	void respond_closeAgent(int FO);
+	void respond_updateParentalLink(int FO);
 
 	//void respond_willRenderNextFrameFlag();
 

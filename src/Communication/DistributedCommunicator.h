@@ -35,11 +35,13 @@ typedef enum {
 	close_agent=2,
 	update_parent=3,
 	send_AABB=4,
-	count_AABB=5,
-	new_type=6,
-	count_new_type=7,
-	shadow_copy=8,
-	shadow_copy_data=9,
+	get_count_AABB=5,
+	count_AABB=6,
+	new_type=7,
+	count_new_type=8,
+	get_shadow_copy=9,
+	shadow_copy=10,
+	shadow_copy_data=11,
 	render_frame=0x10,
 	set_detailed_drawing=0x20,
 	set_detailed_reporting=0x21,
@@ -89,7 +91,7 @@ public:
 			receiveDirectorMessage(director_buffer, director_buffer_size, tag);
 		}
 
-		virtual void waitSync() {}
+		virtual void waitSync(e_comm_tags tag=e_comm_tags::unspecified) {}
 
 		inline void unblockNextIfSent() {
 			if (hasSent) {
@@ -110,11 +112,16 @@ public:
 			return sendFO(data, count, lastFOID, tag);
 		}
 
-		inline int sendACKtoLastFO() {
+		inline int sendACKtoFO(int FO) {
+			char id = 0;
+			return sendFO(&id, 0, FO, e_comm_tags::ACK);
+		}
+
+/*		inline int sendACKtoLastFO() { //Probably broken
 			char id = 0;
 			return sendLastFO(&id, 0, e_comm_tags::ACK); // We could also store last tag and send it back instead of ACK
 		}
-
+*/
 		inline void receiveFOACK(int FO) {
 			e_comm_tags tag = e_comm_tags::ACK; 		//Should we use ::unspecified instead?
 			receiveFOMessage(director_buffer, director_buffer_size, FO, tag);
@@ -181,6 +188,8 @@ public:
 					return "Update Parent";
 				case e_comm_tags::close_agent:
 					return "Close Agent";
+				case e_comm_tags::get_count_AABB:
+					return "Get Count of AABBs";
 				case e_comm_tags::count_AABB:
 					return "Count AABB";
 				case e_comm_tags::send_AABB:
@@ -205,6 +214,8 @@ public:
 					return "New type";
 				case e_comm_tags::count_new_type:
 					return "New type count";
+				case e_comm_tags::get_shadow_copy:
+					return "Get shadow copy";
 				case e_comm_tags::shadow_copy:
 					return "Shadow copy";
 				case e_comm_tags::shadow_copy_data:
@@ -277,14 +288,16 @@ public:
 
 		/*** Communication channel to the director ***/
 		virtual int sendDirector(void *data, int count, e_comm_tags tag) {
-			MPI_Comm comm = (tag == e_comm_tags::ACK)?MPI_COMM_WORLD:director_comm;
+			//MPI_Comm comm = (tag == e_comm_tags::ACK)?MPI_COMM_WORLD:director_comm;
+			MPI_Comm comm = tagCommMap(tag, director_comm);
 			return sendMPIMessage(comm, data, count, tagMap(tag), 0, tag);
 		}
 
 		virtual e_comm_tags detectFOMessage(bool async=true);
 
 		virtual int sendFO(void *data, int count, int instance_ID, e_comm_tags tag) {
-			MPI_Comm comm = (tag == e_comm_tags::ACK)?MPI_COMM_WORLD:director_comm;
+			//MPI_Comm comm = (tag == e_comm_tags::ACK)?MPI_COMM_WORLD:director_comm;
+			MPI_Comm comm = tagCommMap(tag, director_comm);
 			return sendMPIMessage(comm, data, count, tagMap(tag), instance_ID, tag);
 		}
 
@@ -295,17 +308,14 @@ public:
 		/*** Front officer communication channels */
 		virtual bool receiveFOMessage(void * buffer, int &recv_size, int & instance_ID,  e_comm_tags &tag); //Single reception step, for response messages
 
-		virtual void waitSync() {
-			e_comm_tags tag = e_comm_tags::next_stage;
-			debugMPIComm("WaitSync", director_comm, -1, instance_ID,  e_comm_tags::unspecified);
+		virtual void waitSync(e_comm_tags tag=e_comm_tags::unspecified) {
+			e_comm_tags tag2 = e_comm_tags::next_stage;
 			if (instance_ID) {
-				sendDirector(no_message, 0, tag);
+				sendDirector(no_message, 0, tag2);
 			}
+			debugMPIComm("WaitSync", tagCommMap(tag), -1, instance_ID,  tag);
 			MPI_Barrier(director_comm);
-			/*if (instance_ID != 0) {
-				receiveDirectorMessage(director_buffer, director_buffer_size, tag); //TBD: Director or broadcast message?
-			}*/
-			debugMPIComm("WaitSyncEnd", director_comm, -1, instance_ID,  e_comm_tags::unspecified);
+			debugMPIComm("WaitSyncEnd", tagCommMap(tag), -1, instance_ID,  tag);
 		}
 
 		virtual void close();
@@ -338,7 +348,7 @@ protected:
 			return MPI_Bcast(data, items, datatype, instance_ID, comm);
 		}
 
-		int receiveMPIMessage(MPI_Comm comm, void * data,  int & items, MPI_Datatype datatype, MPI_Status *status = MPI_STATUSES_IGNORE , int peer=MPI_ANY_SOURCE, e_comm_tags tag = e_comm_tags::unspecified);
+		int receiveMPIMessage(MPI_Comm comm, void * data,  int & items, MPI_Datatype datatype, MPI_Status *status, int &peer, e_comm_tags tag = e_comm_tags::unspecified);
 
 		inline MPI_Datatype tagMap(e_comm_tags tag) {
 			switch (tag) {
@@ -346,12 +356,13 @@ protected:
 				case e_comm_tags::new_agent: //int, int, bool - special datype?
 				case e_comm_tags::update_parent:
 				case e_comm_tags::close_agent:
-				case e_comm_tags::shadow_copy:
+				case e_comm_tags::get_shadow_copy:
 					return MPI_INT64_T;				//Really? Or MPI_INT64_T or MPI_UINT64_T?
 				case e_comm_tags::count_new_type:
 					return MPI_INT;
 				case e_comm_tags::count_AABB:
 				case e_comm_tags::render_frame:
+				case e_comm_tags::shadow_copy:
 					return MPI_UINT64_T;
 				case e_comm_tags::send_AABB:
 					return MPI_AABB;			//Broadcast First Types, then AABBs
@@ -376,10 +387,12 @@ protected:
 			}
 		}
 
-		inline MPI_Comm tagCommMap(e_comm_tags tag) {
+		inline MPI_Comm tagCommMap(e_comm_tags tag, MPI_Comm def=MPI_COMM_WORLD) {
 			switch (tag) {
 				case e_comm_tags::count_AABB:
 				case e_comm_tags::send_AABB:
+				case e_comm_tags::shadow_copy_data:
+				case e_comm_tags::shadow_copy:
 					return aabb_comm;			//Broadcast First Types, then AABBs
 				case e_comm_tags::count_new_type:
 				case e_comm_tags::new_type:
@@ -387,9 +400,10 @@ protected:
 				case e_comm_tags::mask_data:
 				case e_comm_tags::float_image_data:
 					return image_comm;
-//				case e_comm_tags::ACK:
-				default: //Every other message should be passed by async director communication - but it may break something
+				case e_comm_tags::ACK:
 					return MPI_COMM_WORLD;
+				default: //Every other message should be passed by async director communication - but it may break something
+					return def;
 //					return director_comm;
 			}
 		}
