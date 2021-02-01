@@ -71,6 +71,7 @@ set(SOURCES
 file(GLOB SCENARIOSOURCES src/Scenarios/*.cpp)
 
 add_executable(embryogen ${SOURCES} ${SCENARIOSOURCES})
+add_custom_target(commitHash ALL "../imprintGitHash.sh")
 
 #--------------------------------------------
 # TARGET LINKING - FIRST-LEVEL REQUIRED LIBS

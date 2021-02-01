@@ -2,9 +2,11 @@
 #include <i3d/basic.h>
 #include "Simulation.h"
 #include "Scenarios/Scenarios.h"
+#include "git_hash.h"
 
 int main(int argc, char** argv)
 {
+	std::cout << "This is EmbryoGen at commit rev " << gitCommitHash << ".\n";
 	Simulation* s = NULL;
 
 	try

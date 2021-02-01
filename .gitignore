@@ -20,6 +20,7 @@ bin*
 # Log file, some documentation material #
 *.log
 doc/Mito*
+src/git_hash.h
 
 # Apple #
 .DS_Store
