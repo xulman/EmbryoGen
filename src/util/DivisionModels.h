@@ -126,7 +126,7 @@ private:
 	                           const float valA,                  const float valB) const
 	{
 		float wA = (posB-pos) / (posB-posA);
-		return ( wA*valA + (1.-wA)*valB );
+		return ( wA*valA + (1.f-wA)*valB );
 	}
 };
 
@@ -162,9 +162,9 @@ template <int N, int TB, int TA, int D>
 class DivisionModels
 {
 public:
-	typedef DivisionModel<N,TB,TA,D> DivisionModel;
+	typedef DivisionModel<N,TB,TA,D> DivModelType;
 
-	std::vector<DivisionModel> models;
+	std::vector<DivModelType> models;
 	const float timeStep;
 
 	DivisionModels(const char* filename, const float _timeStep = 1.0f):
@@ -183,35 +183,35 @@ public:
 	}
 
 	// ---------------------- immutable original models ----------------------
-	const DivisionModel& getModel(const int id) const
+	const DivModelType& getModel(const int id) const
 	{
 		try { return models.at(id); }
 		catch (std::out_of_range e) { throw ERROR_REPORT("Out of range with model id " << id); }
 	}
 
-	const DivisionModel& getRandomModel() const
+	const DivModelType& getRandomModel() const
 	{
-		const int id = (int)GetRandomUniform(0,models.size()-0.001);
+		const int id = (int)GetRandomUniform(0,(float)models.size()-0.001f);
 		return getModel(id);
 	}
 
 	// ---------------------- mutable original models ----------------------
-	DivisionModel& getModel(const int id)
+	DivModelType& getModel(const int id)
 	{
 		try { return models.at(id); }
 		catch (std::out_of_range e) { throw ERROR_REPORT("Out of range with model id " << id); }
 	}
 
-	DivisionModel& getRandomModel()
+	DivModelType& getRandomModel()
 	{
-		const int id = (int)GetRandomUniform(0,models.size()-0.001);
+		const int id = (int)GetRandomUniform(0,(float)models.size()-0.001f);
 		return getModel(id);
 	}
 
 	// ---------------------- mutable artificial (mixed) models ----------------------
 	/** friendly front-end method to obtain mixed model from the given number of original
 	    models, the mixing is done with flat weights which effectively emulated averaging */
-	void getAveragedModel(DivisionModel& m, const int fromThisNoOfRandomModels = 2) const
+	void getAveragedModel(DivModelType& m, const int fromThisNoOfRandomModels = 2) const
 	{
 		float weights[TB+TA][fromThisNoOfRandomModels];
 		setFlatWeights<TB+TA,fromThisNoOfRandomModels>(weights);
@@ -224,7 +224,7 @@ public:
 	    is shifting between time points which effectively emulates merging dominant
 	    model with the remaining models while the choice of the dominant model is changing
 	    while the resulting/output model is being built */
-	void getShiftingGaussWeightedModel(DivisionModel& m, const int fromThisNoOfRandomModels = 4) const
+	void getShiftingGaussWeightedModel(DivModelType& m, const int fromThisNoOfRandomModels = 4) const
 	{
 		float weights[TB+TA][fromThisNoOfRandomModels];
 		setSineShiftingGaussWeights<TB+TA,fromThisNoOfRandomModels>(weights);
@@ -235,7 +235,7 @@ public:
 	/** in principle the same as getGaussRndWalkedModel() except that a peak (box
 	    of width = 1) is representing the currently dominant model and that is shifted,
 	    the peak weight should be boxAmpl-times larger than the non-peaked weights */
-	void getShiftingBoxWeightedModel(DivisionModel& m, const float boxAmpl = 3, const int fromThisNoOfRandomModels = 4) const
+	void getShiftingBoxWeightedModel(DivModelType& m, const float boxAmpl = 3, const int fromThisNoOfRandomModels = 4) const
 	{
 		float weights[TB+TA][fromThisNoOfRandomModels];
 		setSineShiftingBoxWeights<TB+TA,fromThisNoOfRandomModels>(weights,boxAmpl);
@@ -247,10 +247,10 @@ public:
 	/** provides a model averaged from randomly (with repetition) chosen original
 	    models and mixes them according to the given weights */
 	template <int T, int M> //T = no. of Time points, M = no. of models to be mixed
-	void getMixedFromRandomModels(DivisionModel& m, const float weights[T][M]) const
+	void getMixedFromRandomModels(DivModelType& m, const float weights[T][M]) const
 	{
 		//list of reference models to be mixed together
-		const DivisionModel* models[M];
+		const DivModelType* models[M];
 		for (int i=0; i < M; ++i)
 			models[i] = &getRandomModel();
 
@@ -260,8 +260,8 @@ public:
 	/** provides a model averaged from user given models and mixes them according
 	    to the user given weights -- this is the workhorse method */
 	template <int T, int M> //T = no. of Time points, M = no. of models to be mixed
-	void getMixedFromGivenModels(DivisionModel& m, const float weights[T][M],
-	                             const DivisionModel* models[M]) const
+	void getMixedFromGivenModels(DivModelType& m, const float weights[T][M],
+	                             const DivModelType* models[M]) const
 	{
 		//times will be taken as such from the first reference model
 		for (int t=0; t < TB; ++t)
@@ -375,7 +375,7 @@ public:
 		for (int m=0; m < M; ++m) w[m] = norm;
 
 		//spread the extra "(boxMagnitude-1) * norm" value onto weights that are around the boxPos
-		const float remainder = boxPos - std::floorf(boxPos);
+		const float remainder = boxPos - std::floor(boxPos);
 		w[ (int)boxPos      ] += (boxMagnitude-1.f) * norm * (1.f-remainder);
 		w[((int)boxPos +1)%M] += (boxMagnitude-1.f) * norm * remainder;
 	}
@@ -435,13 +435,13 @@ public:
 		firstChar = f.get();
 		while (firstChar != std::ifstream::traits_type::eof() && !isdigit(firstChar))
 		{
-			f.putback(firstChar);
+			f.putback(static_cast<char>(firstChar));
 			f.getline(skipLine,1024);
 			firstChar = f.get();
 		}
 		if (firstChar != std::ifstream::traits_type::eof())
 		{
-			f.putback(firstChar);
+			f.putback(static_cast<char>(firstChar));
 			//std::cout << "scrolled down till: " << (char)firstChar << "\n";
 			return true;
 		}
@@ -451,7 +451,7 @@ public:
 	}
 
 
-	void readOneDataBlock(std::ifstream& f, DivisionModel& dm) const
+	void readOneDataBlock(std::ifstream& f, DivModelType& dm) const
 	{
 		int firstChar;
 		char skipLine[512];
@@ -463,7 +463,7 @@ public:
 		firstChar = f.get();
 		while (firstChar != std::ifstream::traits_type::eof() && std::isdigit(firstChar))
 		{
-			f.putback(firstChar);
+			f.putback(static_cast<char>(firstChar));
 
 			//read the line's first part
 			float time,spotA,spotB,r,dist;
@@ -477,7 +477,7 @@ public:
 					throw ERROR_REPORT("Too many mother (role 0) lines defined.");
 
 				//filling up mother record, role should be 0
-				dm.Mtimes[lines[0]] = -timeStep * (TB-lines[0]);
+				dm.Mtimes[lines[0]] = -timeStep * static_cast<float>(TB-lines[0]);
 			}
 			else if (role < 0 || role > D)
 			{
@@ -489,7 +489,7 @@ public:
 				if (lines[role] == TA)
 					throw ERROR_REPORT("Too many daughter (role " << role << ") lines defined.");
 
-				dm.Dtimes[role-1][lines[role]] = timeStep * (lines[role]);
+				dm.Dtimes[role-1][lines[role]] = timeStep * static_cast<float>(lines[role]);
 			}
 
 			//read the radii+dist pairs for the N-1 spheres
@@ -525,7 +525,7 @@ public:
 			firstChar = f.get();
 			while (firstChar != std::ifstream::traits_type::eof() && firstChar == '#')
 			{
-				f.putback(firstChar);
+				f.putback(static_cast<char>(firstChar));
 				f.getline(skipLine,512);
 				firstChar = f.get();
 			}
@@ -560,6 +560,17 @@ class DivisionModels4S: public DivisionModels<4,TB,TA,2>
 public:
 	DivisionModels4S(const char* filename, const float _timeStep):
 	  DivisionModels<4,TB,TA,2>(filename,_timeStep)
+	{}
+};
+
+
+/** dedicated type for sphered agents that divide into 2 daughters */
+template <int N, int TB, int TA>
+class DivisionModelsNS: public DivisionModels<N,TB,TA,2>
+{
+public:
+	DivisionModelsNS(const char* filename, const float _timeStep):
+	  DivisionModels<N,TB,TA,2>(filename,_timeStep)
 	{}
 };
 #endif
