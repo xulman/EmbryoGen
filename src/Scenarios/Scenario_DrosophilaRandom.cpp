@@ -55,7 +55,7 @@ protected:
 	}
 
 	//expanded masks
-	SpheresFunctions::SpheresInterpolator<FLOAT> si;
+	SpheresFunctions::Interpolator<FLOAT> si;
 	int setupSpheresInterpolationAndReturnNoOfSpheres()
 	{
 		si.addToPlan(0,1,2);
