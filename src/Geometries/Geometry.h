@@ -73,6 +73,40 @@ public:
 		maxCorner = -TOOFAR;
 	}
 
+	/** creates a copy by extending the current one's minCorner by minCornerOutBy,
+	    and maxCorner by maxCornerOutBy, units are microns */
+	AxisAlignedBoundingBox copyAndExtendBy(const Vector3d<FLOAT>& minCornerOutBy,
+	                                       const Vector3d<FLOAT>& maxCornerOutBy) const
+	{
+		AxisAlignedBoundingBox aabb;
+		return extendIntoBy(aabb,minCornerOutBy,maxCornerOutBy);
+	}
+
+	/** creates a copy by extending the current one's minCorner
+	    and maxCorner each by cornersOutBy, units are microns */
+	AxisAlignedBoundingBox copyAndExtendBy(const Vector3d<FLOAT>& cornersOutBy) const
+	{
+		AxisAlignedBoundingBox aabb;
+		return extendIntoBy(aabb,cornersOutBy,cornersOutBy);
+	}
+
+	AxisAlignedBoundingBox& extendIntoBy(AxisAlignedBoundingBox& aabb,
+	                                     const Vector3d<FLOAT>& cornersOutBy) const
+	{
+		return extendIntoBy(aabb,cornersOutBy,cornersOutBy);
+	}
+
+	AxisAlignedBoundingBox& extendIntoBy(AxisAlignedBoundingBox& aabb,
+	                                     const Vector3d<FLOAT>& minCornerOutBy,
+	                                     const Vector3d<FLOAT>& maxCornerOutBy) const
+	{
+		aabb.minCorner  = minCorner;
+		aabb.minCorner -= minCornerOutBy;
+		aabb.maxCorner  = maxCorner;
+		aabb.maxCorner += maxCornerOutBy;
+		return aabb;
+	}
+
 
 	/** returns SQUARED shortest distance along any axis between this and
 	    the given AABB, or 0.0 if they intersect */
@@ -80,7 +114,7 @@ public:
 
 
 	/** Uses RenderingFunctions::drawBox() to render this bounding box. */
-	int drawIt(const int ID, const int color, DisplayUnit& du)
+	int drawIt(const int ID, const int color, DisplayUnit& du) const
 	{ return RenderingFunctions::drawBox(du, ID,color, minCorner,maxCorner); }
 };
 
