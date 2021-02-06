@@ -55,6 +55,108 @@ void renderIntoMask(i3d::Image3d<MT>& mask, const MT drawID,
 	}
 }
 
+
+template <typename MT>
+void analyzeOverlaps(const i3d::Image3d<MT>& mask, const MT label,
+                     const Spheres& geom,
+                     const Vector3d<float>& lookAroundBy,
+                     std::vector<int>& numOrphansPerSphere,
+                     std::vector<int>& numUnwantedPerSphere)
+{
+	//shortcuts to the mask image parameters
+	const Vector3d<float> res(mask.GetResolution().GetRes());
+	const Vector3d<float> off(mask.GetOffset());
+
+	const Vector3d<float>* centres = geom.getCentres();
+	const float* radii = geom.getRadii();
+	const int noOfSpheres = geom.getNoOfSpheres();
+
+	//initialize the stats vectors
+	numOrphansPerSphere.assign(noOfSpheres,0);
+	numUnwantedPerSphere.assign(noOfSpheres,0);
+
+	//project and "clip" this AABB into the img frame
+	//so that voxels to sweep can be narrowed down...
+	//
+	//   sweeping position and boundaries (relevant to the 'mask')
+	Vector3d<size_t> curPos, minSweepPX,maxSweepPX;
+	geom.AABB.copyAndExtendBy(lookAroundBy).exportInPixelCoords(mask, minSweepPX,maxSweepPX);
+	//
+	//micron coordinate of the running voxel 'curPos'
+	Vector3d<float> centre;
+
+	//sweep and check intersection with spheres' volumes
+	for (curPos.z = minSweepPX.z; curPos.z < maxSweepPX.z; curPos.z++)
+	for (curPos.y = minSweepPX.y; curPos.y < maxSweepPX.y; curPos.y++)
+	for (curPos.x = minSweepPX.x; curPos.x < maxSweepPX.x; curPos.x++)
+	{
+		//get micron coordinate of the current voxel's centre
+		centre.toMicronsFrom(curPos, res,off);
+
+		//what matters?
+		//- pixels with the label that belong to no sphere -> we need to find nearest sphere,
+		//- pixels w/o the label but covered by some sphere -> we need to find nearest sphere,
+		//the nearest sphere guarantees max one sphere per pixel, set up associations
+		float orphan_nearDst = 99999999.f;   //former case
+		  int orphan_nearIdx = -1;
+		  int orphan_count   = 0;
+		float unwanted_nearDst = 99999999.f; //later case
+		  int unwanted_nearIdx = -1;
+
+		//check the current voxel against all spheres
+		for (int i = 0; i < noOfSpheres; ++i)
+		{
+			const float pxToCentreDist = (centre-centres[i]).len();
+			if (pxToCentreDist <= radii[i])
+			{
+				if (mask.GetVoxel(curPos.x,curPos.y,curPos.z) != label)
+				{
+					//px is inside the sphere && is not pixel from this mask,
+					//(possibly) update its associated sphere
+					if (pxToCentreDist < unwanted_nearDst)
+					{
+						unwanted_nearDst = pxToCentreDist;
+						unwanted_nearIdx = i;
+					}
+				}
+			}
+			else
+			{
+				if (mask.GetVoxel(curPos.x,curPos.y,curPos.z) == label)
+				{
+					//px is outside the sphere and belongs to this mask,
+					//(possibly) update its associated sphere
+					if (pxToCentreDist < orphan_nearDst)
+					{
+						orphan_nearDst = pxToCentreDist;
+						orphan_nearIdx = i;
+					}
+					++orphan_count;
+				}
+			}
+		}
+
+		//with the current pixel, was there any problematic case encountered?
+		//if yes, adjust stats of its associated sphere
+		if (orphan_count == noOfSpheres) ++numOrphansPerSphere[orphan_nearIdx];
+		if (unwanted_nearIdx > -1) ++numUnwantedPerSphere[unwanted_nearIdx];
+	}
+}
+
+
+void reportOverlaps(std::vector<int>& numOrphansPerSphere,
+                    std::vector<int>& numUnwantedPerSphere)
+{
+	if (numOrphansPerSphere.size() != numUnwantedPerSphere.size())
+		std::cout << "WARNING: stats vectors are of different lengths!\n";
+
+	std::cout << "-------- current overlaps --------\n";
+	for (size_t i = 0; i < numOrphansPerSphere.size(); ++i)
+		std::cout << i << ":  pull-outs = " << numOrphansPerSphere[i]
+		          << " push-ins = " << numUnwantedPerSphere[i] << "\n";
+}
+
+
 int main(void)
 {
 	//reference two balls
@@ -102,6 +204,15 @@ int main(void)
 	std::cout << "Mask image, offset @ " << mask.GetOffset() << " microns, px size " << mask.GetSize() << "\n";
 	renderIntoMask(mask,label,manyS);
 	mask.SaveImage("mask.tif");
+
+	mask.GetVoxelData() = 0;
+	manyS.renderIntoMask(mask,label);
+	mask.SaveImage("maskBW.tif");
+
+	//analyze:
+	std::vector<int> numOrphansPerSphere, numUnwantedPerSphere;
+	analyzeOverlaps(mask,label, manyS,Vector3d<float>(5), numOrphansPerSphere,numUnwantedPerSphere);
+	reportOverlaps(numOrphansPerSphere,numUnwantedPerSphere);
 
 	return 0;
 }
