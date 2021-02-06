@@ -85,6 +85,10 @@ void analyzeOverlaps(const i3d::Image3d<MT>& mask, const MT label,
 	//micron coordinate of the running voxel 'curPos'
 	Vector3d<float> centre;
 
+	//DEBUG IMAGE
+	i3d::Image3d<i3d::GRAY16> dbgImg;
+	dbgImg.CopyMetaData(mask);
+
 	//sweep and check intersection with spheres' volumes
 	for (curPos.z = minSweepPX.z; curPos.z < maxSweepPX.z; curPos.z++)
 	for (curPos.y = minSweepPX.y; curPos.y < maxSweepPX.y; curPos.y++)
@@ -140,7 +144,13 @@ void analyzeOverlaps(const i3d::Image3d<MT>& mask, const MT label,
 		//if yes, adjust stats of its associated sphere
 		if (orphan_count == noOfSpheres) ++numOrphansPerSphere[orphan_nearIdx];
 		if (unwanted_nearIdx > -1) ++numUnwantedPerSphere[unwanted_nearIdx];
+
+		//DEBUG IMAGE
+		if (orphan_count == noOfSpheres) dbgImg.SetVoxel(curPos.x,curPos.y,curPos.z,1);
+		if (unwanted_nearIdx > -1) dbgImg.SetVoxel(curPos.x,curPos.y,curPos.z,2);
 	}
+
+	dbgImg.SaveImage("analysis.tif");
 }
 
 
