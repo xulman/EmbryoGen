@@ -215,13 +215,18 @@ int main(void)
 	renderIntoMask(mask,label,manyS);
 	mask.SaveImage("mask.tif");
 
-	mask.GetVoxelData() = 0;
-	manyS.renderIntoMask(mask,label);
-	mask.SaveImage("maskBW.tif");
+	i3d::Image3d<i3d::GRAY16> mask2;
+	mask2.CopyMetaData(mask);
+	const size_t yDelta = 2;
+	for (size_t z=0; z < mask2.GetSizeZ(); ++z)
+	for (size_t y=yDelta; y < mask2.GetSizeY(); ++y)
+	for (size_t x=0; x < mask2.GetSizeX(); ++x)
+	mask2.SetVoxel(x,y,z, (mask.GetVoxel(x,y-yDelta,z) > 0 ? 20 : 0));
+	mask2.SaveImage("maskBW.tif");
 
 	//analyze:
 	std::vector<int> numOrphansPerSphere, numUnwantedPerSphere;
-	analyzeOverlaps(mask,label, manyS,Vector3d<float>(5), numOrphansPerSphere,numUnwantedPerSphere);
+	analyzeOverlaps(mask2,label, manyS,Vector3d<float>(5), numOrphansPerSphere,numUnwantedPerSphere);
 	reportOverlaps(numOrphansPerSphere,numUnwantedPerSphere);
 
 	return 0;
