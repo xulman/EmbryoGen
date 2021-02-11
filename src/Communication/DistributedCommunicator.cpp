@@ -270,7 +270,7 @@ void MPI_Communicator::mergeImages(int FO, int slice_size, int slices, unsigned 
 	e_comm_tags rmask = e_comm_tags::mask_data;
 	e_comm_tags rimg = e_comm_tags::float_image_data;
 
-	REPORT("From #" << instance_ID << " to #" << FO << " merge images plane size " << slice_size << " slices " << slices);
+	DEBUG_REPORT("From #" << instance_ID << " to #" << FO << " merge images plane size " << slice_size << " slices " << slices);
 	for (int slice = 0 ; slice < slices; slice++) {
 		int received_slice_size = (int) slice_size;
 		int received_from = MPI_ANY_SOURCE;
@@ -290,7 +290,7 @@ void MPI_Communicator::mergeImages(int FO, int slice_size, int slices, unsigned 
 			}
 		}
 
-		REPORT("Send from #" << instance_ID << " to #" << FO << " slice " << slice);
+		DEBUG_REPORT("Send from #" << instance_ID << " to #" << FO << " slice " << slice);
 		//TBD Check if Director's image is zeroed
 		if (maskPixelBuffer) { sendMPIMessage(image_comm, mask_start, slice_size, tagMap(e_comm_tags::mask_data), FO , e_comm_tags::mask_data); }
 		if (phantomBuffer) { sendMPIMessage(image_comm, phantom_start, slice_size, tagMap(e_comm_tags::float_image_data), FO, e_comm_tags::float_image_data); }
@@ -307,7 +307,7 @@ void MPI_Communicator::mergeImages(int FO, int slice_size, int slices, unsigned 
 	free(mask_add);
 	free(phantom_add);
 	free(optics_add);
-	REPORT("From #" << instance_ID << " to #" << FO << " done ");
+	DEBUG_REPORT("From #" << instance_ID << " to #" << FO << " done ");
 }
 
 
