@@ -26,8 +26,6 @@ extern "C" {
 #define DIRECTOR_ID 0 			  // Main node
 #define FO_INSTANCE_ANY 0		  // Any FO is OK
 
-#define DISTRIBUTED_DEBUG
-
 
 typedef enum {
 	next_ID=0,

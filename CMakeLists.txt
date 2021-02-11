@@ -46,6 +46,10 @@ endif (FEATURE_USEFILOGENSYNTHOSCOPY)
 if (FEATURE_RUNDISTRIBUTED)
 	add_definitions(-DDISTRIBUTED)
 endif (FEATURE_RUNDISTRIBUTED)
+option(DIST_DEBUG_VERSION "Shall I display debug information for distributed communication?" OFF)
+if (DIST_DEBUG_VERSION)
+	add_definitions(-DDISTRIBUTED_DEBUG)
+endif (DIST_DEBUG_VERSION)
 
 #-------------------------
 # USE STATIC LIBS OR NOT?
