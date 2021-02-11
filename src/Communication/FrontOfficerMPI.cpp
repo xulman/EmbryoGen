@@ -184,7 +184,9 @@ void FrontOfficer::broadcast_newAgentsTypes()
 	}
 	agentsTypesDictionary.markAllWasBroadcast();
 	//DEBUG_REPORT("Checking hash for nucleus 2015 @ 4,2:" << agentsTypesDictionary.translateIdToString(5627021567199719035l));
+#ifdef DISTRIBUTED_DEBUG
 	agentsTypesDictionary.printKnownDictionary();
+#endif /*DISTRIBUTED_DEBUG*/
 	communicator->waitFor_publishAgentsAABBs();
 	DEBUG_REPORT("FO #" << this->ID << " has finished New Agent Type reporting cycle with global size " << total_cnt);
 }
@@ -395,19 +397,18 @@ void FrontOfficer::waitFor_renderNextFrame(const int FOsID)
 	if (sc.imagesSaving_isEnabledForImgPhantom()) { phantomBuffer = sc.imgPhantom.GetFirstVoxelAddr();}
 	if (sc.imagesSaving_isEnabledForImgOptics()) { opticsBuffer = sc.imgOptics.GetFirstVoxelAddr();}
 
-	REPORT("Request image merging from FO #" << ID << " to FO #" << FOsID);
+	DEBUG_REPORT("Request image merging from FO #" << ID << " to FO #" << FOsID);
 	DEBUG_REPORT("Mask enabled: " << sc.imagesSaving_isEnabledForImgMask()
 	               << ", phantom enabled: " << sc.imagesSaving_isEnabledForImgPhantom()
 	               << ", optics enabled: " << sc.imagesSaving_isEnabledForImgOptics()
 	);
 	communicator->mergeImages(FOsID, maskXYSize, maskZSize, maskPixelBuffer, phantomBuffer, opticsBuffer);
-	REPORT("Image merging done on FO #" << ID);
+	DEBUG_REPORT("Image merging done on FO #" << ID);
 }
 
 
 void FrontOfficer::request_renderNextFrame(const int FOsID)
 {
-	DEBUG_REPORT("Image merging CALL MADE ON FO #" << ID);
 	communicator->renderNextFrame(FOsID);
 }
 

@@ -239,8 +239,6 @@ void Director::waitFor_renderNextFrame(const int FOsID)
 	}
 	maskXYSize=(int)(maskPixelLength/maskZSize);
 
-	DEBUG_REPORT("Image merging CALL MADE ON Director");
-
 	//request_renderNextFrame(1);
 	unsigned short * maskPixelBuffer = NULL;
 	float * phantomBuffer  = NULL;
@@ -250,13 +248,13 @@ void Director::waitFor_renderNextFrame(const int FOsID)
 	if (sc.imagesSaving_isEnabledForImgPhantom()) { phantomBuffer = sc.imgPhantom.GetFirstVoxelAddr();}
 	if (sc.imagesSaving_isEnabledForImgOptics()) { opticsBuffer = sc.imgOptics.GetFirstVoxelAddr();}
 
-	REPORT("Request image merging from Director to FO #" << FOsID);
+	DEBUG_REPORT("Request image merging from Director to FO #" << FOsID);
 	DEBUG_REPORT("Mask enabled: " << sc.imagesSaving_isEnabledForImgMask()
 	               << ", phantom enabled: " << sc.imagesSaving_isEnabledForImgPhantom()
 	               << ", optics enabled: " << sc.imagesSaving_isEnabledForImgOptics()
 	);
 	communicator->mergeImages(FOsID, maskXYSize, maskZSize, maskPixelBuffer, phantomBuffer, opticsBuffer);
-	REPORT("Image merging done on Director");
+	DEBUG_REPORT("Image merging done on Director");
 }
 
 
