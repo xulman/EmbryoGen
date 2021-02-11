@@ -183,7 +183,7 @@ void FrontOfficer::waitHereUntilEveryoneIsHereToo()
 {}
 
 
-void FrontOfficer::waitFor_renderNextFrame()
+void FrontOfficer::waitFor_renderNextFrame(const int /*FOsID*/)
 {
 	//normally, it should move the content of the images from this FO
 	//into Direktor's images... but instead we render directly into

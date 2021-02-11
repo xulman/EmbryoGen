@@ -89,7 +89,9 @@ void Director::init3_SMP(void)
 	//    as the very last operation of the entire init phase
 
 	//will block itself until the full rendering is complete
+#ifndef DISTRIBUTED
 	renderNextFrame();
+#endif
 }
 
 
@@ -247,11 +249,13 @@ void Director::updateAndPublishAgents()
 #endif
 
 	//all FOs except myself (assuming i=0 addresses the Direktor)
+#ifndef DISTRIBUTED
 	for (int i = 1; i <= FOsCount; ++i)
 	{
 		if (request_CntOfAABBs(i) != agents.size())
 			throw ERROR_REPORT("FO #" << i << " does not have a complete list of AABBs");
 	}
+#endif
 }
 
 void Director::postprocessAfterUpdateAndPublishAgents()
@@ -360,7 +364,7 @@ void Director::renderNextFrame()
 	//this essentially pours images from network into local images,
 	//which must be for sure zero beforehand
 	//this will block...
-	waitFor_renderNextFrame();
+	waitFor_renderNextFrame(firstFOsID);
 
 	//save the images
 	static char fn[1024];

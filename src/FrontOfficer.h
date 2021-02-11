@@ -299,7 +299,7 @@ protected:
 	ShadowAgent* request_ShadowAgentCopy(const int agentID, const int FOsID);
 	void respond_ShadowAgentCopy(const int agentID);
 
-	void waitFor_renderNextFrame();
+	void waitFor_renderNextFrame(const int FOsID);
 	void request_renderNextFrame(const int FOsID);
 
 	void respond_setRenderingDebug();

@@ -151,7 +151,7 @@ void Director::request_renderNextFrame(const int /* FOsID */)
 }
 
 
-void Director::waitFor_renderNextFrame()
+void Director::waitFor_renderNextFrame(const int /*FOsID*/)
 {
 	//does nothing in the SMP
 

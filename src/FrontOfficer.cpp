@@ -540,7 +540,7 @@ void FrontOfficer::renderNextFrame()
 	// --------- the big round robin scheme ---------
 	//WAIT HERE UNTIL WE GET THE IMAGES TO CONTRIBUTE INTO
 	//this will block...
-	waitFor_renderNextFrame();
+	waitFor_renderNextFrame(nextFOsID);
 
 	//note that it is only us who have the token, we
 	//do "pollute" the DisplayUnit (load balancing)

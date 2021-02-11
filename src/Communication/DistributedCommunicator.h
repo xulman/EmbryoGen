@@ -53,6 +53,7 @@ typedef enum {
 	float_image_data=0x42,
 	ACK=0x80,
 	noop=0x81,
+	barrier=0x82,
 	unspecified=-1
 } e_comm_tags;
 
@@ -91,12 +92,12 @@ public:
 			receiveDirectorMessage(director_buffer, director_buffer_size, tag);
 		}
 
-		virtual void waitSync(e_comm_tags tag=e_comm_tags::unspecified) {}
+		virtual void waitSync(e_comm_tags tag=e_comm_tags::barrier) {}
 
 		inline void unblockNextIfSent() {
 			if (hasSent) {
 				hasSent=false;
-				sendNextFO(NULL, 0, e_comm_tags::next_stage);
+				sendNextFO(director_buffer, 0, e_comm_tags::next_stage);
 			}
 		}
 
@@ -174,7 +175,7 @@ public:
 		virtual size_t cntOfAABBs(int FO, bool broadcast=false ) = 0;
 		virtual void sendCntOfAABBs(size_t count_AABBs, bool broadcast=false) = 0;
 
-		virtual void renderNextFrame(int FO, int slice_size, int slices) = 0;
+		virtual void renderNextFrame(int FO) = 0;
 		virtual void mergeImages(int FO, int slice_size, int slices, unsigned short * maskPixelBuffer, float * phantomBuffer, float * opticsBuffer) = 0;
 
 		inline const char * tagName(e_comm_tags tag) {
@@ -226,6 +227,8 @@ public:
 					return "Mask image slice";
 				case e_comm_tags::float_image_data:
 					return "Float image slice";
+				case e_comm_tags::barrier:
+					return "WaitSync barrier";
 				case e_comm_tags::unspecified:
 					return "ANY";
 				default:				// shadow_copy, render frame, // Conversions would be slow?
@@ -282,7 +285,7 @@ public:
 		virtual size_t cntOfAABBs(int FO, bool broadcast=false);
 		virtual void sendCntOfAABBs(size_t count_AABB, bool broadcast=false);
 
-		virtual void renderNextFrame(int FO, int slice_size, int slices);
+		virtual void renderNextFrame(int FO);
 		virtual size_t receiveRenderedFrame(int fromFO, int slice_size, int slices);
 		virtual void mergeImages(int FO, int slice_size, int slices, unsigned short * maskPixelBuffer, float * phantomBuffer, float * opticsBuffer);
 
@@ -308,11 +311,11 @@ public:
 		/*** Front officer communication channels */
 		virtual bool receiveFOMessage(void * buffer, int &recv_size, int & instance_ID,  e_comm_tags &tag); //Single reception step, for response messages
 
-		virtual void waitSync(e_comm_tags tag=e_comm_tags::unspecified) {
+		virtual void waitSync(e_comm_tags tag=e_comm_tags::barrier) {
 			e_comm_tags tag2 = e_comm_tags::next_stage;
-			if (instance_ID) {
+			/*if (instance_ID) {
 				sendDirector(no_message, 0, tag2);
-			}
+			}*/
 			debugMPIComm("WaitSync", tagCommMap(tag), -1, instance_ID,  tag);
 			MPI_Barrier(director_comm);
 			debugMPIComm("WaitSyncEnd", tagCommMap(tag), -1, instance_ID,  tag);
@@ -361,7 +364,6 @@ protected:
 				case e_comm_tags::count_new_type:
 					return MPI_INT;
 				case e_comm_tags::count_AABB:
-				case e_comm_tags::render_frame:
 				case e_comm_tags::shadow_copy:
 					return MPI_UINT64_T;
 				case e_comm_tags::send_AABB:
@@ -402,6 +404,8 @@ protected:
 					return image_comm;
 				case e_comm_tags::ACK:
 					return MPI_COMM_WORLD;
+				case e_comm_tags::barrier:
+					return barrier_comm;
 				default: //Every other message should be passed by async director communication - but it may break something
 					return def;
 //					return director_comm;
@@ -439,6 +443,7 @@ protected:
 		MPI_Comm aabb_comm; //AABB broadcasting exchange
 		MPI_Comm type_comm; //New agent type exchange
 		MPI_Comm image_comm; //Image exchanger
+		MPI_Comm barrier_comm; //Image exchanger
 
 };
 #endif /*DISTRIBUTED*/

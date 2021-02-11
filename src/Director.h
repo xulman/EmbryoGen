@@ -215,7 +215,7 @@ protected:
 	void notify_setDetailedReportingMode(const int FOsID, const int agentID, const bool state);
 
 	void request_renderNextFrame(const int FOsID);
-	void waitFor_renderNextFrame();
+	void waitFor_renderNextFrame(const int FOsID);
 
 	void broadcast_setRenderingDebug(const bool setFlagToThis);
 

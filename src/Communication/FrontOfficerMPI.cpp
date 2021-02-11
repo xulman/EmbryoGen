@@ -88,9 +88,9 @@ void FrontOfficer::waitFor_publishAgentsAABBs()
 //			delete [] sentAABBs;
 		}
 	}
+	communicator->waitFor_publishAgentsAABBs();
 	DEBUG_REPORT("FO #" << this->ID << " has finished AABB reporting cycle with global size " << (AABBs.size() + agents.size()) );
 	broadcast_newAgentsTypes(); //Force-call it here?
-	communicator->waitFor_publishAgentsAABBs();
 }
 
 void FrontOfficer::notify_publishAgentsAABBs(const int FOsID)
@@ -103,7 +103,7 @@ void FrontOfficer::broadcast_AABBofAgent(const ShadowAgent& ag)
 {
 	//Since we already do a global broadcast of all AABBs at once, we will use this method to update the AABB list, which is not done in main code (WHY?)
 
-	DEBUG_REPORT("FO #" << this->ID << " is reporting AABB of agent ID " << ag.ID);
+	DEBUG_REPORT("FO #" << this->ID << " is adding AABB of shadow agent ID " << ag.ID);
 	int aid = ag.getID();
 
 	const AxisAlignedBoundingBox & aabb = ag.getAABB();
@@ -184,8 +184,9 @@ void FrontOfficer::broadcast_newAgentsTypes()
 	}
 	agentsTypesDictionary.markAllWasBroadcast();
 	//DEBUG_REPORT("Checking hash for nucleus 2015 @ 4,2:" << agentsTypesDictionary.translateIdToString(5627021567199719035l));
-	DEBUG_REPORT("FO #" << this->ID << " has finished New Agent Type reporting cycle with global size " << total_cnt);
 	agentsTypesDictionary.printKnownDictionary();
+	communicator->waitFor_publishAgentsAABBs();
+	DEBUG_REPORT("FO #" << this->ID << " has finished New Agent Type reporting cycle with global size " << total_cnt);
 }
 
 
@@ -327,15 +328,13 @@ void FrontOfficer::respond_Loop()
 				break;
 			//Chyba je tady!
 			case e_comm_tags::render_frame:
-				communicator->receiveFOMessage(ibuffer, items, instance, tag);
-				assert(items == 2);
-				request_renderNextFrame(nextFOsID);
-				waitFor_renderNextFrame();
-				//communicator->receiveRenderedFrame(instance, ibuffer[0], ibuffer[1]);
-				break;
-			case e_comm_tags::next_stage:
 				communicator->receiveFOMessage(buffer, items, instance, tag);
+				assert(items == 0);
 				break;
+			/*case e_comm_tags::next_stage:
+				communicator->receiveFOMessage(buffer, items, instance, tag);
+				communicator->waitSync(e_comm_tags::next_stage);
+				break;*/
 			case e_comm_tags::set_debug: //Receive and send to following FO to distribute it
 				communicator->receiveFOMessage(buffer, items, instance, tag);
 				setSimulationDebugRendering(buffer[0] != 0);
@@ -363,20 +362,31 @@ void FrontOfficer::waitHereUntilEveryoneIsHereToo() //Will this work without spe
 }
 
 
-void FrontOfficer::waitFor_renderNextFrame()
-{
-	communicator->waitFor_renderNextFrame();
-}
-
-
-void FrontOfficer::request_renderNextFrame(const int FOsID)
+void FrontOfficer::waitFor_renderNextFrame(const int FOsID)
 {
 	SceneControls& sc = scenario.params;
-	const size_t maskPixelLength = sc.imgMask.GetImageSize();
-	const int maskZSize= (int)sc.imgMask.GetSizeZ();
-	const int maskXYSize=(int)(maskPixelLength/maskZSize);
+	if (! (sc.imagesSaving_isEnabledForImgMask() || sc.imagesSaving_isEnabledForImgPhantom()
+													|| sc.imagesSaving_isEnabledForImgOptics())) {
+		return; /*Nothing to exchange*/
+	}
 
-	communicator->renderNextFrame(FOsID,maskXYSize,maskZSize);
+	size_t maskPixelLength=0;
+	int maskZSize= 0;
+	int maskXYSize= 0;
+
+	if (sc.imagesSaving_isEnabledForImgMask()) {
+		maskPixelLength=sc.imgMask.GetImageSize();
+		maskZSize=(int)sc.imgMask.GetSizeZ();
+	} else if (sc.imagesSaving_isEnabledForImgPhantom()) {
+		maskPixelLength=sc.imgPhantom.GetImageSize();
+		maskZSize=(int)sc.imgPhantom.GetSizeZ();
+	} else {
+		maskPixelLength=sc.imgOptics.GetImageSize();
+		maskZSize=(int)sc.imgOptics.GetSizeZ();
+	}
+	maskXYSize=(int)(maskPixelLength/maskZSize);
+
+	communicator->waitFor_renderNextFrame();
 	unsigned short * maskPixelBuffer = NULL;
 	float * phantomBuffer  = NULL;
 	float * opticsBuffer  = NULL;
@@ -386,8 +396,19 @@ void FrontOfficer::request_renderNextFrame(const int FOsID)
 	if (sc.imagesSaving_isEnabledForImgOptics()) { opticsBuffer = sc.imgOptics.GetFirstVoxelAddr();}
 
 	REPORT("Request image merging from FO #" << ID << " to FO #" << FOsID);
+	DEBUG_REPORT("Mask enabled: " << sc.imagesSaving_isEnabledForImgMask()
+	               << ", phantom enabled: " << sc.imagesSaving_isEnabledForImgPhantom()
+	               << ", optics enabled: " << sc.imagesSaving_isEnabledForImgOptics()
+	);
 	communicator->mergeImages(FOsID, maskXYSize, maskZSize, maskPixelBuffer, phantomBuffer, opticsBuffer);
 	REPORT("Image merging done on FO #" << ID);
+}
+
+
+void FrontOfficer::request_renderNextFrame(const int FOsID)
+{
+	DEBUG_REPORT("Image merging CALL MADE ON FO #" << ID);
+	communicator->renderNextFrame(FOsID);
 }
 
 
