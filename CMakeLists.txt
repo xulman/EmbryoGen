@@ -16,22 +16,33 @@ set(CMAKE_VERBOSE_MAKEFILE ON CACHE STRING "Tracing the compilation process" FOR
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic -Wconversion")
 
-option(DEBUG_VERSION "Shall I display debug information?" OFF)
-if (DEBUG_VERSION)
-		add_definitions(-DDEBUG)
-		set(CMAKE_BUILD_TYPE "DEBUG" CACHE STATIC "" FORCE)
-else (DEBUG_VERSION)
-		set(CMAKE_BUILD_TYPE "RELEASE" CACHE STATIC "" FORCE)
-endif (DEBUG_VERSION)
+#------------------------------------------------
+# ALL OPTIONS ARE SUMMARIZED HERE (CONTROL PANEL)
+#------------------------------------------------
+
+option(DEBUG_VERSION      "Shall I display debug information?" OFF)
+option(DEBUG_DIST_VERSION "Shall I display debug information for distributed communication?" OFF)
 
 option(FEATURE_ENABLEPHOTOBLEACHING  "Shall texture particles be loosing their intensity in the phantom image?" OFF)
 option(FEATURE_USEFILOGENSYNTHOSCOPY "Shall synthoscopy code from FiloGen be used instead of the one from MitoGen?" ON)
 option(FEATURE_RUNDISTRIBUTED        "Shall the simulation use MPI (message passing interface) and run distributed?" OFF)
 option(FEATURE_USEOpenMP             "Use OpenMP for single node parallelization" OFF)
 
+option(SEARCH_ALL_DEPLIBS     "Shall all dependency libraries be explicitly linked? Useful mainly for static builds." OFF)
+option(SEARCH_FOR_STATIC      "Shall CMAKE look for static variants of the dependency libraries?" OFF)
+#option(L_REQUEST_STATIC_LINKING "Shall LINKER look for static variants of the dependency libraries?" OFF)
+
 #-------------------------------------------------------
 # TRANSLATE FEATURE REQUESTS INTO PREPROCESSOR CONSTANTS
 #-------------------------------------------------------
+
+if (DEBUG_VERSION)
+		add_definitions(-DDEBUG)
+endif (DEBUG_VERSION)
+
+if (DEBUG_DIST_VERSION)
+	add_definitions(-DDISTRIBUTED_DEBUG)
+endif (DEBUG_DIST_VERSION)
 
 if (FEATURE_ENABLEPHOTOBLEACHING)
 	add_definitions(-DENABLED_PHOTOBLEACHING)
@@ -46,18 +57,10 @@ endif (FEATURE_USEFILOGENSYNTHOSCOPY)
 if (FEATURE_RUNDISTRIBUTED)
 	add_definitions(-DDISTRIBUTED)
 endif (FEATURE_RUNDISTRIBUTED)
-option(DIST_DEBUG_VERSION "Shall I display debug information for distributed communication?" OFF)
-if (DIST_DEBUG_VERSION)
-	add_definitions(-DDISTRIBUTED_DEBUG)
-endif (DIST_DEBUG_VERSION)
 
 #-------------------------
 # USE STATIC LIBS OR NOT?
 #-------------------------
-
-option(SEARCH_ALL_DEPLIBS     "Shall all dependency libraries be explicitly linked? Useful mainly for static builds." OFF)
-option(SEARCH_FOR_STATIC      "Shall CMAKE look for static variants of the dependency libraries?" OFF)
-#option(L_REQUEST_STATIC_LINKING "Shall LINKER look for static variants of the dependency libraries?" OFF)
 
 if (SEARCH_FOR_STATIC)
 	set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
@@ -72,6 +75,22 @@ else (SEARCH_FOR_STATIC)
 		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Xlinker -defsym -Xlinker MAIN__=main")
 	endif (APPLE)
 endif (SEARCH_FOR_STATIC)
+
+#-------------------------
+# TARGET COMPILATION SETUP
+#-------------------------
+
+if (DEBUG_VERSION)
+		set(CMAKE_BUILD_TYPE "DEBUG" CACHE STATIC "" FORCE)
+else (DEBUG_VERSION)
+		set(CMAKE_BUILD_TYPE "RELEASE" CACHE STATIC "" FORCE)
+endif (DEBUG_VERSION)
+
+if (FEATURE_RUNDISTRIBUTED)
+	find_package(MPI REQUIRED)
+	set(CMAKE_C_COMPILER   ${MPI_C_COMPILER})
+	set(CMAKE_CXX_COMPILER ${MPI_CXX_COMPILER})
+endif (FEATURE_RUNDISTRIBUTED)
 
 #-----------------------------------
 # TARGET COMPILATION - SOURCE FILES
@@ -225,12 +244,6 @@ endif (SEARCH_ALL_DEPLIBS)
 # TARGET LINKING
 #----------------
 #set(CMAKE_CXX_FLAGS "-ldl -lm -lpthread -pthread")
-
-if (FEATURE_RUNDISTRIBUTED)
-	find_package(MPI REQUIRED)
-	set(CMAKE_C_COMPILER "mpicc")
-	set(CMAKE_CXX_COMPILER "mpic++")
-endif (FEATURE_RUNDISTRIBUTED)
 
 if(FEATURE_USEOpenMP)
 	if (APPLE)
