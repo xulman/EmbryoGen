@@ -71,9 +71,9 @@ public:
 	void advanceAndBuildIntForces(const float)
 	{
 		//random duration (in full 2-10 seconds) pause here to pretend "some work"
-		const int waitingTime = (int)GetRandomUniform(1,4);
-		REPORT(IDSIGN << "pretends work that would last for " << waitingTime << " second(s)");
-		std::this_thread::sleep_for(std::chrono::seconds( (long long)waitingTime ));
+		const int waitingTime = (int)GetRandomUniform(0,200);
+		REPORT(IDSIGN << "pretends work that would last for " << waitingTime << " milisecond(s)");
+		std::this_thread::sleep_for(std::chrono::milliseconds( (long long)waitingTime ));
 
 		//ask to have the geometry updated as a result of the "some work"
 		shouldUpdateGeometry = true;
@@ -122,8 +122,8 @@ public:
 
 	void drawMask(DisplayUnit& du)
 	{
-		//draw sphere at its current position
-		du.DrawPoint(DisplayUnit::firstIdForAgentObjects(ID), geometry.getCentres()[0], geometry.getRadii()[0], 2);
+		//draw sphere at its current position, with the color of the responsible Officer
+		du.DrawPoint(DisplayUnit::firstIdForAgentObjects(ID), geometry.getCentres()[0], geometry.getRadii()[0], Officer->getID());
 	}
 
 	void drawMask(i3d::Image3d<i3d::GRAY16>& mask)
@@ -240,8 +240,8 @@ void Scenario_Parallel::initializeScene()
 	disks.enableImgOpticsTIFFs();
 	disks.enableImgMaskTIFFs(); //enable if you want to see the constellation of IDs
 
-	//variant "on console" for parsing out and computing mutual distances
-	displays.registerDisplayUnit( [](){ return new ConsoleDisplayUnit(); } );
+	//NB: ConsoleDisplay-ing is managed separately in provideSceneControls()
+	//NB: Scenery/SimViewer-ing is managed separately in initializeAgents()
 
 	//displays.registerImagingUnit("localFiji","localhost:54545");
 	//displays.enableImgMaskInImagingUnit("localFiji");
@@ -267,6 +267,7 @@ void Scenario_Parallel::initializeAgents(FrontOfficer* fo,int p,int P)
 	int ID = 1000 * p;
 
 	const int batchSize = (int)std::ceil( howManyAlongX * howManyAlongY / P );
+	REPORT("Parallel Scenario batchSize=" << batchSize);
 	int createdAgents = 0;
 
 	for (int y = 0; y < howManyAlongY; ++y)
@@ -276,10 +277,10 @@ void Scenario_Parallel::initializeAgents(FrontOfficer* fo,int p,int P)
 		++createdAgents; // Bug který to udělal.
 		//skip this agent if it does not belong to our batch
 		//REPORT("Parallel Scenario created agents/batch size = " << (createdAgents/batchSize)+1 << " p=" << p << " howManyAlongX=" << howManyAlongX << " howManyAlongY=" << howManyAlongY);
-		if (createdAgents/batchSize +1 < p) continue;
+		if ((createdAgents-1)/batchSize +1 < p) continue;
 
 		//stop creating agents if we are over with our batch
-		if (createdAgents/batchSize +1 > p) break;
+		if ((createdAgents-1)/batchSize +1 > p) break;
 
 		//the wished position
 		Vector3d<float> pos(simCorner);
