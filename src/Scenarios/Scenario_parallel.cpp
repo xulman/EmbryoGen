@@ -281,7 +281,6 @@ void Scenario_Parallel::initializeAgents(FrontOfficer* fo,int p,int P)
 	for (int y = 0; y < howManyAlongY; ++y)
 	for (int x = 0; x < howManyAlongX; ++x)
 	{
-		int ID=fo->getNextAvailAgentID();
 		++createdAgents; // Bug který to udělal.
 		/*
 		//skip this agent if it does not belong to our batch
@@ -302,11 +301,11 @@ void Scenario_Parallel::initializeAgents(FrontOfficer* fo,int p,int P)
 		s.updateCentre(0,pos);
 		s.updateRadius(0,agentRadius);
 
-		//name
-		sprintf(agentName,"nucleus %d @ %d,%d",ID,x,y);
-
 		if (createdAgents % P == (p-1))\
 		{
+			int ID=fo->getNextAvailAgentID();
+			//name
+			sprintf(agentName,"nucleus %d @ %d,%d",ID,x,y);
 			ParallelNucleus* ag = new ParallelNucleus(ID,std::string(agentName),s,x,y,params.constants.initTime,params.constants.incrTime);
 			fo->startNewAgent(ag);
 		}

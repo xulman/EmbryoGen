@@ -2,9 +2,6 @@
 #include <chrono>
 #include <thread>
 
-// ID v batchi po 1000 a pak zpracovat? Ale co newAgent a ParentalLink, to stejně nepomůže. -> Do budoucna, zatím ne.
-
-
 #ifdef DISTRIBUTED
 char MPI_Communicator::no_message[1] = {0};
 
