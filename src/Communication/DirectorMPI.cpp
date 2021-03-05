@@ -129,6 +129,7 @@ void Director::respond_Loop()
 			continue;
 		}*/
 		tag=communicator->detectFOMessage(false);
+		if (communicator->isFinished()) { break; }
 		if (tag == e_comm_tags::ACK) {
 			REPORT("ACK on Director Communicator on Director");
 			std::this_thread::sleep_for((std::chrono::milliseconds)10);
@@ -198,7 +199,7 @@ void Director::respond_Loop()
 				break;
 		}
 
-	} while(finished != FOsCount);
+	} while(finished != FOsCount && ! communicator->isFinished());
 	REPORT("Ending detection loop in Director");
 	/*for (int i=1; i <= FOsCount; i++) {
 		communicator->sendFO(buffer,0,i, e_comm_tags::unblock_FO);
@@ -271,6 +272,10 @@ void Director::broadcast_throwException(const char* exceptionMessage)
 	exit(-1);
 }
 
+void Director::close_communication()
+{
+	communicator->close();
+}
 
 void Director::respond_throwException()
 {

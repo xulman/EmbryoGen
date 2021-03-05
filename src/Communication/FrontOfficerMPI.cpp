@@ -294,6 +294,7 @@ void FrontOfficer::respond_Loop()
 			continue;
 		}
 		//tag=communicator->detectFOMessage(false);
+		if (communicator->isFinished()) { break; }
 		if (tag == e_comm_tags::ACK || tag == e_comm_tags::unblock_FO) {
 			REPORT("ACK/Unblock on Director Communicator on FO #" << ID);
 			std::this_thread::sleep_for((std::chrono::milliseconds)10);
@@ -352,7 +353,7 @@ void FrontOfficer::respond_Loop()
 				break;
 		}
 
-	} while (!this->finished); //(tag != e_comm_tags::next_stage);
+	} while (!this->finished && !communicator->isFinished()); //(tag != e_comm_tags::next_stage);
 	REPORT("Ending detection loop in FO " << ID << " and waiting for sync");
 	//communicator->waitSync(); //waitFor_publishAgentsAABBs();
 }
@@ -421,6 +422,10 @@ void FrontOfficer::respond_setRenderingDebug()
 	communicator->sendNextFO(buffer, 1, e_comm_tags::set_debug);
 }
 
+void FrontOfficer::close_communication()
+{
+	communicator->close();
+}
 
 void FrontOfficer::broadcast_throwException(const char* exceptionMessage)
 {

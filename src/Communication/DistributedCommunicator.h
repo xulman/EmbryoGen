@@ -65,6 +65,7 @@ public:
 				instance_ID = 0;
 				internal_agent_ID = 0;
 				hasSent = false;
+				finished=false;
 				//Unused now: shift=sizeof(int)*8 - 1; //2^31
 		}
 
@@ -238,6 +239,7 @@ public:
 			}
 		}
 
+		inline bool isFinished() { return finished; }
 protected:
 		int instance_ID;
 		int instances;
@@ -245,6 +247,7 @@ protected:
 		int internal_agent_ID;
 		int lastFOID;
 		int hasSent;
+		bool finished;
 
 		//Unused now: int shift; // Shift ID by given number of bits, to reduce communication for getNextAvailAgentID, maybe rework later
 		static e_comm_tags messageType; // Message type enum for sending/receiving individual distributed messages
@@ -447,7 +450,7 @@ protected:
 		MPI_Comm aabb_comm; //AABB broadcasting exchange
 		MPI_Comm type_comm; //New agent type exchange
 		MPI_Comm image_comm; //Image exchanger
-		MPI_Comm barrier_comm; //Image exchanger
+		MPI_Comm barrier_comm; //Communication barriers
 
 };
 #endif /*DISTRIBUTED*/

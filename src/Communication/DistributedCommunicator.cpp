@@ -358,6 +358,8 @@ void MPI_Communicator::sendNextID(int id) {
 }
 
 void MPI_Communicator::close() {
+	finished=true;
+	//MPI_Abort(director_comm,0);
 	MPI_Finalize();
 }
 

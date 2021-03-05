@@ -84,7 +84,9 @@ public:
 	~FrontOfficer(void)
 	{
 #ifdef DISTRIBUTED
+		pthread_cancel(responder.native_handle());
 		responder.join();
+		close_communication();
 #endif
 		DEBUG_REPORT("FrontOfficer #" << ID << " already closed? " << (isProperlyClosedFlag ? "yes":"no"));
 		if (!isProperlyClosedFlag) this->close();
@@ -303,6 +305,10 @@ protected:
 	void request_renderNextFrame(const int FOsID);
 
 	void respond_setRenderingDebug();
+
+#ifdef DISTRIBUTED
+	void close_communication();
+#endif
 
 public:
 	void broadcast_throwException(const char* exceptionMessage);

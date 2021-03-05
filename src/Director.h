@@ -71,7 +71,9 @@ public:
 	~Director(void)
 	{
 #ifdef DISTRIBUTED
+		pthread_cancel(responder.native_handle());
 		responder.join();
+		close_communication();
 #endif
 		DEBUG_REPORT("Direktor already closed? " << (isProperlyClosedFlag ? "yes":"no"));
 		if (!isProperlyClosedFlag) this->close();
@@ -223,6 +225,10 @@ protected:
 	void waitFor_renderNextFrame(const int FOsID);
 
 	void broadcast_setRenderingDebug(const bool setFlagToThis);
+
+#ifdef DISTRIBUTED
+	void close_communication();
+#endif
 
 public:
 	void broadcast_throwException(const char* exceptionMessage);
