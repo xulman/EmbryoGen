@@ -250,6 +250,10 @@ void Scenario_Parallel::initializeScene()
 
 void Scenario_Parallel::initializeAgents(FrontOfficer* fo,int p,int P)
 {
+	static char url[32]; sprintf(url,"192.168.3.105:%d",8764+p);
+	REPORT("Parallel Scenario: going to connect to scenery/SimViewer at " << url);
+	displays.registerDisplayUnit( [](){ return new SceneryBufferedDisplayUnit(url); } );
+
 	REPORT("Parallel Scenario p=" <<  p << " P=" << P<< " initializing now...");
 	//scenario has two optional params: how many agents along x and y axes
 	const int howManyAlongX = argc > 2? atoi(argv[2]) : 5;
