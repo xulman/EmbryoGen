@@ -179,6 +179,9 @@ SceneControls& Scenario_Parallel::provideSceneControls()
 	//ask the system to report after every (internal) simulation step
 	myConstants.expoTime = myConstants.incrTime;
 
+	myConstants.imgPhantom_filenameTemplate = "timeStamps_%03u.tif";
+	myConstants.imgOptics_filenameTemplate  = "neighbors_%03u.tif";
+
 
 	class mySceneControl: public SceneControls
 	{

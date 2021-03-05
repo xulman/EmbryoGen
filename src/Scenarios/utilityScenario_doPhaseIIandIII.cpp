@@ -43,7 +43,7 @@ void Scenario_phaseIIandIII::initializeAgents(FrontOfficer*,int p,int)
 		try
 		{
 			if (useCannonicalName)
-				sprintf(fn,"phantom%03d.tif",frameCnt); //default filename
+				sprintf(fn,params.constants.imgPhantom_filenameTemplate,frameCnt); //default filename
 			else
 				sprintf(fn,argv[2],frameCnt);           //user-given filename
 			REPORT("READING: " << fn);
@@ -64,7 +64,7 @@ void Scenario_phaseIIandIII::initializeAgents(FrontOfficer*,int p,int)
 
 			//populate and save it...
 			doPhaseIIandIII();
-			sprintf(fn,"finalPreview%03d.tif",frameCnt);
+			sprintf(fn,params.constants.imgFinal_filenameTemplate,frameCnt);
 			params.imgFinal.SaveImage(fn);
 
 			++frameCnt;
