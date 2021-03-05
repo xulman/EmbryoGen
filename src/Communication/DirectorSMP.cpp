@@ -4,7 +4,7 @@
 //in the SMP world, a lot of respond_...() methods are actually
 //empty because the FOs reach directly the implementing code
 
-void Director::respond_getNextAvailAgentID(int)
+void Director::respond_getNextAvailAgentID()
 {
 	//this never happens (as FO here talks directly to the Direktor)
 	//MPI world:
@@ -55,7 +55,7 @@ void Director::respond_closeAgent(int )
 }
 
 
-void Director::respond_updateParentalLink()
+void Director::respond_updateParentalLink(int)
 {
 	//this never happens (as FO here talks directly to the Direktor)
 	//MPI world:
