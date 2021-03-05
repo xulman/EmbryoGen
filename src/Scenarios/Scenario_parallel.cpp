@@ -71,7 +71,7 @@ public:
 	void advanceAndBuildIntForces(const float)
 	{
 		//random duration (in full 2-10 seconds) pause here to pretend "some work"
-		const int waitingTime = (int)GetRandomUniform(0,200);
+		const int waitingTime = (int)GetRandomUniform(0,20);
 		REPORT(IDSIGN << "pretends work that would last for " << waitingTime << " milisecond(s)");
 		std::this_thread::sleep_for(std::chrono::milliseconds( (long long)waitingTime ));
 
@@ -247,13 +247,15 @@ void Scenario_Parallel::initializeScene()
 	//NB: Scenery/SimViewer-ing is managed separately in initializeAgents()
 
 	//displays.registerImagingUnit("localFiji","localhost:54545");
-	//displays.enableImgMaskInImagingUnit("localFiji");
+	//displays.enableImgOpticsInImagingUnit("localFiji");
 }
 
 
 void Scenario_Parallel::initializeAgents(FrontOfficer* fo,int p,int P)
 {
-	static char url[32]; sprintf(url,"192.168.3.105:%d",8764+p);
+	static char url[32];
+	sprintf(url,"192.168.3.105:%d",8764+p);
+	//sprintf(url,"127.0.0.1:%d",8764+p);
 	REPORT("Parallel Scenario: going to connect to scenery/SimViewer at " << url);
 	displays.registerDisplayUnit( [](){ return new SceneryBufferedDisplayUnit(url); } );
 
@@ -271,7 +273,6 @@ void Scenario_Parallel::initializeAgents(FrontOfficer* fo,int p,int P)
 
 	//agents' metadata
 	char agentName[512];
-	int ID = 1000 * p;
 
 	const int batchSize = (int)std::ceil( howManyAlongX * howManyAlongY / P );
 	REPORT("Parallel Scenario batchSize=" << batchSize);
@@ -280,7 +281,7 @@ void Scenario_Parallel::initializeAgents(FrontOfficer* fo,int p,int P)
 	for (int y = 0; y < howManyAlongY; ++y)
 	for (int x = 0; x < howManyAlongX; ++x)
 	{
-		++ID; //PM: Nemělo by tady být getNextAgentID? Nebo se předpokládá, že počáteční agenti jsou OK?
+		int ID=fo->getNextAvailAgentID();
 		++createdAgents; // Bug který to udělal.
 		/*
 		//skip this agent if it does not belong to our batch
