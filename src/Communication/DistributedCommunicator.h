@@ -28,18 +28,19 @@ extern "C" {
 
 
 typedef enum {
-	next_ID=0,
-	new_agent=1,
-	close_agent=2,
-	update_parent=3,
-	send_AABB=4,
-	get_count_AABB=5,
-	count_AABB=6,
-	new_type=7,
-	count_new_type=8,
-	get_shadow_copy=9,
-	shadow_copy=10,
-	shadow_copy_data=11,
+	get_next_ID=0,
+	next_ID=1,
+	new_agent=2,
+	close_agent=3,
+	update_parent=4,
+	send_AABB=5,
+	get_count_AABB=6,
+	count_AABB=7,
+	new_type=8,
+	count_new_type=9,
+	get_shadow_copy=0xa,
+	shadow_copy=0xb,
+	shadow_copy_data=0xc,
 	render_frame=0x10,
 	set_detailed_drawing=0x20,
 	set_detailed_reporting=0x21,
@@ -64,7 +65,7 @@ public:
 				instance_ID = 0;
 				internal_agent_ID = 0;
 				hasSent = false;
-				shift=sizeof(int)*8 - 1; //2^31
+				//Unused now: shift=sizeof(int)*8 - 1; //2^31
 		}
 
 		inline int getInstanceID() { return instance_ID;  }
@@ -179,6 +180,8 @@ public:
 		inline const char * tagName(e_comm_tags tag) {
 			static char last_str [64] = { 0 };
 			switch (tag) {
+				case e_comm_tags::get_next_ID:
+					return "Get Next ID";
 				case e_comm_tags::next_ID:
 					return "Next ID";
 				case e_comm_tags::new_agent:
@@ -243,7 +246,7 @@ protected:
 		int lastFOID;
 		int hasSent;
 
-		int shift; // Shift ID by given number of bits, to reduce communication for getNextAvailAgentID, maybe rework later
+		//Unused now: int shift; // Shift ID by given number of bits, to reduce communication for getNextAvailAgentID, maybe rework later
 		static e_comm_tags messageType; // Message type enum for sending/receiving individual distributed messages
 
 		char director_buffer [DIRECTOR_RECV_MAX] = {0};
@@ -353,12 +356,13 @@ protected:
 
 		inline MPI_Datatype tagMap(e_comm_tags tag) {
 			switch (tag) {
-				case e_comm_tags::next_ID:
 				case e_comm_tags::new_agent: //int, int, bool - special datype?
 				case e_comm_tags::update_parent:
 				case e_comm_tags::close_agent:
 				case e_comm_tags::get_shadow_copy:
 					return MPI_INT64_T;				//Really? Or MPI_INT64_T or MPI_UINT64_T?
+				case e_comm_tags::next_ID:
+				case e_comm_tags::get_next_ID:
 				case e_comm_tags::count_new_type:
 					return MPI_INT;
 				case e_comm_tags::count_AABB:
@@ -389,6 +393,8 @@ protected:
 
 		inline MPI_Comm tagCommMap(e_comm_tags tag, MPI_Comm def=MPI_COMM_WORLD) {
 			switch (tag) {
+				case e_comm_tags::next_ID:
+					return id_comm;
 				case e_comm_tags::count_AABB:
 				case e_comm_tags::send_AABB:
 				case e_comm_tags::shadow_copy_data:
@@ -435,7 +441,7 @@ protected:
 	    MPI_Datatype MPI_AABB;
 		MPI_Datatype MPI_VECTOR3D;
 		MPI_Datatype MPI_AGENTTYPE;
-		//MPI_Comm id_sender; //Back Channel from Director (sending new IDs)
+		MPI_Comm id_comm; //Back Channel from Director (sending new IDs)
 		MPI_Comm token_comm; // Channel to synchronize FO according to token passing description
 		MPI_Comm director_comm; //Channel to/from Director
 		MPI_Comm aabb_comm; //AABB broadcasting exchange

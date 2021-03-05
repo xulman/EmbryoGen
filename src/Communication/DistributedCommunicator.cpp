@@ -80,17 +80,21 @@ int MPI_Communicator::init(int argc, char **argv) {
 	MPI_Comm_dup(/*MPI_COMM_WORLD*/aabb_comm, &type_comm); //TBD: Or aabb_comm?
 	MPI_Comm_dup(MPI_COMM_WORLD, &image_comm);
 	MPI_Comm_dup(MPI_COMM_WORLD, &barrier_comm);
+	MPI_Comm_dup(MPI_COMM_WORLD, &id_comm);
 
 	MPI_Comm_set_name(aabb_comm, "AABB_comm");
 	MPI_Comm_set_name(type_comm, "AgentType_comm");
 	MPI_Comm_set_name(image_comm, "Image_comm");
+	MPI_Comm_set_name(id_comm, "ID sender");
 	MPI_Comm_set_name(barrier_comm, "Barrier_comm");
 
+	/* //Code for shifting agent IDs if used locally, unused now
 	for (cshift=1, icnt=instances; icnt != 0 ; icnt = icnt	 >> 1) {
 		cshift++;
 	}
 	shift = sizeof(int)*8 - cshift;
 	DEBUG_REPORT("Shift agent ID by " << shift << " bits\n");
+	*/
 
     MPI_Get_processor_name(processor_name, &name_len);
 	return state;
@@ -201,7 +205,7 @@ int MPI_Communicator::getNextAvailAgentID()
 	e_comm_tags tag = e_comm_tags::next_ID;
 	int id_cnt = 1;
 	int buffer [] = {0};
-	sendDirector(NULL, 0, tag);
+	sendDirector(buffer, 0, e_comm_tags::get_next_ID);
 	receiveDirectorMessage(buffer, id_cnt, tag);
 	DEBUG_REPORT("From FO " << instance_ID << " to Director: get new agent ID=" << buffer[0]);
 	return buffer[0];

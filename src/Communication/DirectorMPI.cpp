@@ -136,7 +136,7 @@ void Director::respond_Loop()
 		}
 		items = DIRECTOR_RECV_MAX;
 		switch (tag) {
-			case e_comm_tags::next_ID:
+			case e_comm_tags::get_next_ID:
 				communicator->receiveFOMessage(buffer, items, instance, tag);
 				assert(items == 0);
 				respond_getNextAvailAgentID();
