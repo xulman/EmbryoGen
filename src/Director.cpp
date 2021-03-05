@@ -370,7 +370,7 @@ void Director::renderNextFrame()
 	static char fn[1024];
 	if (sc.isProducingOutput(sc.imgMask))
 	{
-		sprintf(fn,"mask%03d.tif",frameCnt);
+		sprintf(fn,sc.constants.imgMask_filenameTemplate,frameCnt);
 		REPORT("Saving " << fn << ", hold on...");
 		sc.imgMask.SaveImage(fn);
 
@@ -379,7 +379,7 @@ void Director::renderNextFrame()
 
 	if (sc.isProducingOutput(sc.imgPhantom))
 	{
-		sprintf(fn,"phantom%03d.tif",frameCnt);
+		sprintf(fn,sc.constants.imgPhantom_filenameTemplate,frameCnt);
 		REPORT("Saving " << fn << ", hold on...");
 		sc.imgPhantom.SaveImage(fn);
 
@@ -388,7 +388,7 @@ void Director::renderNextFrame()
 
 	if (sc.isProducingOutput(sc.imgOptics))
 	{
-		sprintf(fn,"optics%03d.tif",frameCnt);
+		sprintf(fn,sc.constants.imgOptics_filenameTemplate,frameCnt);
 		REPORT("Saving " << fn << ", hold on...");
 		sc.imgOptics.SaveImage(fn);
 
@@ -397,7 +397,7 @@ void Director::renderNextFrame()
 
 	if (sc.isProducingOutput(sc.imgFinal))
 	{
-		sprintf(fn,"finalPreview%03d.tif",frameCnt);
+		sprintf(fn,sc.constants.imgFinal_filenameTemplate,frameCnt);
 		REPORT("Creating " << fn << ", hold on...");
 		scenario.doPhaseIIandIII();
 		REPORT("Saving " << fn << ", hold on...");

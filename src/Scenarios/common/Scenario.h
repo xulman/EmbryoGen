@@ -106,6 +106,22 @@ public:
 		/** export simulation status always after this amount of global time, [min]
 			 should be multiple of incrTime to obtain regular sampling */
 		float expoTime = 0.5f;
+
+		/** output filename pattern in the printf() notation
+		    that includes exactly one '%u' parameter: instance masks */
+		const char* imgMask_filenameTemplate = "mask%03u.tif";
+
+		/** output filename pattern in the printf() notation
+		    that includes exactly one '%u' parameter: texture phantom images */
+		const char* imgPhantom_filenameTemplate = "phantom%03u.tif";
+
+		/** output filename pattern in the printf() notation
+		    that includes exactly one '%u' parameter: optical indices images */
+		const char* imgOptics_filenameTemplate = "optics%03u.tif";
+
+		/** output filename pattern in the printf() notation
+		    that includes exactly one '%u' parameter: final output images */
+		const char* imgFinal_filenameTemplate = "finalPreview%03u.tif";
 	};
 
 	/** a subset of truly (that is, syntactically enforced) constant scene parameters */
