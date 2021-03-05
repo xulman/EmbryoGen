@@ -279,12 +279,14 @@ void Scenario_Parallel::initializeAgents(FrontOfficer* fo,int p,int P)
 	{
 		++ID; //PM: Nemělo by tady být getNextAgentID? Nebo se předpokládá, že počáteční agenti jsou OK?
 		++createdAgents; // Bug který to udělal.
+		/*
 		//skip this agent if it does not belong to our batch
 		//REPORT("Parallel Scenario created agents/batch size = " << (createdAgents/batchSize)+1 << " p=" << p << " howManyAlongX=" << howManyAlongX << " howManyAlongY=" << howManyAlongY);
 		if ((createdAgents-1)/batchSize +1 < p) continue;
 
 		//stop creating agents if we are over with our batch
 		if ((createdAgents-1)/batchSize +1 > p) break;
+		*/
 
 		//the wished position
 		Vector3d<float> pos(simCorner);
@@ -299,7 +301,10 @@ void Scenario_Parallel::initializeAgents(FrontOfficer* fo,int p,int P)
 		//name
 		sprintf(agentName,"nucleus %d @ %d,%d",ID,x,y);
 
-		ParallelNucleus* ag = new ParallelNucleus(ID,std::string(agentName),s,x,y,params.constants.initTime,params.constants.incrTime);
-		fo->startNewAgent(ag);
+		if (createdAgents % P == (p-1))\
+		{
+			ParallelNucleus* ag = new ParallelNucleus(ID,std::string(agentName),s,x,y,params.constants.initTime,params.constants.incrTime);
+			fo->startNewAgent(ag);
+		}
 	}
 }
