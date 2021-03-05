@@ -279,7 +279,7 @@ void MPI_Communicator::mergeImages(int FO, int slice_size, int slices, unsigned 
 		float * phantom_start = phantomBuffer+slice*sizeof(float);
 		float * optics_start = opticsBuffer+slice*sizeof(float);
 		if (instance_ID) { // Front officer - receives and send later
-			REPORT("Receive at FO #" << instance_ID << " slice " << slice);
+			DEBUG_REPORT("Receive at FO #" << instance_ID << " slice " << slice);
 			if (maskPixelBuffer) { receiveMPIMessage(image_comm, mask_add, received_slice_size, tagMap(rmask), MPI_STATUSES_IGNORE, received_from, rmask); }
 			if (phantomBuffer) { receiveMPIMessage(image_comm, phantom_add, received_slice_size, tagMap(rimg), MPI_STATUSES_IGNORE, received_from, rimg);  }
 			if (opticsBuffer) { receiveMPIMessage(image_comm, optics_add, received_slice_size, tagMap(rimg), MPI_STATUSES_IGNORE, received_from, rimg); }
@@ -298,7 +298,7 @@ void MPI_Communicator::mergeImages(int FO, int slice_size, int slices, unsigned 
 		if (opticsBuffer) { sendMPIMessage(image_comm, optics_start, slice_size, tagMap(e_comm_tags::float_image_data), FO, e_comm_tags::float_image_data); }
 
 		if (!instance_ID) { // Director - receives last, directly apply to the buffer
-			REPORT("Receive at Director" << instance_ID << " slice " << slice);
+			DEBUG_REPORT("Receive at Director" << instance_ID << " slice " << slice);
 			if (maskPixelBuffer) { receiveMPIMessage(image_comm, mask_start, received_slice_size, tagMap(rmask), MPI_STATUSES_IGNORE, received_from, rmask); }
 			if (phantomBuffer) { receiveMPIMessage(image_comm, phantom_start, received_slice_size, tagMap(rimg), MPI_STATUSES_IGNORE, received_from, rimg);  }
 			if (opticsBuffer) { receiveMPIMessage(image_comm, optics_start, received_slice_size, tagMap(rimg), MPI_STATUSES_IGNORE, received_from, rimg); }
