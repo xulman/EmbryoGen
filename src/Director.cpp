@@ -415,8 +415,8 @@ void Director::renderNextFrame()
 	//to prevent zeroMQ from flooding the Scenery
 	if (std::cin.eof())
 	{
-		REPORT("waiting 1000 ms to give SimViewer some time to breath...")
-		std::this_thread::sleep_for((std::chrono::milliseconds)1000);
+		REPORT("waiting " << shallWaitForSimViewer_millis << " msec to give SimViewer some time to breath...")
+		std::this_thread::sleep_for((std::chrono::milliseconds)shallWaitForSimViewer_millis);
 		return;
 	}
 
@@ -427,7 +427,7 @@ void Director::renderNextFrame()
 	char key;
 	do {
 		//read the key
-		REPORT_NOENDL("Waiting for a key [and press Enter]: ");
+		REPORT_NOENDL("Waiting for a key [and press Enter], try 'H' 'Enter': ");
 		std::cin >> key;
 
 		//memorize original key for the inspections handling
@@ -448,6 +448,8 @@ void Director::renderNextFrame()
 			REPORT("I - toggles console (reporting) inspection of selected agents");
 			REPORT("V - toggles visual inspection (in SimViewer) of selected agents");
 			REPORT("W - toggles console and visual inspection of selected agents");
+			REPORT("P - define a breath-in-breath-out delay before another rendering");
+			REPORT("Ctrl+D - closes this input leaving the program without any breaks...");
 			break;
 
 		case 'E':
@@ -502,6 +504,20 @@ void Director::renderNextFrame()
 				//NB: key is now either 'y' or 'Y', or 'X'
 			}
 			REPORT("Leaving Inspection toggle mode");
+			break;
+
+		case 'P':
+			REPORT("Enter now the delay period in miliseconds and then press Enter");
+			float time; //better to read as float (and convert to int)
+			std::cin >> time;
+			if (time < 0)
+			{
+				REPORT("Expected positive value...");
+				time = 0;
+			}
+			shallWaitForSimViewer_millis = (size_t)time;
+			REPORT("Setting the delay to " << shallWaitForSimViewer_millis << " msec");
+			key = 1;            //forces the prompt to come back
 			break;
 
 		default:

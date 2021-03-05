@@ -172,6 +172,11 @@ protected:
 	    shadows/overlays over the scenario.params.shallWaitForUserPromptFlag */
 	bool& shallWaitForUserPromptFlag;
 
+	/** time period (in msecs) the simulator waits in Director::renderNextFrame()
+	    when std. input is closed (after Ctrl+D) before it proceeds with the next
+	    round of the simulation (and next round of rendering eventually) */
+	size_t shallWaitForSimViewer_millis = 1000;
+
 	/** Flags if agents' drawForDebug() should be called with every this->renderNextFrame() */
 	bool renderingDebug = false;
 
