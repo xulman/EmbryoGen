@@ -40,7 +40,7 @@ void FrontOfficer::waitFor_publishAgentsAABBs()
 	for (int i = 1 ; i <= FOsCount ; i++) {
 		if (i == ID)
 		{
-			int aabb_count = agents.size(); //getSizeOfAABBsList(); is not returning correct results! (WHY? -> Because the AABB list is empty)
+			int aabb_count = (int)agents.size(); //getSizeOfAABBsList(); is not returning correct results! (WHY? -> Because the AABB list is empty)
 			/* TBD: In future, will local AABB count in each FO always fit into integer? Otherwise we have a problem */
 			int j = 0;
 			communicator->sendCntOfAABBs(aabb_count, true);
@@ -63,7 +63,7 @@ void FrontOfficer::waitFor_publishAgentsAABBs()
 		}
 		else
 		{
-			int aabb_count = communicator->cntOfAABBs(i, true);
+			int aabb_count = (int)communicator->cntOfAABBs(i, true);
 			//sentAABBs = new t_aabb[aabb_count];
 			DEBUG_REPORT("Receive " << aabb_count << " AABBs at FO#" << ID << " from FO #" << i);
 			sentAABBs = (t_aabb*) malloc(sizeof(t_aabb)*(aabb_count+1));
@@ -93,7 +93,7 @@ void FrontOfficer::waitFor_publishAgentsAABBs()
 	broadcast_newAgentsTypes(); //Force-call it here?
 }
 
-void FrontOfficer::notify_publishAgentsAABBs(const int FOsID)
+void FrontOfficer::notify_publishAgentsAABBs(const int /*FOsID*/)
 {
 	//Dummy action due to running broadcast in cycle sending all items at once.
 }
@@ -125,22 +125,24 @@ void FrontOfficer::respond_AABBofAgent()
 
 void FrontOfficer::respond_CntOfAABBs()
 {
+#ifdef DEBUG
 	size_t sendBackMyCount = getSizeOfAABBsList();
-	DEBUG_REPORT("FO #" << ID << " Count: " << sendBackMyCount);
+	REPORT("FO #" << ID << " Count: " << sendBackMyCount);
 	//communicator->sendCntOfAABBs(sendBackMyCount);
+#endif
 }
 
 
 void FrontOfficer::broadcast_newAgentsTypes()
 {
-	int new_dict_count = agentsTypesDictionary.howManyShouldBeBroadcast()/*Integer limit !!!*/, total_cnt=0;
+	int new_dict_count = (int)agentsTypesDictionary.howManyShouldBeBroadcast()/*Integer limit !!!*/, total_cnt=0;
 	DEBUG_REPORT("FO #" << this->ID << " is running New Agent Type reporting cycle with local size " << new_dict_count);
 	t_hashed_str * sentTypes;
 /*	char * sentTypes;*/
 	for (int i = 1 ; i <= FOsCount ; i++) {
 		if (i == ID)
 		{
-			total_cnt += new_dict_count = agentsTypesDictionary.howManyShouldBeBroadcast();
+			total_cnt += new_dict_count = (int)agentsTypesDictionary.howManyShouldBeBroadcast();
 			int j = 0;
 			DEBUG_REPORT("New dictionary count From FO#" << i << ": " << new_dict_count);
 			communicator->sendBroadcast(&new_dict_count, 1, i, e_comm_tags::count_new_type);
@@ -192,7 +194,7 @@ void FrontOfficer::broadcast_newAgentsTypes()
 }
 
 
-void FrontOfficer::respond_newAgentsTypes(int noOfIncomingNewAgentTypes)
+void FrontOfficer::respond_newAgentsTypes(int /*noOfIncomingNewAgentTypes*/)
 {
 	//This method would miss important parameters and is executed in global receiving stage so it is dummy
 }
@@ -200,7 +202,7 @@ void FrontOfficer::respond_newAgentsTypes(int noOfIncomingNewAgentTypes)
 
 ShadowAgent* FrontOfficer::request_ShadowAgentCopy(const int agentID, const int FOsID)
 {
-	size_t param_buff[4] =  {agentID,0,0,0};
+	size_t param_buff[4] =  {(size_t)agentID,0,0,0};
 	int cnt = 4; //sizeof(param_buff) / sizeof(long*);
 	int fo_back = FOsID;
 	int items;
@@ -240,16 +242,17 @@ void FrontOfficer::respond_ShadowAgentCopy(const int agentID)
 	const size_t sendBackAgentType = aaRef.getAgentTypeID();
 	const int geom_type = (int) sendBackGeom.shapeForm;
 
-	size_t param_buff[4] =  {sendBackAgentID, geom_size, sendBackAgentType, geom_type};
+	size_t param_buff[4] =  {(size_t)sendBackAgentID, (size_t)geom_size, sendBackAgentType, (size_t)geom_type};
 	int cnt = 4; //sizeof(param_buff) / sizeof(long*);
 
 	DEBUG_REPORT("Sent shadow copy info at FO #"  << ID << ": ID=" << param_buff[0] << ", Type=" << param_buff[2] << ", Geom Type=" << param_buff[3]);
 	communicator->sendFO(param_buff, cnt, foID, e_comm_tags::shadow_copy);
 
-	char buffer_to_send [geom_size];
-	sendBackGeom.serializeTo(buffer_to_send);
+	std::unique_ptr<char[]> buffer_to_send( new char[geom_size] );
+	//char buffer_to_send [geom_size];
+	sendBackGeom.serializeTo(buffer_to_send.get());
 
-	communicator->sendFO(buffer_to_send, geom_size, foID, e_comm_tags::shadow_copy_data);
+	communicator->sendFO(buffer_to_send.get(), (int)geom_size, foID, e_comm_tags::shadow_copy_data);
 }
 
 

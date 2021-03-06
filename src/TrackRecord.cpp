@@ -78,7 +78,7 @@ Vector3d<float> TrackRecords::getDisplacement(const float timeFrom, const float 
 		const Coord3d<float>&  end  = this->at( timeTo ).at(track);
 		return (end-start);
 	}
-	catch (std::out_of_range)
+	catch (std::out_of_range*)
 	{
 		return defaultVec;
 	}

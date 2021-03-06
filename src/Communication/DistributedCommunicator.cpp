@@ -10,7 +10,6 @@ MPI_Communicator::~MPI_Communicator() {
 }
 
 int MPI_Communicator::init(int argc, char **argv) {
-	int cshift = 1, icnt;
 	int out_model=0;
 	//const int director_id [1] = {0};
 	//int state = MPI_Init(&argc, &argv);
@@ -85,15 +84,7 @@ int MPI_Communicator::init(int argc, char **argv) {
 	MPI_Comm_set_name(id_comm, "ID sender");
 	MPI_Comm_set_name(barrier_comm, "Barrier_comm");
 
-	/* //Code for shifting agent IDs if used locally, unused now
-	for (cshift=1, icnt=instances; icnt != 0 ; icnt = icnt	 >> 1) {
-		cshift++;
-	}
-	shift = sizeof(int)*8 - cshift;
-	DEBUG_REPORT("Shift agent ID by " << shift << " bits\n");
-	*/
-
-    MPI_Get_processor_name(processor_name, &name_len);
+	MPI_Get_processor_name(processor_name, &name_len);
 	return state;
 }
 
@@ -123,7 +114,6 @@ bool MPI_Communicator::detectMPIMessage(MPI_Comm comm, int peer, e_comm_tags & t
 bool MPI_Communicator::receiveAndProcessDirectorMessage(void * buffer, int &recv_size, e_comm_tags &tag) {
 //	MPI_Status status;
 	bool result;
-	int state;
 
 //	do { --
 	result = detectMPIMessage(director_comm, DIRECTOR_ID, tag, false);
@@ -135,9 +125,8 @@ bool MPI_Communicator::receiveAndProcessDirectorMessage(void * buffer, int &recv
 	return false;
 }
 
-bool MPI_Communicator::receiveDirectorMessage(void * buffer, int &recv_size, e_comm_tags &tag, bool async) {
+bool MPI_Communicator::receiveDirectorMessage(void * buffer, int &recv_size, e_comm_tags &tag, bool /*async*/) {
 	MPI_Status status;
-	bool result;
 	int state;
 	static int did=DIRECTOR_ID;
 
@@ -178,7 +167,6 @@ e_comm_tags MPI_Communicator::detectFOMessage(bool async) {
 
 bool MPI_Communicator::receiveFOMessage(void * buffer, int &recv_size, int & instance_ID, e_comm_tags &tag) {
 	MPI_Status status;
-	bool result;
 	int state;
 
 	//MPI_Comm comm = (tag == e_comm_tags::ACK)?MPI_COMM_WORLD:director_comm;
@@ -259,8 +247,9 @@ void MPI_Communicator::renderNextFrame(int FO)
 //	receiveFOACK(FO);
 }
 
-size_t MPI_Communicator::receiveRenderedFrame(int fromFO, int slice_size, int slices) {
+size_t MPI_Communicator::receiveRenderedFrame(int /*fromFO*/, int /*slice_size*/, int /*slices*/) {
 	/* Unused right now due to mergeImages method*/
+	return 0; //just to make compiler happy (i.e., w/o warnings)
 }
 
 void MPI_Communicator::mergeImages(int FO, int slice_size, int slices, unsigned short * maskPixelBuffer, float * phantomBuffer, float * opticsBuffer) {

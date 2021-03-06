@@ -69,7 +69,9 @@ void NucleusNSAgent::advanceAndBuildIntForces(const float futureGlobalTime)
 void NucleusNSAgent::drawMask(DisplayUnit& du)
 {
 	int dID  = DisplayUnit::firstIdForAgentObjects(ID);
+#ifdef DEBUG
 	int ldID = DisplayUnit::firstIdForAgentDebugObjects(ID);
+#endif
 	int gdID = DisplayUnit::firstIdForSceneDebugObjects() + ID*40 +5000;
 
 	//draw spheres, each at different color
@@ -92,9 +94,9 @@ void NucleusNSAgent::drawMask(DisplayUnit& du)
 }
 
 
+#ifdef DEBUG
 void NucleusNSAgent::drawForDebug(DisplayUnit& du)
 {
-#ifdef DEBUG
 	int gdID = DisplayUnit::firstIdForSceneDebugObjects() + ID*40 +10000;
 
 	//forces:
@@ -108,5 +110,7 @@ void NucleusNSAgent::drawForDebug(DisplayUnit& du)
 		else if (f.type == ftype_s2s) color = -1; //don't draw
 		if (color > 0) du.DrawVector(gdID++, f.base,f, color);
 	}
-#endif
 }
+#else
+void NucleusNSAgent::drawForDebug(DisplayUnit&) {}
+#endif

@@ -23,14 +23,16 @@ class FrontOfficer//: public Simulation
 {
 public:
 	FrontOfficer(Scenario& s, const int nextFO, const int myPortion, const int allPortions, DistributedCommunicator * dc = NULL)
-		: scenario(s), ID(myPortion), nextFOsID(nextFO), FOsCount(allPortions), communicator(dc),
+		: scenario(s), communicator(dc),
 #ifdef DISTRIBUTED
-		  responder([this] {respond_Loop();}), finished(false),
+		  finished(false),
 #endif
+		  ID(myPortion), nextFOsID(nextFO), FOsCount(allPortions),
 		  __agentTypeBuf(new char[StringsImprintSize]) //freed in FrontOfficer::close()
+#ifdef DISTRIBUTED
+		  , responder([this] {respond_Loop();})
+#endif
 	{
-		if (dc) {
-		}
 		scenario.declareFOcontext(myPortion);
 		//TODO: create an extra thread to execute/service the respond_...() methods
 	}
