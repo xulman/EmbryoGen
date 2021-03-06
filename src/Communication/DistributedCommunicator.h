@@ -330,14 +330,16 @@ protected:
 
 		int init(int argc, char **argv);
 
-		inline void debugMPIComm(const char* what, MPI_Comm comm, int items, int peer=MPI_ANY_SOURCE, e_comm_tags tag = e_comm_tags::unspecified) {
 #ifdef DISTRIBUTED_DEBUG
+		inline void debugMPIComm(const char* what, MPI_Comm comm, int items, int peer=MPI_ANY_SOURCE, e_comm_tags tag = e_comm_tags::unspecified) {
 			int rlen=64;
 			char cname [64] = {0};
 			MPI_Comm_get_name(comm, cname, &rlen);
 			REPORT(what << " MPI message at: " << instance_ID << " Via: " << cname <<  " Peer: " << peer <<  " Items in message: " << items << " Tag: " << tagName(tag));
-#endif
 		}
+#else
+		inline void debugMPIComm(const char*, MPI_Comm, int, int, e_comm_tags) {}
+#endif
 
 		inline int sendMPIMessage(MPI_Comm comm, void *data, int items, MPI_Datatype datatype, int peer=0, e_comm_tags tag = e_comm_tags::unspecified) {
 			int tag2 = (tag == e_comm_tags::unspecified)?MPI_ANY_TAG:tag;

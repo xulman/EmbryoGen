@@ -125,9 +125,11 @@ void FrontOfficer::respond_AABBofAgent()
 
 void FrontOfficer::respond_CntOfAABBs()
 {
+#ifdef DEBUG
 	size_t sendBackMyCount = getSizeOfAABBsList();
-	DEBUG_REPORT("FO #" << ID << " Count: " << sendBackMyCount);
+	REPORT("FO #" << ID << " Count: " << sendBackMyCount);
 	//communicator->sendCntOfAABBs(sendBackMyCount);
+#endif
 }
 
 

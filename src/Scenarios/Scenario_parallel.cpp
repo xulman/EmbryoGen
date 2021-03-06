@@ -159,7 +159,7 @@ public:
 			std::string ignore;
 			int ID;
 			iss >> ignore >> ID;
-			if (nearbyAgents.size() > 4) DEBUG_REPORT(SIGN << "sees around agent ID " << ID);
+			if (nearbyAgents.size() > 4) REPORT(SIGN << "sees around agent ID " << ID);
 			hash += std::hash<int>()(ID);
 		}
 		indices.SetVoxel((size_t)x,(size_t)y,0, (float)hash);
