@@ -2,8 +2,9 @@
 #
 # Cross platform CMake configure script for 'EmbryoGen' simulator
 #
-# authors: Vladimir Ulman
+# authors: Vladimir Ulman, Pavel Moravec
 #          Max Planck Institute of Cell Biology and Genetics (c) 2018
+#          IT4Innovations National Supercomputing Center, VSB-TUO (c) 2020
 #
 #------------------------------------------------------------------------
 
@@ -30,14 +31,13 @@ option(FEATURE_USEOpenMP             "Use OpenMP for single node parallelization
 
 option(SEARCH_ALL_DEPLIBS     "Shall all dependency libraries be explicitly linked? Useful mainly for static builds." OFF)
 option(SEARCH_FOR_STATIC      "Shall CMAKE look for static variants of the dependency libraries?" OFF)
-#option(L_REQUEST_STATIC_LINKING "Shall LINKER look for static variants of the dependency libraries?" OFF)
 
 #-------------------------------------------------------
 # TRANSLATE FEATURE REQUESTS INTO PREPROCESSOR CONSTANTS
 #-------------------------------------------------------
 
 if (DEBUG_VERSION)
-		add_definitions(-DDEBUG)
+	add_definitions(-DDEBUG)
 endif (DEBUG_VERSION)
 
 if (DEBUG_DIST_VERSION)
@@ -81,14 +81,16 @@ endif (SEARCH_FOR_STATIC)
 #-------------------------
 
 if (DEBUG_VERSION)
-		set(CMAKE_BUILD_TYPE "DEBUG" CACHE STATIC "" FORCE)
+	set(CMAKE_BUILD_TYPE "DEBUG" CACHE STATIC "" FORCE)
 else (DEBUG_VERSION)
-		set(CMAKE_BUILD_TYPE "RELEASE" CACHE STATIC "" FORCE)
+	set(CMAKE_BUILD_TYPE "RELEASE" CACHE STATIC "" FORCE)
 endif (DEBUG_VERSION)
 
 if (FEATURE_RUNDISTRIBUTED)
 	find_package(MPI REQUIRED)
-	set(CMAKE_C_COMPILER   ${MPI_C_COMPILER})
+	message(STATUS "===============================================================================")
+	message(STATUS "==> MPI Run: ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} ${MPIEXEC_MAX_NUMPROCS} ${MPIEXEC_PREFLAGS} EXECUTABLE ${MPIEXEC_POSTFLAGS} ARGS")
+	message(STATUS "===============================================================================")
 	set(CMAKE_CXX_COMPILER ${MPI_CXX_COMPILER})
 endif (FEATURE_RUNDISTRIBUTED)
 
@@ -148,10 +150,6 @@ add_executable(embryogen ${SOURCES} ${D_FO_SOURCES} ${SCENARIOSOURCES})
 # TARGET LINKING - FIRST-LEVEL REQUIRED LIBS
 #--------------------------------------------
 
-#if (L_REQUEST_STATIC_LINKING)
-#	set_target_properties(embryogen PROPERTIES LINK_SEARCH_START_STATIC ON)
-#endif (L_REQUEST_STATIC_LINKING)
-
 # i3dlibs library
 find_path(INC_I3D "i3d/image3d.h")
 find_library(LIB_I3DCORE "i3dcore")
@@ -161,7 +159,6 @@ set(LIBS ${LIBS} ${LIB_I3DALGO} ${LIB_I3DCORE})
 if (UNIX AND CMAKE_COMPILER_IS_GNUCXX)
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Xlinker -defsym -Xlinker MAIN__=main")
 endif (UNIX AND CMAKE_COMPILER_IS_GNUCXX)
-
 
 # GSL library
 find_path(INC_GSL "gsl/gsl_randist.h")
@@ -183,6 +180,7 @@ if(NOT ZeroMQ_FOUND)
 	list (APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/libzmq-pkg-config)
 	find_package(ZeroMQ REQUIRED)
 endif()
+set(LIBS ${LIBS} libzmq-static)
 
 # cppzmq header only (that C++-ish wraps around the original libzmq)
 find_path(INC_CPPZMQ "zmq.hpp" DOC "EmbryoGen, being a C++ project, needs cppzmq (zmq.hpp) installed around libzmq.")
@@ -190,9 +188,13 @@ include_directories(${INC_CPPZMQ})
 
 # ImgTransfer code
 find_path(INC_DAISwp13 "TransferImage.h" DOC "Locate TransferImage.h from the C++ flavour of the DAIS-wp13 images transfer project.")
-find_library(LIB_DAISwp13 libDAIS-wp13.so)
+find_library(LIB_DAISwp13 DAIS-wp13.a)
 include_directories(${INC_DAISwp13})
 set(LIBS ${LIBS} ${LIB_DAISwp13})
+
+if (FEATURE_RUNDISTRIBUTED)
+	set(LIBS ${LIBS} MPI::MPI_CXX)
+endif (FEATURE_RUNDISTRIBUTED)
 
 #----------------------------------------------
 # TARGET LINKING - FURTHER-LEVEL REQUIRED LIBS
@@ -202,24 +204,15 @@ if (SEARCH_ALL_DEPLIBS)
 		# explicitly add libraries required by the CBIA i3dlibs
 		find_library(LIB_LAPACK lapack)
 		find_library(LIB_BLAS blas)
-		#find_library(LIB_GFORTRAN gfortran PATHS /usr/lib/gcc/x86_64-pc-linux-gnu/4.6.3)
-		set(LIBS ${LIBS} ${LIB_LAPACK} ${LIB_BLAS} ${LIB_GFORTRAN})
+		set(LIBS ${LIBS} ${LIB_LAPACK} ${LIB_BLAS})
 
 		find_library(LIB_TIFF tiff)
 		find_library(LIB_JPEG jpeg)
 		find_library(LIB_ICS ics)
-		#find_library(LIB_PNG png)
-		#find_library(LIB_HDF5_HL hdf5_hl)
-		#find_library(LIB_HDF5 hdf5)
+		set(LIBS ${LIBS} ${LIB_TIFF} ${LIB_ICS} ${LIB_JPEG})
 
-		set(LIBS ${LIBS} ${LIB_TIFF} ${LIB_JPEG} ${LIB_ICS}
-					${LIB_PNG} ${LIB_HDF5} ${LIB_HDF5_HL})
-
-		#find_library(LIB_LZMA lzma)
-		#find_library(LIB_JBIG jbig)
 		find_library(LIB_Z z)
-
-		set(LIBS ${LIBS} ${LIB_JBIG} ${LIB_LZMA} ${LIB_Z})
+		set(LIBS ${LIBS} ${LIB_Z})
 
 		find_library(LIB_FFTW_SINGLE_THREADS fftw3f_threads)
 		find_library(LIB_FFTW_SINGLE fftw3f)
@@ -229,60 +222,30 @@ if (SEARCH_ALL_DEPLIBS)
 		find_library(LIB_FFTW_LDOUBLE fftw3l)
 
 		set(LIBS ${LIBS} ${LIB_FFTW_SINGLE_THREADS}
-					${LIB_FFTW_SINGLE}
-					${LIB_FFTW_DOUBLE_THREADS}
-					${LIB_FFTW_DOUBLE}
-					${LIB_FFTW_LDOUBLE_THREADS}
-					${LIB_FFTW_LDOUBLE})
+		         ${LIB_FFTW_SINGLE}
+		         ${LIB_FFTW_DOUBLE_THREADS}
+		         ${LIB_FFTW_DOUBLE}
+		         ${LIB_FFTW_LDOUBLE_THREADS}
+		         ${LIB_FFTW_LDOUBLE})
 endif (SEARCH_ALL_DEPLIBS)
-
-#if (L_REQUEST_STATIC_LINKING)
-#	set_target_properties(embryogen PROPERTIES LINK_SEARCH_START_STATIC OFF)
-#endif (L_REQUEST_STATIC_LINKING)
 
 #----------------
 # TARGET LINKING
 #----------------
-#set(CMAKE_CXX_FLAGS "-ldl -lm -lpthread -pthread")
 
 if(FEATURE_USEOpenMP)
 	if (APPLE)
 		if(CMAKE_C_COMPILER_ID MATCHES "Clang")
-			set(OpenMP_C "${CMAKE_C_COMPILER}")
-			set(OpenMP_C_FLAGS "-fopenmp=libomp -Wno-unused-command-line-argument")
-			set(OpenMP_C_LIB_NAMES "libomp")
 			set(OpenMP_CXX "${CMAKE_CXX_COMPILER}")
 			set(OpenMP_CXX_FLAGS "-fopenmp=libomp -Wno-unused-command-line-argument")
 			set(OpenMP_CXX_LIB_NAMES "libomp")
 			find_library(OpenMP_libomp_LIBRARY omp)
+			set(LIBS ${LIBS} OpenMP_libomp_LIBRARY)
 		endif()
 	endif (APPLE)
 
-  find_package(OpenMP REQUIRED)
-  if(NOT TARGET OpenMP::OpenMP_CXX)
-    find_package(Threads REQUIRED)
-    add_library(OpenMP::OpenMP_CXX IMPORTED INTERFACE)
-    set_property(TARGET OpenMP::OpenMP_CXX
-                 PROPERTY INTERFACE_COMPILE_OPTIONS ${OpenMP_CXX_FLAGS})
-    # Only works if the same flag is passed to the linker; use CMake 3.9+ otherwise (Intel, AppleClang)
-    set_property(TARGET OpenMP::OpenMP_CXX
-                 PROPERTY INTERFACE_LINK_LIBRARIES ${OpenMP_CXX_FLAGS} Threads::Threads)
-  endif()
+	find_package(OpenMP)
+	set(LIBS ${LIBS} OpenMP::OpenMP_CXX)
 endif(FEATURE_USEOpenMP)
 
-if (FEATURE_RUNDISTRIBUTED)
-	if (FEATURE_USEOpenMP)
-	  target_link_libraries(embryogen PRIVATE ${MPI_C_LIBRARIES} OpenMP::OpenMP_CXX ${LIBS} libzmq)
-	else(FEATURE_USEOpenMP)
-	  target_link_libraries(embryogen PRIVATE ${MPI_C_LIBRARIES} ${LIBS} libzmq)
-	endif(FEATURE_USEOpenMP)
-	#target_link_libraries(embryogen PRIVATE ${MPI_C_LIBRARIES})
-	#target_include_directories(SYSTEM ${MPI_INCLUDE_PATH})
-	#add_definitions(-DOMPI_SKIP_MPICXX)
-else (FEATURE_RUNDISTRIBUTED)
-	if (FEATURE_USEOpenMP)
-	  target_link_libraries(embryogen OpenMP::OpenMP_CXX ${LIBS} libzmq)
-	else(FEATURE_USEOpenMP)
-	  target_link_libraries(embryogen ${LIBS} libzmq)
-	endif(FEATURE_USEOpenMP)
-endif (FEATURE_RUNDISTRIBUTED)
+target_link_libraries(embryogen ${LIBS})
