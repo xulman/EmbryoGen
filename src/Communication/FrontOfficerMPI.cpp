@@ -93,7 +93,7 @@ void FrontOfficer::waitFor_publishAgentsAABBs()
 	broadcast_newAgentsTypes(); //Force-call it here?
 }
 
-void FrontOfficer::notify_publishAgentsAABBs(const int FOsID)
+void FrontOfficer::notify_publishAgentsAABBs(const int /*FOsID*/)
 {
 	//Dummy action due to running broadcast in cycle sending all items at once.
 }
@@ -192,7 +192,7 @@ void FrontOfficer::broadcast_newAgentsTypes()
 }
 
 
-void FrontOfficer::respond_newAgentsTypes(int noOfIncomingNewAgentTypes)
+void FrontOfficer::respond_newAgentsTypes(int /*noOfIncomingNewAgentTypes*/)
 {
 	//This method would miss important parameters and is executed in global receiving stage so it is dummy
 }

@@ -30,7 +30,7 @@ void Director::respond_updateParentalLink(int FO)
 
 void Director::notify_publishAgentsAABBs(const int FOsID)
 {
-	int buffer[1] = {0};
+	//int buffer[1] = {0};
 	//communicator->sendFO(buffer,0,FOsID, e_comm_tags::unblock_FO);
 	communicator->publishAgentsAABBs(FOsID);
 }
@@ -71,7 +71,7 @@ size_t Director::request_CntOfAABBs(const int FOsID)
 }
 
 
-void Director::respond_newAgentsTypes(int new_dict_count)
+void Director::respond_newAgentsTypes(int /*new_dict_count*/)
 {
 	int total_cnt=0;
 	t_hashed_str * receivedTypes;
@@ -117,7 +117,6 @@ void Director::respond_Loop()
 	int items;
 	e_comm_tags tag;
 	int finished = 0;
-	int waiting = 0;
 	/*REPORT("Running detection loop in Director\n");
 	for (int i=1; i <= FOsCount; i++) {
 		communicator->sendFO(buffer,0,i, e_comm_tags::next_stage);
@@ -160,27 +159,12 @@ void Director::respond_Loop()
 				closeAgent(ibuffer[0], ibuffer[1]);
 				respond_closeAgent(instance);
 				break;
-/*			case e_comm_tags::next_stage:
-				communicator->receiveFOMessage(buffer, items, instance, tag);
-				waiting++;
-				REPORT("Waiting FOs total: " << waiting << " out of " << FOsCount << " on Director");
-				if (waiting == FOsCount) {
-					communicator->waitSync(e_comm_tags::next_stage);
-					waiting=0;
-				}
-				break;*/
-/*			case e_comm_tags::get_count_AABB: 
-				continue;*/
 			case e_comm_tags::send_AABB: //Forgotten round-robin
 				communicator->receiveFOMessage(ibuffer, items, instance, tag);
 				assert(items == 0);
 //				finished=FOsCount;
 				//Is something else called here?
 				break;
-/*			case e_comm_tags::unblock_FO:
-				finished=FOsCount;
-				communicator->receiveFOMessage(buffer, items, instance, tag);
-				break;*/
 			case e_comm_tags::render_frame:
 				communicator->receiveFOMessage(buffer, items, instance, tag);
 				assert(items == 0);

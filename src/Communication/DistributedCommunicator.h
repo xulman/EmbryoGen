@@ -92,7 +92,7 @@ public:
 			receiveDirectorMessage(director_buffer, director_buffer_size, tag);
 		}
 
-		virtual void waitSync(e_comm_tags tag=e_comm_tags::barrier) {}
+		virtual void waitSync(e_comm_tags = e_comm_tags::barrier) {}
 
 		inline void unblockNextIfSent() {
 			if (hasSent) {
@@ -316,10 +316,6 @@ public:
 		virtual bool receiveFOMessage(void * buffer, int &recv_size, int & instance_ID,  e_comm_tags &tag); //Single reception step, for response messages
 
 		virtual void waitSync(e_comm_tags tag=e_comm_tags::barrier) {
-			e_comm_tags tag2 = e_comm_tags::next_stage;
-			/*if (instance_ID) {
-				sendDirector(no_message, 0, tag2);
-			}*/
 			debugMPIComm("WaitSync", tagCommMap(tag), -1, instance_ID,  tag);
 			MPI_Barrier(director_comm);
 			debugMPIComm("WaitSyncEnd", tagCommMap(tag), -1, instance_ID,  tag);
