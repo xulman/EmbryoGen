@@ -43,7 +43,7 @@ void Director::waitFor_publishAgentsAABBs()
 	t_aabb * sentAABBs;
 	int total_AABBs = 0;
 	for (int i = 1 ; i <= FOsCount ; i++) {
-		int aabb_count = communicator->cntOfAABBs(i, true);
+		int aabb_count = (int)communicator->cntOfAABBs(i, true);
 		//In reality, following is dummy code needed to correctly distribute broadcasts through all nodes
 		//sentAABBs = new t_aabb[aabb_count];
 		sentAABBs = (t_aabb*) malloc(sizeof(t_aabb)*(aabb_count+1));
