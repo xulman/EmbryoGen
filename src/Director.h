@@ -20,11 +20,12 @@ class Director
 {
 public:
 	Director(Scenario& s, const int firstFO, const int allPortions, DistributedCommunicator * dc = NULL)
-		: scenario(s), firstFOsID(firstFO), FOsCount(allPortions), communicator(dc),
-#ifdef DISTRIBUTED
-		  responder([this] {respond_Loop();}),
-#endif
+		: scenario(s), communicator(dc),
+		  firstFOsID(firstFO), FOsCount(allPortions),
 		  shallWaitForUserPromptFlag( scenario.params.shallWaitForUserPromptFlag )
+#ifdef DISTRIBUTED
+		  , responder([this] {respond_Loop();})
+#endif
 	{
 		scenario.declareDirektorContext();
 		//TODO: create an extra thread to execute/service the respond_...() methods
