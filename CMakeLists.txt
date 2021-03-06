@@ -130,8 +130,9 @@ if (SEARCH_ALL_DEPLIBS)
 		set(LIBS ${LIBS} ${LIB_LAPACK} ${LIB_BLAS})
 
 		find_library(LIB_TIFF tiff)
+		find_library(LIB_JPEG jpeg)
 		find_library(LIB_ICS ics)
-		set(LIBS ${LIBS} ${LIB_TIFF} ${LIB_ICS})
+		set(LIBS ${LIBS} ${LIB_TIFF} ${LIB_ICS} ${LIB_JPEG})
 
 		find_library(LIB_Z z)
 		set(LIBS ${LIBS} ${LIB_Z})

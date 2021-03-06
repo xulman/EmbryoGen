@@ -1,0 +1,4 @@
+module add git
+module add GCC/9.3.0
+module add CMake
+module add OpenMPI/4.0.3-GCC-9.3.0

@@ -9,6 +9,8 @@ libs/*zip
 libs/*-*
 libs/i3dlibs
 libs/libf2c
+libs/cppzmq
+libs/libzmq
 #
 # files for static compile: outputs
 libs/DEPLOY
