@@ -13,7 +13,6 @@ prepare_TIFF=YES
 prepare_FFTW=YES
 prepare_F2C=YES
 prepare_I3D=YES
-
 prepare_ZMQ=YES
 prepare_DAIS=YES
 
@@ -152,7 +151,9 @@ fi
 
 echo ========================= I3D =========================
 if [ "_$prepare_I3D" == "_YES" ]; then
-	git clone git@gitlab.fi.muni.cz:cbia/I3DLIB.git i3dlibs
+	#git clone git@gitlab.fi.muni.cz:cbia/I3DLIB.git i3dlibs
+	wget https://www.fi.muni.cz/~xulman/files/secret_folder/i3dlibs.zip
+	unzip i3dlibs.zip
 	cd i3dlibs
 	mkdir -p BUILD
 	cd BUILD
@@ -247,3 +248,10 @@ echo
 
 echo "That pre-sets the build, fine-tune the build now with:"
 echo "ccmake __addPathToCmakeListsHere__"
+echo
+
+echo "OPENMPI:"
+echo "  Run the following command FIRST (in clean build environment, before paths are mangled),"
+echo "  and ONLY THEN one from the configurations commands above:"
+echo "cmake -D FEATURE_RUNDISTRIBUTED=ON \\"
+echo "   __addPathToCmakeListsHere__"
