@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <stdexcept>
 #include <cstring>
 #include <chrono>
 
@@ -35,7 +36,7 @@
 
 /** calls a no-parameter, string-returning lambda that is defined on demand, inprinting the given
     stream x into its definition, and the execution of it returns the desired string */
-#define buildStringFromStream(x) [](){ std::ostringstream qqq; qqq << x; return qqq.str(); }()
+#define buildStringFromStream(x) [&](){ std::ostringstream qqq; qqq << x; return qqq.str(); }()
 
 /** to be used in constructs such as:  throw new std::runtime_error( EREPORT("refuse to deal with NULL agent.") ); */
 #define EREPORT(x) std::string(__SHORTFILE__).append("::").append(__FUNCTION__).append("(): ").append( buildStringFromStream(x) )
@@ -45,8 +46,11 @@
 
 /** any AbstractAgent-derived agent can use this to label its own report messages,
     e.g. DEBUG_REPORT(IDSIGN << "reporting signed message"); */
-#define SIGN    this->agentType << ": "
-#define IDSIGN  this->ID << "-" << this->agentType << ": "
+#define SIGN                 "\"" << this->agentType << "\": "
+#define IDSIGN  this->ID << " \"" << this->agentType << "\": "
+
+#define SIGNHIM(ag)                     "\"" << (ag).getAgentType() << "\": "
+#define IDSIGNHIM(ag)  (ag).getID() << " \"" << (ag).getAgentType() << "\": "
 
 
 /** profiling aiders: starts stopwatch and returns "session handler",

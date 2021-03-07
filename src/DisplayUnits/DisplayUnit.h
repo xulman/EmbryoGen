@@ -68,5 +68,21 @@ public:
 	    One can use it to communicate some additional informative/status message... */
 	virtual
 	void Tick(const char*) {};
+
+
+	/** See docs of AbstractAgent::drawMask() */
+	static inline
+	int firstIdForAgentObjects(const int agentID)
+	{ return agentID << 17; }
+
+	/** See docs of AbstractAgent::drawMask() */
+	static inline
+	int firstIdForAgentDebugObjects(const int agentID)
+	{ return agentID << 17 | 1 << 16; /* enable debug bit */ }
+
+	/** See docs of AbstractAgent::drawMask() */
+	static inline
+	int firstIdForSceneDebugObjects()
+	{ return 0; }
 };
 #endif

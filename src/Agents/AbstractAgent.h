@@ -1,10 +1,12 @@
-#ifndef ABSTRACTAGENT_H
-#define ABSTRACTAGENT_H
+#ifndef AGENTS_ABSTRACTAGENT_H
+#define AGENTS_ABSTRACTAGENT_H
 
 #include <i3d/image3d.h>
+#include "../util/report.h"
 #include "../DisplayUnits/DisplayUnit.h"
 #include "../Geometries/Geometry.h"
-class Simulation;
+#include "../FrontOfficer.h"
+#include "../util/strings.h"
 
 /**
  * This class is essentially only a read-only representation of
@@ -19,12 +21,13 @@ class Simulation;
  */
 class ShadowAgent
 {
-protected:
+public:
 	/** Construct the object (which is an agent shape and position representation)
 	    by giving it a concrete implementation of Geometry, e.g. Mesh or Spheres object.
 	    The reference to this object is kept and used, i.e. no new object is created. */
-	ShadowAgent(Geometry& geom, const std::string& type)
-		: geometry(geom), agentType(type) {};
+	ShadowAgent(Geometry& geom, const int id, const std::string& type)
+		: geometry(geom), ID(id), agentType(type) {};
+protected:
 
 	/** The geometry of an agent that is exposed to the world.
 	    It might be a light-weight version of the agent's exact geometry.
@@ -32,6 +35,11 @@ protected:
 	    distances between agents. See also the discussion AbstractAgent::drawMask(). */
 	Geometry& geometry;
 
+public:
+	/** label of this agent */
+	const int ID;
+
+protected:
 	/** The type designation of this agent (that is represented with this->geometry).
 	    Simulation agents may decide to "pay attention to"/smell/interact with only
 	    certain types of agents and this attribute is a way to identify/distinguish
@@ -42,7 +50,7 @@ protected:
 	    it might want to be registered in the system for a while (to simulate its dissolution)
 	    while (by changing its designation) to "communicate" other agents its new "state" and
 	    to allow them act accordingly). */
-	std::string agentType;
+	hashedString agentType;
 
 public:
 	/** returns read-only reference to the agent's (axis aligned) bounding box */
@@ -51,16 +59,41 @@ public:
 		return geometry.AABB;
 	}
 
+	/** constructs an extra object with agent's (axis aligned) named bounding box
+	    and returns pointer on it, caller MUST delete this object eventually */
+	NamedAxisAlignedBoundingBox* createNamedAABB(void) const
+	{
+		return new NamedAxisAlignedBoundingBox(geometry.AABB,ID,agentType.getHash());
+	}
+
 	/** returns read-only reference to the agent's geometry */
 	const Geometry& getGeometry(void) const
 	{
 		return geometry;
 	}
 
+	/** returns agent's ID */
+	int getID(void) const
+	{
+		return ID;
+	}
+
+	/** returns read-only reference on agent's designation */
+	const hashedString& getAgentType_hashedString(void) const
+	{
+		return agentType;
+	}
+
 	/** returns read-only reference on agent's designation */
 	const std::string& getAgentType(void) const
 	{
-		return agentType;
+		return agentType.getString();
+	}
+
+	/** returns ID of agent's designation */
+	size_t getAgentTypeID(void) const
+	{
+		return agentType.getHash();
 	}
 };
 
@@ -99,9 +132,8 @@ protected:
 	AbstractAgent(const int _ID, const std::string& _type,
 	              Geometry& geometryContainer,
 	              const float _currTime, const float _incrTime)
-		: ShadowAgent(geometryContainer,_type),
-		  currTime(_currTime), incrTime(_incrTime),
-		  ID(_ID) {};
+		: ShadowAgent(geometryContainer,_ID,_type),
+		  currTime(_currTime), incrTime(_incrTime) {};
 
 public:
 	/** Please, override in inherited classes (see docs of AbstractAgent). */
@@ -111,7 +143,7 @@ public:
 	// ------------- interaction from the Simulation class -------------
 	/** (re)sets the officer to which this agent belongs to, this is also
 	    a communaction handler back to the Simulation class */
-	void setOfficer(Simulation* _officer)
+	void setOfficer(FrontOfficer* _officer)
 	{
 		if (_officer == NULL)
 			throw ERROR_REPORT("got NULL reference on my associated Officer.");
@@ -134,7 +166,7 @@ public:
 	}
 
 protected:
-	Simulation* Officer = NULL;
+	FrontOfficer* Officer = NULL;
 	bool detailedDrawingMode = false;
 	bool detailedReportingMode = false;
 
@@ -240,9 +272,6 @@ public:
 
 
 	// ------------- rendering -------------
-	/** label of this agent */
-	const int ID;
-
 	/** Should render the current detailed shape, i.e. the futureGeometry, into
 	    the DisplayUnit; may use this->ID or its state somehow for colors.
 

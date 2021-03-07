@@ -2,10 +2,10 @@
 
 void testInterpolation(void)
 {
-	const DivisionModels2S<5,5> sample("/Users/ulman/p_Johannes/Polyclad/divisionModelsForEmbryoGen.dat",3.0f);
+	const DivisionModels2S<5,5> sample("data/divisionModelsForEmbryoGen.dat",3.0f);
 
 	const int modelId = 1;
-	const DivisionModels2S<5,5>::DivisionModel& m = sample.getModel(modelId);
+	const DivisionModels2S<5,5>::DivModelType& m = sample.getModel(modelId);
 
 	std::cout << "# model ID " << modelId << ":\n";
 	m.printModel();
@@ -29,7 +29,7 @@ void testInterpolation(void)
 
 void testInvalidRangeExceptions(void)
 {
-	const DivisionModels2S<5,5> sample("/Users/ulman/p_Johannes/Polyclad/divisionModelsForEmbryoGen.dat",3.0f);
+	const DivisionModels2S<5,5> sample("data/divisionModelsForEmbryoGen.dat",3.0f);
 	bool sawException = false;
 
 	try { sample.getModel(10); }
@@ -64,7 +64,7 @@ void testInvalidRangeExceptions(void)
 
 void testWeights(void)
 {
-	const DivisionModels2S<5,5> sample("/Users/ulman/p_Johannes/Polyclad/divisionModelsForEmbryoGen.dat",3.0f);
+	const DivisionModels2S<5,5> sample("data/divisionModelsForEmbryoGen.dat",3.0f);
 
 	const int fromThisNoOfRandomModels = 2;
 	float weights[20][fromThisNoOfRandomModels];
@@ -80,9 +80,9 @@ void testWeights(void)
 
 void testMixedModels(void)
 {
-	const DivisionModels2S<5,5> sample("/Users/ulman/p_Johannes/Polyclad/divisionModelsForEmbryoGen.dat",3.0f);
+	const DivisionModels2S<5,5> sample("data/divisionModelsForEmbryoGen.dat",3.0f);
 
-	const DivisionModels2S<5,5>::DivisionModel* models[2];
+	const DivisionModels2S<5,5>::DivModelType* models[2];
 	models[0] = &sample.getModel(0);
 	models[1] = &sample.getModel(1);
 
@@ -90,7 +90,7 @@ void testMixedModels(void)
 	//sample.setFlatWeights<10,2>(weights);
 	sample.setSineShiftingGaussWeights<10,2>(weights);
 
-	DivisionModels2S<5,5>::DivisionModel m;
+	DivisionModels2S<5,5>::DivModelType m;
 	sample.getMixedFromGivenModels<10,2>(m,weights,models);
 
 	models[0]->printModel();

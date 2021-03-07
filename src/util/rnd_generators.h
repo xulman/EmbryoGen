@@ -1,5 +1,5 @@
-#ifndef _RNDGENERATORS_H_
-#define _RNDGENERATORS_H_
+#ifndef RNDGENERATORS_H
+#define RNDGENERATORS_H
 
 #include <gsl/gsl_rng.h>
 

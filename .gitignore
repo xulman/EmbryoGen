@@ -16,6 +16,7 @@ libs/libzmq
 libs/DEPLOY
 
 # Various build folders #
+VIZU
 BUILD*
 bin*
 
@@ -29,3 +30,7 @@ src/git_hash.h
 
 # VIM editor #
 .*.swp
+
+# CLION
+.idea
+cmake-build-*

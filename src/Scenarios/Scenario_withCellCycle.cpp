@@ -1,9 +1,9 @@
+#include "../DisplayUnits/SceneryBufferedDisplayUnit.h"
 #include "../util/Vector3d.h"
 #include "../Geometries/Spheres.h"
-#include "../Simulation.h"
 #include "../Agents/NucleusAgent.h"
 #include "../Agents/util/CellCycle.h"
-#include "Scenarios.h"
+#include "common/Scenarios.h"
 
 
 class myNucleusC: public NucleusAgent, CellCycle
@@ -73,8 +73,15 @@ public:
 };
 
 
-void Scenario_withCellCycle::initializeScenario(void)
+//==========================================================================
+void Scenario_withCellCycle::initializeAgents(FrontOfficer* fo,int p,int)
 {
+	if (p != 1)
+	{
+		REPORT("Populating only the first FO (which is not this one).");
+		return;
+	}
+
 	//to obtain a sequence of IDs for new agents...
 	int ID=1;
 
@@ -85,14 +92,14 @@ void Scenario_withCellCycle::initializeScenario(void)
 		Vector3d<float> pos((float)i*1.0f,0,50);
 
 		//position is shifted to the scene centre
-		pos.x += sceneSize.x/2.0f;
-		pos.y += sceneSize.y/2.0f;
-		pos.z += sceneSize.z/2.0f;
+		pos.x += params.constants.sceneSize.x/2.0f;
+		pos.y += params.constants.sceneSize.y/2.0f;
+		pos.z += params.constants.sceneSize.z/2.0f;
 
 		//position is shifted due to scene offset
-		pos.x += sceneOffset.x;
-		pos.y += sceneOffset.y;
-		pos.z += sceneOffset.z;
+		pos.x += params.constants.sceneOffset.x;
+		pos.y += params.constants.sceneOffset.y;
+		pos.z += params.constants.sceneOffset.z;
 
 		Spheres s(2);
 		s.updateCentre(0,pos);
@@ -100,10 +107,23 @@ void Scenario_withCellCycle::initializeScenario(void)
 		s.updateCentre(1,pos+Vector3d<float>(0,3,0));
 		s.updateRadius(1,10.0f);
 
-		myNucleusC* ag = new myNucleusC(ID++,"nucleus",s,currTime,incrTime);
+		myNucleusC* ag = new myNucleusC(ID++,"nucleus",s,params.constants.initTime,params.constants.incrTime);
 		ag->setDetailedDrawingMode(true);
-		startNewAgent(ag);
+		fo->startNewAgent(ag);
 	}
+}
 
-	stopTime = 8.2f;
+
+void Scenario_withCellCycle::initializeScene()
+{
+	displays.registerDisplayUnit( [](){ return new SceneryBufferedDisplayUnit("localhost:8765"); } );
+}
+
+
+SceneControls& Scenario_withCellCycle::provideSceneControls()
+{
+	SceneControls::Constants myConstants;
+	myConstants.stopTime = 8.2f;
+
+	return *(new SceneControls(myConstants));
 }

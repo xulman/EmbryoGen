@@ -4,10 +4,11 @@
 #include <list>
 #include <i3d/image3d.h>
 #include "../util/Vector3d.h"
-#include "../DisplayUnits/DisplayUnit.h"
+#include "../DisplayUnits/util/RenderingFunctions.h"
+class DisplayUnit;
 
 /** accuracy of the geometry representation, choose float or double */
-#define FLOAT float
+#define G_FLOAT float
 
 /** a coordinate value that is way far outside of any scene... [micrometers] */
 #define TOOFAR 999999999.f
@@ -18,11 +19,11 @@ class AxisAlignedBoundingBox
 public:
 	/** defines the bounding box with its volumetric diagonal,
 	    this is the "bottom-left" corner of the box [micrometers] */
-	Vector3d<FLOAT> minCorner;
+	Vector3d<G_FLOAT> minCorner;
 
 	/** defines the bounding box with its volumetric diagonal,
 	    this is the "upper-right" corner of the box [micrometers] */
-	Vector3d<FLOAT> maxCorner;
+	Vector3d<G_FLOAT> maxCorner;
 
 	/** construct an empty AABB */
 	AxisAlignedBoundingBox(void)
@@ -40,9 +41,9 @@ public:
 	template <typename T>
 	AxisAlignedBoundingBox(const i3d::Image3d<T>& img)
 		: minCorner( img.GetOffset() ),
-		  maxCorner( Vector3d<size_t>(img.GetSize()).to<FLOAT>() )
+		  maxCorner( Vector3d<size_t>(img.GetSize()).to<G_FLOAT>() )
 	{
-		maxCorner.toMicrons(Vector3d<FLOAT>(img.GetResolution().GetRes()),minCorner);
+		maxCorner.toMicrons(Vector3d<G_FLOAT>(img.GetResolution().GetRes()),minCorner);
 	}
 
 	/** adjusts the image's resolution, offset and size to represent
@@ -50,27 +51,8 @@ public:
 	    pixel width */
 	template <typename T>
 	void adaptImage(i3d::Image3d<T>& img,
-	                const Vector3d<float>& res,                                //px/um
-	                const Vector3d<short>& pxFrameWidth = Vector3d<short>(2))  //px
-	const
-	{
-		const Vector3d<float> umFrameWidth( Vector3d<float>().from(pxFrameWidth).elemDivBy(res) );
-
-		Vector3d<float> tmp(minCorner.to<float>());
-		tmp -= umFrameWidth;
-
-		img.SetResolution( i3d::Resolution(res.toI3dVector3d()) );
-		img.SetOffset( tmp.toI3dVector3d() );
-
-		tmp.from(maxCorner-minCorner);
-		tmp += 2.0f * umFrameWidth;
-		tmp.elemMult(res).elemCeil();
-		img.MakeRoom( tmp.to<size_t>().toI3dVector3d() );
-
-		DEBUG_REPORT("from AABB: minCorner=" << minCorner << " um --> maxCorner=" << maxCorner << " um");
-		DEBUG_REPORT(" to image: imgOffset=" << img.GetOffset() << " um, imgSize="
-		             << img.GetSize() << " px, imgRes=" << res << " px/um");
-	}
+	                const Vector3d<float>& res,                                      //px/um
+	                const Vector3d<short>& pxFrameWidth = Vector3d<short>(2)) const; //px
 
 	/** exports this AABB as a "sweeping" box that is given
 	    with the output 'minSweep' and 'maxSweep' corners and
@@ -82,31 +64,7 @@ public:
 	template <typename T>
 	void exportInPixelCoords(const i3d::Image3d<T>& img,
 	                         Vector3d<size_t>& minSweep,
-	                         Vector3d<size_t>& maxSweep) const
-	{
-		//p is minCorner in img's px coordinates
-		Vector3d<FLOAT> p(minCorner);
-		p.toPixels(img.GetResolution().GetRes(),img.GetOffset());
-
-		//make sure minCorner is within the image
-		p.elemMax(Vector3d<FLOAT>(0));
-		p.elemMin(Vector3d<FLOAT>(img.GetSize()));
-
-		//obtain integer px coordinate that is already intersected with image dimensions
-		minSweep.toPixels(p);
-
-		//p is maxCorner in img's px coordinates
-		p = maxCorner;
-		p.toPixels(img.GetResolution().GetRes(),img.GetOffset());
-
-		//make sure minCorner is within the image
-		p.elemMax(Vector3d<FLOAT>(0));
-		p.elemMin(Vector3d<FLOAT>(img.GetSize()));
-
-		//obtain integer px coordinate that is already intersected with image dimensions
-		maxSweep.toPixels(p);
-	}
-
+	                         Vector3d<size_t>& maxSweep) const;
 
 	/** resets AABB (make it ready for someone to start filling it) */
 	void inline reset(void)
@@ -118,129 +76,64 @@ public:
 
 	/** returns SQUARED shortest distance along any axis between this and
 	    the given AABB, or 0.0 if they intersect */
-	FLOAT minDistance(const AxisAlignedBoundingBox& AABB) const
-	{
-		FLOAT M = std::max(minCorner.x,AABB.minCorner.x);
-		FLOAT m = std::min(maxCorner.x,AABB.maxCorner.x);
-		FLOAT dx = M > m ? M-m : 0; //min dist along x-axis
-
-		M = std::max(minCorner.y,AABB.minCorner.y);
-		m = std::min(maxCorner.y,AABB.maxCorner.y);
-		FLOAT dy = M > m ? M-m : 0; //min dist along y-axis
-
-		M = std::max(minCorner.z,AABB.minCorner.z);
-		m = std::min(maxCorner.z,AABB.maxCorner.z);
-		FLOAT dz = M > m ? M-m : 0; //min dist along z-axis
-
-		return (dx*dx + dy*dy + dz*dz);
-	}
+	G_FLOAT minDistance(const AxisAlignedBoundingBox& AABB) const;
 
 
-	/** Uses AxisAlignedBoundingBox::drawBox() to render this bounding box. */
+	/** Uses RenderingFunctions::drawBox() to render this bounding box. */
 	int drawIt(const int ID, const int color, DisplayUnit& du)
-	{
-		return drawBox(ID,color, minCorner,maxCorner, du);
-	}
+	{ return RenderingFunctions::drawBox(du, ID,color, minCorner,maxCorner); }
+};
 
-	/** Renders given bounding box into the given DisplayUnit 'du'
-	    under the given 'ID' with the given 'color'. Multiple graphics
-	    elements are required, so a couple of consecutive IDs are used
-	    starting from the given 'ID'. Returned value tells how many
-	    elements were finally used. */
-	int drawBox(const int ID, const int color,
-	            const Vector3d<FLOAT> &minC,
-	            const Vector3d<FLOAT> &maxC,
-	            DisplayUnit& du)
-	{
-		//horizontal lines
-		du.DrawLine( ID+0,
-		  minC,
-		  Vector3d<float>(maxC.x,
-		                  minC.y,
-		                  minC.z),color );
 
-		du.DrawLine( ID+1,
-		  Vector3d<float>(minC.x,
-		                  maxC.y,
-		                  minC.z),
-		  Vector3d<float>(maxC.x,
-		                  maxC.y,
-		                  minC.z),color );
+/**
+ * An x,y,z-axes aligned 3D bounding box for approximate representation of agent's geometry,
+ * the box has an extra (agent)'ID' and (agent)'nameID' attributes that are expected to match
+ * the ID and name (ShadowAgent::agentType.getHash()) of the agent this box is representing.
+ *
+ * The existence of this class comes from the optimization background. Agents in the simulation
+ * are free to choose with whom (with which other agents) they want to interact, that is,
+ * whose detailed geometry (ShadowAgent's data) they want to consider. Previously,
+ * the FO always fetched (FrontOfficer::getNearbyAgents()) ShadowAgent objects of all
+ * nearby agents and the agent might have just skipped over/ignored some (and the decision
+ * was typically based on the content of ShadowAgent::agentType). This, however, required
+ * all nearby ShadowAgent's to be availalbe (thus transferred!). This is no longer necessary
+ * with the new pair of methods FrontOfficer::getNearbyAABBs() and FrontOfficer::getNearbyAgent().
+ * Here, the agent decides whom to consider based on (the proximity and) the name of the AABB
+ * and only then requests the ShadowAgent of the agents that this one is interested in.
+ * Typically, 'nameID' is translated back into full agent's name (with the help of local
+ * agentsTypesDictionary), and then considered to make decision if the corresponding agent is
+ * of interest. The 'ID' is used to properly (and uniquely) map back on the represented agent.
+ *
+ * Consider also the docs of FrontOfficer::translateNameIdToAgentName() to understand
+ * the grand scheme of things, please.
+ *
+ * Author: Vladimir Ulman, 2019
+ */
+class NamedAxisAlignedBoundingBox: public AxisAlignedBoundingBox
+{
+public:
+	int ID;
+	size_t nameID;
 
-		du.DrawLine( ID+2,
-		  Vector3d<float>(minC.x,
-		                  minC.y,
-		                  maxC.z),
-		  Vector3d<float>(maxC.x,
-		                  minC.y,
-		                  maxC.z),color );
+	//mostly repetition of the AxisAlignedBoundingBox c'tors
+	NamedAxisAlignedBoundingBox(void)
+		: AxisAlignedBoundingBox(), ID(-1), nameID(-1)
+	{}
 
-		du.DrawLine( ID+3,
-		  Vector3d<float>(minC.x,
-		                  maxC.y,
-		                  maxC.z),
-		  maxC,color );
+	NamedAxisAlignedBoundingBox(const NamedAxisAlignedBoundingBox& naabb)
+		: AxisAlignedBoundingBox(naabb), ID(naabb.ID), nameID(naabb.nameID)
+	{}
 
-		//vertical lines
-		du.DrawLine( ID+4,
-		  minC,
-		  Vector3d<float>(minC.x,
-		                  maxC.y,
-		                  minC.z),color );
+	NamedAxisAlignedBoundingBox(const AxisAlignedBoundingBox& aabb,
+	                            const int boxID, const size_t boxNameID)
+		: AxisAlignedBoundingBox(aabb), ID(boxID), nameID(boxNameID)
+	{}
 
-		du.DrawLine( ID+5,
-		  Vector3d<float>(maxC.x,
-		                  minC.y,
-		                  minC.z),
-		  Vector3d<float>(maxC.x,
-		                  maxC.y,
-		                  minC.z),color );
-
-		du.DrawLine( ID+6,
-		  Vector3d<float>(minC.x,
-		                  minC.y,
-		                  maxC.z),
-		  Vector3d<float>(minC.x,
-		                  maxC.y,
-		                  maxC.z),color );
-
-		du.DrawLine( ID+7,
-		  Vector3d<float>(maxC.x,
-		                  minC.y,
-		                  maxC.z),
-		  maxC,color );
-
-		//"axial" lines
-		du.DrawLine( ID+8,
-		  minC,
-		  Vector3d<float>(minC.x,
-		                  minC.y,
-		                  maxC.z),color );
-
-		du.DrawLine( ID+9,
-		  Vector3d<float>(maxC.x,
-		                  minC.y,
-		                  minC.z),
-		  Vector3d<float>(maxC.x,
-		                  minC.y,
-		                  maxC.z),color );
-
-		du.DrawLine( ID+10,
-		  Vector3d<float>(minC.x,
-		                  maxC.y,
-		                  minC.z),
-		  Vector3d<float>(minC.x,
-		                  maxC.y,
-		                  maxC.z),color );
-
-		du.DrawLine( ID+11,
-		  Vector3d<float>(maxC.x,
-		                  maxC.y,
-		                  minC.z),
-		  maxC,color );
-
-		return 12;
-	}
+	template <typename T>
+	NamedAxisAlignedBoundingBox(const i3d::Image3d<T>& img,
+	                            const int boxID, const size_t boxNameID)
+		: AxisAlignedBoundingBox(img), ID(boxID), nameID(boxNameID)
+	{}
 };
 
 
@@ -258,15 +151,15 @@ public:
 struct ProximityPair
 {
 	/** position of 'local' colliding point [micrometers] */
-	Vector3d<FLOAT> localPos;
+	Vector3d<G_FLOAT> localPos;
 	/** position of 'other' colliding point [micrometers] */
-	Vector3d<FLOAT> otherPos;
+	Vector3d<G_FLOAT> otherPos;
 
 	/** Distance between the localPos and otherPos [micrometers].
 	    If the value is negative, the two points represent a collision pair.
 	    If the value is positive, the two points are assumed to form a pair
 	    of two nearest points between the two geometries. */
-	FLOAT distance;
+	G_FLOAT distance;
 
 	/** hinting data about the 'local' point */
 	long localHint;
@@ -278,20 +171,20 @@ struct ProximityPair
 	void* callerHint;
 
 	/** convenience constructor for just two colliding points */
-	ProximityPair(const Vector3d<FLOAT>& l, const Vector3d<FLOAT>& o,
-	              const FLOAT dist)
+	ProximityPair(const Vector3d<G_FLOAT>& l, const Vector3d<G_FLOAT>& o,
+	              const G_FLOAT dist)
 		: localPos(l), otherPos(o), distance(dist), localHint(0), otherHint(0), callerHint(NULL) {};
 
 	/** convenience constructor for points with hints */
-	ProximityPair(const Vector3d<FLOAT>& l, const Vector3d<FLOAT>& o,
-	              const FLOAT dist,
+	ProximityPair(const Vector3d<G_FLOAT>& l, const Vector3d<G_FLOAT>& o,
+	              const G_FLOAT dist,
 	              const long lh, const long oh)
 		: localPos(l), otherPos(o), distance(dist), localHint(lh), otherHint(oh), callerHint(NULL) {};
 
 	/** swap the notion of 'local' and 'other' */
 	void swap(void)
 	{
-		Vector3d<FLOAT> tmpV(localPos);
+		Vector3d<G_FLOAT> tmpV(localPos);
 		localPos = otherPos;
 		otherPos = tmpV;
 
@@ -333,7 +226,7 @@ public:
 	AxisAlignedBoundingBox AABB;
 
 	/** Calculate and determine proximity and collision pairs, if any,
-	    between myself and some other agent. A (scaled) ForceVector<FLOAT>
+	    between myself and some other agent. A (scaled) ForceVector<G_FLOAT>
 	    can be easily constructed from the points of the ProximityPair.
 	    The discovered ProximityPairs are added to the current list l. */
 	virtual
@@ -342,7 +235,7 @@ public:
 
 	/** Calculate and determine proximity and collision pairs, if any,
 	    between myself and some other agent. To facilitate construction
-	    of a (scaled) ForceVector<FLOAT> from the proximity pair, a caller
+	    of a (scaled) ForceVector<G_FLOAT> from the proximity pair, a caller
 	    may supply its own callerHint data. This data will be stored in
 	    ProximityPair::callerHint only in the newly added ProximityPairs.
 	    The discovered ProximityPairs are added to the current list l. */
@@ -397,6 +290,27 @@ public:
 	void updateOwnAABB(void)
 	{
 		updateThisAABB(this->AABB);
+		++version;
 	}
+
+	/** a version of this geometry that gets automatically incremented with
+	    every call to this->updateOwnAABB(); intended use was that a user remembers
+	    the last value of this attribute, and she can later see (by comparison) if
+	    the geometry has changed or not.... */
+	int version = 0;
+
+	// ----------------- support for serialization and deserealization -----------------
+	int getType() const
+	{ return (int)shapeForm; }
+
+	virtual long getSizeInBytes() const =0;
+
+	virtual void serializeTo(char* buffer) const =0;
+	virtual void deserializeFrom(char* buffer) =0;
+	
+	static Geometry * createAndDeserializeFrom(/*ListOfShapeForms*/ int g_type, char * buffer);
+
+	// ----------------- support for rasterization -----------------
+	virtual void renderIntoMask(i3d::Image3d<i3d::GRAY16>& mask, const i3d::GRAY16 drawID) const =0;
 };
 #endif

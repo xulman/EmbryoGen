@@ -1,0 +1,81 @@
+Workflow w.r.t. agent types that is represent as variable-length strings:
+
+We will utilize a Dictionary, a map: int agentTypeID -> string agentTypeStr.
+The motivation for this to exist is two-fold:
+a) broadcastAABB is broadcasting also an agent type (a string),
+   that would consume way too much bandwidth (memory)
+b) variable-length strings are complicated for MPI,
+   reduce transfers of strings as much as possible
+
+So we gonna use fixed-size agentTypeID to represent underlying agentTypeStr.
+
+When it is not possible to use the agentTypeID, we will imprint the agentTypeStr
+into 256 Bytes long buffer (extending with zeros and trimming to this length).
+The imprint is again an attempt to solve the technical problem of MPI, and
+the buffer length is artificially and purposely set to be rather large.
+
+This way, we had eliminated the variability of length of the agentTypeStr
+when it comes down to MPI communication, yet we avoid (inefficient) transferring
+of the fixed-length string whenever we can (by using associated agentTypeID instead).
+
+To represent strings, we gonna use a hashedString class that is essentially the
+std::string baked together with its hash of size_t. The class makes sure that the
+string and its hash are kept synced. The purpose of the hash is to complexity-wise
+improve the comparison of strings (faster to compare two hashes than two strings).
+This however assumes that hash is "compressed" and unique representation of the string,
+much like ID! Hence, we gonna use this: agentTypeID = hash( agentTypeStr ).
+
+ShadowAgents, however for convenience, will always use their agentTypeStr and
+not agentTypeID -- the latter is purely a technical glitch with no semantics or
+relevance for the simulation as such (besides it does not bring any new information
+because it is a hash of the string). This limits the necessity to deal with
+agentTypeID only during the AABB and ShadowAgent work/transfers...
+
+The Dictionary can only grow, no remove or replace operations will be supported
+nor allowed (exception is the cleanUp event, see below).
+FOs will have their Dictionaries synchronized.
+Since agentTypeIDs are hashes of their agentTypeStrs, there is no centralized
+distribution of IDs as anyone can compute ID on its own, and two FOs shall arrive
+to the same ID for the same strings. One only has to notify everyone else whenever
+new string, that was not previously seen in the Dictionary, is added.
+
+The changes/additions in the Dictionary can happen anytime, the Dictionary
+is updated immediately (and it does not matter if two FOs add the same string
+because it will render exactly the same item/pair in their Dictionary-ies,
+thus no conflict or inconsistency occurs). Until updateAndPublishAgents() takes
+place, other FOs need not know about these changes/updates. Therefore,
+the broadcast of the newly added Dictionary items can happen as late as during
+the updateAndPublishAgents(). To utilize the MPI philosophy, each message that
+broadcasts AABB may include a count field as part of it, and that field signals
+how many Dictionary items will be broadcast next. The plan is that this extra
+field will be zero except for the last AABB broadcast message (from a particular
+FO) that would store the actual count (which may be zero again). The broadcast
+listeners would know what to listen for next.
+
+The cleanUp event:
+Actually, if all FOs have, after every updateAndPublishAgents(), have their
+lists of AABBs synchronized, we can actually use their lists to figure out
+what items from their Dictionary-ies are no longer in use, and could be deleted
+- this happens separately by each FO, yet synchronized. Direktor, is currently
+not maintaining its own Dictionary.
+
+What queries into the Dictionary can we ever get from the simulation:
+
+translateIdToString() -- when nearby AABBs are found, an agent might be curious to
+                         see who is actually "behind this AABB", whom it is representing
+                      -- it is agent-to-FO (local) communication only,
+                         assumes that FO is always up to date!
+                      -- it is thus important that FOs have own copies and that
+                         this communication is purely local
+                      -- essentially, reads from the Dictionary
+
+[ When submitting AABB, the hash from inside the hashedString is used;
+  instead of computing it with some hypothetical getIdOfString() ]
+
+registerThisString()  -- when new agent is created, or purpose/semantics of existing agent
+                         is changed, its agentTypeStr changes and this method must be used
+                      -- is called often when starting the simulation
+                      -- is called rather rarely during the simulation
+                      -- agent->FO and (not always) FO->Direktor communication,
+                         does nothing if FO already recognizes the input agentTypeStr
+                      -- essentially, (possibly) adds to the Dictionary

@@ -1,5 +1,5 @@
-#ifndef _UTIL_SYNTHOSCOPY_SNR_H_
-#define _UTIL_SYNTHOSCOPY_SNR_H_
+#ifndef UTIL_SYNTHOSCOPY_SNR_H
+#define UTIL_SYNTHOSCOPY_SNR_H
 
 /**********************************************************************
 *
