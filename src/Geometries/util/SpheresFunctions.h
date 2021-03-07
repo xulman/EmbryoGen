@@ -650,7 +650,7 @@ public:
 		{
 			int ID = startWithThisID-1;
 			int sNo = skipSpheres-1;
-			const Vector3d<FLOAT>* centres = generatedGeom.getCentres();
+			const Vector3d<G_FLOAT>* centres = generatedGeom.getCentres();
 
 			for (const auto& m : azimuthToNoOfSpheres)
 			if (m.second > 0)

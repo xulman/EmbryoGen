@@ -45,7 +45,7 @@ public:
 			du.DrawPoint(dID++,futureGeometry.getCentres()[i],futureGeometry.getRadii()[i],i == activeSphereIdx ? 1 : 2);
 
 		//sphere orientations as local debug, white vectors
-		Vector3d<FLOAT> orientVec;
+		Vector3d<G_FLOAT> orientVec;
 		for (int i=0; i < futureGeometry.getNoOfSpheres(); ++i)
 		{
 			getLocalOrientation(futureGeometry,i,orientVec);
@@ -60,8 +60,8 @@ public:
 
 	void advanceAgent(float time) override
 	{
-		const FLOAT velocity = (FLOAT)1.0f;
-		const Vector3d<FLOAT> travellingVelocity(0,velocity,0);
+		const G_FLOAT velocity = (G_FLOAT)1.0f;
+		const Vector3d<G_FLOAT> travellingVelocity(0,velocity,0);
 		if ( ((int)time % 18) < 8 )
 		{
 			exertForceOnSphere(activeSphereIdx,
@@ -171,9 +171,9 @@ void Scenario_Tetris::initializeAgents(FrontOfficer* fo,int p,int)
 		const int inbetweeners = 5;
 		Spheres twoS(2); // + connLines*inbetweeners);
 
-		std::vector< Vector3d<FLOAT>* > lineUps;
+		std::vector< Vector3d<G_FLOAT>* > lineUps;
 		for (int i = 0; i < inbetweeners; ++i)
-			lineUps.push_back( new Vector3d<FLOAT>() );
+			lineUps.push_back( new Vector3d<G_FLOAT>() );
 
 		const float maxAxisDev = 1.4f;
 		twoS.updateCentre(0, currGridPos + Vector3d<float>(-9.f,
