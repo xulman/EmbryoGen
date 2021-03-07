@@ -186,7 +186,7 @@ public:
 	const DivModelType& getModel(const int id) const
 	{
 		try { return models.at(id); }
-		catch (std::out_of_range e) { throw ERROR_REPORT("Out of range with model id " << id); }
+		catch (std::out_of_range* e) { throw ERROR_REPORT("Out of range with model id " << id); }
 	}
 
 	const DivModelType& getRandomModel() const
@@ -199,7 +199,7 @@ public:
 	DivModelType& getModel(const int id)
 	{
 		try { return models.at(id); }
-		catch (std::out_of_range e) { throw ERROR_REPORT("Out of range with model id " << id); }
+		catch (std::out_of_range* e) { throw ERROR_REPORT("Out of range with model id " << id); }
 	}
 
 	DivModelType& getRandomModel()
@@ -423,7 +423,7 @@ public:
 	void printModel(const int id) const
 	{
 		try { models.at(id).printModel(); }
-		catch (std::out_of_range e) { throw ERROR_REPORT("Out of range with model id " << id); }
+		catch (std::out_of_range* e) { throw ERROR_REPORT("Out of range with model id " << id); }
 	}
 
 
