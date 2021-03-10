@@ -248,13 +248,23 @@ void FrontOfficer::executeExternals()
 
 void FrontOfficer::prepareForUpdateAndPublishAgents()
 {
+#ifdef DEBUG
+	auto time = tic();
+#endif
 	AABBs.clear();
 	agentsToFOsMap.clear();
 	//the agentsAndBroadcastGeomVersions is cummulative, we never erase it
+#ifdef DEBUG
+	REPORT(toc(time));
+#endif
 }
 
 void FrontOfficer::updateAndPublishAgents()
 {
+#ifdef DEBUG
+	auto time = tic();
+	auto agentsTime = tic();
+#endif
 	//since the last call of this method, we have:
 	//list of agents that were active after the last call in 'agents'
 	//subset of these that became inactive in 'deadAgents'
@@ -281,6 +291,7 @@ void FrontOfficer::updateAndPublishAgents()
 		agents[(*ag)->ID] = *ag;
 		ag = newAgents.erase(ag);
 	}
+	DEBUG_REPORT("(dead)new agents are now (de)registered, took " << toc(agentsTime));
 
 	//WAIT HERE UNTIL WE'RE TOLD TO START BROADCASTING OUR CHANGES
 	//only FO with a "token" does broadcasting, token passing
@@ -314,13 +325,22 @@ void FrontOfficer::updateAndPublishAgents()
 
 	//and we move on to get blocked on any following checkpoint
 	//while waiting there, our respond_AABBofAgent() collects data
+#ifdef DEBUG
+	REPORT(toc(time));
+#endif
 }
 
 void FrontOfficer::postprocessAfterUpdateAndPublishAgents()
 {
+#ifdef DEBUG
+	auto time = tic();
+#endif
 	//post-process local Dictionary
 	agentsTypesDictionary.markAllWasBroadcast();
 	agentsTypesDictionary.cleanUp(AABBs);
+#ifdef DEBUG
+	REPORT(toc(time));
+#endif
 }
 
 

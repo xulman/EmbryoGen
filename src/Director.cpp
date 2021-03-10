@@ -205,6 +205,10 @@ void Director::prepareForUpdateAndPublishAgents()
 
 void Director::updateAndPublishAgents()
 {
+#ifdef DEBUG
+	auto time = tic();
+	auto agentsTime = tic();
+#endif
 	//since the last call of this method, we have:
 	//list of agents that were active after the last call in 'agents'
 	//subset of these that became inactive in 'deadAgents'
@@ -226,6 +230,8 @@ void Director::updateAndPublishAgents()
 
 	//move new agents between both lists
 	agents.splice(agents.begin(), newAgents);
+	//
+	DEBUG_REPORT("(dead)new agents are now (de)registered, took " << toc(agentsTime));
 
 	//now tell the FOs to start interchanging AABBs of their active agents:
 	//notice that every FO should be "prepared" for this since all
@@ -255,6 +261,9 @@ void Director::updateAndPublishAgents()
 		if (request_CntOfAABBs(i) != agents.size())
 			throw ERROR_REPORT("FO #" << i << " does not have a complete list of AABBs");
 	}
+#endif
+#ifdef DEBUG
+	REPORT(toc(time));
 #endif
 }
 
