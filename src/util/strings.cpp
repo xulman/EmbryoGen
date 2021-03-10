@@ -66,7 +66,7 @@ void StringsDictionary::markAllWasBroadcast()
 {
 	for (const auto& nItem : newDictionary)
 	{
-#ifdef DEBUG
+#ifdef DEBUG_DISABLED_TODO_VLADO_TAKESFOREVER
 		if (knownDictionary.find(nItem.first) != knownDictionary.end())
 			REPORT("new to already known >>" << nItem.second << "<<");
 #endif

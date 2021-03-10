@@ -337,7 +337,7 @@ void FrontOfficer::postprocessAfterUpdateAndPublishAgents()
 #endif
 	//post-process local Dictionary
 	agentsTypesDictionary.markAllWasBroadcast();
-	agentsTypesDictionary.cleanUp(AABBs);
+	agentsTypesDictionary.cleanUp_onlySometimes(AABBs);
 #ifdef DEBUG
 	REPORT(toc(time));
 #endif
@@ -434,7 +434,7 @@ size_t FrontOfficer::getSizeOfAABBsList() const
 
 void FrontOfficer::registerThatThisAgentIsAtThisFO(const int agentID, const int FOsID)
 {
-#ifdef DEBUG
+#ifdef DEBUG_DISABLED_TODO_VLADO_TAKESFOREVER
 	if (agentsToFOsMap.find(agentID) != agentsToFOsMap.end())
 		throw ERROR_REPORT("Agent ID " << agentID
 			<< " already registered with FO #" << agentsToFOsMap.find(agentID)->second
