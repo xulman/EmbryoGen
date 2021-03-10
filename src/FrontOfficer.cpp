@@ -181,6 +181,10 @@ void FrontOfficer::executeInternals()
 	//reach local times greater than this global time
 	const float futureTime = currTime + scenario.params.constants.incrTime -0.0001f;
 
+#ifdef DEBUG
+	auto timeHandle1 = tic();
+#endif
+
 	//develop (willingly) new shapes... (can run in parallel),
 	//the agents' (external at least!) geometries must not change during this phase
 	visitEveryObject_const<int,AbstractAgent*>(agents,[&futureTime](AbstractAgent* const& c){
@@ -191,11 +195,20 @@ void FrontOfficer::executeInternals()
 #endif
 		} );
 
+#ifdef DEBUG
+	REPORT("advanceAndBuildIntForces: " << toc(timeHandle1));
+	auto timeHandle2 = tic();
+#endif
+
 	//propagate current internal geometries to the exported ones... (can run in parallel)
 	visitEveryObject_const<int,AbstractAgent*>(agents,[](AbstractAgent* const& c){
 			c->adjustGeometryByIntForces();
 			c->publishGeometry();
 		} );
+
+#ifdef DEBUG
+	REPORT("adjustGeometryByIntForces & publishGeometry: " << toc(timeHandle2));
+#endif
 }
 
 void FrontOfficer::executeExternals()
@@ -205,17 +218,31 @@ void FrontOfficer::executeExternals()
 	reportAABBs();
 #endif
 #endif
+
+#ifdef DEBUG
+	auto timeHandle1 = tic();
+#endif
+
 	//react (unwillingly) to the new geometries... (can run in parallel),
 	//the agents' (external at least!) geometries must not change during this phase
 	visitEveryObject_const<int,AbstractAgent*>(agents,[](AbstractAgent* const& c){
 			c->collectExtForces();
 		} );
 
+#ifdef DEBUG
+	REPORT("collectExtForces: " << toc(timeHandle1));
+	auto timeHandle2 = tic();
+#endif
+
 	//propagate current internal geometries to the exported ones... (can run in parallel)
 	visitEveryObject_const<int,AbstractAgent*>(agents,[](AbstractAgent* const& c){
 			c->adjustGeometryByExtForces();
 			c->publishGeometry();
 		} );
+
+#ifdef DEBUG
+	REPORT("adjustGeometryByExtForces & publishGeometry: " << toc(timeHandle2));
+#endif
 }
 
 
@@ -496,6 +523,10 @@ void FrontOfficer::renderNextFrame()
 	REPORT("Rendering time point " << frameCnt);
 	SceneControls& sc = scenario.params;
 
+#ifdef DEBUG
+	auto time = tic();
+#endif
+
 	// ----------- OUTPUT EVENTS -----------
 	//clear the output images
 	sc.imgMask.GetVoxelData()    = 0;
@@ -529,6 +560,10 @@ void FrontOfficer::renderNextFrame()
 		}
 	} );
 	//note that this far the code was executed on all FOs, that means in parallel
+
+#ifdef DEBUG
+	REPORT("zero imgs & render: " << toc(time));
+#endif
 
 	// --------- the big round robin scheme ---------
 	//WAIT HERE UNTIL WE GET THE IMAGES TO CONTRIBUTE INTO
