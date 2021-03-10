@@ -9,6 +9,7 @@
 #else
 	#define RUN_MODE "running sequentially"
 	int omp_get_max_threads() { return 1; }
+	int omp_get_thread_num()  { return 0; }
 #endif
 
 /**
@@ -74,7 +75,11 @@ void visitEveryObject(typename CONTAINER_OF_ITEMS::iterator listOfObjs_iter,
 		REPORT("No auto-adjustment of load is available, using default groupSize.");
 	}
 
-	DEBUG_REPORT("RW workhorse " << RUN_MODE << " with groupSize=" << groupSize);
+#ifdef DEBUG
+	REPORT("RW workhorse " << RUN_MODE << " with groupSize=" << groupSize);
+	long workSizeCounter = 0;
+#endif
+
 	#pragma omp parallel shared(listOfObjs_iter)
 	{
 		bool keepAdvancing = true;
@@ -96,7 +101,10 @@ void visitEveryObject(typename CONTAINER_OF_ITEMS::iterator listOfObjs_iter,
 					++listOfObjs_iter;
 					++howManyToYetCompute;
 				}
-
+#ifdef DEBUG
+				workSizeCounter += howManyToYetCompute;
+				REPORT("thread #" << omp_get_thread_num() << " is working towards " << workSizeCounter << " jobs having done");
+#endif
 				//flag if it is worth looking into another round of jobs
 				//(after the current/upcoming group of jobs is done)
 				keepAdvancing = listOfObjs_iter != listOfObjs_end;
@@ -126,7 +134,11 @@ void visitEveryObject(typename CONTAINER_OF_ITEMS::const_iterator listOfObjs_ite
 		REPORT("No auto-adjustment of load is available, using default groupSize.");
 	}
 
-	DEBUG_REPORT("RO workhorse " << RUN_MODE << " with groupSize=" << groupSize);
+#ifdef DEBUG
+	REPORT("RO workhorse " << RUN_MODE << " with groupSize=" << groupSize);
+	long workSizeCounter = 0;
+#endif
+
 	#pragma omp parallel shared(listOfObjs_iter)
 	{
 		bool keepAdvancing = true;
@@ -148,7 +160,10 @@ void visitEveryObject(typename CONTAINER_OF_ITEMS::const_iterator listOfObjs_ite
 					++listOfObjs_iter;
 					++howManyToYetCompute;
 				}
-
+#ifdef DEBUG
+				workSizeCounter += howManyToYetCompute;
+				REPORT("thread #" << omp_get_thread_num() << " is working towards " << workSizeCounter << " jobs having done");
+#endif
 				//flag if it is worth looking into another round of jobs
 				//(after the current/upcoming group of jobs is done)
 				keepAdvancing = listOfObjs_iter != listOfObjs_end;
