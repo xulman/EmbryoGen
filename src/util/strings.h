@@ -153,6 +153,19 @@ protected:
 	    growing excessively -> use, but sparsely */
 	void cleanUp(const std::list<NamedAxisAlignedBoundingBox>& AABBs);
 
+	int cleanUp_numRequestsSoFar     = 0;
+	int cleanUp_afterThisNumRequests = 10000;
+
+	void cleanUp_onlySometimes(const std::list<NamedAxisAlignedBoundingBox>& AABBs)
+	{
+		if (++cleanUp_numRequestsSoFar >= cleanUp_afterThisNumRequests)
+		{
+			REPORT("Cleaning up the dictionary of agents' names. This can take long...");
+			cleanUp_numRequestsSoFar = 0;
+			cleanUp(AABBs);
+		}
+	}
+
 	/** ugly hack to allow FrontOfficer to reach the protected methods without
 	    making them public -- so agents cannot break things because they can
 	    operate only on the public methods */
