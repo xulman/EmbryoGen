@@ -71,9 +71,11 @@ public:
 	void advanceAndBuildIntForces(const float)
 	{
 		//random duration (in full 2-10 seconds) pause here to pretend "some work"
+		/*
 		const int waitingTime = (int)GetRandomUniform(0,20);
 		REPORT(IDSIGN << "pretends work that would last for " << waitingTime << " milisecond(s)");
 		std::this_thread::sleep_for(std::chrono::milliseconds( (long long)waitingTime ));
+		*/
 
 		//ask to have the geometry updated as a result of the "some work"
 		shouldUpdateGeometry = true;
@@ -105,7 +107,7 @@ public:
 		//some agents fail to update their geometry for some time
 		if (shouldUpdateGeometry && x%18 == 17 && y%18 == 17 && currTime > 0.2 && currTime < 1.9)
 		{
-			DEBUG_REPORT(SIGN << "failed to provide updated geometry");
+			//DEBUG_REPORT(SIGN << "failed to provide updated geometry");
 			shouldUpdateGeometry = false;
 			return;
 		}
@@ -159,7 +161,7 @@ public:
 			std::string ignore;
 			int ID;
 			iss >> ignore >> ID;
-			if (nearbyAgents.size() > 4) REPORT(SIGN << "sees around agent ID " << ID);
+			//if (nearbyAgents.size() > 4) REPORT(SIGN << "sees around agent ID " << ID);
 			hash += std::hash<int>()(ID);
 		}
 		indices.SetVoxel((size_t)x,(size_t)y,0, (float)hash);
@@ -189,7 +191,7 @@ SceneControls& Scenario_Parallel::provideSceneControls()
 		mySceneControl(Constants& c): SceneControls(c)
 		{
 			//DisplayUnits handling: variant A
-			displayUnit.RegisterUnit( myDU );
+			//displayUnit.RegisterUnit( myDU );
 		}
 
 		void updateControls(const float currTime) override
@@ -205,7 +207,7 @@ SceneControls& Scenario_Parallel::provideSceneControls()
 			if (currTime == 0.3f)
 			{
 				DEBUG_REPORT("stopping the console reports");
-				displayUnit.UnregisterUnit( myDU );
+				//displayUnit.UnregisterUnit( myDU );
 			}
 		}
 
