@@ -1,6 +1,7 @@
 #include "Agents/AbstractAgent.h"
 #include "FrontOfficer.h"
 #include "Director.h"
+#include "util/ParallelList.hpp"
 
 //Collect external forces
 
@@ -182,23 +183,19 @@ void FrontOfficer::executeInternals()
 
 	//develop (willingly) new shapes... (can run in parallel),
 	//the agents' (external at least!) geometries must not change during this phase
-	std::map<int,AbstractAgent*>::iterator c=agents.begin();
-	for (; c != agents.end(); c++)
-	{
-		c->second->advanceAndBuildIntForces(futureTime);
+	visitEveryObject_const<int,AbstractAgent*>(agents,[&futureTime](AbstractAgent* const& c){
+			c->advanceAndBuildIntForces(futureTime);
 #ifdef DEBUG
-		if (c->second->getLocalTime() < futureTime)
-			throw ERROR_REPORT("Agent is not synchronized.");
+			if (c->getLocalTime() < futureTime)
+				throw ERROR_REPORT("Agent is not synchronized.");
 #endif
-	}
+		} );
 
 	//propagate current internal geometries to the exported ones... (can run in parallel)
-	c=agents.begin();
-	for (; c != agents.end(); c++)
-	{
-		c->second->adjustGeometryByIntForces();
-		c->second->publishGeometry();
-	}
+	visitEveryObject_const<int,AbstractAgent*>(agents,[](AbstractAgent* const& c){
+			c->adjustGeometryByIntForces();
+			c->publishGeometry();
+		} );
 }
 
 void FrontOfficer::executeExternals()
@@ -210,19 +207,15 @@ void FrontOfficer::executeExternals()
 #endif
 	//react (unwillingly) to the new geometries... (can run in parallel),
 	//the agents' (external at least!) geometries must not change during this phase
-	std::map<int,AbstractAgent*>::iterator c=agents.begin();
-	for (; c != agents.end(); c++)
-	{
-		c->second->collectExtForces();
-	}
+	visitEveryObject_const<int,AbstractAgent*>(agents,[](AbstractAgent* const& c){
+			c->collectExtForces();
+		} );
 
 	//propagate current internal geometries to the exported ones... (can run in parallel)
-	c=agents.begin();
-	for (; c != agents.end(); c++)
-	{
-		c->second->adjustGeometryByExtForces();
-		c->second->publishGeometry();
-	}
+	visitEveryObject_const<int,AbstractAgent*>(agents,[](AbstractAgent* const& c){
+			c->adjustGeometryByExtForces();
+			c->publishGeometry();
+		} );
 }
 
 
@@ -510,31 +503,31 @@ void FrontOfficer::renderNextFrame()
 	sc.imgOptics.GetVoxelData()  = 0;
 
 	//go over all cells, and render them -- ONLY IMAGES!
-	for (auto ag : agents)
+	visitEveryObject_const<int,AbstractAgent*>(agents,[&sc,this](AbstractAgent* const& ag)
 	{
 		//raster images may not necessarily always exist,
 		//always check for their availability first:
 		if (sc.isProducingOutput(sc.imgPhantom) && sc.isProducingOutput(sc.imgOptics))
 		{
 #ifdef DISTRIBUTED
-			ag.second->drawTexture(sc.imgPhantom,sc.imgOptics);
+			ag->drawTexture(sc.imgPhantom,sc.imgOptics);
 #else
-			ag.second->drawTexture(Direktor->refOnDirektorsImgPhantom(),Direktor->refOnDirektorsImgOptics());
+			ag->drawTexture(Direktor->refOnDirektorsImgPhantom(),Direktor->refOnDirektorsImgOptics());
 #endif
 		}
 		if (sc.isProducingOutput(sc.imgMask))
 		{
 #ifdef DISTRIBUTED
-			ag.second->drawMask(sc.imgMask);
+			ag->drawMask(sc.imgMask);
 			if (renderingDebug)
-				ag.second->drawForDebug(sc.imgMask); //TODO, should go into its own separate image
+				ag->drawForDebug(sc.imgMask); //TODO, should go into its own separate image
 #else
-			ag.second->drawMask(Direktor->refOnDirektorsImgMask());
+			ag->drawMask(Direktor->refOnDirektorsImgMask());
 			if (renderingDebug)
-				ag.second->drawForDebug(Direktor->refOnDirektorsImgMask()); //TODO, should go into its own separate image
+				ag->drawForDebug(Direktor->refOnDirektorsImgMask()); //TODO, should go into its own separate image
 #endif
 		}
-	}
+	} );
 	//note that this far the code was executed on all FOs, that means in parallel
 
 	// --------- the big round robin scheme ---------
