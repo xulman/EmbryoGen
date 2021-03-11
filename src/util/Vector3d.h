@@ -34,6 +34,15 @@ public:
 		this->z=vec.z;
 	}
 
+	/** copy constructor from a vector of some foreign type */
+	template <typename FT> //FT = foreign type
+	Vector3d(const Vector3d<FT>& vec)
+	{
+		this->x=(T)vec.x;
+		this->y=(T)vec.y;
+		this->z=(T)vec.z;
+	}
+
 	/** copy constructor from i3d::Vector3d */
 	Vector3d(const i3d::Vector3d<T>& iv3d)
 	{
@@ -538,6 +547,25 @@ std::ostream& operator<<(std::ostream& s,const Coord3d<T>& v)
 {
 	s << "[" << v.x << "," << v.y << "," << v.z << "]";
 	return s;
+}
+// ----------------------------------------------------------------------------
+
+
+template <typename FT>
+void forCycle(const Vector3d<FT>& from,
+              const Vector3d<FT>& till, //operates in: less-or-equal
+              const Vector3d<FT>& incr,
+              const std::function< void(const Vector3d<FT>&) >& forBody)
+{
+	Vector3d<FT> curr;
+	for (curr.z = from.z; curr.z <= till.z; curr.z += incr.z)
+	{
+		for (curr.y = from.y; curr.y <= till.y; curr.y += incr.y)
+		{
+			for (curr.x = from.x; curr.x <= till.x; curr.x += incr.x)
+				forBody(curr);
+		}
+	}
 }
 // ----------------------------------------------------------------------------
 
