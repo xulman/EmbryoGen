@@ -195,8 +195,11 @@ public:
 	void getNearbyAgentIDs(const VF& aroundThisRealCoordinate,
 	                       std::list<int>& nearbyIDs)
 	{
-		size_t centreIndex = getCellIndex_fromRealCoords(aroundThisRealCoordinate);
-		for (int id : map[centreIndex]) nearbyIDs.push_back(id);
+		//size_t centreIndex = getCellIndex_fromRealCoords(aroundThisRealCoordinate);
+		//for (int id : map[centreIndex]) nearbyIDs.push_back(id);
+		//
+		const CellContainer& cell = map[ getCellIndex_fromRealCoords(aroundThisRealCoordinate) ];
+		nearbyIDs.insert(nearbyIDs.end(),cell.cbegin(),cell.cend());
 	}
 
 	/** appends content of the cells that are touched by sphere at 'aroundThisRealCoordinate'
@@ -217,12 +220,18 @@ public:
 		from.elemMax(VI(0));
 
 		VI till(centrePos+halfSpan);
-		from.elemMin(mapShape);
+		till.elemMin(mapShape-VI(1));
+
+		//DEBUG_REPORT("halfSpan=" << halfSpan << ", minSweep=" << from << ", maxSweep=" << till);
 
 		forCycle<int>(from,till,VI(1), [&nearbyIDs,this](const VI& mapPos)
 		{
-			size_t centreIndex = getCellIndex(mapPos);
-			for (int id : map[centreIndex]) nearbyIDs.push_back(id);
+			//std::cout << "testing: " << mapPos << "\n";
+			//size_t centreIndex = getCellIndex(mapPos);
+			//for (int id : map[centreIndex]) nearbyIDs.push_back(id);
+			//
+			const CellContainer& cell = map[ getCellIndex(mapPos) ];
+			nearbyIDs.insert(nearbyIDs.end(),cell.cbegin(),cell.cend());
 		});
 	}
 
