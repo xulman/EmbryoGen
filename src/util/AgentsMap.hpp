@@ -164,9 +164,6 @@ protected:
 		map.clear();
 		map.resize( mapShape.x * mapShape.y * mapShape.z );
 		for (CellContainer& c : map) c.reserve(optimalCellCapacity);
-
-		DEBUG_REPORT("map size (theoretical): "
-		  << (mapShape.x * mapShape.y * mapShape.z * optimalCellCapacity * sizeof(int)) << " Bytes");
 	}
 
 public:
@@ -182,12 +179,19 @@ public:
 	{
 		//reset the heat image to map 1:1 onto this->map
 		heatMap.MakeRoom( mapShape.toI3dVector3d() );
-		heatMap.SetResolution(i3d::Resolution( i3d::Vector3d<float>(1.0/cellSize.x,1.0/cellSize.y,1.0/cellSize.z) ));
+		heatMap.SetResolution(i3d::Resolution( i3d::Vector3d<float>(1.0f/cellSize.x,1.0f/cellSize.y,1.0f/cellSize.z) ));
 		heatMap.SetOffset( minCorner.toI3dVector3d() );
 
 		//just clone the sizes
 		IntVT* pHM = heatMap.GetFirstVoxelAddr();
 		for (size_t i = 0; i < heatMap.GetImageSize(); ++i, ++pHM) *pHM = (IntVT)map[i].size();
+	}
+
+	void printStats()
+	{
+		REPORT("min->maxCorner: " << minCorner << " -> " << maxCorner << ", cellSize=" << cellSize);
+		REPORT("mapShape=" << mapShape << ", size (theoretically) "
+		  << humanFriendlyNumber(mapShape.x*mapShape.y*mapShape.z * optimalCellCapacity * sizeof(int)) << "B");
 	}
 
 
