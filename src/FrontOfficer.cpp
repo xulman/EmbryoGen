@@ -2,6 +2,7 @@
 #include "FrontOfficer.h"
 #include "Director.h"
 #include "util/ParallelList.hpp"
+#include "util/AgentsMap.hpp"
 
 //Collect external forces
 
@@ -14,6 +15,8 @@ void FrontOfficer::init1_SMP()
 
 	scenario.initializeScene();
 	scenario.initializeAgents(this,ID,FOsCount);
+	DEBUG_REPORT("note: agentsSpatialHeatMap was "
+	  << (agentsSpatialHeatMap.isUsable() ? "" : "NOT ") << "initialized...");
 }
 
 void FrontOfficer::init2_SMP()
@@ -459,14 +462,41 @@ void FrontOfficer::getNearbyAABBs(const NamedAxisAlignedBoundingBox& fromThisAAB
 {
 	const float maxDist2 = maxDist*maxDist;
 
-	//examine all available boxes/agents
-	for (const auto& b : AABBs)
+	if (agentsSpatialHeatMap.isUsable())
 	{
-		//don't evaluate against itself
-		if (b.ID == fromThisAABB.ID) continue;
+		//get my centre
+		Vector3d<float> centre(fromThisAABB.minCorner);
+		centre += fromThisAABB.maxCorner;
+		centre /= 2.f;
 
-		//close enough?
-		if (fromThisAABB.minDistance(b) < maxDist2) l.push_back(&b);
+		//get nearby agents IDs
+		std::list<int> l_ids;
+		agentsSpatialHeatMap.getNearbyAgentIDs(centre,2.f*maxDist,l_ids);
+
+		//convert agent IDs into their AABBs
+		for (int id : l_ids)
+		{
+			//don't evaluate against itself
+			if (id == fromThisAABB.ID) continue;
+
+			const ShadowAgent* sa = getNearbyAgent(id);
+
+			//close enough?
+			if (fromThisAABB.minDistance(sa->getAABB()) < maxDist2)
+				l.push_back(sa->createNamedAABB()); //TODO MEMORY LEAKS!!!
+		}
+	}
+	else
+	{
+		//examine all available boxes/agents
+		for (const auto& b : AABBs)
+		{
+			//don't evaluate against itself
+			if (b.ID == fromThisAABB.ID) continue;
+
+			//close enough?
+			if (fromThisAABB.minDistance(b) < maxDist2) l.push_back(&b);
+		}
 	}
 }
 

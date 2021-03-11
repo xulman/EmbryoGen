@@ -7,6 +7,7 @@
 #include "util/strings.h"
 #include "Scenarios/common/Scenario.h"
 #include "Geometries/Geometry.h"
+#include "util/AgentsMap.hpp"
 
 #ifdef DISTRIBUTED
 #  include <thread>
@@ -181,6 +182,8 @@ public:
 	const ShadowAgent* getNearbyAgent(const int fetchThisID);
 
 	size_t getSizeOfAABBsList() const;
+
+	AgentsMap agentsSpatialHeatMap;
 
 	/** returns the state of the 'willRenderNextFrameFlag', that is if the
 	    current simulation round with end up with the call to renderNextFrame() */

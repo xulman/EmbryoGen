@@ -10,6 +10,7 @@
 #include "../util/Vector3d.h"
 #include "../Geometries/Spheres.h"
 #include "../Agents/AbstractAgent.h"
+#include "../util/AgentsMap.hpp"
 
 // ------------------ grid placement and related stuff ------------------
 //
@@ -270,8 +271,17 @@ void Scenario_Parallel::initializeAgents(FrontOfficer* fo,int p,int P)
 	Vector3d<float> simCorner(params.constants.sceneSize);
 	simCorner /= 2.0f;
 	simCorner += params.constants.sceneOffset;
-	simCorner.x -= placementStepX * ((float)howManyAlongX-1.f)/2.f;
-	simCorner.y -= placementStepY * ((float)howManyAlongY-1.f)/2.f;
+	const float sceneDx = placementStepX * ((float)howManyAlongX-1.f)/2.f;
+	const float sceneDy = placementStepY * ((float)howManyAlongY-1.f)/2.f;
+	const float sceneDz = params.constants.sceneSize.z /2.f;
+
+	fo->agentsSpatialHeatMap.reset(simCorner-Vector3d<float>(1.1f*sceneDx,1.1f*sceneDy,sceneDz),
+	          simCorner+Vector3d<float>(1.1f*sceneDx,1.1f*sceneDy,sceneDz),
+	          Vector3d<float>(1.8f*placementStepX,1.8f*placementStepY,params.constants.sceneSize.z) );
+	fo->agentsSpatialHeatMap.printStats();
+
+	simCorner.x -= sceneDx;
+	simCorner.y -= sceneDy;
 
 	//agents' metadata
 	char agentName[512];
@@ -310,6 +320,23 @@ void Scenario_Parallel::initializeAgents(FrontOfficer* fo,int p,int P)
 			sprintf(agentName,"nucleus %d @ %d,%d",ID,x,y);
 			ParallelNucleus* ag = new ParallelNucleus(ID,std::string(agentName),s,x,y,params.constants.initTime,params.constants.incrTime);
 			fo->startNewAgent(ag);
+			//DEBUG REMOVE LATER TODO
+			fo->agentsSpatialHeatMap.insertAgent(*ag);
 		}
 	}
+
+	/*
+	fo->agentsSpatialHeatMap.stopUsing();
+	//DEBUG REMOVE LATER TODO
+	i3d::Image3d<i3d::GRAY8> heatImg;
+	fo->agentsSpatialHeatMap.printHeatMap(heatImg);
+	heatImg.SaveImage("agentsLayoutHeat.ics");
+
+	std::list<int> agents;
+	fo->agentsSpatialHeatMap.getNearbyAgentIDs( simCorner
+	      +Vector3d<float>(123*placementStepX,123*placementStepY,20),
+	      50,agents);
+	for (int i : agents) std::cout << i << ",";
+	std::cout << " (list)" << std::endl;
+	*/
 }
