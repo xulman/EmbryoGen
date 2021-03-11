@@ -1,3 +1,6 @@
+#ifndef PARALLELLIST_H
+#define PARALLELLIST_H
+
 #include <functional>
 #include <list>
 #include <map>
@@ -241,3 +244,4 @@ void visitEveryObject_const(const std::map<K,V>& mapOfObjs,
 			              : VisitingPolicy::getGroupSizeOptimalToThisTaskSize((int)mapOfObjs.size())
 		);
 }
+#endif
