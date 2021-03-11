@@ -112,6 +112,7 @@ set(SOURCES
 		src/util/synthoscopy/finalpreview.cpp
 		src/util/synthoscopy/FiloGen_VM.cpp
 		src/util/synthoscopy/SNR.cpp
+		src/util/AgentsMap.cpp
 		src/DisplayUnits/SceneryDisplayUnit.cpp
 		src/DisplayUnits/SceneryBufferedDisplayUnit.cpp
 		src/Geometries/Geometry.cpp

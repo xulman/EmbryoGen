@@ -4,9 +4,9 @@
 #include <vector>
 #include <list>
 #include <i3d/image3d.h>
-#include "../Geometries/Geometry.h"
 #include "Vector3d.h"
-#include "../Agents/AbstractAgent.h"
+#include "../Geometries/Geometry.h"
+class AbstractAgent;
 
 class AgentsMap
 {
@@ -115,26 +115,20 @@ public:
 	// ----------------- end of position getters -----------------
 
 	// ----------------- start of manipulators/managers -----------------
+protected:
+	bool isUsableFlag = false;
+
+public:
+	bool isUsable()
+	{ return isUsableFlag; }
+
+	void stopUsing()
+	{ isUsableFlag = false; }
+
 	/** give span and "resolution" as voxel size,
 	    the final maxCorner might end up a bit outside from the original request
 	    in order to host a _complete_ cells within the volume */
-	void reset(const VF& _minCorner,const VF& _maxCorner,const VF& _cellSize)
-	{
-		minCorner = _minCorner;
-		maxCorner = _maxCorner;
-		cellSize  = _cellSize;
-
-		maxCorner -= minCorner;
-		maxCorner.elemDivBy(cellSize);
-		maxCorner.elemCeil();
-
-		mapShape.from(maxCorner);
-
-		maxCorner.elemMult(cellSize);
-		maxCorner += minCorner;
-
-		resizeMap();
-	}
+	void reset(const VF& _minCorner,const VF& _maxCorner,const VF& _cellSize);
 
 	//TODO
 	/** give span and "resolution" as number of voxels */
@@ -159,122 +153,41 @@ public:
 	*/
 
 protected:
-	void resizeMap()
-	{
-		map.clear();
-		map.resize( mapShape.x * mapShape.y * mapShape.z );
-		for (CellContainer& c : map) c.reserve(optimalCellCapacity);
-	}
+	void resizeMap();
 
 public:
-	void clearMap()
-	{
-		for (auto& v : map) v.clear();
-	}
+	void clearMap();
 	// ----------------- end of manipulators/managers -----------------
 
 	// ----------------- start of users to the above group -----------------
 	template <typename IntVT>
-	void printHeatMap(i3d::Image3d<IntVT>& heatMap)
-	{
-		//reset the heat image to map 1:1 onto this->map
-		heatMap.MakeRoom( mapShape.toI3dVector3d() );
-		heatMap.SetResolution(i3d::Resolution( i3d::Vector3d<float>(1.0f/cellSize.x,1.0f/cellSize.y,1.0f/cellSize.z) ));
-		heatMap.SetOffset( minCorner.toI3dVector3d() );
+	void printHeatMap(i3d::Image3d<IntVT>& heatMap);
 
-		//just clone the sizes
-		IntVT* pHM = heatMap.GetFirstVoxelAddr();
-		for (size_t i = 0; i < heatMap.GetImageSize(); ++i, ++pHM) *pHM = (IntVT)map[i].size();
-	}
-
-	void printStats()
-	{
-		REPORT("min->maxCorner: " << minCorner << " -> " << maxCorner << ", cellSize=" << cellSize);
-		REPORT("mapShape=" << mapShape << ", size (theoretically) "
-		  << humanFriendlyNumber(mapShape.x*mapShape.y*mapShape.z * optimalCellCapacity * sizeof(int)) << "B");
-	}
+	void printStats();
 
 
 	/** appends content of the cell that contains 'aroundThisRealCoordinate' */
 	void getNearbyAgentIDs(const VF& aroundThisRealCoordinate,
-	                       std::list<int>& nearbyIDs)
-	{
-		//size_t centreIndex = getCellIndex_fromRealCoords(aroundThisRealCoordinate);
-		//for (int id : map[centreIndex]) nearbyIDs.push_back(id);
-		//
-		const CellContainer& cell = map[ getCellIndex_fromRealCoords(aroundThisRealCoordinate) ];
-		nearbyIDs.insert(nearbyIDs.end(),cell.cbegin(),cell.cend());
-	}
+	                       std::list<int>& nearbyIDs);
 
 	/** appends content of the cells that are touched by sphere at 'aroundThisRealCoordinate'
 	    with radius 'perimeterOfInterest' */
 	void getNearbyAgentIDs(const VF& aroundThisRealCoordinate, const G_FLOAT perimeterOfInterest,
-	                       std::list<int>& nearbyIDs)
-	{
-		VI centrePos( getCellCoordinate(aroundThisRealCoordinate) );
+	                       std::list<int>& nearbyIDs);
 
-		//determine how many cells to span to all sides
-		VI halfSpan(
-				(int)std::ceil( perimeterOfInterest / cellSize.x ),
-				(int)std::ceil( perimeterOfInterest / cellSize.y ),
-				(int)std::ceil( perimeterOfInterest / cellSize.z )
-			);
+	void insertAgent(const AbstractAgent& ag);
 
-		VI from(centrePos-halfSpan);
-		from.elemMax(VI(0));
+	void insertAgent(const int ID, const AxisAlignedBoundingBox& aabb);
 
-		VI till(centrePos+halfSpan);
-		till.elemMin(mapShape-VI(1));
-
-		//DEBUG_REPORT("halfSpan=" << halfSpan << ", minSweep=" << from << ", maxSweep=" << till);
-
-		forCycle<int>(from,till,VI(1), [&nearbyIDs,this](const VI& mapPos)
-		{
-			//std::cout << "testing: " << mapPos << "\n";
-			//size_t centreIndex = getCellIndex(mapPos);
-			//for (int id : map[centreIndex]) nearbyIDs.push_back(id);
-			//
-			const CellContainer& cell = map[ getCellIndex(mapPos) ];
-			nearbyIDs.insert(nearbyIDs.end(),cell.cbegin(),cell.cend());
-		});
-	}
-
-	void insertAgent(const AbstractAgent& ag)
-	{
-		insertAgent(ag.getID(),ag.getGeometry().AABB);
-	}
-
-	void insertAgent(const int ID, const AxisAlignedBoundingBox& aabb)
-	{
-		//get centre of the AABB
-		Vector3d<G_FLOAT> pos(aabb.minCorner);
-		pos += aabb.maxCorner;
-		pos /= 2.0f;
-
-		insertAgent_atRealCoord(ID,pos);
-	}
-
-	void insertAgent_atRealCoord(const int ID, const VF& realCoord)
-	{
-		getCellRef_fromRealCoords(realCoord).push_back(ID);
-	}
+	void insertAgent_atRealCoord(const int ID, const VF& realCoord);
 
 	void insertAgent_atRealCoord(const int ID,
-	         const G_FLOAT xRealCoord, const G_FLOAT yRealCoord, const G_FLOAT zRealCoord)
-	{
-		getCellRef_fromRealCoords(xRealCoord,yRealCoord,zRealCoord).push_back(ID);
-	}
+	         const G_FLOAT xRealCoord, const G_FLOAT yRealCoord, const G_FLOAT zRealCoord);
 
-	void insertAgent_atMapCoord(const int ID, const VI& mapCoord)
-	{
-		getCellRef(mapCoord).push_back(ID);
-	}
+	void insertAgent_atMapCoord(const int ID, const VI& mapCoord);
 
 	void insertAgent_atMapCoord(const int ID,
-	         const int xMapCoord, const int yMapCoord, const int zMapCoord)
-	{
-		getCellRef(xMapCoord,yMapCoord,zMapCoord).push_back(ID);
-	}
+	         const int xMapCoord, const int yMapCoord, const int zMapCoord);
 	// ----------------- end of users to the above group -----------------
 };
 #endif
