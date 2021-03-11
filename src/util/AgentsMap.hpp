@@ -80,13 +80,13 @@ public:
 
 
 	/** gets cell position as linear coordinate/index/offset within the 'map' from absolute real coordinate */
-	size_t getCellIndex(const G_FLOAT xRealCoord, const G_FLOAT yRealCoord, const G_FLOAT zRealCoord) const
+	size_t getCellIndex_fromRealCoords(const G_FLOAT xRealCoord, const G_FLOAT yRealCoord, const G_FLOAT zRealCoord) const
 	{
 		return getCellIndex( getCellCoordinate(xRealCoord,yRealCoord,zRealCoord) );
 	}
 
 	/** gets cell position as linear coordinate/index/offset within the 'map' from absolute real coordinate */
-	size_t getCellIndex(const VF& realCoord) const
+	size_t getCellIndex_fromRealCoords(const VF& realCoord) const
 	{
 		return getCellIndex( getCellCoordinate(realCoord.x,realCoord.y,realCoord.z) );
 	}
@@ -103,14 +103,14 @@ public:
 		return map[ getCellIndex(mapCoord) ];
 	}
 
-	CellContainer& getCellRef(const G_FLOAT xRealCoord, const G_FLOAT yRealCoord, const G_FLOAT zRealCoord)
+	CellContainer& getCellRef_fromRealCoords(const G_FLOAT xRealCoord, const G_FLOAT yRealCoord, const G_FLOAT zRealCoord)
 	{
-		return map[ getCellIndex(xRealCoord,yRealCoord,zRealCoord) ];
+		return map[ getCellIndex_fromRealCoords(xRealCoord,yRealCoord,zRealCoord) ];
 	}
 
-	CellContainer& getCellRef(const VF& realCoord)
+	CellContainer& getCellRef_fromRealCoords(const VF& realCoord)
 	{
-		return map[ getCellIndex(realCoord) ];
+		return map[ getCellIndex_fromRealCoords(realCoord) ];
 	}
 	// ----------------- end of position getters -----------------
 
@@ -190,20 +190,20 @@ public:
 	}
 
 
-	/** appends content of the cell that contains 'aroundThisCoordinate' */
-	void getNearbyAgentIDs(const VF& aroundThisCoordinate,
+	/** appends content of the cell that contains 'aroundThisRealCoordinate' */
+	void getNearbyAgentIDs(const VF& aroundThisRealCoordinate,
 	                       std::list<int>& nearbyIDs)
 	{
-		size_t centreIndex = getCellIndex(aroundThisCoordinate);
+		size_t centreIndex = getCellIndex_fromRealCoords(aroundThisRealCoordinate);
 		for (int id : map[centreIndex]) nearbyIDs.push_back(id);
 	}
 
-	/** appends content of the cells that are touched by sphere at 'aroundThisCoordinate'
+	/** appends content of the cells that are touched by sphere at 'aroundThisRealCoordinate'
 	    with radius 'perimeterOfInterest' */
-	void getNearbyAgentIDs(const VF& aroundThisCoordinate, const G_FLOAT perimeterOfInterest,
+	void getNearbyAgentIDs(const VF& aroundThisRealCoordinate, const G_FLOAT perimeterOfInterest,
 	                       std::list<int>& nearbyIDs)
 	{
-		VI centrePos( getCellCoordinate(aroundThisCoordinate) );
+		VI centrePos( getCellCoordinate(aroundThisRealCoordinate) );
 
 		//determine how many cells to span to all sides
 		VI halfSpan(
@@ -230,19 +230,36 @@ public:
 		insertAgent(ag.getID(),ag.getGeometry().AABB);
 	}
 
-	void insertAgent(const int ID,const AxisAlignedBoundingBox& aabb)
+	void insertAgent(const int ID, const AxisAlignedBoundingBox& aabb)
 	{
 		//get centre of the AABB
 		Vector3d<G_FLOAT> pos(aabb.minCorner);
 		pos += aabb.maxCorner;
 		pos /= 2.0f;
 
-		insertAgent(ID,pos);
+		insertAgent_atRealCoord(ID,pos);
 	}
 
-	void insertAgent(const int ID,const VF& realCoordinate)
+	void insertAgent_atRealCoord(const int ID, const VF& realCoord)
 	{
-		getCellRef(realCoordinate).push_back(ID);
+		getCellRef_fromRealCoords(realCoord).push_back(ID);
+	}
+
+	void insertAgent_atRealCoord(const int ID,
+	         const G_FLOAT xRealCoord, const G_FLOAT yRealCoord, const G_FLOAT zRealCoord)
+	{
+		getCellRef_fromRealCoords(xRealCoord,yRealCoord,zRealCoord).push_back(ID);
+	}
+
+	void insertAgent_atMapCoord(const int ID, const VI& mapCoord)
+	{
+		getCellRef(mapCoord).push_back(ID);
+	}
+
+	void insertAgent_atMapCoord(const int ID,
+	         const int xMapCoord, const int yMapCoord, const int zMapCoord)
+	{
+		getCellRef(xMapCoord,yMapCoord,zMapCoord).push_back(ID);
 	}
 	// ----------------- end of users to the above group -----------------
 };
