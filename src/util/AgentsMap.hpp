@@ -177,16 +177,17 @@ public:
 	// ----------------- end of manipulators/managers -----------------
 
 	// ----------------- start of users to the above group -----------------
-	void printHeatMap(i3d::Image3d<size_t>& heatMap)
+	template <typename IntVT>
+	void printHeatMap(i3d::Image3d<IntVT>& heatMap)
 	{
 		//reset the heat image to map 1:1 onto this->map
 		heatMap.MakeRoom( mapShape.toI3dVector3d() );
-		heatMap.SetResolution(i3d::Resolution( cellSize.toI3dVector3d() ));
+		heatMap.SetResolution(i3d::Resolution( i3d::Vector3d<float>(1.0/cellSize.x,1.0/cellSize.y,1.0/cellSize.z) ));
 		heatMap.SetOffset( minCorner.toI3dVector3d() );
 
 		//just clone the sizes
-		size_t* pHM = heatMap.GetFirstVoxelAddr();
-		for (size_t i = 0; i < heatMap.GetImageSize(); ++i, ++pHM) *pHM = map[i].size();
+		IntVT* pHM = heatMap.GetFirstVoxelAddr();
+		for (size_t i = 0; i < heatMap.GetImageSize(); ++i, ++pHM) *pHM = (IntVT)map[i].size();
 	}
 
 
