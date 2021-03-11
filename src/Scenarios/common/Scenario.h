@@ -290,8 +290,8 @@ protected:
 			REPORT("WARNING: Requested synthoscopy but phantoms may not be produced.");
 
 		DEBUG_REPORT("allocating "
-		  << (lastUsedImgSize.x*lastUsedImgSize.y*lastUsedImgSize.z/(1 << 20))*sizeof(*img.GetFirstVoxelAddr())
-		  << " MB of memory for image of size " << lastUsedImgSize << " px");
+		  << humanFriendlyNumber(lastUsedImgSize.x*lastUsedImgSize.y*lastUsedImgSize.z*sizeof(*img.GetFirstVoxelAddr()))
+		  << "B of memory for image of size " << lastUsedImgSize << " px");
 		img.MakeRoom( lastUsedImgSize.toI3dVector3d() );
 	}
 

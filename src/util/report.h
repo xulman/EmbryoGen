@@ -60,4 +60,9 @@ const std::chrono::time_point<std::chrono::system_clock> tic(void);
 /** profiling aiders: stops stopwatch and reports the elapsed time,
     requires some counter-part earlier time (e.g. the "session handler") */
 std::string toc(const std::chrono::time_point<std::chrono::system_clock>& ticTime);
+
+/** reports a number in human-readable format, that is, including prefixes G,M,K
+    or none, formatted as " G", " M", " K", or " " respectively */
+template <typename T>
+std::string humanFriendlyNumber(const T number);
 #endif
