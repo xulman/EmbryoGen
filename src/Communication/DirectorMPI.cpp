@@ -111,8 +111,8 @@ void Director::notify_setDetailedReportingMode(const int FOsID , const int agent
 
 void Director::respond_Loop()
 {
-	char buffer[DIRECTOR_RECV_MAX] = {0};
-	int ibuffer[DIRECTOR_RECV_MAX] = {0};
+	char buffer[DIRECTOR_RECV_MAX] /*= {0}*/;
+	int ibuffer[DIRECTOR_RECV_MAX] /*= {0}*/;
 
 	int items;
 	e_comm_tags tag;

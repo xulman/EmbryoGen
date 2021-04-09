@@ -252,7 +252,7 @@ protected:
 		//Unused now: int shift; // Shift ID by given number of bits, to reduce communication for getNextAvailAgentID, maybe rework later
 		static e_comm_tags messageType; // Message type enum for sending/receiving individual distributed messages
 
-		char director_buffer [DIRECTOR_RECV_MAX] = {0};
+		char director_buffer [DIRECTOR_RECV_MAX] /*= {0}*/;
 		int director_buffer_size = DIRECTOR_RECV_MAX;
 
 
@@ -333,7 +333,9 @@ protected:
 #ifdef DISTRIBUTED_DEBUG
 		inline void debugMPIComm(const char* what, MPI_Comm comm, int items, int peer=MPI_ANY_SOURCE, e_comm_tags tag = e_comm_tags::unspecified) {
 			int rlen=64;
-			char cname [64] = {0};
+			char cname [64]/* = {0}*/;
+			bzero(cname,rlen);
+
 			MPI_Comm_get_name(comm, cname, &rlen);
 			REPORT(what << " MPI message at: " << instance_ID << " Via: " << cname <<  " Peer: " << peer <<  " Items in message: " << items << " Tag: " << tagName(tag));
 		}

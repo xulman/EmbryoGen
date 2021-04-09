@@ -271,8 +271,8 @@ void FrontOfficer::respond_setDetailedReportingMode()
 void FrontOfficer::respond_Loop()
 {
 	// For cycle like in the Director to process D->FO messages?
-	int ibuffer[DIRECTOR_RECV_MAX] = {0};
-	char buffer[DIRECTOR_RECV_MAX] = {0};
+	int ibuffer[DIRECTOR_RECV_MAX] /*= {0}*/;
+	char buffer[DIRECTOR_RECV_MAX] /*= {0}*/;
 	int items;
 	e_comm_tags tag;
 	/*static int unblock_lvl=0;*/
