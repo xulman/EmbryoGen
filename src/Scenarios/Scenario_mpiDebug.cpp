@@ -1,4 +1,7 @@
 #include "common/Scenarios.h"
+#ifdef DISTRIBUTED
+	#include <mpi.h>
+#endif
 
 SceneControls& Scenario_mpiDebug::provideSceneControls()
 {
@@ -36,9 +39,20 @@ void Scenario_mpiDebug::initializeScene()
 
 void Scenario_mpiDebug::initializeAgents(FrontOfficer*,int p,int P)
 {
-	DEBUG_REPORT("rank=" << p << "/" << P);
+	DEBUG_REPORT("FOs slice=" << p << "/" << P);
 
 #ifdef DISTRIBUTED
 	//code that gets compiled only in MPI (DISTRIBUTED) version
+
+	int len;
+	int rank, size;
+	char node[MPI_MAX_PROCESSOR_NAME];
+
+	MPI_Comm_rank(MPI_COMM_WORLD,&rank);
+	MPI_Comm_size(MPI_COMM_WORLD,&size);
+	MPI_Get_processor_name(node,&len);
+
+	REPORT("Hello world! from MPI true rank " << rank << " of " << size
+	    << " on host " << node);
 #endif
 }
