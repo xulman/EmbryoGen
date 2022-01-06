@@ -255,3 +255,9 @@ echo "  Run the following command FIRST (in clean build environment, before path
 echo "  and ONLY THEN one from the configurations commands above:"
 echo "cmake -D FEATURE_RUNDISTRIBUTED=ON \\"
 echo "   __addPathToCmakeListsHere__"
+echo
+
+echo
+echo "Start Cmake configuration of anything but pointed on these libraries:"
+echo "cmake -D CMAKE_LIBRARY_PATH=\"$DEPLOYDIR/lib64;$DEPLOYDIR/lib\" \\"
+echo "   __addPathToCmakeListsHere__"
