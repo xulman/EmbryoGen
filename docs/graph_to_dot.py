@@ -1,17 +1,27 @@
 import argparse
 import json
+from os import path
+from graph import Graph
+
+COLORS = {
+    '.cpp': 'cyan',
+    '.cxx': 'greenyellow',
+    '.h': 'lightcoral',
+    '.hpp': 'indianred1',
+}
 
 
-def create_dot(infile: str, outfile: str) -> None:
-    with open(infile, 'r') as f:
-        dct = json.load(f)
+def create_dot(g: Graph, outfile: str) -> None:
+    dct = g.get_dct()
 
     with open(outfile, 'w') as f:
         f.write('digraph G {\n')
 
         # create nodes (even empty)
         for node in dct:
-            f.write(f'"{node}";\n')
+            color = COLORS.get(path.splitext(node)[-1], 'white')
+            f.write(
+                f'"{node}" [label="{node}", fillcolor={color}, style=filled, shape=oval];\n')
 
         # create edges
         for node, edges in dct.items():
@@ -21,7 +31,7 @@ def create_dot(infile: str, outfile: str) -> None:
         f.write('}\n')
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '-i',
@@ -40,8 +50,10 @@ def main():
     )
 
     args = parser.parse_args()
+    with open(args, 'r') as f:
+        g = Graph(json.load(f))
 
-    create_dot(args.i, args.o)
+    create_dot(g, args.o)
 
 
 if __name__ == '__main__':
