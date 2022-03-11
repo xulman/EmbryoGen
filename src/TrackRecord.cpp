@@ -1,8 +1,8 @@
 #include <fstream>
-#include "util/Vector3d.h"
-#include "util/FlowField.h"
-#include "DisplayUnits/DisplayUnit.h"
-#include "TrackRecord.h"
+#include "util/Vector3d.hpp"
+#include "util/FlowField.hpp"
+#include "DisplayUnits/DisplayUnit.hpp"
+#include "TrackRecord.hpp"
 
 void TrackRecords::readFromFile(const char* filename, const Vector3d<float>& spaceScale,
                                 const float timeScale, const float timeShift)

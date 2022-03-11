@@ -1,5 +1,5 @@
-#include "SceneryDisplayUnit.h"
-#include "../util/report.h"
+#include "SceneryDisplayUnit.hpp"
+#include "../util/report.hpp"
 #include <sstream>
 //#include <zmq.hpp>
 

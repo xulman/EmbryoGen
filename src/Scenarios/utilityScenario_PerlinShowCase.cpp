@@ -1,6 +1,6 @@
 #include <i3d/image3d.h>
-#include "common/Scenarios.h"
-#include "../util/texture/texture.h"
+#include "common/Scenarios.hpp"
+#include "../util/texture/texture.hpp"
 
 void Scenario_PerlinShowCase::initializeAgents(FrontOfficer*,int p,int)
 {

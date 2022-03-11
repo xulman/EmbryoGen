@@ -3,11 +3,11 @@
 //
 // g++ -o test -Wall GeometrySerialization.cpp  ../Geometries/*cpp -li3dalgo -li3dcore -Xlinker -defsym -Xlinker MAIN__=main
 
-#include "../Geometries/Geometry.h"
-#include "../Geometries/Spheres.h"
-#include "../Geometries/ScalarImg.h"
-#include "../Geometries/VectorImg.h"
-#include "../Geometries/util/Serialization.h"
+#include "../Geometries/Geometry.hpp"
+#include "../Geometries/Spheres.hpp"
+#include "../Geometries/ScalarImg.hpp"
+#include "../Geometries/VectorImg.hpp"
+#include "../Geometries/util/Serialization.hpp"
 #include <iostream>
 #include <i3d/image3d.h>
 

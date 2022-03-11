@@ -1,4 +1,4 @@
-#include "../util/DivisionModels.h"
+#include "../util/DivisionModels.hpp"
 
 void testInterpolation(void)
 {

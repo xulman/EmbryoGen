@@ -1,6 +1,6 @@
 #include <vector>
-#include "../../Geometries/Spheres.h"
-#include "TextureFunctions.h"
+#include "../../Geometries/Spheres.hpp"
+#include "TextureFunctions.hpp"
 
 template <typename FT>
 void TextureFunctions::addTextureAlongGrid(std::vector<Dot>& dots,

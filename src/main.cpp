@@ -1,11 +1,11 @@
 #include <iostream>
 #include <i3d/basic.h>
-#include "git_hash.h"
-#include "Communication/DistributedCommunicator.h"
-#include "Scenarios/common/Scenario.h"
-#include "Scenarios/common/Scenarios.h"
-#include "Director.h"
-#include "FrontOfficer.h"
+#include "git_hash.hpp"
+#include "Communication/DistributedCommunicator.hpp"
+#include "Scenarios/common/Scenario.hpp"
+#include "Scenarios/common/Scenarios.hpp"
+#include "Director.hpp"
+#include "FrontOfficer.hpp"
 
 #ifdef DISTRIBUTED
 	#define REPORT_EXCEPTION(x) \

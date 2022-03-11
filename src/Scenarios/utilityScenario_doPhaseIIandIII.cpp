@@ -1,5 +1,5 @@
 #include <string>
-#include "common/Scenarios.h"
+#include "common/Scenarios.hpp"
 
 void Scenario_phaseIIandIII::initializeAgents(FrontOfficer*,int p,int)
 {

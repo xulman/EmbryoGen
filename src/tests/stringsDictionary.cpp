@@ -1,6 +1,6 @@
 #include <iostream>
-#include "../util/strings.h"
-#include "../Geometries/Geometry.h"
+#include "../util/strings.hpp"
+#include "../Geometries/Geometry.hpp"
 
 
 /** wraps around the Dictionary to

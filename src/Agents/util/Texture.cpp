@@ -1,7 +1,7 @@
 #include <cmath>
-#include "../../util/texture/texture.h"
-#include "../../util/report.h"
-#include "Texture.h"
+#include "../../util/texture/texture.hpp"
+#include "../../util/report.hpp"
+#include "Texture.hpp"
 
 template <typename VT>
 void Texture::sampleDotsFromImage(const i3d::Image3d<VT>& img,

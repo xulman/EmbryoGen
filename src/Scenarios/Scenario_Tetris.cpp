@@ -1,10 +1,10 @@
-#include "../DisplayUnits/SceneryBufferedDisplayUnit.h"
-#include "../Geometries/Spheres.h"
-#include "../Geometries/util/SpheresFunctions.h"
-#include "common/Scenarios.h"
-#include "../Agents/NucleusNSAgent.h"
-#include "../Agents/util/Texture.h"
-#include "../util/texture/texture.h"
+#include "../DisplayUnits/SceneryBufferedDisplayUnit.hpp"
+#include "../Geometries/Spheres.hpp"
+#include "../Geometries/util/SpheresFunctions.hpp"
+#include "common/Scenarios.hpp"
+#include "../Agents/NucleusNSAgent.hpp"
+#include "../Agents/util/Texture.hpp"
+#include "../util/texture/texture.hpp"
 
 class TetrisNucleus: public NucleusNSAgent, TextureUpdaterNS
 {

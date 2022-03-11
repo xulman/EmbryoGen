@@ -1,5 +1,5 @@
-#include "../util/report.h"
-#include "Mesh.h"
+#include "../util/report.hpp"
+#include "Mesh.hpp"
 
 /** calculate min surface distance between myself and some foreign agent */
 void Mesh::getDistance(const Geometry& otherGeometry,

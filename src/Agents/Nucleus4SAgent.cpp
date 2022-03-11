@@ -1,4 +1,4 @@
-#include "Nucleus4SAgent.h"
+#include "Nucleus4SAgent.hpp"
 
 void Nucleus4SAgent::getCurrentOffVectorsForCentres(Vector3d<G_FLOAT> offs[4])
 {

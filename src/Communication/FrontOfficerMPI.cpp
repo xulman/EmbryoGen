@@ -1,9 +1,9 @@
-#include "../Agents/AbstractAgent.h"
-#include "../FrontOfficer.h"
-#include "../Director.h"
-#include "../util/strings.h"
-#include "DistributedCommunicator.h"
-#include "../Geometries/util/GeometryCreator.h"
+#include "../Agents/AbstractAgent.hpp"
+#include "../FrontOfficer.hpp"
+#include "../Director.hpp"
+#include "../util/strings.hpp"
+#include "DistributedCommunicator.hpp"
+#include "../Geometries/util/GeometryCreator.hpp"
 #include <chrono>
 #include <thread>
 

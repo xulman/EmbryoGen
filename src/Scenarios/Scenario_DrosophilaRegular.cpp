@@ -1,12 +1,12 @@
-#include "../DisplayUnits/SceneryBufferedDisplayUnit.h"
-#include "../util/Vector3d.h"
-#include "../Geometries/ScalarImg.h"
-#include "../Geometries/VectorImg.h"
-#include "../Agents/Nucleus4SAgent.h"
-#include "../Agents/ShapeHinter.h"
-#include "../Agents/TrajectoriesHinter.h"
-#include "../Geometries/util/SpheresFunctions.h"
-#include "common/Scenarios.h"
+#include "../DisplayUnits/SceneryBufferedDisplayUnit.hpp"
+#include "../util/Vector3d.hpp"
+#include "../Geometries/ScalarImg.hpp"
+#include "../Geometries/VectorImg.hpp"
+#include "../Agents/Nucleus4SAgent.hpp"
+#include "../Agents/ShapeHinter.hpp"
+#include "../Agents/TrajectoriesHinter.hpp"
+#include "../Geometries/util/SpheresFunctions.hpp"
+#include "common/Scenarios.hpp"
 
 class GrowableNucleusReg: public Nucleus4SAgent
 {

@@ -1,6 +1,6 @@
-#include "../Agents/AbstractAgent.h"
-#include "../FrontOfficer.h"
-#include "../Director.h"
+#include "../Agents/AbstractAgent.hpp"
+#include "../FrontOfficer.hpp"
+#include "../Director.hpp"
 
 int FrontOfficer::request_getNextAvailAgentID()
 {

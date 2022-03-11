@@ -1,4 +1,4 @@
-#include "common/Scenarios.h"
+#include "common/Scenarios.hpp"
 #ifdef DISTRIBUTED
 	#include <mpi.h>
 #endif

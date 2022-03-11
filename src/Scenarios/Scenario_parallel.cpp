@@ -1,15 +1,15 @@
 #include <thread>
 #include <functional>
 #include <i3d/image3d.h>
-#include "common/Scenarios.h"
-#include "../DisplayUnits/ConsoleDisplayUnit.h"
-#include "../DisplayUnits/SceneryBufferedDisplayUnit.h"
-#include "../DisplayUnits/FileDisplayUnit.h"
-#include "../DisplayUnits/FlightRecorderDisplayUnit.h"
-#include "../util/rnd_generators.h"
-#include "../util/Vector3d.h"
-#include "../Geometries/Spheres.h"
-#include "../Agents/AbstractAgent.h"
+#include "common/Scenarios.hpp"
+#include "../DisplayUnits/ConsoleDisplayUnit.hpp"
+#include "../DisplayUnits/SceneryBufferedDisplayUnit.hpp"
+#include "../DisplayUnits/FileDisplayUnit.hpp"
+#include "../DisplayUnits/FlightRecorderDisplayUnit.hpp"
+#include "../util/rnd_generators.hpp"
+#include "../util/Vector3d.hpp"
+#include "../Geometries/Spheres.hpp"
+#include "../Agents/AbstractAgent.hpp"
 
 // ------------------ grid placement and related stuff ------------------
 //

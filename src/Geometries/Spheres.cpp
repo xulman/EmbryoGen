@@ -1,5 +1,5 @@
-#include "Spheres.h"
-#include "util/Serialization.h"
+#include "Spheres.hpp"
+#include "util/Serialization.hpp"
 
 void Spheres::getDistance(const Geometry& otherGeometry,
                           std::list<ProximityPair>& l) const

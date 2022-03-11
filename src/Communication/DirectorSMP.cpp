@@ -1,5 +1,5 @@
-#include "../Director.h"
-#include "../FrontOfficer.h"
+#include "../Director.hpp"
+#include "../FrontOfficer.hpp"
 
 //in the SMP world, a lot of respond_...() methods are actually
 //empty because the FOs reach directly the implementing code

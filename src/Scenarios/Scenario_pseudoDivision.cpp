@@ -1,8 +1,8 @@
-#include "../DisplayUnits/SceneryBufferedDisplayUnit.h"
-#include "../util/Vector3d.h"
-#include "../Geometries/Spheres.h"
-#include "../Agents/NucleusAgent.h"
-#include "common/Scenarios.h"
+#include "../DisplayUnits/SceneryBufferedDisplayUnit.hpp"
+#include "../util/Vector3d.hpp"
+#include "../Geometries/Spheres.hpp"
+#include "../Agents/NucleusAgent.hpp"
+#include "common/Scenarios.hpp"
 
 class myNucleusB: public NucleusAgent
 {

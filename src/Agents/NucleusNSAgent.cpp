@@ -1,5 +1,5 @@
 #include <cmath>
-#include "NucleusNSAgent.h"
+#include "NucleusNSAgent.hpp"
 
 void NucleusNSAgent::resetDistanceMatrix()
 {

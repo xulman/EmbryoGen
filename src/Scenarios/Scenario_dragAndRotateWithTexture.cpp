@@ -1,11 +1,11 @@
-#include "../DisplayUnits/SceneryBufferedDisplayUnit.h"
-#include "../DisplayUnits/FlightRecorderDisplayUnit.h"
-#include "../Geometries/Spheres.h"
-#include "../Geometries/util/SpheresFunctions.h"
-#include "../Agents/NucleusNSAgent.h"
-#include "../Agents/util/Texture.h"
-#include "../Agents/util/TextureFunctions.h"
-#include "common/Scenarios.h"
+#include "../DisplayUnits/SceneryBufferedDisplayUnit.hpp"
+#include "../DisplayUnits/FlightRecorderDisplayUnit.hpp"
+#include "../Geometries/Spheres.hpp"
+#include "../Geometries/util/SpheresFunctions.hpp"
+#include "../Agents/NucleusNSAgent.hpp"
+#include "../Agents/util/Texture.hpp"
+#include "../Agents/util/TextureFunctions.hpp"
+#include "common/Scenarios.hpp"
 
 class myDragAndTextureNucleus_common: public NucleusNSAgent, Texture
 {

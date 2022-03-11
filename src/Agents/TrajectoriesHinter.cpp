@@ -1,4 +1,4 @@
-#include "TrajectoriesHinter.h"
+#include "TrajectoriesHinter.hpp"
 
 //#define DRAW_VOXEL_GRID_AROUND_TRAJECTORIES
 

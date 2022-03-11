@@ -1,9 +1,9 @@
 #include <chrono>
 #include <thread>
-#include "util/Vector3d.h"
-#include "util/synthoscopy/SNR.h"
-#include "FrontOfficer.h"
-#include "Director.h"
+#include "util/Vector3d.hpp"
+#include "util/synthoscopy/SNR.hpp"
+#include "FrontOfficer.hpp"
+#include "Director.hpp"
 
 void Director::init1_SMP(void)
 {

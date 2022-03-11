@@ -1,7 +1,7 @@
 #include <iostream>
 #include <cmath>
-#include "../DisplayUnits/SceneryDisplayUnit.h"
-#include "../Geometries/util/SpheresFunctions.h"
+#include "../DisplayUnits/SceneryDisplayUnit.hpp"
+#include "../Geometries/util/SpheresFunctions.hpp"
 
 void showGeom(DisplayUnit& du, const Spheres* srcGeom, const Spheres* expandedGeom)
 {
@@ -88,7 +88,7 @@ void mainForInterpolator(void)
 //---------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------
 
-#include "../util/rnd_generators.h"
+#include "../util/rnd_generators.hpp"
 
 void mainForLinkedSpheres(DisplayUnit& du)
 {

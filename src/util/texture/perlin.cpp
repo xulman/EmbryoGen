@@ -4,8 +4,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
-#include "../rnd_generators.h"
-#include "perlin.h"
+#include "../rnd_generators.hpp"
+#include "perlin.hpp"
 
 #ifdef _MSC_VER
   #define random() rand()

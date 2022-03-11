@@ -1,5 +1,5 @@
-#include "../util/report.h"
-#include "Geometry.h"
+#include "../util/report.hpp"
+#include "Geometry.hpp"
 
 
 template <typename T>

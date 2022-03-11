@@ -1,12 +1,12 @@
-#include "Scenario.h"
+#include "Scenario.hpp"
 
 SceneControls DefaultSceneControls;
 
 
 #if defined ENABLE_MITOGEN_FINALPREVIEW
-  #include "../../util/synthoscopy/finalpreview.h"
+  #include "../../util/synthoscopy/finalpreview.hpp"
 #elif defined ENABLE_FILOGEN_PHASEIIandIII
-  #include "../../util/synthoscopy/FiloGen_VM.h"
+  #include "../../util/synthoscopy/FiloGen_VM.hpp"
 #endif
 #include <i3d/filters.h>
 
