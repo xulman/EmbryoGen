@@ -1,9 +1,5 @@
 #include "../util/report.h"
 #include "Geometry.h"
-#include "Mesh.h"
-#include "ScalarImg.h"
-#include "Spheres.h"
-#include "VectorImg.h"
 
 
 template <typename T>
@@ -113,21 +109,3 @@ template
 void AxisAlignedBoundingBox::exportInPixelCoords(const i3d::Image3d<double>& img,
                                                  Vector3d<size_t>& minSweep,
                                                  Vector3d<size_t>& maxSweep) const;
-
-/*static*/ Geometry * Geometry::createAndDeserializeFrom(int g_type, char * buffer) 
-{
-		switch(g_type)
-		{
-			case ListOfShapeForms::Spheres:
-				return Spheres::createAndDeserializeFrom(buffer);
-			case ListOfShapeForms::Mesh:
-				return Mesh::createAndDeserializeFrom(buffer);
-			case ListOfShapeForms::ScalarImg:
-				return ScalarImg::createAndDeserializeFrom(buffer);
-			case ListOfShapeForms::VectorImg:
-				return VectorImg::createAndDeserializeFrom(buffer);
-			case ListOfShapeForms::undefGeometry:
-			default:
-				return NULL;
-		}
-}

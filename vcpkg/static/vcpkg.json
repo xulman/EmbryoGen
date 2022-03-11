@@ -23,6 +23,7 @@
         },
         "gsl",
         "grpc",
-        "openmpi"
+        "openmpi",
+        "fmt"
     ]
 }

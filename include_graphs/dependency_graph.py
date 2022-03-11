@@ -102,7 +102,7 @@ def main() -> None:
     graph = create_graph(norm_paths, args.s)
 
     with open(args.o, 'w') as f:
-        json.dump(graph.get_dct(), f, indent=4)
+        json.dump(graph.get_json_dct(), f, indent=4)
 
     print('done')
 

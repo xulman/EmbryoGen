@@ -4,6 +4,7 @@
     "dependencies": [
         "gsl",
         "grpc",
-        "openmpi"
+        "openmpi",
+        "fmt"
     ]
 }

@@ -24,3 +24,10 @@ class Graph:
 
     def get_dct(self) -> dict[str, set[str]]:
         return self.g
+        
+    def get_json_dct(self) -> dict[str, list[str]]:
+        out = {}
+        for key, value in self.g.items():
+            out[key] = list(value)
+        
+        return out

@@ -19,6 +19,7 @@ libs/DEPLOY
 VIZU
 BUILD*
 bin*
+build*
 
 # Log file, some documentation material #
 *.log

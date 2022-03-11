@@ -215,6 +215,10 @@ set(LIBS ${LIBS} GSL::gsl GSL::gslcblas)
 find_package(gRPC CONFIG REQUIRED)
 set(LIBS ${LIBS} gRPC::gpr gRPC::upb gRPC::grpc gRPC::grpc++)
 
+# FMT library
+find_package(fmt CONFIG REQUIRED)
+set(LIBS ${LIBS} fmt::fmt)
+
 if (FEATURE_RUNDISTRIBUTED)
 	set(LIBS ${LIBS} MPI::MPI_CXX)
 endif (FEATURE_RUNDISTRIBUTED)

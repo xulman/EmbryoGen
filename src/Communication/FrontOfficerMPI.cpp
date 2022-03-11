@@ -3,6 +3,7 @@
 #include "../Director.h"
 #include "../util/strings.h"
 #include "DistributedCommunicator.h"
+#include "../Geometries/util/GeometryCreator.h"
 #include <chrono>
 #include <thread>
 
@@ -219,7 +220,7 @@ ShadowAgent* FrontOfficer::request_ShadowAgentCopy(const int agentID, const int 
 
 	int         gotThisAgentID   = (int) param_buff[0];
 	std::string gotThisAgentType = agentsTypesDictionary.translateIdToString((size_t)param_buff[2]);
-	Geometry*   gotThisGeom      = Geometry::createAndDeserializeFrom((int)param_buff[3], data_buff);
+	Geometry*   gotThisGeom      = geometryCreateAndDeserializeFrom(param_buff[3], data_buff);
 	free(data_buff);
 
 	return new ShadowAgent(*gotThisGeom, gotThisAgentID,gotThisAgentType);

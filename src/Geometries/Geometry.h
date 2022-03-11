@@ -202,19 +202,19 @@ class Geometry
 {
 protected:
 	/** A variant of how the shape of an simulated agent is represented */
-	typedef enum
+	enum class ListOfShapeForms
 	{
 		Spheres=0,
 		Mesh=1,
 		ScalarImg=2,
 		VectorImg=3,
 		undefGeometry=10
-	} ListOfShapeForms;
+	};
 
 	/** Construct empty geometry object of given shape form.
 	    This class should never be used constructed directly, always use some
 	    derived class such as Spheres, Mesh, ScalarImg or VectorImg. */
-	Geometry(const ListOfShapeForms _shapeForm) : shapeForm(_shapeForm), AABB() {};
+	Geometry(ListOfShapeForms _shapeForm) : shapeForm(_shapeForm), AABB() {};
 
 
 public:
@@ -301,14 +301,12 @@ public:
 
 	// ----------------- support for serialization and deserealization -----------------
 	int getType() const
-	{ return (int)shapeForm; }
+	{ return static_cast<int>(shapeForm); }
 
 	virtual long getSizeInBytes() const =0;
 
 	virtual void serializeTo(char* buffer) const =0;
 	virtual void deserializeFrom(char* buffer) =0;
-	
-	static Geometry * createAndDeserializeFrom(/*ListOfShapeForms*/ int g_type, char * buffer);
 
 	// ----------------- support for rasterization -----------------
 	virtual void renderIntoMask(i3d::Image3d<i3d::GRAY16>& mask, const i3d::GRAY16 drawID) const =0;
