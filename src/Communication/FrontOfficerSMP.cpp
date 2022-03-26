@@ -115,7 +115,7 @@ void FrontOfficer::respond_ShadowAgentCopy(const int) {
 	/*
 	int requestedAgentID = 10; //fake value
 
-#ifdef DEBUG
+#ifndef NDEBUG
 	if (agents.find(requestedAgentID) == agents.end())
 throw std::runtime_error(fmt::format("{} Cannot provide ShadowAgent for agent ID
 {}", report::getIdent() , requestedAgentID)); #endif

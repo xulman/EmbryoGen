@@ -26,7 +26,7 @@ void NucleusNSAgent::advanceAndBuildIntForces(const float futureGlobalTime) {
 	const G_FLOAT keepCalmDistance = (G_FLOAT)0.1;
 	// const G_FLOAT keepCalmDistanceSq = keepCalmDistance*keepCalmDistance;
 
-#ifdef DEBUG
+#ifndef NDEBUG
 	if (futureGeometry.noOfSpheres != distanceMatrix.side)
 		throw report::rtError(fmt::format(
 		    "distanceMatrix stores {} spheres but futureGeometry contains {}",
@@ -46,13 +46,13 @@ void NucleusNSAgent::advanceAndBuildIntForces(const float futureGlobalTime) {
 				forceVec *= diffDist * fstrength_body_scale;
 				forces.emplace_back(forceVec, futureGeometry.centres[row], row,
 				                    ftype_s2s);
-#ifdef DEBUG
+#ifndef NDEBUG
 				forces_s2sInducers.push_back(col);
 #endif
 				forceVec *= -1;
 				forces.emplace_back(forceVec, futureGeometry.centres[col], col,
 				                    ftype_s2s);
-#ifdef DEBUG
+#ifndef NDEBUG
 				forces_s2sInducers.push_back(row);
 #endif
 			}
@@ -64,7 +64,7 @@ void NucleusNSAgent::advanceAndBuildIntForces(const float futureGlobalTime) {
 
 void NucleusNSAgent::drawMask(DisplayUnit& du) {
 	int dID = DisplayUnit::firstIdForAgentObjects(ID);
-#ifdef DEBUG
+#ifndef NDEBUG
 	int ldID = DisplayUnit::firstIdForAgentDebugObjects(ID);
 #endif
 	int gdID = DisplayUnit::firstIdForSceneDebugObjects() + ID * 40 + 5000;
@@ -79,7 +79,7 @@ void NucleusNSAgent::drawMask(DisplayUnit& du) {
 		du.DrawLine(gdID++, futureGeometry.centres[i - 1],
 		            futureGeometry.centres[i], 2);
 
-#ifdef DEBUG
+#ifndef NDEBUG
 	// draw s2s forces
 	std::vector<int>::iterator s2s_color = forces_s2sInducers.begin();
 	for (const auto& f : forcesForDisplay) {
@@ -89,7 +89,7 @@ void NucleusNSAgent::drawMask(DisplayUnit& du) {
 #endif
 }
 
-#ifdef DEBUG
+#ifndef NDEBUG
 void NucleusNSAgent::drawForDebug(DisplayUnit& du) {
 	int gdID = DisplayUnit::firstIdForSceneDebugObjects() + ID * 40 + 10000;
 

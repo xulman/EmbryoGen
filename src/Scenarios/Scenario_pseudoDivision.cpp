@@ -45,7 +45,7 @@ class myNucleusB : public NucleusAgent {
 			Officer->closeMotherStartDaughters(this, agA, agB);
 		}
 
-#ifdef DEBUG
+#ifndef NDEBUG
 		// export forces for display:
 		forcesForDisplay = forces;
 #endif

@@ -78,7 +78,7 @@ class SpheresFunctions {
 		CoordsUpdater(const Spheres& s,
 		              const int index,
 		              const Vector3d<FT>& orientation) {
-#ifdef DEBUG
+#ifndef NDEBUG
 			if (index < 0 || index >= s.noOfSpheres)
 				throw report::rtError("Incorrect index of a sphere provided.");
 #endif
@@ -104,7 +104,7 @@ class SpheresFunctions {
 		void prepareUpdating(const Vector3d<FT>& newCentre,
 		                     const FT newRadius,
 		                     const Vector3d<FT>& newOrientation) {
-#ifdef DEBUG
+#ifndef NDEBUG
 			// some sanity checks (and warnings)
 			if (prevRadius <= 0)
 				report::message(fmt::format("WARNING: updating coords from "
@@ -190,7 +190,7 @@ class SpheresFunctions {
 		void prepareUpdating(const Spheres& s,
 		                     const int index,
 		                     const Vector3d<FT>& newOrientation) {
-#ifdef DEBUG
+#ifndef NDEBUG
 			if (index < 0 || index >= s.noOfSpheres)
 				throw report::rtError("Incorrect index of a sphere provided.");
 #endif
@@ -326,7 +326,7 @@ class SpheresFunctions {
 		    Spheres& targetGeom,
 		    const std::function<void(Vector3d<FT>&, FT)>& positionShaker,
 		    const std::function<FT(FT, FT)>& radiusShaker) const {
-#ifdef DEBUG
+#ifndef NDEBUG
 			// test appropriate size of the target geom
 			if (targetGeom.noOfSpheres != optimalTargetSpheresNo)
 				throw report::rtError(fmt::format(
@@ -348,7 +348,7 @@ class SpheresFunctions {
 		    Spheres& targetGeom,
 		    const std::list<posShakerPtr>& positionShakers,
 		    const std::list<radiusShakerPtr>& radiusShakers) const {
-#ifdef DEBUG
+#ifndef NDEBUG
 			if (positionShakers.size() != radiusShakers.size())
 				throw report::rtError(
 				    fmt::format("position shakers length ({} differs from "
@@ -421,7 +421,7 @@ class SpheresFunctions {
 		void addToPlan(const int fromSrcIdx,
 		               const int toSrcIdx,
 		               const int noOfSpheresInBetween) {
-#ifdef DEBUG
+#ifndef NDEBUG
 			if (fromSrcIdx < 0 || fromSrcIdx >= sourceGeom.noOfSpheres)
 				throw report::rtError(
 				    fmt::format("src index is invalid, should be within [0,{}]",
@@ -728,7 +728,7 @@ class SpheresFunctions {
 		/** builds ino the given geometry according to the pre-defined line ups
 		 * (azimuths) */
 		void buildInto(Spheres& newGeom) {
-#ifdef DEBUG
+#ifndef NDEBUG
 			if (newGeom.noOfSpheres != getNoOfNecessarySpheres())
 				throw report::rtError(
 				    "Given geometry cannot host the one defined here.");
@@ -764,7 +764,7 @@ class SpheresFunctions {
 		}
 
 		void rebuildInto(Spheres& newGeom) {
-#ifdef DEBUG
+#ifndef NDEBUG
 			if (newGeom.noOfSpheres != getNoOfNecessarySpheres())
 				throw report::rtError(
 				    "Given geometry cannot host the one defined here.");
@@ -784,7 +784,7 @@ class SpheresFunctions {
 		   construction), changes in radii of the first two spheres and in their
 		   mutual distance are detected, and distributed along the line ups */
 		void refreshThis(Spheres& geom) {
-#ifdef DEBUG
+#ifndef NDEBUG
 			if (geom.noOfSpheres != getNoOfNecessarySpheres())
 				throw report::rtError("Given geometry is not compatible with "
 				                      "the one defined here.");

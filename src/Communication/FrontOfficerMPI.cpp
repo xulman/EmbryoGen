@@ -132,7 +132,7 @@ void FrontOfficer::respond_AABBofAgent() {
 }
 
 void FrontOfficer::respond_CntOfAABBs() {
-#ifdef DEBUG
+#ifndef NDEBUG
 	size_t sendBackMyCount = getSizeOfAABBsList();
 	report::message(fmt::format("FO #{} Count: {}", ID, sendBackMyCount));
 	// communicator->sendCntOfAABBs(sendBackMyCount);
@@ -252,7 +252,7 @@ ShadowAgent* FrontOfficer::request_ShadowAgentCopy(const int agentID,
 }
 
 void FrontOfficer::respond_ShadowAgentCopy(const int agentID) {
-#ifdef DEBUG
+#ifndef NDEBUG
 	if (agents.find(agentID) == agents.end())
 		throw report::rtError(
 		    fmt::format("Cannot provide ShadowAgent for agent ID {}", agentID));

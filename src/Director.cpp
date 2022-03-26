@@ -156,7 +156,7 @@ void Director::execute(void) {
 		currTime += incrTime;
 #ifdef DISTRIBUTED
 		reportSituation();
-#ifdef DEBUG
+#ifndef NDEBUG
 		reportAgentsAllocation();
 #endif
 #endif

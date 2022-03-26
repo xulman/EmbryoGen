@@ -190,7 +190,7 @@ void Spheres::renderIntoMask(i3d::Image3d<i3d::GRAY16>& mask,
 				// check the current voxel against all spheres
 				for (int i = 0; i < noOfSpheres; ++i) {
 					if ((centre - centres[i]).len() <= radii[i]) {
-#ifdef DEBUG
+#ifndef NDEBUG
 						i3d::GRAY16 val =
 						    mask.GetVoxel(curPos.x, curPos.y, curPos.z);
 						if (val > 0 && val != drawID)

@@ -83,7 +83,7 @@ void DoPerlin3D(
 template <class VOXEL>
 void AddPerlin(
     Image3d<VOXEL>& img, float variance, float alpha, float beta, float skew) {
-#ifdef DEBUG
+#ifndef NDEBUG
 	report::message(
 	    fmt::format("perlin ({},{},{},{})", variance, alpha, beta, skew));
 #endif

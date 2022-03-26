@@ -30,7 +30,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wconversion")
 # ALL OPTIONS ARE SUMMARIZED HERE (CONTROL PANEL)
 #------------------------------------------------
 
-option(DEBUG_VERSION      "Shall I display debug information?" OFF)
+option(DEBUG_VERSION      "Shall I display debug information?" ON)
 option(DEBUG_DIST_VERSION "Shall I display debug information for distributed communication?" OFF)
 
 option(FEATURE_ENABLEPHOTOBLEACHING  "Shall texture particles be loosing their intensity in the phantom image?" OFF)
@@ -42,9 +42,9 @@ option(FEATURE_USEOpenMP             "Use OpenMP for single node parallelization
 # TRANSLATE FEATURE REQUESTS INTO PREPROCESSOR CONSTANTS
 #-------------------------------------------------------
 
-if (DEBUG_VERSION)
-	add_definitions(-DDEBUG)
-endif (DEBUG_VERSION)
+if (NOT DEBUG_VERSION)
+    add_definitions(-DNDEBUG)
+endif (NOT DEBUG_VERSION)
 
 if (DEBUG_DIST_VERSION)
 	add_definitions(-DDISTRIBUTED_DEBUG)

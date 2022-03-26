@@ -379,7 +379,7 @@ class SceneControls {
 	Scenario* scenario = NULL;
 	/** only a visually more pleasing access to the containing scenario */
 	Scenario& ctx() {
-#ifdef DEBUG
+#ifndef NDEBUG
 		if (scenario == NULL)
 			throw report::rtError(
 			    "back reference on containing Scenario is not initiated!");

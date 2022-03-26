@@ -148,7 +148,7 @@ void TrackRecords::injectToFF(const float timeFrom,
                               const Vector3d<float>& propagationRadius,
                               const bool smoothExpansion,
                               const bool doReset) const {
-#ifdef DEBUG
+#ifndef NDEBUG
 	if (!FF.isConsistent())
 		throw report::rtError("inconsistent FF given!");
 #endif

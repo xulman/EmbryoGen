@@ -177,7 +177,7 @@ void FrontOfficer::executeInternals() {
 	std::map<int, AbstractAgent*>::iterator c = agents.begin();
 	for (; c != agents.end(); c++) {
 		c->second->advanceAndBuildIntForces(futureTime);
-#ifdef DEBUG
+#ifndef NDEBUG
 		if (c->second->getLocalTime() < futureTime)
 			throw report::rtError("Agent is not synchronized.");
 #endif
@@ -194,7 +194,7 @@ void FrontOfficer::executeInternals() {
 
 void FrontOfficer::executeExternals() {
 #ifdef DISTRIBUTED
-#ifdef DEBUG
+#ifndef NDEBUG
 	reportAABBs();
 #endif
 #endif
@@ -239,7 +239,7 @@ void FrontOfficer::updateAndPublishAgents() {
 	// register the new ones (and remove from the "new born list")
 	ag = newAgents.begin();
 	while (ag != newAgents.end()) {
-#ifdef DEBUG
+#ifndef NDEBUG
 		if (agents.find((*ag)->ID) != agents.end())
 			throw report::rtError(fmt::format(
 			    "Attempting to add another agent with the same ID {}",
@@ -370,7 +370,7 @@ size_t FrontOfficer::getSizeOfAABBsList() const { return AABBs.size(); }
 
 void FrontOfficer::registerThatThisAgentIsAtThisFO(const int agentID,
                                                    const int FOsID) {
-#ifdef DEBUG
+#ifndef NDEBUG
 	if (agentsToFOsMap.find(agentID) != agentsToFOsMap.end())
 		throw report::rtError(
 		    fmt::format("Agent ID {} already registered with FO #{} but was "
@@ -440,7 +440,7 @@ const ShadowAgent* FrontOfficer::getNearbyAgent(const int fetchThisID) {
 		return ag->second;
 
 		// no, the requested agent is somewhere outside...
-#ifdef DEBUG
+#ifndef NDEBUG
 	// btw: must have been broadcasted and we must therefore see the agent in
 	// our data structures
 	if (agentsToFOsMap.find(fetchThisID) == agentsToFOsMap.end())
@@ -480,7 +480,7 @@ const ShadowAgent* FrontOfficer::getNearbyAgent(const int fetchThisID) {
 	// store the new reference
 	shadowAgents[fetchThisID] = saCopy;
 
-#ifdef DEBUG
+#ifndef NDEBUG
 	// now the broadcast version must match the one we actually have got
 	if (agentsAndBroadcastGeomVersions[fetchThisID] !=
 	    shadowAgents[fetchThisID]->getGeometry().version)

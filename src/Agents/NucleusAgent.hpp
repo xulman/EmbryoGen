@@ -179,7 +179,7 @@ class NucleusAgent : public AbstractAgent {
 
   public:
 	const Vector3d<G_FLOAT>& getVelocityOfSphere(const long index) const {
-#ifdef DEBUG
+#ifndef NDEBUG
 		if (index >= geometryAlias.noOfSpheres)
 			throw report::rtError("requested sphere index out of bound.");
 #endif
@@ -193,7 +193,7 @@ class NucleusAgent : public AbstractAgent {
 	void drawForDebug(DisplayUnit& du) override;
 	void drawMask(i3d::Image3d<i3d::GRAY16>& img) override;
 
-#ifdef DEBUG
+#ifndef NDEBUG
 	/** aux memory of the recently generated forces in
 	   advanceAndBuildIntForces() and in collectExtForces(), and displayed via
 	   drawForDebug() */

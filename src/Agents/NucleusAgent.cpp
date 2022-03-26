@@ -34,7 +34,7 @@ void NucleusAgent::adjustGeometryByForces(void) {
 	for (const auto& f : forces)
 		accels[f.hint] += f;
 
-#ifdef DEBUG
+#ifndef NDEBUG
 	if (detailedReportingMode) {
 		for (const auto& f : forces)
 			report::message(
@@ -80,7 +80,7 @@ void NucleusAgent::advanceAndBuildIntForces(const float futureGlobalTime) {
 		                    futureGeometry.centres[i], i, ftype_drive);
 	}
 
-#ifdef DEBUG
+#ifndef NDEBUG
 	// export forces for display:
 	forcesForDisplay = forces;
 #endif
@@ -104,7 +104,7 @@ void NucleusAgent::collectExtForces(void) {
 	std::list<const NamedAxisAlignedBoundingBox*> nearbyAgentBoxes;
 	Officer->getNearbyAABBs(this, ignoreDistance, nearbyAgentBoxes);
 
-#ifdef DEBUG
+#ifndef NDEBUG
 	if (detailedReportingMode)
 		report::message(fmt::format("ID {}: Found {} nearby agents", ID,
 		                            nearbyAgentBoxes.size()));
@@ -232,7 +232,7 @@ void NucleusAgent::collectExtForces(void) {
 			// ftype_drive
 			forces.emplace_back(g, futureGeometry.centres[pp.localHint],
 			                    pp.localHint, ftype_slide);
-#ifdef DEBUG
+#ifndef NDEBUG
 			Officer->reportOverlap(-pp.distance);
 #endif
 		}
@@ -264,7 +264,7 @@ void NucleusAgent::collectExtForces(void) {
 				                    ftype_hinter);
 		}
 
-#ifdef DEBUG
+#ifndef NDEBUG
 	// append forces to forcesForDisplay, make a copy (push_back, not
 	// emplace_back)!
 	for (const auto& f : forces)
@@ -359,7 +359,7 @@ void NucleusAgent::drawForDebug(DisplayUnit& du) {
 			if (p.distance > 0)
 				du.DrawVector(dID++, p.localPos, p.otherPos - p.localPos, 5);
 
-#ifdef DEBUG
+#ifndef NDEBUG
 		// forces:
 		for (const auto& f : forcesForDisplay) {
 			int color = 2; // default color: green (for shape hinter)

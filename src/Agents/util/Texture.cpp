@@ -13,7 +13,7 @@ void Texture::sampleDotsFromImage(const i3d::Image3d<VT>& img,
 	// sigmas such that Gaussian will spread just across one voxel
 	const Vector3d<float> chaossSigma(
 	    Vector3d<float>(1.0f / 6.0f).elemDivBy(res));
-#ifdef DEBUG
+#ifndef NDEBUG
 	long missedDots = 0;
 #endif
 
@@ -38,7 +38,7 @@ void Texture::sampleDotsFromImage(const i3d::Image3d<VT>& img,
 						    GetRandomGauss(0.f, chaossSigma.y, rngState),
 						    GetRandomGauss(0.f, chaossSigma.z, rngState));
 
-#ifdef DEBUG
+#ifndef NDEBUG
 						// test if the new position still fits inside the
 						// original voxel
 						Vector3d<size_t> pxBackPos;
@@ -51,7 +51,7 @@ void Texture::sampleDotsFromImage(const i3d::Image3d<VT>& img,
 				}
 			}
 
-#ifdef DEBUG
+#ifndef NDEBUG
 	report::message(fmt::format(
 	    "there are {} ({} %) dots placed outside its original voxel",
 	    missedDots, (float)(100 * missedDots) / (float)dots.size()));
@@ -115,7 +115,7 @@ void Texture::createPerlinTexture(const Spheres& geom,
 
 int Texture::collectOutlyingDots(const Spheres& geom) {
 	int count = 0;
-#ifdef DEBUG
+#ifndef NDEBUG
 	double outDist = 0;
 	double inDist = 0;
 	int postCorrectionsCnt = 0;
@@ -160,12 +160,12 @@ int Texture::collectOutlyingDots(const Spheres& geom) {
 			if (dot.pos.len() > geom.radii[nearestIdx]) {
 				dot.pos.changeToUnitOrZero() *= 0.9f * geom.radii[nearestIdx];
 				// NB: it held and holds for sure: dot.pos.len() > 0
-#ifdef DEBUG
+#ifndef NDEBUG
 				++postCorrectionsCnt;
 #endif
 			}
 
-#ifdef DEBUG
+#ifndef NDEBUG
 			outDist += nearestDist;
 			inDist += dot.pos.len();
 #endif
@@ -174,7 +174,7 @@ int Texture::collectOutlyingDots(const Spheres& geom) {
 		}
 	}
 
-#ifdef DEBUG
+#ifndef NDEBUG
 	if (count > 0) {
 		report::message(
 		    fmt::format("average outside-to-surface distance {} um (in {})",
@@ -213,7 +213,7 @@ void Texture::renderIntoPhantom(i3d::Image3d<float>& phantoms,
 	const Vector3d<size_t> imgSize(phantoms.GetSize());
 	Vector3d<size_t> imgPos;
 
-#ifdef DEBUG
+#ifndef NDEBUG
 	auto stopWatch = tic();
 
 	// a variable for debugging the photobleaching
@@ -240,7 +240,7 @@ void Texture::renderIntoPhantom(i3d::Image3d<float>& phantoms,
 		if (imgPos.elemIsLessThan(imgSize)) {
 			const float fval =
 			    quantization * getBleachFactor(dot.cntOfExcitations);
-#ifdef DEBUG
+#ifndef NDEBUG
 			meanIntContribution += fval;
 			++meanIntContCounter;
 #endif
@@ -252,7 +252,7 @@ void Texture::renderIntoPhantom(i3d::Image3d<float>& phantoms,
 		}
 	}
 
-#ifdef DEBUG
+#ifndef NDEBUG
 	report::message(fmt::format(
 	    "added total cell intensity: {} with mean dot intensity: {}",
 	    meanIntContribution, meanIntContribution / (double)meanIntContCounter));
@@ -284,7 +284,7 @@ void TextureQuantized::renderIntoPhantom(i3d::Image3d<float>& phantoms) {
 	    Vector3d<size_t>(phantoms.GetSize()).to<float>().elemMult(res) -
 	    halfBoxSize);
 
-#ifdef DEBUG
+#ifndef NDEBUG
 	auto stopWatch = tic();
 
 	// a variable for debugging the photobleaching
@@ -310,7 +310,7 @@ void TextureQuantized::renderIntoPhantom(i3d::Image3d<float>& phantoms) {
 		if (imgPos.elemIsGreaterOrEqualThan(halfBoxSize) &&
 		    imgPos.elemIsLessThan(imgSize)) {
 			const float fval = getBleachFactor(dot.cntOfExcitations);
-#ifdef DEBUG
+#ifndef NDEBUG
 			meanIntContribution += quantumElems * fval;
 			++meanIntContCounter;
 #endif
@@ -347,7 +347,7 @@ void TextureQuantized::renderIntoPhantom(i3d::Image3d<float>& phantoms) {
 		}
 	}
 
-#ifdef DEBUG
+#ifndef NDEBUG
 	report::message(fmt::format(
 	    "added total cell intensity: {} with mean dot intensity: {}",
 	    meanIntContribution, meanIntContribution / (double)meanIntContCounter));
@@ -373,7 +373,7 @@ template void Texture::sampleDotsFromImage(const i3d::Image3d<double>& img,
 
 void TextureUpdater4S::updateTextureCoords(std::vector<Dot>& dots,
                                            const Spheres& newGeom) {
-#ifdef DEBUG
+#ifndef NDEBUG
 	if (newGeom.noOfSpheres != 4)
 		throw report::rtError(
 		    "Cannot update coordinates for non-four sphere geometry.");
@@ -401,7 +401,7 @@ void TextureUpdater4S::updateTextureCoords(std::vector<Dot>& dots,
 	float weights[4];
 	float sum;
 	Vector3d<float> tmp, newPos;
-#ifdef DEBUG
+#ifndef NDEBUG
 	int outsideDots = 0;
 #endif
 	// shift texture particles
@@ -427,13 +427,13 @@ void TextureUpdater4S::updateTextureCoords(std::vector<Dot>& dots,
 				}
 			dot.pos = newPos;
 		} else {
-#ifdef DEBUG
+#ifndef NDEBUG
 			++outsideDots;
 #endif
 		}
 	}
 
-#ifdef DEBUG
+#ifndef NDEBUG
 	if (outsideDots > 0)
 		report::message(fmt::format(
 		    "{} dots could not be updated (no matching sphere found, weird...)",
@@ -443,7 +443,7 @@ void TextureUpdater4S::updateTextureCoords(std::vector<Dot>& dots,
 
 void TextureUpdater2pNS::updateTextureCoords(std::vector<Dot>& dots,
                                              const Spheres& newGeom) {
-#ifdef DEBUG
+#ifndef NDEBUG
 	if (newGeom.noOfSpheres != noOfSpheres)
 		throw report::rtError(
 		    fmt::format("Cannot update coordinates for {} sphere geometry, "
@@ -463,7 +463,7 @@ void TextureUpdater2pNS::updateTextureCoords(std::vector<Dot>& dots,
 	// aux variables
 	float sum;
 	Vector3d<G_FLOAT> newPos;
-#ifdef DEBUG
+#ifndef NDEBUG
 	int outsideDots = 0;
 #endif
 
@@ -490,13 +490,13 @@ void TextureUpdater2pNS::updateTextureCoords(std::vector<Dot>& dots,
 				}
 			dot.pos = newPos;
 		} else {
-#ifdef DEBUG
+#ifndef NDEBUG
 			++outsideDots;
 #endif
 		}
 	}
 
-#ifdef DEBUG
+#ifndef NDEBUG
 	if (outsideDots > 0)
 		report::message(fmt::format(
 		    "{} dots could not be updated (no matching sphere found, weird...)",
@@ -506,7 +506,7 @@ void TextureUpdater2pNS::updateTextureCoords(std::vector<Dot>& dots,
 
 void TextureUpdaterNS::resetNeigWeightMatrix(const Spheres& spheres,
                                              int maxNoOfNeighs) {
-#ifdef DEBUG
+#ifndef NDEBUG
 	if (spheres.noOfSpheres != noOfSpheres)
 		throw report::rtError(
 		    fmt::format("Cannot update coordinates for {} sphere geometry, "
@@ -618,7 +618,7 @@ void TextureUpdaterNS::resetNeigWeightMatrix(const Spheres& spheres,
 
 void TextureUpdaterNS::setNeigWeightMatrix(
     const SpheresFunctions::SquareMatrix<G_FLOAT>& newWeightMatrix) {
-#ifdef DEBUG
+#ifndef NDEBUG
 	if (neigWeightMatrix.side != newWeightMatrix.side)
 		throw report::rtError("Attempting to set matrix of different size.");
 #endif
@@ -656,7 +656,7 @@ void TextureUpdaterNS::getLocalOrientation(const Spheres& spheres,
 
 void TextureUpdaterNS::updateTextureCoords(std::vector<Dot>& dots,
                                            const Spheres& newGeom) {
-#ifdef DEBUG
+#ifndef NDEBUG
 	if (newGeom.noOfSpheres != noOfSpheres)
 		throw report::rtError(
 		    fmt::format("Cannot update coordinates for {} sphere geometry, "
@@ -676,7 +676,7 @@ void TextureUpdaterNS::updateTextureCoords(std::vector<Dot>& dots,
 	// aux variables
 	float sum;
 	Vector3d<G_FLOAT> newPos;
-#ifdef DEBUG
+#ifndef NDEBUG
 	int outsideDots = 0;
 #endif
 
@@ -703,13 +703,13 @@ void TextureUpdaterNS::updateTextureCoords(std::vector<Dot>& dots,
 				}
 			dot.pos = newPos;
 		} else {
-#ifdef DEBUG
+#ifndef NDEBUG
 			++outsideDots;
 #endif
 		}
 	}
 
-#ifdef DEBUG
+#ifndef NDEBUG
 	if (outsideDots > 0)
 		report::message(fmt::format(
 		    "{} dots could not be updated (no matching sphere found, weird...)",

@@ -52,7 +52,7 @@ void StringsDictionary::registerThisString(const hashedString& s) {
 
 void StringsDictionary::markAllWasBroadcast() {
 	for (const auto& nItem : newDictionary) {
-#ifdef DEBUG
+#ifndef NDEBUG
 		if (knownDictionary.find(nItem.first) != knownDictionary.end())
 			report::message(
 			    fmt::format("new to already known >>{}", nItem.second));

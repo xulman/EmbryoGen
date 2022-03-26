@@ -4,7 +4,7 @@
 #include <iostream>
 
 namespace {
-#ifdef DEBUG
+#ifndef NDEBUG
 constexpr bool macro_debug = true;
 #else
 constexpr bool macro_debug = false;

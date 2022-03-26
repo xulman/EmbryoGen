@@ -172,7 +172,7 @@ class SimpleDividingAgent : public NucleusAgent {
 			    ftype_hinter);
 		}
 
-#ifdef DEBUG
+#ifndef NDEBUG
 		// export forces for display:
 		forcesForDisplay = forces;
 #endif
@@ -226,7 +226,7 @@ class SimpleDividingAgent : public NucleusAgent {
 	}
 
 	void drawForDebug(DisplayUnit& du) override {
-#ifdef DEBUG
+#ifndef NDEBUG
 		int gdID = DisplayUnit::firstIdForSceneDebugObjects() + ID * 40 + 10000;
 
 		// forces:

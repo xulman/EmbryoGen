@@ -59,7 +59,7 @@ struct DivisionModel {
 	}
 
 	float getMotherRadius(const float time, const int sphereNo) const {
-#ifdef DEBUG
+#ifndef NDEBUG
 		if (time >= 0)
 			report::message("WARNING: Mother's configuration not available for "
 			                "positive time.");
@@ -68,7 +68,7 @@ struct DivisionModel {
 	}
 
 	float getMotherDist(const float time, const int sphereNo) const {
-#ifdef DEBUG
+#ifndef NDEBUG
 		if (time >= 0)
 			report::message("WARNING: Mother's configuration not available for "
 			                "positive time.");
@@ -79,7 +79,7 @@ struct DivisionModel {
 	float getDaughterRadius(const float time,
 	                        const int daughterNo,
 	                        const int sphereNo) const {
-#ifdef DEBUG
+#ifndef NDEBUG
 		if (time < 0)
 			report::message("WARNING: Daughter's configuration not available "
 			                "for negative time.");
@@ -94,7 +94,7 @@ struct DivisionModel {
 	float getDaughterDist(const float time,
 	                      const int daughterNo,
 	                      const int sphereNo) const {
-#ifdef DEBUG
+#ifndef NDEBUG
 		if (time < 0)
 			report::message("WARNING: Daughter's configuration not available "
 			                "for negative time.");
@@ -113,7 +113,7 @@ struct DivisionModel {
 	                    const int itemIdx,
 	                    const float times[T],
 	                    const float values[T][I]) const {
-#ifdef DEBUG
+#ifndef NDEBUG
 		if (itemIdx < 0 || itemIdx >= I)
 			throw report::rtError(
 			    fmt::format("Wrong index ({}) of the asked sphere.", itemIdx));

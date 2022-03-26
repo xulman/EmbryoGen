@@ -35,7 +35,7 @@ class NucleusNSAgent : public NucleusAgent {
 	// ------------- to implement one round of simulation -------------
 	void advanceAndBuildIntForces(const float futureGlobalTime) override;
 
-#ifdef DEBUG
+#ifndef NDEBUG
 	/** indices of spheres that gave rise to s2s force on some other sphere */
 	std::vector<int> forces_s2sInducers;
 #endif
