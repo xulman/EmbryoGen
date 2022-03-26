@@ -1,5 +1,4 @@
-#ifndef TRACKRECORD_H
-#define TRACKRECORD_H
+#pragma once
 
 #include "DisplayUnits/DisplayUnit.hpp"
 #include "util/FlowField.hpp"
@@ -105,4 +104,3 @@ class TrackRecords : public std::map<float, std::map<int, Coord3d<float>>> {
 	           const int ID,
 	           const int color) const;
 };
-#endif

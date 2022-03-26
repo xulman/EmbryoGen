@@ -87,7 +87,7 @@ endif (FEATURE_RUNDISTRIBUTED)
 #-----------------------------------
 
 #---PYTHON CMAKE INJECTION START---
-set(STD_MODULES )
+set(STD_MODULES)
 add_custom_target(std_modules
     COMMAND ${CMAKE_COMMAND} -E echo "Building system libraries"
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}

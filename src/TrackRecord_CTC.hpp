@@ -1,5 +1,4 @@
-#ifndef TRACKRECORD_CTC_H
-#define TRACKRECORD_CTC_H
+#pragma once
 
 #include <fmt/core.h>
 #include <fstream>
@@ -81,4 +80,3 @@ class TrackRecords_CTC : public std::map<int, TrackRecord_CTC> {
 		of.close();
 	}
 };
-#endif
