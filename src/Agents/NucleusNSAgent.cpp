@@ -31,7 +31,7 @@ void NucleusNSAgent::advanceAndBuildIntForces(const float futureGlobalTime)
 
 #ifdef DEBUG
 	if (futureGeometry.noOfSpheres != distanceMatrix.side)
-throw report::rtError("distanceMatrix stores {} spheres but futureGeometry contains {}" , distanceMatrix.side, futureGeometry.noOfSpheres));
+throw report::rtError(fmt::format("distanceMatrix stores {} spheres but futureGeometry contains {}" , distanceMatrix.side, futureGeometry.noOfSpheres));
 
 	forces_s2sInducers.clear();
 #endif

@@ -147,7 +147,7 @@ void TrackRecords::injectToFF(const float timeFrom, const float timeTo,
 {
 #ifdef DEBUG
 	if (!FF.isConsistent())
-throw report::rtError("inconsistent FF given!"));
+throw report::rtError("inconsistent FF given!");
 #endif
 	i3d::Image3d<int> FFcnts;
 	if (doReset)

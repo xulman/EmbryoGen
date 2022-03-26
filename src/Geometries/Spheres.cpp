@@ -204,7 +204,7 @@ void Spheres::renderIntoMask(i3d::Image3d<i3d::GRAY16>& mask, const i3d::GRAY16 
 #ifdef DEBUG
 				i3d::GRAY16 val = mask.GetVoxel(curPos.x,curPos.y,curPos.z);
 				if (val > 0 && val != drawID)
-report::message(fmt::format("{} overwrites mask of {} at {}" , drawID, val, curPos));
+report::message(fmt::format("{} overwrites mask of {} at {}" , drawID, val, toString(curPos)));
 #endif
 				mask.SetVoxel(curPos.x,curPos.y,curPos.z, drawID);
 				break; //no need to test against the remaining spheres

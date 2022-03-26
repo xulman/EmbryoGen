@@ -93,7 +93,7 @@ throw report::rtError(fmt::format("Wrong index ({}) of the asked daughter.", dau
 		if (time < 0)
 			report::message("WARNING: Daughter's configuration not available for negative time.");
 		if (daughterNo < 0 || daughterNo >= D)
-throw report::rtError(("Wrong index ({}) of the asked daughter.", daughterNo));
+throw report::rtError(fmt::format("Wrong index ({}) of the asked daughter.", daughterNo));
 #endif
 		return getArrayValue<TA,N-1>(time,sphereNo, Dtimes[daughterNo],Ddists[daughterNo]);
 	}
@@ -106,7 +106,7 @@ private:
 	{
 #ifdef DEBUG
 		if (itemIdx < 0 || itemIdx >= I)
-throw report::rtError(("Wrong index ({}) of the asked sphere." , itemIdx));
+throw report::rtError(fmt::format("Wrong index ({}) of the asked sphere." , itemIdx));
 #endif
 
 		//(time-wise) before the values? never mind, return the first value
@@ -211,8 +211,11 @@ public:
 	// ---------------------- mutable artificial (mixed) models ----------------------
 	/** friendly front-end method to obtain mixed model from the given number of original
 	    models, the mixing is done with flat weights which effectively emulated averaging */
-	void getAveragedModel(DivModelType& m, const int fromThisNoOfRandomModels = 2) const
+	void getAveragedModel(DivModelType& m /*, const int fromThisNoOfRandomModels = 2 */) const
 	{
+		// TODO HONZA, toto je wierd :D cekni to
+		constexpr int fromThisNoOfRandomModels = 2;
+
 		float weights[TB+TA][fromThisNoOfRandomModels];
 		setFlatWeights<TB+TA,fromThisNoOfRandomModels>(weights);
 
@@ -224,8 +227,11 @@ public:
 	    is shifting between time points which effectively emulates merging dominant
 	    model with the remaining models while the choice of the dominant model is changing
 	    while the resulting/output model is being built */
-	void getShiftingGaussWeightedModel(DivModelType& m, const int fromThisNoOfRandomModels = 4) const
+	void getShiftingGaussWeightedModel(DivModelType& m /*, const int fromThisNoOfRandomModels = 4*/) const
 	{
+		// TODO HONZA, toto je wierd :D cekni to
+		constexpr int fromThisNoOfRandomModels = 4;
+
 		float weights[TB+TA][fromThisNoOfRandomModels];
 		setSineShiftingGaussWeights<TB+TA,fromThisNoOfRandomModels>(weights);
 
@@ -235,8 +241,11 @@ public:
 	/** in principle the same as getGaussRndWalkedModel() except that a peak (box
 	    of width = 1) is representing the currently dominant model and that is shifted,
 	    the peak weight should be boxAmpl-times larger than the non-peaked weights */
-	void getShiftingBoxWeightedModel(DivModelType& m, const float boxAmpl = 3, const int fromThisNoOfRandomModels = 4) const
+	void getShiftingBoxWeightedModel(DivModelType& m, const float boxAmpl = 3 /*, const int fromThisNoOfRandomModels = 4*/) const
 	{
+		// TODO HONZA, toto je wierd :D cekni to
+		constexpr int fromThisNoOfRandomModels = 4;
+		
 		float weights[TB+TA][fromThisNoOfRandomModels];
 		setSineShiftingBoxWeights<TB+TA,fromThisNoOfRandomModels>(weights,boxAmpl);
 

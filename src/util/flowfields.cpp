@@ -33,6 +33,7 @@
 #include <i3d/filters.h>
 #include "flowfields.hpp"
 #include <sstream>
+#include <numbers>
 
 template <class VT, class FT>
 void ImageForwardTransformation(i3d::Image3d<VT> const &srcImg,
@@ -486,9 +487,9 @@ report::message(fmt::format("adding rotation by {}deg clockwise around {} in mic
 	}
 
 	//go over the flow field images and update the vectors
-	for (size_t z=0; z < FF.x->GetSizeZ(); ++z)
-	  for (size_t y=0; y < FF.x->GetSizeY(); ++y)
-	    for (size_t x=0; x < FF.x->GetSizeX(); ++x) {
+	for (std::size_t z=0; z < FF.x->GetSizeZ(); ++z)
+	  for (std::size_t y=0; y < FF.x->GetSizeY(); ++y)
+	    for (std::size_t x=0; x < FF.x->GetSizeX(); ++x) {
 		//it holds: *vx == FF.x->GetVoxel(x,y,z)
 
 		//now turn the pixel coordinate into a relative micron coordinate
@@ -496,8 +497,8 @@ report::message(fmt::format("adding rotation by {}deg clockwise around {} in mic
 		const float Y=(float)y/yRes + yOff - centre.y;
 
 		//new relative position after rotation
-		float nX=cos(angle)*X - sin(angle)*Y;
-		float nY=sin(angle)*X + cos(angle)*Y;
+		float nX=std::cos(angle)*X - std::sin(angle)*Y;
+		float nY=std::sin(angle)*X + std::cos(angle)*Y;
 
 		//make it a translation vector from the old place to the new one
 		//and add it to the flow field vector
@@ -505,7 +506,7 @@ report::message(fmt::format("adding rotation by {}deg clockwise around {} in mic
 		*vy += nY-Y;
 
 		//is the examined x,y,z position inside the eFF?
-		if ( (eFF) && (eFF->x->Include(offset + i3d::Vector3d<int>(x,y,z))) ) {
+		if ( (eFF) && (eFF->x->Include(offset + i3d::Vector3d<int>(int(x),int(y),int(z)))) ) {
 			const size_t i=i3d::GetIndex(offset.x+x,
 						     offset.y+y,
 						     offset.z+z,
@@ -617,9 +618,9 @@ report::debugMessage(fmt::format("going to add to a flow field at {} of size {} 
 	const float zOff=FF.x->GetOffset().z;
 
 	//pixel position of the BPCentre
-	const int Xc=(int)roundf( (BPCentre.x-xOff)*xRes );
-	const int Yc=(int)roundf( (BPCentre.y-yOff)*yRes );
-	const int Zc=(int)roundf( (BPCentre.z-zOff)*zRes );
+	const float Xc= std::round( (BPCentre.x-xOff)*xRes );
+	const float Yc=std::round( (BPCentre.y-yOff)*yRes );
+	const float Zc=std::round( (BPCentre.z-zOff)*zRes );
 
 	//sweeping pointer within the hintArray
 	const float *myHintPtr=hintArray;
@@ -651,9 +652,9 @@ report::debugMessage(fmt::format("going to add to a flow field at {} of size {} 
 	//now, go over all requested (outer) boundary points
 	for (size_t i=0; i < BPOuterCnt; ++i, myHintPtr+=hintInc) {
 		//project given point to the flow field
-		const int X=(int)roundf( (BPList[i].x-xOff)*xRes );
-		const int Y=(int)roundf( (BPList[i].y-yOff)*yRes );
-		const int Z=(int)roundf( (BPList[i].z-zOff)*zRes );
+		const float X=std::round( (BPList[i].x-xOff)*xRes );
+		const float Y=std::round( (BPList[i].y-yOff)*yRes );
+		const float Z=std::round( (BPList[i].z-zOff)*zRes );
 
 		//vector towards the centre, in pixels
 		float dx=Xc - X;
@@ -694,7 +695,7 @@ report::debugMessage(fmt::format("going to add to a flow field at {} of size {} 
 		//from the it; but it will add more volume than what was expected
 		//to be added, hence we adjust the length of the added vector so
 		//that it adds the expected volume... the new length is:
-		const float r3=cbrt( vsz*vsz * (*myHintPtr *3.f + vsz) );
+		const float r3=std::cbrt( vsz*vsz * (*myHintPtr *3.f + vsz) );
 		const float newHintVal=(compensation)? r3-vsz : *myHintPtr;
 		/*
 		if (compensation)
@@ -728,9 +729,9 @@ report::debugMessage(fmt::format("{}um at radius {} is compensated to {}um" , *m
 			//can be shorted since we are not smoothing in the end
 			for (float k=-3.f; k < (sz-1.f); k+=0.5f) {
 				//current position in pixels
-				const int x=roundf((float)X + k*dx) +xx;
-				const int y=roundf((float)Y + k*dy) +yy;
-				const int z=roundf((float)Z + k*dz) +zz;
+				const int x=(int) std::round(X + k*dx) +xx;
+				const int y=(int) std::round(Y + k*dy) +yy;
+				const int z=(int) std::round(Z + k*dz) +zz;
 				//note: k is in pixels
 
 				if ((x != lastX) || (y != lastY) || (z != lastZ)) {
@@ -750,7 +751,7 @@ report::message(fmt::format("Warning: Should prepare vectors outside of the flow
 						//weight
 						//the commented out code is better, but this one
 						//is faster and just works well...
-						const float w=newHintVal * (0.5f*cos(k/sz*3.14159f)+0.5f); //ORIG
+						const float w=newHintVal * (0.5f*std::cos(k/sz*std::numbers::pi_v<float> )+0.5f); //ORIG
 						/*
 						const float w=(k < 0.f)?
 							newHintVal * (-0.5f*cos(k/sz*3.14159f)+1.5f):
@@ -936,7 +937,7 @@ report::message(fmt::format("adding flow fields took {} seconds" , T1-T2));
 }
 
 
-/* this method has been implemented by Andres Bruhn, University of Saarland */
+/* this method has been implemented by Andres Bruhn, University of Saarland (currently slightly modified) */
 template <class itype, class fptype> void VectorToRGB(fptype x,       /* in  : x-component */
                                                         fptype y,       /* in  : y-component */
                                                         itype * R,      /* out : red component */
@@ -944,86 +945,83 @@ template <class itype, class fptype> void VectorToRGB(fptype x,       /* in  : x
                                                         itype * B       /* out : blue component */
     )
 {
-    fptype Pi;                  /* pit */
+    fptype Pi = std::numbers::pi_v<fptype>;                  /* pit */
     fptype amp;                 /* amplitude */
     fptype phi;                 /* phase */
     fptype alpha, beta;         /* weights for linear interpolation */
 
-    /* set pi */
-    Pi = 2.0 * acos(0.0);
-
     //x=-x;
 
     /* determine amplitude and phase (cut amp at 1) */
-    amp = sqrt(x * x + y * y);
+    amp = std::sqrt(x * x + y * y);
     if (amp > 1)
         amp = 1;
-    if (x == 0.0)
-        if (y >= 0.0)
-            phi = 0.5 * Pi;
+    if (x == 0.0f)
+        if (y >= 0.0f)
+            phi = 0.5f * Pi;
         else
-            phi = 1.5 * Pi;
-    else if (x > 0.0)
-        if (y >= 0.0)
-            phi = atan(y / x);
+            phi = 1.5f * Pi;
+    else if (x > 0.0f)
+        if (y >= 0.0f)
+            phi = std::atan(y / x);
         else
-            phi = 2.0 * Pi + atan(y / x);
+            phi = 2.0f * Pi + std::atan(y / x);
     else
-        phi = Pi + atan(y / x);
+        phi = Pi + std::atan(y / x);
 
-    phi = phi / 2.0;
+    phi = phi / 2.0f;
 
     // interpolation between red (0) and blue (0.25 * Pi)
-    if ((phi >= 0.0) && (phi < 0.125 * Pi))
+    if ((phi >= 0.0f) && (phi < 0.125f * Pi))
     {
-        beta = phi / (0.125 * Pi);
-        alpha = 1.0 - beta;
-        *R = (itype) floor(amp * (alpha * 255.0 + beta * 255.0));
-        *G = (itype) floor(amp * (alpha * 0.0 + beta * 0.0));
-        *B = (itype) floor(amp * (alpha * 0.0 + beta * 255.0));
+        beta = phi / (0.125f * Pi);
+        alpha = 1.0f - beta;
+        *R = (itype) std::floor(amp * (alpha * 255.0f + beta * 255.0f));
+        *G = (itype) std::floor(amp * (alpha * 0.0f + beta * 0.0f));
+        *B = (itype) std::floor(amp * (alpha * 0.0f + beta * 255.0f));
     }
     if ((phi >= 0.125 * Pi) && (phi < 0.25 * Pi))
     {
-        beta = (phi - 0.125 * Pi) / (0.125 * Pi);
-        alpha = 1.0 - beta;
-        *R = (itype) floor(amp * (alpha * 255.0 + beta * 64.0));
-        *G = (itype) floor(amp * (alpha * 0.0 + beta * 64.0));
-        *B = (itype) floor(amp * (alpha * 255.0 + beta * 255.0));
+        beta = (phi - 0.125f * Pi) / (0.125f * Pi);
+        alpha = 1.0f - beta;
+        *R = (itype) floor(amp * (alpha * 255.0f + beta * 64.0f));
+        *G = (itype) floor(amp * (alpha * 0.0f + beta * 64.0f));
+        *B = (itype) floor(amp * (alpha * 255.0f + beta * 255.0f));
     }
     // interpolation between blue (0.25 * Pi) and green (0.5 * Pi)
-    if ((phi >= 0.25 * Pi) && (phi < 0.375 * Pi))
+    if ((phi >= 0.25f * Pi) && (phi < 0.375f * Pi))
     {
-        beta = (phi - 0.25 * Pi) / (0.125 * Pi);
-        alpha = 1.0 - beta;
-        *R = (itype) floor(amp * (alpha * 64.0 + beta * 0.0));
-        *G = (itype) floor(amp * (alpha * 64.0 + beta * 255.0));
-        *B = (itype) floor(amp * (alpha * 255.0 + beta * 255.0));
+        beta = (phi - 0.25f * Pi) / (0.125f * Pi);
+        alpha = 1.0f - beta;
+        *R = (itype) std::floor(amp * (alpha * 64.0f + beta * 0.0f));
+        *G = (itype) std::floor(amp * (alpha * 64.0f + beta * 255.0f));
+        *B = (itype) std::floor(amp * (alpha * 255.0f + beta * 255.0f));
     }
-    if ((phi >= 0.375 * Pi) && (phi < 0.5 * Pi))
+    if ((phi >= 0.375f * Pi) && (phi < 0.5f * Pi))
     {
-        beta = (phi - 0.375 * Pi) / (0.125 * Pi);
-        alpha = 1.0 - beta;
-        *R = (itype) floor(amp * (alpha * 0.0 + beta * 0.0));
-        *G = (itype) floor(amp * (alpha * 255.0 + beta * 255.0));
-        *B = (itype) floor(amp * (alpha * 255.0 + beta * 0.0));
+        beta = (phi - 0.375f * Pi) / (0.125f * Pi);
+        alpha = 1.0f - beta;
+        *R = (itype) std::floor(amp * (alpha * 0.0f + beta * 0.0f));
+        *G = (itype) std::floor(amp * (alpha * 255.0f + beta * 255.0f));
+        *B = (itype) std::floor(amp * (alpha * 255.0f + beta * 0.0f));
     }
     // interpolation between green (0.5 * Pi) and yellow (0.75 * Pi)
-    if ((phi >= 0.5 * Pi) && (phi < 0.75 * Pi))
+    if ((phi >= 0.5f * Pi) && (phi < 0.75f * Pi))
     {
-        beta = (phi - 0.5 * Pi) / (0.25 * Pi);
-        alpha = 1.0 - beta;
-        *R = (itype) floor(amp * (alpha * 0.0 + beta * 255.0));
-        *G = (itype) floor(amp * (alpha * 255.0 + beta * 255.0));
-        *B = (itype) floor(amp * (alpha * 0.0 + beta * 0.0));
+        beta = (phi - 0.5f * Pi) / (0.25f * Pi);
+        alpha = 1.0f - beta;
+        *R = (itype) std::floor(amp * (alpha * 0.0f + beta * 255.0f));
+        *G = (itype) std::floor(amp * (alpha * 255.0f + beta * 255.0f));
+        *B = (itype) std::floor(amp * (alpha * 0.0f + beta * 0.0f));
     }
     // interpolation between yellow (0.75 * Pi) and red (Pi)
-    if ((phi >= 0.75 * Pi) && (phi <= Pi))
+    if ((phi >= 0.75f * Pi) && (phi <= Pi))
     {
-        beta = (phi - 0.75 * Pi) / (0.25 * Pi);
-        alpha = 1.0 - beta;
-        *R = (itype) floor(amp * (alpha * 255.0 + beta * 255.0));
-        *G = (itype) floor(amp * (alpha * 255.0 + beta * 0.0));
-        *B = (itype) floor(amp * (alpha * 0.0 + beta * 0.0));
+        beta = (phi - 0.75f * Pi) / (0.25f * Pi);
+        alpha = 1.0f - beta;
+        *R = (itype) std::floor(amp * (alpha * 255.0f + beta * 255.0f));
+        *G = (itype) std::floor(amp * (alpha * 255.0f + beta * 0.0f));
+        *B = (itype) std::floor(amp * (alpha * 0.0f + beta * 0.0f));
     }
 
     /* check RGB range */

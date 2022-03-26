@@ -320,13 +320,13 @@ throw report::rtError(fmt::format("Target geom is made of {} spheres but {} is e
 		{
 #ifdef DEBUG
 			if (positionShakers.size() != radiusShakers.size())
-throw report::rtError("position shakers length ({} differs from radii shakers length ({})", positionShakers.size(), radiusShakers.size()));
+throw report::rtError(fmt::format("position shakers length ({} differs from radii shakers length ({})", positionShakers.size(), radiusShakers.size()));
 			if (positionShakers.size() != expansionPlan.size())
-throw report::rtError("shakers length ({} differs from the expected length ({})" , positionShakers.size(), expansionPlan.size()));
+throw report::rtError(fmt::format("shakers length ({} differs from the expected length ({})" , positionShakers.size(), expansionPlan.size()));
 
 			//test appropriate size of the target geom
 			if (targetGeom.noOfSpheres != optimalTargetSpheresNo)
-throw report::rtError("Target geom is made of {} spheres but {} is expected." , targetGeom.noOfSpheres, optimalTargetSpheresNo));
+throw report::rtError(fmt::format("Target geom is made of {} spheres but {} is expected." , targetGeom.noOfSpheres, optimalTargetSpheresNo));
 #endif
 			//copy the source as is
 			for (int i = 0; i < sourceGeom.noOfSpheres; ++i)

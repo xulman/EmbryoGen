@@ -7,6 +7,7 @@
 #include "../../util/Vector3d.hpp"
 #include "../../util/report.hpp"
 #include "../../DisplayUnits/BroadcasterDisplayUnit.hpp"
+#include <type_traits>
 
 //instead of the #include statement, the FrontOfficer type is only declared to exists,
 //FrontOfficer's definition depends on Scenario and so we'd end up in a definitions loop,
@@ -44,7 +45,6 @@ public:
 
 	/** the very default c'tor */
 	SceneControls()
-		: constants()
 	{
 		//sets up all images but does not allocate them
 		setOutputImgSpecs(constants.sceneOffset,constants.sceneSize,constants.imgRes);
@@ -148,8 +148,8 @@ public:
 
 
 	void displayChannel_createNew(const std::string& channelName,
-	                              const char* destinationURL,
-	                              const char* channelDisplayTitle = "EmbryoGen's Image(s)")
+	                              const char* /* destinationURL */,
+	                              const char* /* channelDisplayTitle = "EmbryoGen's Image(s)" */)
 	{
 		//delete to avoid overriding
 		displayChannel_delete(channelName);
@@ -165,7 +165,9 @@ public:
 		if (existingChannel != transferChannels.end())
 		{
 report::message(fmt::format("Removing transfer channel \"{}\", it might hang here if the send buffers are not empty..." , channelName));
+			 // TODO remove this IF, when ->second is not void * 
 			delete existingChannel->second;
+
 			transferChannels.erase(existingChannel);
 		}
 	}
@@ -207,14 +209,14 @@ protected:
 	/** internal (private) memory of the input of setOutputImgSpecs() for the enableProducingOutput() */
 	Vector3d<size_t> lastUsedImgSize;
 
-	std::map< std::string, /*DAIS::ImagesAsEventsSender**/ void *> transferChannels;
+	std::map< std::string, /*DAIS::ImagesAsEventsSender**/ int *> transferChannels;
 	std::set< std::string > imgMaskBroadcast;
 	std::set< std::string > imgPhantomBroadcast;
 	std::set< std::string > imgOpticsBroadcast;
 	std::set< std::string > imgFinalBroadcast;
 
 	template <typename T>
-	void transferImg(const i3d::Image3d<T>& img, const char* imgName, std::set< std::string >& routes)
+	void transferImg(const i3d::Image3d<T>& /* img */, const char* imgName, std::set< std::string >& routes)
 	{
 		auto route = routes.begin();
 		while (route != routes.end())
@@ -288,7 +290,7 @@ protected:
 		if ((long)&img == (long)&imgFinal && !isProducingOutput(imgPhantom))
 report::message(fmt::format("WARNING: Requested synthoscopy but phantoms may not be produced." ));
 
-report::debugMessage(fmt::format("allocating {} MB of memory for image of size {} px" , (lastUsedImgSize.x*lastUsedImgSize.y*lastUsedImgSize.z/(1, 20))*sizeof(*img.GetFirstVoxelAddr()), toString(lastUsedImgSize)));
+report::debugMessage(fmt::format("allocating {} MB of memory for image of size {} px" , (lastUsedImgSize.x*lastUsedImgSize.y*lastUsedImgSize.z/(1 << 20))*sizeof(*img.GetFirstVoxelAddr()), toString(lastUsedImgSize)));
 		img.MakeRoom( lastUsedImgSize.toI3dVector3d() );
 	}
 

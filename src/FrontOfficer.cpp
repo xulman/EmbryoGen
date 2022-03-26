@@ -182,7 +182,7 @@ void FrontOfficer::executeInternals()
 		c->second->advanceAndBuildIntForces(futureTime);
 #ifdef DEBUG
 		if (c->second->getLocalTime() < futureTime)
-throw report::report_rt("Agent is not synchronized." );
+throw report::rtError("Agent is not synchronized.");
 #endif
 	}
 

@@ -37,7 +37,7 @@ void NucleusAgent::adjustGeometryByForces(void) {
 #ifdef DEBUG
 	if (detailedReportingMode) {
 		for (const auto& f : forces)
-			report::message(fmt::format("{}: ||= {} \tforce {}", ID, f.len(), f));
+			report::message(fmt::format("{}: ||= {} \tforce {}", ID, f.len(), toString(f)));
 
 		std::ostringstream forcesReport;
 		forcesReport << ID << ": final forces";

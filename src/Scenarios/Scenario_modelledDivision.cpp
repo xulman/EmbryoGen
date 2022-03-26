@@ -219,7 +219,7 @@ class SimpleDividingAgent : public NucleusAgent {
 
 		for (const auto& p : proximityPairs_toNuclei)
 			if (p.distance < 0) {
-				overlapSum -= (double)p.distance; // p.distance is negative!
+				overlapSum -= double(p.distance); // p.distance is negative!
 				++overlapCnt;
 			}
 	}
@@ -246,7 +246,9 @@ class SimpleDividingAgent : public NucleusAgent {
 			if (color > 0)
 				du.DrawVector(gdID++, f.base, f, color);
 		}
-#endif
+#else
+	(void) du; // unused
+	#endif
 	}
 
 	void advanceAgent(float time) override {
