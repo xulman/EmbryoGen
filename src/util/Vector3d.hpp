@@ -1,20 +1,31 @@
 #pragma once
 
+#include <algorithm>
 #include <cmath>
 #include <fmt/core.h>
 #include <functional>
 #include <i3d/vector3d.h>
 #include <iostream>
+#include <type_traits>
 
 /** simply a 3D vector... */
 template <typename T>
 class Vector3d {
+  private:
+	// TODO HONZA, finish applying this
+	Vector3d<T>& applyUnary(auto unary_op) {
+		x = unary_op(x);
+		y = unary_op(y);
+		z = unary_op(z);
+		return *this;
+	}
+
   public:
 	/** the vector data */
-	T x, y, z;
+	T x = 0, y = 0, z = 0;
 
 	/** default constructor... */
-	Vector3d(void) : x(0), y(0), z(0) {}
+	Vector3d(void) = default;
 
 	/** init constructor... */
 	Vector3d(const T xx, const T yy, const T zz) : x(xx), y(yy), z(zz) {}
@@ -22,69 +33,71 @@ class Vector3d {
 	/** init constructor... */
 	Vector3d(const T xyz) : x(xyz), y(xyz), z(xyz) {}
 
-	/** copy constructor from a vector of the same type */
-	Vector3d(const Vector3d<T>& vec) {
-		this->x = vec.x;
-		this->y = vec.y;
-		this->z = vec.z;
-	}
-
 	/** copy constructor from i3d::Vector3d */
 	Vector3d(const i3d::Vector3d<T>& iv3d) { fromI3dVector3d(iv3d); }
 
-	Vector3d<T>& operator=(const Vector3d<T>& vec) {
-		this->x = vec.x;
-		this->y = vec.y;
-		this->z = vec.z;
-		return (*this);
-	}
-
-	Vector3d<T>& operator=(const T scalar) {
-		this->x = scalar;
-		this->y = scalar;
-		this->z = scalar;
-		return (*this);
+	Vector3d<T>& operator=(const T scal) {
+		applyUnary([=](T) { return scal; });
+		return *this;
 	}
 
 	Vector3d<T>& operator+=(const Vector3d<T>& vec) {
-		this->x += vec.x;
-		this->y += vec.y;
-		this->z += vec.z;
-		return (*this);
+		x += vec.x;
+		y += vec.y;
+		z += vec.z;
+		return *this;
 	}
 
 	Vector3d<T>& operator-=(const Vector3d<T>& vec) {
-		this->x -= vec.x;
-		this->y -= vec.y;
-		this->z -= vec.z;
-		return (*this);
+		x -= vec.x;
+		y -= vec.y;
+		z -= vec.z;
+		return *this;
 	}
 
-	Vector3d<T>& operator*=(const T& scal) {
-		this->x *= scal;
-		this->y *= scal;
-		this->z *= scal;
-		return (*this);
+	Vector3d<T>& operator*=(const T scal) {
+		return applyUnary([=](T a) { return a * scal; });
 	}
 
-	Vector3d<T>& operator/=(const T& scal) {
-		this->x /= scal;
-		this->y /= scal;
-		this->z /= scal;
-		return (*this);
+	Vector3d<T>& operator/=(const T scal) {
+		return applyUnary([=](T a) { return a / scal; });
 	}
+
+	// Generating convenience operators from previous implementations
+	Vector3d<T> operator+(const Vector3d<T>& vec) {
+		auto cpy = *this;
+		cpy += vec;
+		return cpy;
+	}
+
+	Vector3d<T> operator-(const Vector3d<T>& vec) {
+		auto cpy = *this;
+		cpy -= vec;
+		return cpy;
+	}
+
+	Vector3d<T> operator*(const T& scal) {
+		auto cpy = *this;
+		cpy *= scal;
+		return cpy;
+	}
+
+	Vector3d<T> operator/(const T& scal) {
+		auto cpy = *this;
+		cpy /= scal;
+		return cpy;
+	}
+	// End of generation
 
 	T inline len(void) const { return static_cast<T>(std::sqrt(len2())); }
 
 	T inline len2(void) const { return (x * x + y * y + z * z); }
 
 	Vector3d<T>& changeToUnitOrZero(void) {
-		T l = this->len2();
+		T l = len2();
 		if (l > 0) {
 			l = std::sqrt(l);
-			x /= l;
-			y /= l;
-			z /= l;
+			*this /= l;
 		}
 		// or l == 0 which means x == y == z == 0
 		return *this;
@@ -92,17 +105,17 @@ class Vector3d {
 
 	/** element-wise minimum is stored in this vector */
 	Vector3d<T>& elemMin(const Vector3d<T>& v) {
-		x = x < v.x ? x : v.x;
-		y = y < v.y ? y : v.y;
-		z = z < v.z ? z : v.z;
+		x = std::min(x, v.x);
+		y = std::min(y, v.y);
+		z = std::min(z, v.z);
 		return *this;
 	}
 
 	/** element-wise maximum is stored in this vector */
 	Vector3d<T>& elemMax(const Vector3d<T>& v) {
-		x = x > v.x ? x : v.x;
-		y = y > v.y ? y : v.y;
-		z = z > v.z ? z : v.z;
+		x = std::max(x, v.x);
+		y = std::max(y, v.y);
+		z = std::max(z, v.z);
 		return *this;
 	}
 
@@ -132,9 +145,7 @@ class Vector3d {
 
 	/** change this vector with element-wise squared values */
 	Vector3d<T>& elemSquare(void) {
-		x *= x;
-		y *= y;
-		z *= z;
+		elemMult(*this);
 		return *this;
 	}
 
@@ -274,9 +285,15 @@ class Vector3d {
 	   *this to allow for concatenating of commands... */
 	template <typename FT> // FT = foreign type
 	Vector3d<T>& toPixels(const Vector3d<FT>& floatPxPos) {
-		x = (T)std::floor(floatPxPos.x);
-		y = (T)std::floor(floatPxPos.y);
-		z = (T)std::floor(floatPxPos.z);
+		if constexpr (std::is_integral_v<T>) {
+			x = T(floatPxPos.x);
+			y = T(floatPxPos.y);
+			z = T(floatPxPos.z);
+		} else {
+			x = T(std::floor(floatPxPos.x));
+			y = T(std::floor(floatPxPos.y));
+			z = T(std::floor(floatPxPos.z));
+		}
 		return *this;
 
 		// or just:
@@ -295,6 +312,9 @@ class Vector3d {
 	   policy as in the fromMicronsTo(), returns *this to allow for
 	   concatenating of commands... */
 	Vector3d<T>& toPixels(void) {
+		if constexpr (std::is_integral_v<T>)
+			return *this;
+
 		x = (T)std::floor(x);
 		y = (T)std::floor(y);
 		z = (T)std::floor(z);

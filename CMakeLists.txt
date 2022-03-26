@@ -87,7 +87,7 @@ endif (FEATURE_RUNDISTRIBUTED)
 #-----------------------------------
 
 #---PYTHON CMAKE INJECTION START---
-set(STD_MODULES)
+set(STD_MODULES )
 add_custom_target(std_modules
     COMMAND ${CMAKE_COMMAND} -E echo "Building system libraries"
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
@@ -96,7 +96,7 @@ add_custom_target(std_modules
 foreach(module IN LISTS STD_MODULES)
     add_custom_command(TARGET std_modules PRE_BUILD 
         COMMAND ${CMAKE_COMMAND} -E echo "${module}"
-        COMMAND g++ -fmodules-ts -std=c++20 -c -x c++-system-header ${module}
+        COMMAND g++ -fmodules-ts -O3 -std=c++20 -c -x c++-system-header ${module}
         )
 endforeach()
 
@@ -150,7 +150,6 @@ src/util/synthoscopy/SNR.cpp
 src/util/texture/myround.cpp
 src/util/texture/perlin.cpp
 src/util/texture/texture.cpp
-src/util/Vector3d.cpp
 )
 
 set(DEPS 

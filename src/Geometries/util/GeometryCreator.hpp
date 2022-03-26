@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Geomtery.hpp"
+#include "../Geometry.hpp"
 #include "../Mesh.hpp"
 #include "../ScalarImg.hpp"
 #include "../Spheres.hpp"
