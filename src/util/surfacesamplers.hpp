@@ -1,9 +1,9 @@
 #pragma once
 
-#include <math.h>
-#include <i3d/image3d.h>
-#include <functional>
 #include "../Geometries/Geometry.hpp"
+#include <functional>
+#include <i3d/image3d.h>
+#include <math.h>
 
 /**
  * This iteratively gives vectors/coordinates that (somewhat) regularly
@@ -13,15 +13,13 @@
  * then keep getting surface points via next() until it returns with false.
  */
 template <typename T>
-class SphereSampler
-{
-public:
+class SphereSampler {
+  public:
 	/** restarts the surface sampling of a sphere with the given radius,
 	    the circumference of a full radius should be populated with
 	    the given 'noOfSteps' */
-	void resetByCount(const T radius, const int noOfSteps = 12)
-	{
-		this->radius   = radius;
+	void resetByCount(const T radius, const int noOfSteps = 12) {
+		this->radius = radius;
 		this->stepSize = 2 * PI * radius / static_cast<T>(noOfSteps);
 
 		theCommonInit();
@@ -30,9 +28,8 @@ public:
 	/** restarts the surface sampling of a sphere with the given radius,
 	    the circumference of a full radius should be populated with
 	    the given 'stepSize' (in microns) */
-	void resetByStepSize(const T radius, const T stepSize = (T)0.9)
-	{
-		this->radius   = radius;
+	void resetByStepSize(const T radius, const T stepSize = (T)0.9) {
+		this->radius = radius;
 		this->stepSize = stepSize;
 
 		theCommonInit();
@@ -40,27 +37,27 @@ public:
 
 	/** gives another point on the sphere's surface, returns false if
 	    all surface points were examined */
-	bool next(Vector3d<T>& surfacePoint)
-	{
-		//end of the outer cycle?
-		if (climberRad >= PI) return false;
+	bool next(Vector3d<T>& surfacePoint) {
+		// end of the outer cycle?
+		if (climberRad >= PI)
+			return false;
 
-		//init the inner cycle?
-		if (rad == 0)
-		{
+		// init the inner cycle?
+		if (rad == 0) {
 			radiusYZ = radius * std::sin(climberRad);
-			radStep = radiusYZ > 0 ? stepSize / radiusYZ : 7; //NB: 7 > 2*PI to spawn just one (pole) point
+			radStep = radiusYZ > 0
+			              ? stepSize / radiusYZ
+			              : 7; // NB: 7 > 2*PI to spawn just one (pole) point
 		}
 
-		//the meat of the inner cycle
-		surfacePoint.x = radius   * std::cos(climberRad);
+		// the meat of the inner cycle
+		surfacePoint.x = radius * std::cos(climberRad);
 		surfacePoint.y = radiusYZ * std::cos(rad);
 		surfacePoint.z = radiusYZ * std::sin(rad);
 		rad += radStep;
 
-		//end of the inner cycle? reset it and increment the outer cycle
-		if (rad >= nearlyTwoPI)
-		{
+		// end of the inner cycle? reset it and increment the outer cycle
+		if (rad >= nearlyTwoPI) {
 			rad = 0;
 			climberRad += climberRadStep;
 		}
@@ -72,22 +69,22 @@ public:
 		const T climberRadStep = stepSize / radius;
 		for (climberRad = 0; climberRad < PI; climberRad += climberRadStep)
 		{
-			//let's step/sample a full circle whose radius is given by climberRad
-			const T radiusYZ = radius * std::sin(climberRad);
-			const T radStep = stepSize / radiusYZ;
-			for (T rad = 0; rad < 2*PI; rad += radStep)
-			{
-				surfacePoint.x = radius   * std::cos(climberRad);
-				surfacePoint.y = radiusYZ * std::cos(rad);
-				surfacePoint.z = radiusYZ * std::sin(rad);
-			}
+		    //let's step/sample a full circle whose radius is given by
+		climberRad const T radiusYZ = radius * std::sin(climberRad); const T
+		radStep = stepSize / radiusYZ; for (T rad = 0; rad < 2*PI; rad +=
+		radStep)
+		    {
+		        surfacePoint.x = radius   * std::cos(climberRad);
+		        surfacePoint.y = radiusYZ * std::cos(rad);
+		        surfacePoint.z = radiusYZ * std::sin(rad);
+		    }
 		}
 		*/
 	}
 
-private:
-	constexpr static const T   PI        = (T)  M_PI;
-	constexpr static const T nearlyTwoPI = (T) (2*M_PI -0.01);
+  private:
+	constexpr static const T PI = (T)M_PI;
+	constexpr static const T nearlyTwoPI = (T)(2 * M_PI - 0.01);
 
 	T radius;
 	T stepSize;
@@ -96,15 +93,13 @@ private:
 	T radiusYZ = 0;
 	T rad, radStep = 7;
 
-	void theCommonInit(void)
-	{
-		//init state variable for the next() method
+	void theCommonInit(void) {
+		// init state variable for the next() method
 		climberRad = 0;
 		climberRadStep = stepSize / radius;
 		rad = 0;
 	}
 };
-
 
 /**
  * This iteratively gives vectors/coordinates that (somewhat) regularly
@@ -118,43 +113,44 @@ private:
  * Note: ST - sampling type, VT - voxel type
  */
 template <typename ST, typename VT>
-class ImageSampler
-{
-public:
+class ImageSampler {
+  public:
 	void resetByVoxelStep(const i3d::Image3d<VT>& img,
 	                      const std::function<bool(const VT)>& pxPredicate,
-	                      const Vector3d<size_t>& pixelStep)
-	{
-		theCommonInit(img); //sets up the 'res'
+	                      const Vector3d<size_t>& pixelStep) {
+		theCommonInit(img); // sets up the 'res'
 
 		this->pxPredicate = &pxPredicate;
 		this->micronStep.from(pixelStep).elemDivBy(res);
 
-report::debugMessage(fmt::format("imgSize={} px, micronStep={} um" , img.GetSize(), this->micronStep));
+		report::debugMessage(fmt::format("imgSize={} px, micronStep={} um",
+		                                 img.GetSize(), this->micronStep));
 	}
 
 	void resetByMicronStep(const i3d::Image3d<VT>& img,
 	                       const std::function<bool(const VT)>& pxPredicate,
-	                       const Vector3d<float>& micronStep)
-	{
+	                       const Vector3d<float>& micronStep) {
 		theCommonInit(img);
 
 		this->pxPredicate = &pxPredicate;
 		this->micronStep = micronStep;
 
-report::debugMessage(fmt::format("imgSize={} px, micronStep={} um" , toString(img.GetSize()), toString(micronStep)));
+		report::debugMessage(fmt::format("imgSize={} px, micronStep={} um",
+		                                 toString(img.GetSize()),
+		                                 toString(micronStep)));
 	}
 
 	/** gives another point on the sphere's surface, returns false if
 	    all surface points were examined */
-	bool next(Vector3d<ST>& surfacePoint)
-	{
+	bool next(Vector3d<ST>& surfacePoint) {
 		do {
-			while (p != pL && (*pxPredicate)(*p) == false) ++p;
-			if (p == pL) return false;
+			while (p != pL && (*pxPredicate)(*p) == false)
+				++p;
+			if (p == pL)
+				return false;
 
-			//define surfacePoint from the (p-pF) offset
-			size_t offset = (unsigned)(p-pF);
+			// define surfacePoint from the (p-pF) offset
+			size_t offset = (unsigned)(p - pF);
 			tmp.z = offset / xyPlane;
 
 			offset -= tmp.z * xyPlane;
@@ -163,22 +159,22 @@ report::debugMessage(fmt::format("imgSize={} px, micronStep={} um" , toString(im
 			offset -= tmp.y * xLine;
 			tmp.x = offset;
 
-			surfacePoint.toMicronsFrom(tmp, res,off);
+			surfacePoint.toMicronsFrom(tmp, res, off);
 			++p;
 
 			/* this is the closed-form of the algorithm:
 			while (p != pL)
 			{
-				if (pxPredicate(*p))
-				{
-					//define surfacePoint from the (p-pF) offset...
-				}
-				++p;
+			    if (pxPredicate(*p))
+			    {
+			        //define surfacePoint from the (p-pF) offset...
+			    }
+			    ++p;
 			}
 			*/
 
-			//is the new point sufficiently far from the previous one?
-			tmpB  = lastSurfacePoint;
+			// is the new point sufficiently far from the previous one?
+			tmpB = lastSurfacePoint;
 			tmpB -= surfacePoint;
 			tmpB.elemAbs();
 
@@ -192,19 +188,18 @@ report::debugMessage(fmt::format("imgSize={} px, micronStep={} um" , toString(im
 		return true;
 	}
 
-private:
+  private:
 	const std::function<bool(const VT)>* pxPredicate;
 	Vector3d<ST> micronStep;
 
-	Vector3d<ST> res,off;
-	size_t xLine,xyPlane;
-	const VT* p,* pF,* pL;
+	Vector3d<ST> res, off;
+	size_t xLine, xyPlane;
+	const VT *p, *pF, *pL;
 
 	Vector3d<size_t> tmp;
 	Vector3d<ST> lastSurfacePoint, tmpB;
 
-	void theCommonInit(const i3d::Image3d<VT>& img)
-	{
+	void theCommonInit(const i3d::Image3d<VT>& img) {
 		res.fromI3dVector3d(img.GetResolution().GetRes());
 		off.fromI3dVector3d(img.GetOffset());
 

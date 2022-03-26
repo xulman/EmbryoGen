@@ -227,7 +227,8 @@ int MPI_Communicator::getNextAvailAgentID() {
 	int buffer[] = {0};
 	sendDirector(buffer, 0, e_comm_tags::get_next_ID);
 	receiveDirectorMessage(buffer, id_cnt, tag);
-report::debugMessage(fmt::format("From FO {} to Director: get new agent ID={}" , instance_ID, buffer[0]));
+	report::debugMessage(fmt::format(
+	    "From FO {} to Director: get new agent ID={}", instance_ID, buffer[0]));
 	return buffer[0];
 }
 
@@ -236,7 +237,9 @@ void MPI_Communicator::startNewAgent(
     const int associatedFO,
     const bool wantsToAppearInCTCtracksTXTfile) {
 	int buffer[] = {newAgentID, associatedFO, wantsToAppearInCTCtracksTXTfile};
-report::debugMessage(fmt::format("From FO {} to Director: start new agent ID={}{}" , associatedFO, newAgentID, ((wantsToAppearInCTCtracksTXTfile) ? " (CTC)" : "")));
+	report::debugMessage(fmt::format(
+	    "From FO {} to Director: start new agent ID={}{}", associatedFO,
+	    newAgentID, ((wantsToAppearInCTCtracksTXTfile) ? " (CTC)" : "")));
 	sendDirector(buffer, sizeof(buffer) / sizeof(int), e_comm_tags::new_agent);
 	receiveDirectorACK();
 }
@@ -246,7 +249,8 @@ void MPI_Communicator::closeAgent(const int agentID, const int associatedFO) {
 	sendDirector(buffer, sizeof(buffer) / sizeof(int),
 	             e_comm_tags::close_agent);
 	receiveDirectorACK();
-report::debugMessage(fmt::format("From FO {} to Director: close agent ID={}" , associatedFO, agentID));
+	report::debugMessage(fmt::format(
+	    "From FO {} to Director: close agent ID={}", associatedFO, agentID));
 }
 
 void MPI_Communicator::startNewDaughterAgent(const int childID,
@@ -278,7 +282,7 @@ void MPI_Communicator::setAgentsDetailedReportingMode(int FO,
 void MPI_Communicator::publishAgentsAABBs(int FO) {
 	int buffer[] = {0};
 	sendFO(buffer, 0, FO, e_comm_tags::send_AABB); // FO!
-	// receiveFOACK(FO);
+	                                               // receiveFOACK(FO);
 }
 
 void MPI_Communicator::renderNextFrame(int FO) {
@@ -308,7 +312,9 @@ void MPI_Communicator::mergeImages(int FO,
 	e_comm_tags rmask = e_comm_tags::mask_data;
 	e_comm_tags rimg = e_comm_tags::float_image_data;
 
-report::debugMessage(fmt::format("From #{} to #{} merge images plane size {} slices {}" , instance_ID, FO, slice_size, slices));
+	report::debugMessage(
+	    fmt::format("From #{} to #{} merge images plane size {} slices {}",
+	                instance_ID, FO, slice_size, slices));
 	for (int slice = 0; slice < slices; slice++) {
 		int received_slice_size = (int)slice_size;
 		int received_from = MPI_ANY_SOURCE;
@@ -317,7 +323,8 @@ report::debugMessage(fmt::format("From #{} to #{} merge images plane size {} sli
 		float* phantom_start = phantomBuffer + slice * sizeof(float);
 		float* optics_start = opticsBuffer + slice * sizeof(float);
 		if (instance_ID) { // Front officer - receives and send later
-report::debugMessage(fmt::format("Receive at FO #{} slice {}" , instance_ID, slice));
+			report::debugMessage(
+			    fmt::format("Receive at FO #{} slice {}", instance_ID, slice));
 			if (maskPixelBuffer) {
 				receiveMPIMessage(image_comm, mask_add, received_slice_size,
 				                  tagMap(rmask), MPI_STATUSES_IGNORE,
@@ -333,8 +340,9 @@ report::debugMessage(fmt::format("Receive at FO #{} slice {}" , instance_ID, sli
 				                  tagMap(rimg), MPI_STATUSES_IGNORE,
 				                  received_from, rimg);
 			}
-			//			assert(received_slice_size == slice_size && received_from ==
-			//instance_ID - 1);
+			//			assert(received_slice_size == slice_size &&
+			// received_from
+			//== instance_ID - 1);
 			for (int idx = 0; idx < slice_size; idx++) {
 				if (maskPixelBuffer) {
 					mask_start[idx] += mask_add[idx];
@@ -348,7 +356,8 @@ report::debugMessage(fmt::format("Receive at FO #{} slice {}" , instance_ID, sli
 			}
 		}
 
-report::debugMessage(fmt::format("Send from #{} to #{} slice {}" , instance_ID, FO, slice));
+		report::debugMessage(fmt::format("Send from #{} to #{} slice {}",
+		                                 instance_ID, FO, slice));
 		// TBD Check if Director's image is zeroed
 		if (maskPixelBuffer) {
 			sendMPIMessage(image_comm, mask_start, slice_size,
@@ -368,7 +377,8 @@ report::debugMessage(fmt::format("Send from #{} to #{} slice {}" , instance_ID, 
 
 		if (!instance_ID) { // Director - receives last, directly apply to the
 			                // buffer
-report::debugMessage(fmt::format("Receive at Director{} slice {}" , instance_ID, slice));
+			report::debugMessage(fmt::format("Receive at Director{} slice {}",
+			                                 instance_ID, slice));
 			if (maskPixelBuffer) {
 				receiveMPIMessage(image_comm, mask_start, received_slice_size,
 				                  tagMap(rmask), MPI_STATUSES_IGNORE,
@@ -391,14 +401,16 @@ report::debugMessage(fmt::format("Receive at Director{} slice {}" , instance_ID,
 	free(mask_add);
 	free(phantom_add);
 	free(optics_add);
-report::debugMessage(fmt::format("From #{} to #{} done " , instance_ID, FO));
+	report::debugMessage(fmt::format("From #{} to #{} done ", instance_ID, FO));
 }
 
 size_t MPI_Communicator::cntOfAABBs(int FO, bool broadcast) {
 	e_comm_tags tag = e_comm_tags::count_AABB;
 	uint64_t buffer[] = {0};
 	int cnt = 1;
-report::debugMessage(fmt::format("Request AABBS total from #{}{} at #{}" , FO, ((broadcast) ? " (broadcast)" : ""), instance_ID));
+	report::debugMessage(fmt::format("Request AABBS total from #{}{} at #{}",
+	                                 FO, ((broadcast) ? " (broadcast)" : ""),
+	                                 instance_ID));
 	sendFO(buffer, 0, FO, e_comm_tags::get_count_AABB);
 	// DEBUG_REPORT("Waiting for AABBs total from " << FO);
 	if (broadcast) {
@@ -406,13 +418,15 @@ report::debugMessage(fmt::format("Request AABBS total from #{}{} at #{}" , FO, (
 	} else {
 		receiveFOMessage(buffer, cnt, FO, tag);
 	}
-report::debugMessage(fmt::format("AABBS total {} from #{}" , buffer[0], FO));
+	report::debugMessage(fmt::format("AABBS total {} from #{}", buffer[0], FO));
 	return buffer[0];
 }
 
 void MPI_Communicator::sendCntOfAABBs(size_t count_AABBs, bool broadcast) {
 	size_t buffer[] = {count_AABBs};
-report::debugMessage(fmt::format("Send AABBS total from #{} total {}{}" , instance_ID, buffer[0], ((broadcast) ? " (broadcast)" : "")));
+	report::debugMessage(fmt::format("Send AABBS total from #{} total {}{}",
+	                                 instance_ID, buffer[0],
+	                                 ((broadcast) ? " (broadcast)" : "")));
 	if (broadcast) {
 		sendBroadcast(buffer, 1, instance_ID, e_comm_tags::count_AABB);
 	} else {

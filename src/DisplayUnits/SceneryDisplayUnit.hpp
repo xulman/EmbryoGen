@@ -12,26 +12,17 @@
  *
  * Author: Vladimir Ulman, 2018
  */
-class SceneryDisplayUnit : public DisplayUnit
-{
-public:
-	SceneryDisplayUnit(const std::string& _hostUrl)
-		: hostUrl(_hostUrl)
-	{
+class SceneryDisplayUnit : public DisplayUnit {
+  public:
+	SceneryDisplayUnit(const std::string& _hostUrl) : hostUrl(_hostUrl) {
 		ConnectToHost();
 	}
 
-	SceneryDisplayUnit(const char* _hostUrl)
-		: hostUrl(_hostUrl)
-	{
+	SceneryDisplayUnit(const char* _hostUrl) : hostUrl(_hostUrl) {
 		ConnectToHost();
 	}
 
-	~SceneryDisplayUnit()
-	{
-		DisconnectFromHost();
-	}
-
+	~SceneryDisplayUnit() { DisconnectFromHost(); }
 
 	void DrawPoint(const int ID,
 	               const Vector3d<float>& pos,
@@ -56,12 +47,12 @@ public:
 
 	void Tick(const std::string&) override;
 
-protected:
+  protected:
 	/** URL of the host (a Scenery renderer) to which we are connected */
 	std::string hostUrl;
 
-	//zmq::context_t* context = NULL;
-	//zmq::socket_t*  socket  = NULL;
+	// zmq::context_t* context = NULL;
+	// zmq::socket_t*  socket  = NULL;
 
 	void ConnectToHost(void);
 	void DisconnectFromHost(void);

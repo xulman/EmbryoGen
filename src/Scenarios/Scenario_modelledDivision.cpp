@@ -83,7 +83,8 @@ class SimpleDividingAgent : public NucleusAgent {
 		                               divGeomModelled.getCentres()[1])
 		                                  .len();
 		report::message(fmt::format("Placing agent {} at {}, with polarity {}",
-		                            ID, toString(position), toString(polarity)));
+		                            ID, toString(position),
+		                            toString(polarity)));
 		//
 		futureGeometry.updateCentre(0, -centreHalfDist * polarity - position);
 		futureGeometry.updateCentre(1, +centreHalfDist * polarity - position);
@@ -247,8 +248,8 @@ class SimpleDividingAgent : public NucleusAgent {
 				du.DrawVector(gdID++, f.base, f, color);
 		}
 #else
-	(void) du; // unused
-	#endif
+		(void)du; // unused
+#endif
 	}
 
 	void advanceAgent(float time) override {
@@ -381,7 +382,9 @@ class SimpleDividingAgent : public NucleusAgent {
 
 	void updateDivGeom_asMother(float currTime) {
 		if (divModelState != modelMeAsMother) {
-report::debugMessage(fmt::format("skipping... because my state ({}) is different" , divModelState));
+			report::debugMessage(
+			    fmt::format("skipping... because my state ({}) is different",
+			                divModelState));
 			return;
 		}
 
@@ -395,7 +398,10 @@ report::debugMessage(fmt::format("skipping... because my state ({}) is different
 
 		/*
 		 */
-report::debugMessage(fmt::format("abs. time = {}, planned div time = {} ==> relative Mother time for the model = {}" , currTime, timeOfNextDivision, modelRelativeTime));
+		report::debugMessage(
+		    fmt::format("abs. time = {}, planned div time = {} ==> relative "
+		                "Mother time for the model = {}",
+		                currTime, timeOfNextDivision, modelRelativeTime));
 
 		divGeomModelled.updateCentre(0, Vector3d<G_FLOAT>(0));
 		divGeomModelled.updateCentre(
@@ -409,7 +415,9 @@ report::debugMessage(fmt::format("abs. time = {}, planned div time = {} ==> rela
 
 	void updateDivGeom_asDaughter(float currTime) {
 		if (divModelState != modelMeAsDaughter) {
-report::debugMessage(fmt::format("skipping... because my state ({}) is different" , divModelState));
+			report::debugMessage(
+			    fmt::format("skipping... because my state ({}) is different",
+			                divModelState));
 			return;
 		}
 
@@ -423,7 +431,10 @@ report::debugMessage(fmt::format("skipping... because my state ({}) is different
 
 		/*
 		 */
-report::debugMessage(fmt::format("abs. time = {}, planned div time = {} ==> relative Daughter #{} time for the model = {}" , currTime, timeOfNextDivision, whichDaughterAmI, modelRelativeTime));
+		report::debugMessage(fmt::format(
+		    "abs. time = {}, planned div time = {} ==> relative Daughter #{} "
+		    "time for the model = {}",
+		    currTime, timeOfNextDivision, whichDaughterAmI, modelRelativeTime));
 
 		divGeomModelled.updateCentre(0, Vector3d<G_FLOAT>(0));
 		divGeomModelled.updateCentre(
@@ -441,7 +452,9 @@ report::debugMessage(fmt::format("abs. time = {}, planned div time = {} ==> rela
 
 	void updateDivGeom_asInterphase(float currTime) {
 		if (divModelState != modelMeAsInterphase) {
-report::debugMessage(fmt::format("skipping... because my state ({}) is different" , divModelState));
+			report::debugMessage(
+			    fmt::format("skipping... because my state ({}) is different",
+			                divModelState));
 			return;
 		}
 
@@ -454,7 +467,8 @@ report::debugMessage(fmt::format("skipping... because my state ({}) is different
 		progress = std::max(progress, 0.f);
 		progress = std::min(progress, 1.f);
 
-report::debugMessage(fmt::format("abs. time = {}, progress = {}" , currTime, progress));
+		report::debugMessage(
+		    fmt::format("abs. time = {}, progress = {}", currTime, progress));
 
 		// interpolate linearly between the last daughter state to the first
 		// mother state
@@ -528,7 +542,8 @@ report::debugMessage(fmt::format("abs. time = {}, progress = {}" , currTime, pro
 //==========================================================================
 void Scenario_modelledDivision::initializeAgents(FrontOfficer* fo, int p, int) {
 	if (p != 1) {
-report::message(fmt::format("Populating only the first FO (which is not this one)." ));
+		report::message(fmt::format(
+		    "Populating only the first FO (which is not this one)."));
 		return;
 	}
 	Spheres fakeGeom(1);

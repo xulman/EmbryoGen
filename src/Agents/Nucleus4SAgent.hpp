@@ -2,25 +2,28 @@
 
 #include "NucleusAgent.hpp"
 
-class Nucleus4SAgent: public NucleusAgent
-{
-public:
-	Nucleus4SAgent(const int _ID, const std::string& _type,
+class Nucleus4SAgent : public NucleusAgent {
+  public:
+	Nucleus4SAgent(const int _ID,
+	               const std::string& _type,
 	               const Spheres& shape,
-	               const float _currTime, const float _incrTime):
-		NucleusAgent(_ID,_type,shape, _currTime,_incrTime)
-	{
+	               const float _currTime,
+	               const float _incrTime)
+	    : NucleusAgent(_ID, _type, shape, _currTime, _incrTime) {
 		if (shape.noOfSpheres != 4)
-throw report::rtError("Cannot construct Nucleus4SAgent on non-four sphere geometry.");
+			throw report::rtError(
+			    "Cannot construct Nucleus4SAgent on non-four sphere geometry.");
 
-		//init centreDistances based on the initial geometry
-		centreDistance[0] = (geometryAlias.centres[1] - geometryAlias.centres[0]).len();
-		centreDistance[1] = (geometryAlias.centres[2] - geometryAlias.centres[1]).len();
-		centreDistance[2] = (geometryAlias.centres[3] - geometryAlias.centres[2]).len();
+		// init centreDistances based on the initial geometry
+		centreDistance[0] =
+		    (geometryAlias.centres[1] - geometryAlias.centres[0]).len();
+		centreDistance[1] =
+		    (geometryAlias.centres[2] - geometryAlias.centres[1]).len();
+		centreDistance[2] =
+		    (geometryAlias.centres[3] - geometryAlias.centres[2]).len();
 	}
 
-
-protected:
+  protected:
 	// ------------- internals state -------------
 
 	// ------------- internals geometry -------------
@@ -40,7 +43,7 @@ protected:
 	// ------------- to implement one round of simulation -------------
 	void advanceAndBuildIntForces(const float futureGlobalTime) override;
 
-protected:
+  protected:
 	// ------------- rendering -------------
 	void drawForDebug(DisplayUnit& du) override;
 };

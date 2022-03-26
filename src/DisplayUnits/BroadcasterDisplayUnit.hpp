@@ -10,80 +10,60 @@
  *
  * Author: Vladimir Ulman, 2018
  */
-class BroadcasterDisplayUnit : public DisplayUnit
-{
-public:
+class BroadcasterDisplayUnit : public DisplayUnit {
+  public:
 	void DrawPoint(const int ID,
 	               const Vector3d<float>& pos,
 	               const float radius = 1.0f,
-	               const int color = 0) override
-	{
+	               const int color = 0) override {
 		for (auto it = displayUnits.begin(); it != displayUnits.end(); ++it)
-			(*it)->DrawPoint(ID,pos,radius,color);
+			(*it)->DrawPoint(ID, pos, radius, color);
 	}
 
 	void DrawLine(const int ID,
 	              const Vector3d<float>& posA,
 	              const Vector3d<float>& posB,
-	              const int color = 0) override
-	{
+	              const int color = 0) override {
 		for (auto it = displayUnits.begin(); it != displayUnits.end(); ++it)
-			(*it)->DrawLine(ID,posA,posB,color);
+			(*it)->DrawLine(ID, posA, posB, color);
 	}
 
 	void DrawVector(const int ID,
 	                const Vector3d<float>& pos,
 	                const Vector3d<float>& vector,
-	                const int color = 0) override
-	{
+	                const int color = 0) override {
 		for (auto it = displayUnits.begin(); it != displayUnits.end(); ++it)
-			(*it)->DrawVector(ID,pos,vector,color);
+			(*it)->DrawVector(ID, pos, vector, color);
 	}
 
 	void DrawTriangle(const int ID,
 	                  const Vector3d<float>& posA,
 	                  const Vector3d<float>& posB,
 	                  const Vector3d<float>& posC,
-	                  const int color = 0) override
-	{
+	                  const int color = 0) override {
 		for (auto it = displayUnits.begin(); it != displayUnits.end(); ++it)
-			(*it)->DrawTriangle(ID,posA,posB,posC,color);
+			(*it)->DrawTriangle(ID, posA, posB, posC, color);
 	}
 
-	void Flush(void) override
-	{
+	void Flush(void) override {
 		for (auto it = displayUnits.begin(); it != displayUnits.end(); ++it)
 			(*it)->Flush();
 	}
 
-	void Tick(const std::string& msg) override
-	{
+	void Tick(const std::string& msg) override {
 		for (auto it = displayUnits.begin(); it != displayUnits.end(); ++it)
 			(*it)->Tick(msg);
 	}
 
+	/// variants with reference params
+	void RegisterUnit(DisplayUnit& ds) { displayUnits.push_front(&ds); }
+	void UnregisterUnit(DisplayUnit& ds) { displayUnits.remove(&ds); }
 
-	///variants with reference params
-	void RegisterUnit(DisplayUnit& ds)
-	{
-		displayUnits.push_front(&ds);
-	}
-	void UnregisterUnit(DisplayUnit& ds)
-	{
-		displayUnits.remove(&ds);
-	}
+	/// variants with pointer params
+	void RegisterUnit(DisplayUnit* ds) { displayUnits.push_front(ds); }
+	void UnregisterUnit(DisplayUnit* ds) { displayUnits.remove(ds); }
 
-	///variants with pointer params
-	void RegisterUnit(DisplayUnit* ds)
-	{
-		displayUnits.push_front(ds);
-	}
-	void UnregisterUnit(DisplayUnit* ds)
-	{
-		displayUnits.remove(ds);
-	}
-
-private:
+  private:
 	/** local list of who/where to send the drawing requests */
 	std::forward_list<DisplayUnit*> displayUnits;
 };

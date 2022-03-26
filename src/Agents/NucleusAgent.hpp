@@ -3,9 +3,9 @@
 #include "../Geometries/Spheres.hpp"
 #include "../util/report.hpp"
 #include "AbstractAgent.hpp"
+#include <fmt/core.h>
 #include <list>
 #include <vector>
-#include <fmt/core.h>
 
 extern const ForceName ftype_s2s;      //"sphere-sphere"     //internal forces
 extern const ForceName ftype_drive;    //"desired movement"
@@ -17,7 +17,7 @@ extern const ForceName ftype_body;  //"no overlap (body)"
 extern const ForceName ftype_slide; //"no sliding"
 
 extern const ForceName ftype_hinter; //"sphere-hinter"     //due to external
-                                     //events with shape hinters
+                                     // events with shape hinters
 
 extern const G_FLOAT fstrength_body_scale;    // [N/um]      TRAgen: N/A
 extern const G_FLOAT fstrength_overlap_scale; // [N/um]      TRAgen: k
@@ -67,14 +67,16 @@ class NucleusAgent : public AbstractAgent {
 		for (int i = 0; i < shape.noOfSpheres; ++i)
 			weights[i] = (G_FLOAT)1.0;
 
-		report::debugMessage(fmt::format("Nucleus with ID={} was just created", ID));
+		report::debugMessage(
+		    fmt::format("Nucleus with ID={} was just created", ID));
 	}
 
 	~NucleusAgent(void) {
 		delete[] accels; // NB: deletes also velocities[], see above
 		delete[] weights;
 
-		report::debugMessage(fmt::format("Nucleus with ID={} was just deleted", ID));
+		report::debugMessage(
+		    fmt::format("Nucleus with ID={} was just deleted", ID));
 	}
 
   protected:
@@ -179,7 +181,7 @@ class NucleusAgent : public AbstractAgent {
 	const Vector3d<G_FLOAT>& getVelocityOfSphere(const long index) const {
 #ifdef DEBUG
 		if (index >= geometryAlias.noOfSpheres)
-throw report::rtError("requested sphere index out of bound.");
+			throw report::rtError("requested sphere index out of bound.");
 #endif
 
 		return velocities[index];

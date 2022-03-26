@@ -29,7 +29,7 @@ Description: Rounding routines.
 
 /****************************************************************************/
 
-template <class T> void RoundFloat(float value, T &result);
+template <class T>
+void RoundFloat(float value, T& result);
 
 /****************************************************************************/
-

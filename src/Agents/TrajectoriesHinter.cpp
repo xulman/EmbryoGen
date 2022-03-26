@@ -2,90 +2,89 @@
 
 //#define DRAW_VOXEL_GRID_AROUND_TRAJECTORIES
 
-void TrajectoriesHinter::drawForDebug(DisplayUnit& du)
-{
-	if (detailedDrawingMode)
-	{
+void TrajectoriesHinter::drawForDebug(DisplayUnit& du) {
+	if (detailedDrawingMode) {
 		const int DBG = DisplayUnit::firstIdForAgentDebugObjects(ID);
 		int createdLines = 0;
 		int createdBalls = 0;
-		int createdVecs  = 0;
-		//NB: the same starting number/element_ID does not matter as the
-		//    corresponding objects shall live in different vizu categories
+		int createdVecs = 0;
+		// NB: the same starting number/element_ID does not matter as the
+		//     corresponding objects shall live in different vizu categories
 
 #ifdef DRAW_VOXEL_GRID_AROUND_TRAJECTORIES
 		Vector3d<size_t> centrePx;
-		const Vector3d<float> res( geometryAlias.getImgX().GetResolution().GetRes() );
-		const Vector3d<float> off( geometryAlias.getImgX().GetOffset() );
+		const Vector3d<float> res(
+		    geometryAlias.getImgX().GetResolution().GetRes());
+		const Vector3d<float> off(geometryAlias.getImgX().GetOffset());
 #endif
 
-		//scan all time points to read out every tracks' "bending corners"
-		std::map< float,std::map< int,Coord3d<float> > >::const_iterator it;
+		// scan all time points to read out every tracks' "bending corners"
+		std::map<float, std::map<int, Coord3d<float>>>::const_iterator it;
 
-		//the current "segment" of the currently rendered trajectory
-		const Coord3d<float> *a,*b;
+		// the current "segment" of the currently rendered trajectory
+		const Coord3d<float>*a, *b;
 		Coord3d<float> pos;
 
-		//draw all paths that are still relevant to the current time
+		// draw all paths that are still relevant to the current time
 		for (int tID : traHinter.knownTracks)
-		if (traHinter.getPositionAlongTrack(currTime,tID,pos))
-		{
-			//init the drawing... (by flagging the first node is missing)
-			a = NULL;
+			if (traHinter.getPositionAlongTrack(currTime, tID, pos)) {
+				// init the drawing... (by flagging the first node is missing)
+				a = NULL;
 
-			//scan all time points
-			it = traHinter.begin();
-			while (it != traHinter.end())
-			{
-				//does given timepoint contain info about our track?
-				if (it->second.find(tID) != it->second.end())
-				{
-					//update and draw then...
-					b = &(it->second.at(tID));
+				// scan all time points
+				it = traHinter.begin();
+				while (it != traHinter.end()) {
+					// does given timepoint contain info about our track?
+					if (it->second.find(tID) != it->second.end()) {
+						// update and draw then...
+						b = &(it->second.at(tID));
 
-					if (a != NULL)
-						du.DrawLine(DBG+ createdLines++, *a,*b, 5);
-					a = b;
+						if (a != NULL)
+							du.DrawLine(DBG + createdLines++, *a, *b, 5);
+						a = b;
+					}
+
+					++it;
 				}
 
-				++it;
-			}
-
-			//update the trajectory positioners (small balls)
-			du.DrawPoint(DBG+ createdBalls++, pos,1.5f, 5);
+				// update the trajectory positioners (small balls)
+				du.DrawPoint(DBG + createdBalls++, pos, 1.5f, 5);
 
 #ifdef DRAW_VOXEL_GRID_AROUND_TRAJECTORIES
-			//also draw a (local debug) pixel grid around the ball centre
-			createdLines += RenderingFunctions::drawPixelCentresGrid(du,
-			  DBG+createdLines, 1, geometryAlias.getImgX(),
-			  pos.toPixels(centrePx, res,off), Vector3d<size_t>(3));
+				// also draw a (local debug) pixel grid around the ball centre
+				createdLines += RenderingFunctions::drawPixelCentresGrid(
+				    du, DBG + createdLines, 1, geometryAlias.getImgX(),
+				    pos.toPixels(centrePx, res, off), Vector3d<size_t>(3));
 #endif
-		}
-		report::debugMessage(fmt::format("{} trajectories: {} lines and {} balls", getSignature(), createdLines, createdBalls));
+			}
+		report::debugMessage(
+		    fmt::format("{} trajectories: {} lines and {} balls",
+		                getSignature(), createdLines, createdBalls));
 
-		//render the current flow field
-		createdVecs += ff.drawFF(du, DBG+createdVecs, 6, Vector3d<size_t>(2));
-report::debugMessage(fmt::format("{}trajectories: {} vectors making up tracks-induced-FF" , getSignature(), createdVecs));
+		// render the current flow field
+		createdVecs += ff.drawFF(du, DBG + createdVecs, 6, Vector3d<size_t>(2));
+		report::debugMessage(fmt::format(
+		    "{}trajectories: {} vectors making up tracks-induced-FF",
+		    getSignature(), createdVecs));
 	}
 }
-
 
 /*
 void TrajectoriesHinter::drawForDebug(i3d::Image3d<i3d::GRAY16>& img)
 {
-	//running pointers...
-	const G_FLOAT* x = geometryAlias.getImgX().GetFirstVoxelAddr();     //input vector elements
-	const G_FLOAT* y = geometryAlias.getImgY().GetFirstVoxelAddr();
-	const G_FLOAT* z = geometryAlias.getImgZ().GetFirstVoxelAddr();
-	i3d::GRAY16* m = img.GetFirstVoxelAddr();         //for vector magnitude
-	i3d::GRAY16* const mE = m + img.GetImageSize();
+    //running pointers...
+    const G_FLOAT* x = geometryAlias.getImgX().GetFirstVoxelAddr();     //input
+vector elements const G_FLOAT* y = geometryAlias.getImgY().GetFirstVoxelAddr();
+    const G_FLOAT* z = geometryAlias.getImgZ().GetFirstVoxelAddr();
+    i3d::GRAY16* m = img.GetFirstVoxelAddr();         //for vector magnitude
+    i3d::GRAY16* const mE = m + img.GetImageSize();
 
-	//sweep the output image
-	while (m != mE)
-	{
-		//TODO: must translate coordinates img -> X,Y,Z to fetch the values
-		*m = std::sqrt( (*x * *x) + (*y * *y) + (*z * *z) );
-		++m; ++x; ++y; ++z;
-	}
+    //sweep the output image
+    while (m != mE)
+    {
+        //TODO: must translate coordinates img -> X,Y,Z to fetch the values
+        *m = std::sqrt( (*x * *x) + (*y * *y) + (*z * *z) );
+        ++m; ++x; ++y; ++z;
+    }
 }
 */

@@ -1,140 +1,145 @@
-#include "../DisplayUnits/SceneryBufferedDisplayUnit.hpp"
-#include "../util/Vector3d.hpp"
-#include "../Geometries/ScalarImg.hpp"
-#include "../Geometries/VectorImg.hpp"
 #include "../Agents/Nucleus4SAgent.hpp"
 #include "../Agents/ShapeHinter.hpp"
 #include "../Agents/TrajectoriesHinter.hpp"
+#include "../DisplayUnits/SceneryBufferedDisplayUnit.hpp"
+#include "../Geometries/ScalarImg.hpp"
+#include "../Geometries/VectorImg.hpp"
 #include "../Geometries/util/SpheresFunctions.hpp"
+#include "../util/Vector3d.hpp"
 #include "common/Scenarios.hpp"
 
-class GrowableNucleusReg: public Nucleus4SAgent
-{
-public:
-	GrowableNucleusReg(const int _ID, const std::string& _type,
-	                const Spheres& shape,
-	                const float _currTime, const float _incrTime):
-		Nucleus4SAgent(_ID,_type, shape, _currTime,_incrTime) {}
+class GrowableNucleusReg : public Nucleus4SAgent {
+  public:
+	GrowableNucleusReg(const int _ID,
+	                   const std::string& _type,
+	                   const Spheres& shape,
+	                   const float _currTime,
+	                   const float _incrTime)
+	    : Nucleus4SAgent(_ID, _type, shape, _currTime, _incrTime) {}
 
 	float startGrowTime = 99999999.f;
-	float stopGrowTime  = 99999999.f;
+	float stopGrowTime = 99999999.f;
 
-protected:
+  protected:
 	int incrCnt = 0;
 
-	void adjustGeometryByIntForces() override
-	{
-		//adjust the shape at first
-		if (currTime >= startGrowTime && currTime <= stopGrowTime && incrCnt < 30)
-		{
+	void adjustGeometryByIntForces() override {
+		// adjust the shape at first
+		if (currTime >= startGrowTime && currTime <= stopGrowTime &&
+		    incrCnt < 30) {
 			//"grow factor"
-			const G_FLOAT dR = 0.05f;    //radius
-			const G_FLOAT dD = 1.8f*dR;  //diameter
+			const G_FLOAT dR = 0.05f;     // radius
+			const G_FLOAT dD = 1.8f * dR; // diameter
 
-			//grow the current geometry
-			SpheresFunctions::grow4SpheresBy(futureGeometry, dR,dD);
+			// grow the current geometry
+			SpheresFunctions::grow4SpheresBy(futureGeometry, dR, dD);
 
-			//also update the expected distances
-			for (int i=1; i < 4; ++i) centreDistance[i-1] += dD;
+			// also update the expected distances
+			for (int i = 1; i < 4; ++i)
+				centreDistance[i - 1] += dD;
 
-			//emergency break...
+			// emergency break...
 			++incrCnt;
 		}
 
-		//also call the upstream original method
+		// also call the upstream original method
 		Nucleus4SAgent::adjustGeometryByIntForces();
 	}
 };
 
-
 //==========================================================================
-void Scenario_DrosophilaRegular::initializeAgents(FrontOfficer* fo,int p,int)
-{
-	if (p != 1)
-	{
-report::message(fmt::format("Populating only the first FO (which is not this one)." ));
+void Scenario_DrosophilaRegular::initializeAgents(FrontOfficer* fo,
+                                                  int p,
+                                                  int) {
+	if (p != 1) {
+		report::message(fmt::format(
+		    "Populating only the first FO (which is not this one)."));
 		return;
 	}
 
-	//stepping in all directions -> influences the final number of nuclei
+	// stepping in all directions -> influences the final number of nuclei
 	const float dx = 14.0f;
 
-	//to obtain a sequence of IDs for new agents...
-	int ID=1;
+	// to obtain a sequence of IDs for new agents...
+	int ID = 1;
 
-	//longer axis x
-	//symmetric/short axes y,z
+	// longer axis x
+	// symmetric/short axes y,z
 
-	const float Xside  = (0.90f*params.constants.sceneSize.x)/2.0f;
-	const float YZside = (0.75f*params.constants.sceneSize.y)/2.0f;
+	const float Xside = (0.90f * params.constants.sceneSize.x) / 2.0f;
+	const float YZside = (0.75f * params.constants.sceneSize.y) / 2.0f;
 
-	for (float z=-Xside; z <= +Xside; z += dx)
-	{
-		//radius at this z position
-		const float radius = YZside * std::sin(std::acos(std::abs(z)/Xside));
+	for (float z = -Xside; z <= +Xside; z += dx) {
+		// radius at this z position
+		const float radius = YZside * std::sin(std::acos(std::abs(z) / Xside));
 
-		const int howManyToPlace = (int)ceil(6.28f*radius / dx);
-		for (int i=0; i < howManyToPlace; ++i)
-		{
-			const float ang = float(i)/float(howManyToPlace);
+		const int howManyToPlace = (int)ceil(6.28f * radius / dx);
+		for (int i = 0; i < howManyToPlace; ++i) {
+			const float ang = float(i) / float(howManyToPlace);
 
-			//the wished position relative to [0,0,0] centre
-			Vector3d<float> axis(0,std::cos(ang*6.28f),std::sin(ang*6.28f));
-			Vector3d<float> pos(z,radius * axis.y,radius * axis.z);
+			// the wished position relative to [0,0,0] centre
+			Vector3d<float> axis(0, std::cos(ang * 6.28f),
+			                     std::sin(ang * 6.28f));
+			Vector3d<float> pos(z, radius * axis.y, radius * axis.z);
 
-			//position is shifted to the scene centre
-			pos.x += params.constants.sceneSize.x/2.0f;
-			pos.y += params.constants.sceneSize.y/2.0f;
-			pos.z += params.constants.sceneSize.z/2.0f;
+			// position is shifted to the scene centre
+			pos.x += params.constants.sceneSize.x / 2.0f;
+			pos.y += params.constants.sceneSize.y / 2.0f;
+			pos.z += params.constants.sceneSize.z / 2.0f;
 
-			//position is shifted due to scene offset
+			// position is shifted due to scene offset
 			pos.x += params.constants.sceneOffset.x;
 			pos.y += params.constants.sceneOffset.y;
 			pos.z += params.constants.sceneOffset.z;
 
 			Spheres s(4);
-			s.updateCentre(0,pos);
-			s.updateRadius(0,3.0f);
-			s.updateCentre(1,pos +6.0f*axis);
-			s.updateRadius(1,5.0f);
-			s.updateCentre(2,pos +12.0f*axis);
-			s.updateRadius(2,5.0f);
-			s.updateCentre(3,pos +18.0f*axis);
-			s.updateRadius(3,3.0f);
+			s.updateCentre(0, pos);
+			s.updateRadius(0, 3.0f);
+			s.updateCentre(1, pos + 6.0f * axis);
+			s.updateRadius(1, 5.0f);
+			s.updateCentre(2, pos + 12.0f * axis);
+			s.updateRadius(2, 5.0f);
+			s.updateCentre(3, pos + 18.0f * axis);
+			s.updateRadius(3, 3.0f);
 
-			GrowableNucleusReg* ag = new GrowableNucleusReg(ID++,"nucleus growable regular",s,params.constants.initTime,params.constants.incrTime);
-			ag->startGrowTime=1.0f;
+			GrowableNucleusReg* ag = new GrowableNucleusReg(
+			    ID++, "nucleus growable regular", s, params.constants.initTime,
+			    params.constants.incrTime);
+			ag->startGrowTime = 1.0f;
 			fo->startNewAgent(ag);
 		}
 	}
 
 	//-------------
-	//now, read the mask image and make it a shape hinter...
+	// now, read the mask image and make it a shape hinter...
 	i3d::Image3d<i3d::GRAY8> initShape("../DrosophilaYolk_mask_lowerRes.tif");
-	ScalarImg m(initShape,ScalarImg::DistanceModel::ZeroIN_GradOUT);
-	//m.saveDistImg("GradIN_ZeroOUT.tif");
+	ScalarImg m(initShape, ScalarImg::DistanceModel::ZeroIN_GradOUT);
+	// m.saveDistImg("GradIN_ZeroOUT.tif");
 
-	//finally, create the simulation agent to register this shape
-	ShapeHinter* ag = new ShapeHinter(ID++,"yolk",m,params.constants.initTime,params.constants.incrTime);
+	// finally, create the simulation agent to register this shape
+	ShapeHinter* ag = new ShapeHinter(
+	    ID++, "yolk", m, params.constants.initTime, params.constants.incrTime);
 	fo->startNewAgent(ag, false);
 
 	//-------------
-	TrajectoriesHinter* at = new TrajectoriesHinter(ID++,"trajectories",
-	                           initShape,VectorImg::ChoosingPolicy::avgVec,
-	                           params.constants.initTime,params.constants.incrTime);
+	TrajectoriesHinter* at = new TrajectoriesHinter(
+	    ID++, "trajectories", initShape, VectorImg::ChoosingPolicy::avgVec,
+	    params.constants.initTime, params.constants.incrTime);
 	fo->startNewAgent(at, false);
 
-	//the trajectories hinter:
-	at->talkToHinter().readFromFile("../DrosophilaYolk_movement.txt", Vector3d<float>(2.f), 10.0f, 10.0f);
-report::message(fmt::format("Timepoints: {}, Tracks: {}" , at->talkToHinter().size(), at->talkToHinter().knownTracks.size()));
+	// the trajectories hinter:
+	at->talkToHinter().readFromFile("../DrosophilaYolk_movement.txt",
+	                                Vector3d<float>(2.f), 10.0f, 10.0f);
+	report::message(fmt::format("Timepoints: {}, Tracks: {}",
+	                            at->talkToHinter().size(),
+	                            at->talkToHinter().knownTracks.size()));
 }
 
-
-void Scenario_DrosophilaRegular::initializeScene()
-{
-	displays.registerDisplayUnit( [](){ return new SceneryBufferedDisplayUnit("localhost:8765"); } );
+void Scenario_DrosophilaRegular::initializeScene() {
+	displays.registerDisplayUnit(
+	    []() { return new SceneryBufferedDisplayUnit("localhost:8765"); });
 }
 
-
-SceneControls& Scenario_DrosophilaRegular::provideSceneControls()
-{ return DefaultSceneControls; }
+SceneControls& Scenario_DrosophilaRegular::provideSceneControls() {
+	return DefaultSceneControls;
+}

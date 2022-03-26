@@ -52,7 +52,8 @@ class myDragAndTextureNucleus_common : public NucleusNSAgent, Texture {
 		different velocities
 		*/
 		const G_FLOAT velocity = (float)1.0f;
-		// report::message(fmt::format("ID= {} radialPos={} velocity={}", ID, radialPos, velocity));
+		// report::message(fmt::format("ID= {} radialPos={} velocity={}", ID,
+		// radialPos, velocity));
 		Vector3d<G_FLOAT> travellingVelocity(0, velocity, 0);
 		exertForceOnSphere(
 		    1, (weights[0] / velocity_PersistenceTime) * travellingVelocity,

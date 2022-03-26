@@ -29,20 +29,20 @@
  * Martin Maska <xmaskaa@fi.muni.cz> 2018
  */
 
-namespace filogen
-{
+#include <i3d/image3d.h>
+
+namespace filogen {
 
 //------------------------------------------------------------------------
 // simulation of microscope
 //------------------------------------------------------------------------
 void PhaseII(i3d::Image3d<float>& fimg,
-             const i3d::Image3d<float> &psf,
+             const i3d::Image3d<float>& psf,
              float factor = 1.0f);
 
 //------------------------------------------------------------------------
 // simulation of acquisition device
 //------------------------------------------------------------------------
-void PhaseIII(i3d::Image3d<float>& blurred,
-              i3d::Image3d<i3d::GRAY16>& texture);
+void PhaseIII(i3d::Image3d<float>& blurred, i3d::Image3d<i3d::GRAY16>& texture);
 
-}
+} // namespace filogen

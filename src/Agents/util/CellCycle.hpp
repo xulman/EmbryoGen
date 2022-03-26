@@ -14,64 +14,68 @@
  * assure that the relevant phase_methods are called in the correct order.
  *
  * Each phase_method has one parameter (phase progress bar ratio) that informs
- * its content how far it should get within the phase; the ratio is always (0;1].
-*/
-class CellCycle
-{
-public:
-	/** A datatype enumerating the particular phases of cell cycle in their order */
-	typedef enum
-	{
-		newBorn=-1,
-		G1Phase=0,
-		SPhase=1,
-		G2Phase=2,
-		Prophase=3,
-		Metaphase=4,
-		Anaphase=5,
-		Telophase=6,
-		Cytokinesis=7,
-		RestInPeace=8
+ * its content how far it should get within the phase; the ratio is always
+ * (0;1].
+ */
+class CellCycle {
+  public:
+	/** A datatype enumerating the particular phases of cell cycle in their
+	 * order */
+	typedef enum {
+		newBorn = -1,
+		G1Phase = 0,
+		SPhase = 1,
+		G2Phase = 2,
+		Prophase = 3,
+		Metaphase = 4,
+		Anaphase = 5,
+		Telophase = 6,
+		Cytokinesis = 7,
+		RestInPeace = 8
 	} ListOfPhases;
 
 	// --------------------------------------------------
 	// construction & phase durations
 
 	/** constructor with default 24 hrs cell cycle */
-	CellCycle()
-		: CellCycle( 24*60 ) {}
+	CellCycle() : CellCycle(24 * 60) {}
 
-	/** an exact-copy constructor - useful when two instances that act exactly the same
-	    are used in one agent (e.g. one cycle to control geometry changes, one cycle
-	    to control texture development); note that one has to provide the second
-	    parameter (with any value) to reach out for this particular c'tor */
+	/** an exact-copy constructor - useful when two instances that act exactly
+	   the same are used in one agent (e.g. one cycle to control geometry
+	   changes, one cycle to control texture development); note that one has to
+	   provide the second parameter (with any value) to reach out for this
+	   particular c'tor */
 	CellCycle(const CellCycle& refCellCycle)
-		: CellCycle( refCellCycle.fullCycleDuration ) {}
+	    : CellCycle(refCellCycle.fullCycleDuration) {}
 
-	/** a randomizing! no-exact-copy constructor, nice default is 'spreadFactor' = 0.17 */
+	/** a randomizing! no-exact-copy constructor, nice default is 'spreadFactor'
+	 * = 0.17 */
 	CellCycle(const CellCycle& refCellCycle, const float spreadFactor)
-		: CellCycle( RandomizeCellCycleDuration(refCellCycle.fullCycleDuration, spreadFactor) ) {}
+	    : CellCycle(RandomizeCellCycleDuration(refCellCycle.fullCycleDuration,
+	                                           spreadFactor)) {}
 
 	/** a randomizing! constructor with given basis cycle duration (in minutes),
 	    nice default is 'spreadFactor' = 0.17 */
 	CellCycle(const float refCycleDuration, const float spreadFactor)
-		: CellCycle( RandomizeCellCycleDuration(refCycleDuration, spreadFactor) ) {}
+	    : CellCycle(
+	          RandomizeCellCycleDuration(refCycleDuration, spreadFactor)) {}
 
 	/** constructor with given exact cycle duration (in minutes) */
 	CellCycle(const float _fullCycleDuration)
-		: fullCycleDuration(_fullCycleDuration) {}
-		//NB: overriding determinePhaseDurations() are not-visible in the c'tor,
-		//    hence, this call is postponed into startCycling() -- and this method
-		//    was made unavoidable as it is the only that provides the global time
+	    : fullCycleDuration(_fullCycleDuration) {}
+	// NB: overriding determinePhaseDurations() are not-visible in the c'tor,
+	//     hence, this call is postponed into startCycling() -- and this method
+	//     was made unavoidable as it is the only that provides the global time
 
 	/** the (informative) cell cycle duration [min] */
 	const float fullCycleDuration;
 
-protected:
-	float RandomizeCellCycleDuration(const float refDuration, const float spreadFactor);
+  protected:
+	float RandomizeCellCycleDuration(const float refDuration,
+	                                 const float spreadFactor);
 
 	/** the durations of individual cell cycle phases [min] */
-	float phaseDurations[8] = {0,0,0,0,0,0,0,0};
+	float phaseDurations[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 
 	/** Override-able pie-slicing of the fullCycleDuration, this
 	    method is called from the startCycling() method.
@@ -80,34 +84,33 @@ protected:
 	    phases of this->phaseDurations[] and it must hold
 	    afterwards that the sum of the individual durations is
 	    exactly the value of this->fullCycleDuration. */
-	virtual
-	void determinePhaseDurations(void)
-	{
+	virtual void determinePhaseDurations(void) {
 		setNormalPhaseDurations(fullCycleDuration, phaseDurations);
 	}
 
-public:
+  public:
 	/** read-only accessor to the durations of the individual phases */
-	float getPhaseDuration(const ListOfPhases phase) const
-	{
+	float getPhaseDuration(const ListOfPhases phase) const {
 		return phaseDurations[phase];
 	}
 
 	/** normal cell cycle pie-slicing, available for anyone...
-	    note that the method follows rules set out for determinePhaseDurations() */
-	static
-	void setNormalPhaseDurations(const float fullCycleDuration,  //input
-	                             float phaseDurations[8])        //output
+	    note that the method follows rules set out for determinePhaseDurations()
+	 */
+	static void setNormalPhaseDurations(const float fullCycleDuration, // input
+	                                    float phaseDurations[8])       // output
 	{
-report::debugMessage(fmt::format("setting up phase durations for standard cell cycle of {} mins" , fullCycleDuration));
+		report::debugMessage(fmt::format(
+		    "setting up phase durations for standard cell cycle of {} mins",
+		    fullCycleDuration));
 
-		phaseDurations[G1Phase    ] = 0.5f     * fullCycleDuration;
-		phaseDurations[SPhase     ] = 0.3f     * fullCycleDuration;
-		phaseDurations[G2Phase    ] = 0.15f    * fullCycleDuration;
-		phaseDurations[Prophase   ] = 0.0125f  * fullCycleDuration;
-		phaseDurations[Metaphase  ] = 0.0285f  * fullCycleDuration;
-		phaseDurations[Anaphase   ] = 0.0025f  * fullCycleDuration;
-		phaseDurations[Telophase  ] = 0.00325f * fullCycleDuration;
+		phaseDurations[G1Phase] = 0.5f * fullCycleDuration;
+		phaseDurations[SPhase] = 0.3f * fullCycleDuration;
+		phaseDurations[G2Phase] = 0.15f * fullCycleDuration;
+		phaseDurations[Prophase] = 0.0125f * fullCycleDuration;
+		phaseDurations[Metaphase] = 0.0285f * fullCycleDuration;
+		phaseDurations[Anaphase] = 0.0025f * fullCycleDuration;
+		phaseDurations[Telophase] = 0.00325f * fullCycleDuration;
 		phaseDurations[Cytokinesis] = 0.00325f * fullCycleDuration;
 		//                            --------
 		//                    sums to 1.0f
@@ -119,21 +122,22 @@ report::debugMessage(fmt::format("setting up phase durations for standard cell c
 	// --------------------------------------------------
 	// cycling through the cell cycle phases
 
-protected:
+  protected:
 	/** the currently being processed cycle phase */
 	ListOfPhases curPhase = newBorn;
 
 	/** the global time when the phase now in 'curPhase' has started */
 	float lastPhaseChangeGlobalTime = -1;
 
-public:
+  public:
 	/** this one actually starts the cycling, provide it with the
 	    current "wall time" (in 'currentGlobalTime') */
 	void startCycling(const float currentGlobalTime);
 
-	/** this one calls the phase_methods (see docs of this class) in the correct order,
-	    until the cycle progresses to the given "wall time" (in 'currentGlobalTime'),
-	    it makes sure that no run_phase_method is called with zero progress ratio */
+	/** this one calls the phase_methods (see docs of this class) in the correct
+	   order, until the cycle progresses to the given "wall time" (in
+	   'currentGlobalTime'), it makes sure that no run_phase_method is called
+	   with zero progress ratio */
 	void triggerCycleMethods(const float currentGlobalTime);
 
 	// --------------------------------------------------

@@ -1,33 +1,32 @@
 #pragma once
 
-#include <source_location>
-#include <string>
+#include <chrono>
 #include <cstring>
 #include <iostream>
+#include <source_location>
 #include <sstream>
-#include <chrono>
+#include <string>
 
 /** profiling aiders: starts stopwatch and returns "session handler",
     which is actually the current system time */
-inline const std::chrono::time_point<std::chrono::system_clock> tic(void)
-{
-	return ( std::chrono::system_clock::now() );
+inline const std::chrono::time_point<std::chrono::system_clock> tic(void) {
+	return (std::chrono::system_clock::now());
 }
 
 /** profiling aiders: stops stopwatch and reports the elapsed time,
     requires some counter-part earlier time (e.g. the "session handler") */
-inline std::string toc(const std::chrono::time_point<std::chrono::system_clock>& ticTime)
-{
-	const std::chrono::duration<double>&& deltaT = std::chrono::system_clock::now() - ticTime;
-	return ( std::to_string(deltaT.count()).append(" seconds") );
+inline std::string
+toc(const std::chrono::time_point<std::chrono::system_clock>& ticTime) {
+	const std::chrono::duration<double>&& deltaT =
+	    std::chrono::system_clock::now() - ticTime;
+	return (std::to_string(deltaT.count()).append(" seconds"));
 }
 
 /** Translates everything stream-able to string */
-std::string toString(auto arg)
-{
-    std::ostringstream _tmp;
-    _tmp << arg;
-    return _tmp.str();
+std::string toString(auto arg) {
+	std::ostringstream _tmp;
+	_tmp << arg;
+	return _tmp.str();
 }
 
 namespace report {
@@ -40,8 +39,9 @@ struct ReportAttrs {
 };
 
 /** Get runtime error object with inserted message and identification*/
-std::runtime_error rtError(const std::string& msg, 
-    const std::source_location& location  = std::source_location::current());
+std::runtime_error
+rtError(const std::string& msg,
+        const std::source_location& location = std::source_location::current());
 
 /** Get location identifier */
 std::string getIdent(

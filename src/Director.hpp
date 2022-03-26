@@ -1,39 +1,43 @@
 #pragma once
 
+#include "Scenarios/common/Scenario.hpp"
+#include "TrackRecord_CTC.hpp"
+#include "util/report.hpp"
 #include <list>
 #include <utility>
-#include "util/report.hpp"
-#include "TrackRecord_CTC.hpp"
-#include "Scenarios/common/Scenario.hpp"
 
 #ifdef DISTRIBUTED
-#  include <thread>
+#include <thread>
 #endif
-
 
 class FrontOfficer;
 class DistributedCommunicator;
 
 /** has access to Scenario, to reach its doPhaseIIandIII() */
-class Director
-{
-public:
-	Director(Scenario& s, const int firstFO, const int allPortions, DistributedCommunicator * dc = NULL)
-		: scenario(s), communicator(dc),
-		  firstFOsID(firstFO), FOsCount(allPortions),
-		  shallWaitForUserPromptFlag( scenario.params.shallWaitForUserPromptFlag )
+class Director {
+  public:
+	Director(Scenario& s,
+	         const int firstFO,
+	         const int allPortions,
+	         DistributedCommunicator* dc = NULL)
+	    : scenario(s), communicator(dc), firstFOsID(firstFO),
+	      FOsCount(allPortions),
+	      shallWaitForUserPromptFlag(scenario.params.shallWaitForUserPromptFlag)
 #ifdef DISTRIBUTED
-		  , responder([this] {respond_Loop();})
+	      ,
+	      responder([this] { respond_Loop(); })
 #endif
 	{
 		scenario.declareDirektorContext();
-		//TODO: create an extra thread to execute/service the respond_...() methods
+		// TODO: create an extra thread to execute/service the respond_...()
+		// methods
 	}
 
-protected:
+  protected:
 	Scenario& scenario;
-	DistributedCommunicator * communicator;
-public:
+	DistributedCommunicator* communicator;
+
+  public:
 	/** the firstFOsID is where the round robin chain starts */
 	const int firstFOsID, FOsCount;
 
@@ -41,14 +45,14 @@ public:
 	// these are implemented in:
 	// Director.cpp
 
-	/** scene heavy inits and synthoscopy warm up, renders the first frame in the end;
-	    similarly to FrontOfficer::initMPI(), the execution of the initialization
-	    routine has to interweave with the execution of FO's init and so this
-	    method is chopped into three pieces, these pieces take care of the synchronization
-	    on their own when in MPI regime but during SMP the internal sync stuff does not work
-	    and the sync has to be enforced from the outside */
-	void initMPI(void)
-	{
+	/** scene heavy inits and synthoscopy warm up, renders the first frame in
+	   the end; similarly to FrontOfficer::initMPI(), the execution of the
+	   initialization routine has to interweave with the execution of FO's init
+	   and so this method is chopped into three pieces, these pieces take care
+	   of the synchronization on their own when in MPI regime but during SMP the
+	   internal sync stuff does not work and the sync has to be enforced from
+	   the outside */
+	void initMPI(void) {
 		init1_SMP();
 		init2_SMP();
 		init3_SMP();
@@ -61,37 +65,41 @@ public:
 	/** stage 3/3 to do: renders the first frame */
 	void init3_SMP(void);
 
-	/** does the simulation loops, i.e. triggers calls of AbstractAgent's methods in the right order */
+	/** does the simulation loops, i.e. triggers calls of AbstractAgent's
+	 * methods in the right order */
 	void execute(void);
 
 	/** frees simulation agents, writes the tracks.txt file */
 	void close(void);
 
 	/** attempts to clean up, if not done earlier */
-	~Director(void)
-	{
+	~Director(void) {
 #ifdef DISTRIBUTED
 		pthread_cancel(responder.native_handle());
 		responder.join();
 		close_communication();
 #endif
-report::debugMessage(fmt::format("Direktor already closed? {}" , (isProperlyClosedFlag ? "yes":"no")));
-		if (!isProperlyClosedFlag) this->close();
+		report::debugMessage(
+		    fmt::format("Direktor already closed? {}",
+		                (isProperlyClosedFlag ? "yes" : "no")));
+		if (!isProperlyClosedFlag)
+			this->close();
 	}
-
 
 	/** new available, not-yet-used, unique agent ID is created here */
 	int getNextAvailAgentID();
 
 	/** introduces a new agent into the universe of this simulation, and,
 	    optionally, it can log this event into the CTC tracking file */
-	void startNewAgent(const int agentID, const int associatedFO,
+	void startNewAgent(const int agentID,
+	                   const int associatedFO,
 	                   const bool wantsToAppearInCTCtracksTXTfile);
 
 	/** removes the agent from this simulation, this event is logged into
 	    the CTC tracking file iff the agent was registered previously;
 	    for the CTC logging, it is assumed that the agent is not available in
-	    the current rendered frame but was (last) visible in the previous frame */
+	    the current rendered frame but was (last) visible in the previous frame
+	 */
 	void closeAgent(const int agentID, const int associatedFO);
 
 	/** introduces a new agent into the universe of this simulation, and,
@@ -106,24 +114,24 @@ report::debugMessage(fmt::format("Direktor already closed? {}" , (isProperlyClos
 	int getFOsIDofAgent(const int agentID);
 
 	/** returns the state of the 'willRenderNextFrameFlag', that is if the
-	    current simulation round with end up with the call to renderNextFrame() */
-	bool willRenderNextFrame(void) const
-	{ return willRenderNextFrameFlag; }
+	    current simulation round with end up with the call to renderNextFrame()
+	 */
+	bool willRenderNextFrame(void) const { return willRenderNextFrameFlag; }
 
 	/** returns the state of the 'shallWaitForUserPromptFlag', that is if an
 	    user will be prompted (and the simulation would stop and wait) at
 	    the end of the renderNextFrame() */
-	bool willWaitForUserPrompt(void) const
-	{ return shallWaitForUserPromptFlag; }
+	bool willWaitForUserPrompt(void) const {
+		return shallWaitForUserPromptFlag;
+	}
 
-	/** sets the 'shallWaitForUserPromptFlag', making renderNextFrame() to prompt
-	    the user (and stop the simulation and wait... and also become "command-able") */
-	void enableWaitForUserPrompt(void)
-	{ shallWaitForUserPromptFlag = true; }
+	/** sets the 'shallWaitForUserPromptFlag', making renderNextFrame() to
+	   prompt the user (and stop the simulation and wait... and also become
+	   "command-able") */
+	void enableWaitForUserPrompt(void) { shallWaitForUserPromptFlag = true; }
 
 	/** the opposite of the Director::enableWaitForUserPrompt() */
-	void disableWaitForUserPrompt(void)
-	{ shallWaitForUserPromptFlag = false; }
+	void disableWaitForUserPrompt(void) { shallWaitForUserPromptFlag = false; }
 
 	/** notifies the agent to enable/disable its detailed drawing routines */
 	void setAgentsDetailedDrawingMode(const int agentID, const bool state);
@@ -138,7 +146,7 @@ report::debugMessage(fmt::format("Direktor already closed? {}" , (isProperlyClos
 	void reportSituation();
 	void reportAgentsAllocation();
 
-protected:
+  protected:
 	/** flag to run-once the closing routines */
 	bool isProperlyClosedFlag = false;
 
@@ -148,25 +156,28 @@ protected:
 
 	/** maps of existing agents scheduled for the addition to or
 	    for the removal from the simulation (at the appropriate occasion),
-		 maps between agent ID and FO ID associated with this agent */
-	std::list< std::pair<int,int> > newAgents, deadAgents;
+	     maps between agent ID and FO ID associated with this agent */
+	std::list<std::pair<int, int>> newAgents, deadAgents;
 
 	/** map of all agents currently active in the simulation,
 	    maps between agent ID and FO ID associated with this agent,
 	    the main purpose of this map is to know which FO to ask when
 	    detailed geometry (in a form of the ShadowAgent) is needed */
-	std::list< std::pair<int,int> > agents;
+	std::list<std::pair<int, int>> agents;
 
-	/** structure to hold durations of tracks and the mother-daughter relations */
+	/** structure to hold durations of tracks and the mother-daughter relations
+	 */
 	TrackRecords_CTC tracks;
 
 	/** current global simulation time [min] */
 	float currTime = 0.0f;
 
-	/** counter of exports/snapshots, used to numerate frames and output image files */
+	/** counter of exports/snapshots, used to numerate frames and output image
+	 * files */
 	int frameCnt = 0;
 
-	/** flag if the renderNextFrame() will be called after this simulation round */
+	/** flag if the renderNextFrame() will be called after this simulation round
+	 */
 	bool willRenderNextFrameFlag = false;
 
 	/** flag whether an user will be prompted (and the simulation would stop
@@ -174,12 +185,14 @@ protected:
 	    shadows/overlays over the scenario.params.shallWaitForUserPromptFlag */
 	bool& shallWaitForUserPromptFlag;
 
-	/** time period (in msecs) the simulator waits in Director::renderNextFrame()
-	    when std. input is closed (after Ctrl+D) before it proceeds with the next
-	    round of the simulation (and next round of rendering eventually) */
+	/** time period (in msecs) the simulator waits in
+	   Director::renderNextFrame() when std. input is closed (after Ctrl+D)
+	   before it proceeds with the next round of the simulation (and next round
+	   of rendering eventually) */
 	size_t shallWaitForSimViewer_millis = 1000;
 
-	/** Flags if agents' drawForDebug() should be called with every this->renderNextFrame() */
+	/** Flags if agents' drawForDebug() should be called with every
+	 * this->renderNextFrame() */
 	bool renderingDebug = false;
 
 	/** housekeeping before the AABBs exchange takes place */
@@ -193,7 +206,8 @@ protected:
 	    "complete" means that _all_ FOs have broadcast all they wanted */
 	void postprocessAfterUpdateAndPublishAgents();
 
-	/** Asks all agents to render and raster their state into displayUnit and the images */
+	/** Asks all agents to render and raster their state into displayUnit and
+	 * the images */
 	void renderNextFrame(void);
 
 	// ==================== communication methods ====================
@@ -205,11 +219,11 @@ protected:
 
 	void respond_getNextAvailAgentID();
 
-	void respond_startNewAgent(int FO); //TBD - add parameters from start*
+	void respond_startNewAgent(int FO); // TBD - add parameters from start*
 	void respond_closeAgent(int FO);
 	void respond_updateParentalLink(int FO);
 
-	//void respond_willRenderNextFrameFlag();
+	// void respond_willRenderNextFrameFlag();
 
 	void notify_publishAgentsAABBs(const int FOsID);
 	void waitFor_publishAgentsAABBs();
@@ -218,8 +232,12 @@ protected:
 
 	void respond_newAgentsTypes(int noOfIncomingNewAgentTypes);
 
-	void notify_setDetailedDrawingMode(const int FOsID, const int agentID, const bool state);
-	void notify_setDetailedReportingMode(const int FOsID, const int agentID, const bool state);
+	void notify_setDetailedDrawingMode(const int FOsID,
+	                                   const int agentID,
+	                                   const bool state);
+	void notify_setDetailedReportingMode(const int FOsID,
+	                                     const int agentID,
+	                                     const bool state);
 
 	void request_renderNextFrame(const int FOsID);
 	void waitFor_renderNextFrame(const int FOsID);
@@ -230,29 +248,33 @@ protected:
 	void close_communication();
 #endif
 
-public:
+  public:
 	void broadcast_throwException(const std::string& exceptionMessage);
-protected:
+
+  protected:
 	void respond_throwException();
 
 #ifndef DISTRIBUTED
 	FrontOfficer* FO = NULL;
 
-public:
-	//provides shortcuts for the FO to the output images of
-	//the Direktor to have them filled directly
-	i3d::Image3d<i3d::GRAY16>& refOnDirektorsImgMask(void)
-	{ return scenario.params.imgMask; }
+  public:
+	// provides shortcuts for the FO to the output images of
+	// the Direktor to have them filled directly
+	i3d::Image3d<i3d::GRAY16>& refOnDirektorsImgMask(void) {
+		return scenario.params.imgMask;
+	}
 
-	i3d::Image3d<float>& refOnDirektorsImgPhantom(void)
-	{ return scenario.params.imgPhantom; }
+	i3d::Image3d<float>& refOnDirektorsImgPhantom(void) {
+		return scenario.params.imgPhantom;
+	}
 
-	i3d::Image3d<float>& refOnDirektorsImgOptics(void)
-	{ return scenario.params.imgOptics; }
+	i3d::Image3d<float>& refOnDirektorsImgOptics(void) {
+		return scenario.params.imgOptics;
+	}
 
-	void connectWithFrontOfficer(FrontOfficer* fo)
-	{
-		if (fo == NULL) throw report::rtError("Provided FrontOfficer is actually NULL.");
+	void connectWithFrontOfficer(FrontOfficer* fo) {
+		if (fo == NULL)
+			throw report::rtError("Provided FrontOfficer is actually NULL.");
 		FO = fo;
 	}
 #endif

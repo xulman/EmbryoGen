@@ -37,7 +37,8 @@ void NucleusAgent::adjustGeometryByForces(void) {
 #ifdef DEBUG
 	if (detailedReportingMode) {
 		for (const auto& f : forces)
-			report::message(fmt::format("{}: ||= {} \tforce {}", ID, f.len(), toString(f)));
+			report::message(
+			    fmt::format("{}: ||= {} \tforce {}", ID, f.len(), toString(f)));
 
 		std::ostringstream forcesReport;
 		forcesReport << ID << ": final forces";
@@ -105,7 +106,8 @@ void NucleusAgent::collectExtForces(void) {
 
 #ifdef DEBUG
 	if (detailedReportingMode)
-		report::message(fmt::format("ID {}: Found {} nearby agents", ID, nearbyAgentBoxes.size()));
+		report::message(fmt::format("ID {}: Found {} nearby agents", ID,
+		                            nearbyAgentBoxes.size()));
 #endif
 	// those on the list are ShadowAgents who are potentially close enough
 	// to interact with me and these I need to inspect closely
@@ -133,9 +135,15 @@ void NucleusAgent::collectExtForces(void) {
 	}
 
 	if (detailedReportingMode) {
-		report::debugMessage(fmt::format("ID {}: Found {} proximity pairs to nuclei", ID, proximityPairs_toNuclei.size()));
-		report::debugMessage(fmt::format("ID {}: Found {} proximity pairs to yolk", ID ,proximityPairs_toYolk.size()));
-		report::debugMessage(fmt::format("ID {}: Found {}  proximity pairs with guiding trajectories",ID, proximityPairs_tracks.size()));
+		report::debugMessage(
+		    fmt::format("ID {}: Found {} proximity pairs to nuclei", ID,
+		                proximityPairs_toNuclei.size()));
+		report::debugMessage(
+		    fmt::format("ID {}: Found {} proximity pairs to yolk", ID,
+		                proximityPairs_toYolk.size()));
+		report::debugMessage(fmt::format(
+		    "ID {}: Found {}  proximity pairs with guiding trajectories", ID,
+		    proximityPairs_tracks.size()));
 	}
 
 	// now, postprocess the proximityPairs, that is, to
@@ -144,7 +152,8 @@ void NucleusAgent::collectExtForces(void) {
 	for (const auto& pp : proximityPairs_toNuclei) {
 		if (pp.distance > 0) {
 			if (detailedReportingMode)
-				report::debugMessage(fmt::format("{}: repulsive  pp.distance={}", ID, pp.distance));
+				report::debugMessage(fmt::format(
+				    "{}: repulsive  pp.distance={}", ID, pp.distance));
 
 			// no collision
 			if (pp.distance < 3.0) // TODO: replace 3.0 with some function of
@@ -194,7 +203,9 @@ void NucleusAgent::collectExtForces(void) {
 			                    pp.localHint, ftype_body);
 
 			if (detailedReportingMode)
-				report::debugMessage(fmt::format("{}: body  pp.distance={} |force|={}", ID,  pp.distance, fScale * f.len()));
+				report::debugMessage(
+				    fmt::format("{}: body  pp.distance={} |force|={}", ID,
+				                pp.distance, fScale * f.len()));
 
 			// sliding force
 			//
@@ -204,7 +215,9 @@ void NucleusAgent::collectExtForces(void) {
 			g -= velocities[pp.localHint];
 
 			if (detailedReportingMode)
-				report::debugMessage(fmt::format("{}: slide oID={}  |velocityDiff|={}" ,ID, ((const NucleusAgent*)pp.callerHint)->ID, g.len()));
+				report::debugMessage(fmt::format(
+				    "{}: slide oID={}  |velocityDiff|={}", ID,
+				    ((const NucleusAgent*)pp.callerHint)->ID, g.len()));
 
 			// subtract from it the component that is parallel to this proximity
 			// pair
@@ -236,9 +249,9 @@ void NucleusAgent::collectExtForces(void) {
 			f -= pp.localPos;
 			f.changeToUnitOrZero();
 
-
 			if (detailedReportingMode)
-				report::debugMessage(fmt::format("{}: hinter pp.distance={}", ID, pp.distance));
+				report::debugMessage(
+				    fmt::format("{}: hinter pp.distance={}", ID, pp.distance));
 
 			// the get-back-to-hinter force
 			f *= 2 * fstrength_overlap_level *
@@ -325,7 +338,8 @@ void NucleusAgent::drawForDebug(DisplayUnit& du) {
 				}
 			}
 		}
-		report::debugMessage(fmt::format("{} surface consists of {} spheres", getSignature(), periPointCnt)); 
+		report::debugMessage(fmt::format("{} surface consists of {} spheres",
+		                                 getSignature(), periPointCnt));
 
 		// red lines with overlapping proximity pairs to nuclei
 		for (const auto& p : proximityPairs_toNuclei)
