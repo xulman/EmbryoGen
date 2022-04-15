@@ -178,6 +178,10 @@ void Scenario_DrosophilaRandom::initializeScene() {
 }
 
 class mySceneControls : public SceneControls {
+  public:
+	mySceneControls(Constants& callersOwnConstants)
+	    : SceneControls(callersOwnConstants) {}
+
 	int doMasks = 0;
 
 	void updateControls(const float currTime) override {
@@ -195,5 +199,11 @@ class mySceneControls : public SceneControls {
 };
 
 SceneControls& Scenario_DrosophilaRandom::provideSceneControls() {
-	return *(new mySceneControls());
+	SceneControls::Constants c;
+	c.stopTime = 12.0f;
+
+	auto mSC = new mySceneControls(c);
+	mSC->disableWaitForUserPrompt();
+
+	return *mSC;
 }
