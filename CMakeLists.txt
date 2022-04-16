@@ -24,7 +24,7 @@ project(EmbryoGen)
 include(GNUInstallDirs)
 set(CMAKE_VERBOSE_MAKEFILE ON CACHE STRING "Tracing the compilation process" FORCE)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wconversion")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wconversion -g")
 
 #------------------------------------------------
 # ALL OPTIONS ARE SUMMARIZED HERE (CONTROL PANEL)
@@ -280,12 +280,17 @@ add_library(i3dalgo STATIC IMPORTED)
 set_target_properties(i3dalgo PROPERTIES
     IMPORTED_LOCATION /usr/local/lib/libi3dalgo.a)
 
-set(LIBS i3dcore i3dalgo ${LIBS})
 else(BUILD_STATIC)
-find_library(LIB_I3DCORE "i3dcore")
-find_library(LIB_I3DALGO "i3dalgo")
-set(LIBS ${LIBS} ${LIB_I3DALGO} ${LIB_I3DCORE})
+add_library(i3dcore SHARED IMPORTED)
+set_target_properties(i3dcore PROPERTIES
+    IMPORTED_LOCATION /usr/local/lib/libi3dcore.so)
+
+add_library(i3dalgo SHARED IMPORTED)
+set_target_properties(i3dalgo PROPERTIES
+    IMPORTED_LOCATION /usr/local/lib/libi3dalgo.so)
+
 endif(BUILD_STATIC)
+set(LIBS i3dcore i3dalgo ${LIBS})
 
 # GSL library
 find_package(GSL REQUIRED)

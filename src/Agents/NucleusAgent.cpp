@@ -2,16 +2,16 @@
 #include "../util/surfacesamplers.hpp"
 #include <fmt/core.h>
 
-const ForceName ftype_s2s = "sphere-sphere"; // internal forces
-const ForceName ftype_drive = "desired movement";
-const ForceName ftype_friction = "friction";
+const ForceName_t ftype_s2s = "sphere-sphere"; // internal forces
+const ForceName_t ftype_drive = "desired movement";
+const ForceName_t ftype_friction = "friction";
 
-const ForceName ftype_repulsive =
+const ForceName_t ftype_repulsive =
     "repulsive"; // due to external events with nuclei
-const ForceName ftype_body = "no overlap (body)";
-const ForceName ftype_slide = "no sliding";
+const ForceName_t ftype_body = "no overlap (body)";
+const ForceName_t ftype_slide = "no sliding";
 
-const ForceName ftype_hinter =
+const ForceName_t ftype_hinter =
     "sphere-hinter"; // due to external events with shape hinters
 
 const G_FLOAT fstrength_body_scale = (G_FLOAT)0.4;    // [N/um]      TRAgen: N/A

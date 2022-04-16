@@ -7,16 +7,16 @@
 #include <list>
 #include <vector>
 
-extern const ForceName ftype_s2s;      //"sphere-sphere"     //internal forces
-extern const ForceName ftype_drive;    //"desired movement"
-extern const ForceName ftype_friction; //"friction"
+extern const ForceName_t ftype_s2s;      //"sphere-sphere"     //internal forces
+extern const ForceName_t ftype_drive;    //"desired movement"
+extern const ForceName_t ftype_friction; //"friction"
 
-extern const ForceName
+extern const ForceName_t
     ftype_repulsive; //"repulsive"         //due to external events with nuclei
-extern const ForceName ftype_body;  //"no overlap (body)"
-extern const ForceName ftype_slide; //"no sliding"
+extern const ForceName_t ftype_body;  //"no overlap (body)"
+extern const ForceName_t ftype_slide; //"no sliding"
 
-extern const ForceName ftype_hinter; //"sphere-hinter"     //due to external
+extern const ForceName_t ftype_hinter; //"sphere-hinter"     //due to external
                                      // events with shape hinters
 
 extern const G_FLOAT fstrength_body_scale;    // [N/um]      TRAgen: N/A
@@ -150,7 +150,7 @@ class NucleusAgent : public AbstractAgent {
 	/** helper method to (correctly) create a force acting on a sphere */
 	inline void exertForceOnSphere(const int sphereIdx,
 	                               const Vector3d<G_FLOAT>& forceVector,
-	                               const ForceName forceType) {
+	                               const ForceName_t forceType) {
 		forces.emplace_back(forceVector, futureGeometry.centres[sphereIdx],
 		                    sphereIdx, forceType);
 	}

@@ -1,8 +1,11 @@
 #pragma once
 
+#include "../../util/tools.hpp"
 #include "../Spheres.hpp"
 #include <cmath>
 #include <functional>
+#include <list>
+#include <vector>
 
 class SpheresFunctions {
   public:
@@ -334,8 +337,12 @@ class SpheresFunctions {
 				    targetGeom.noOfSpheres, optimalTargetSpheresNo));
 #endif
 			// create a single purpose receipt of constant content
-			std::list<posShakerPtr> positionShakers;
-			std::list<radiusShakerPtr> radiusShakers;
+			std::vector<posShakerPtr> positionShakers;
+			std::vector<radiusShakerPtr> radiusShakers;
+
+			positionShakers.reserve(expansionPlan.size());
+			radiusShakers.reserve(expansionPlan.size());
+
 			for (size_t i = 0; i < expansionPlan.size(); ++i) {
 				positionShakers.push_back(&positionShaker);
 				radiusShakers.push_back(&radiusShaker);
@@ -344,10 +351,14 @@ class SpheresFunctions {
 			expandSrcIntoThis(targetGeom, positionShakers, radiusShakers);
 		}
 
-		void expandSrcIntoThis(
-		    Spheres& targetGeom,
-		    const std::list<posShakerPtr>& positionShakers,
-		    const std::list<radiusShakerPtr>& radiusShakers) const {
+		template <tools::concepts::basic_container T,
+		          tools::concepts::basic_container U>
+		void expandSrcIntoThis(Spheres& targetGeom,
+		                       const T& positionShakers,
+		                       const U& radiusShakers) const {
+			static_assert(std::is_same_v<typename T::value_type, posShakerPtr>);
+			static_assert(
+			    std::is_same_v<typename U::value_type, radiusShakerPtr>);
 #ifndef NDEBUG
 			if (positionShakers.size() != radiusShakers.size())
 				throw report::rtError(
@@ -375,10 +386,8 @@ class SpheresFunctions {
 			// add interpolated spheres according to the plan
 			Vector3d<FT> distVec, newCentre;
 			FT deltaRadius, newRadius;
-			typename std::list<posShakerPtr>::const_iterator
-			    positionShakers_iter = positionShakers.begin();
-			typename std::list<radiusShakerPtr>::const_iterator
-			    radiusShakers_iter = radiusShakers.begin();
+			auto positionShakers_iter = positionShakers.begin();
+			auto radiusShakers_iter = radiusShakers.begin();
 			for (const auto& plan : expansionPlan) {
 				distVec = sourceGeom.centres[plan.toSrcIdx];
 				distVec -= sourceGeom.centres[plan.fromSrcIdx];
@@ -446,16 +455,16 @@ class SpheresFunctions {
 		                    const bool removeAllMatching = false) {
 			bool keepFinding = true;
 
-			typename std::list<planItem_t>::iterator i = expansionPlan.begin();
-			while (i != expansionPlan.end() && keepFinding) {
-				if (i->fromSrcIdx == fromSrcIdx && i->toSrcIdx == toSrcIdx) {
+			auto it = expansionPlan.begin();
+			while (it != expansionPlan.end() && keepFinding) {
+				if (it->fromSrcIdx == fromSrcIdx && it->toSrcIdx == toSrcIdx) {
 					// found a match:
-					optimalTargetSpheresNo -= i->noOfSpheresInBetween;
-					i = expansionPlan.erase(
-					    i); // NB: sets 'i' to elem right after the erased one
+					optimalTargetSpheresNo -= it->noOfSpheresInBetween;
+					it = expansionPlan.erase(
+					    it); // NB: sets 'i' to elem right after the erased one
 					keepFinding = removeAllMatching;
 				} else
-					++i;
+					++it;
 			}
 		}
 
@@ -494,8 +503,8 @@ class SpheresFunctions {
 	 * the overall shape of the agent. The net shape is established by adding
 	 * "links of spheres" between the two spheres. Each link is defined by its
 	 * "azimuth": consider a plane whose normal coincides with the polarity axis
-	 * and in which lies the vector towards the basal side of the agent -- this
-	 * vector represents the azimuth at 0 deg. Net shape is obtained by
+	 * and in which lies the list towards the basal side of the agent -- this
+	 * list represents the azimuth at 0 deg. Net shape is obtained by
 	 * utilizing multiple such azimuths, each defines a direction of extrusion
 	 * that is applied on given number of new spheres that would otherwise be
 	 * placed on a straight line between the two polarity- defining spheres.
@@ -591,7 +600,7 @@ class SpheresFunctions {
 			const std::function<FT(FT)> extrusionProfile;
 
 			void operator()(Vector3d<FT>& position, FT frac) const {
-				// DEBUG_REPORT("extruder for vector " << extender << " at
+				// DEBUG_REPORT("extruder for list " << extender << " at
 				// frac=" << frac);
 				position += extrusionProfile(frac) * extender;
 			}
@@ -740,7 +749,7 @@ class SpheresFunctions {
 			positionShakers.clear();
 			radiusShakers.clear();
 
-			// prepare direction vectors
+			// prepare direction lists
 			for (const auto& map : azimuthToNoOfSpheres) {
 				this->addToPlan(0, 1, map.second);
 

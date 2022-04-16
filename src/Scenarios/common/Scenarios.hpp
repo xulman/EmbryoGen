@@ -58,33 +58,23 @@ class FrontOfficer;
 	}
 
 //                                          regular class name
-SCENARIO_DECLARATION_withDefOptSynthoscopy(Scenario_AFewAgents)
-    SCENARIO_DECLARATION_withDefOptSynthoscopy(Scenario_DrosophilaRegular)
-        SCENARIO_DECLARATION_withDefOptSynthoscopy(Scenario_DrosophilaRandom)
-            SCENARIO_DECLARATION_withDefOptSynthoscopy(Scenario_pseudoDivision)
-                SCENARIO_DECLARATION_withDefOptSynthoscopy(
-                    Scenario_modelledDivision)
-                    SCENARIO_DECLARATION_withDefOptSynthoscopy(
-                        Scenario_dragAndRotate)
-                        SCENARIO_DECLARATION_withDefOptSynthoscopy(
-                            Scenario_withCellCycle)
-                            SCENARIO_DECLARATION_withItsOwnSynthoscopy(
-                                Scenario_withTexture)
-                                SCENARIO_DECLARATION_withDefOptSynthoscopy(
-                                    Scenario_dragRotateAndTexture)
-                                    SCENARIO_DECLARATION_withDefOptSynthoscopy(
-                                        Scenario_phaseIIandIII)
-                                        SCENARIO_DECLARATION_withDefOptSynthoscopy(
-                                            Scenario_PerlinShowCase)
-                                            SCENARIO_DECLARATION_withDefOptSynthoscopy(
-                                                Scenario_Parallel)
-                                                SCENARIO_DECLARATION_withDefOptSynthoscopy(
-                                                    Scenario_mpiDebug)
-                                                    SCENARIO_DECLARATION_withDefOptSynthoscopy(
-                                                        Scenario_Tetris)
-    //  ---> ADD NEW SCENARIO HERE AND ALSO BELOW <---
+SCENARIO_DECLARATION_withDefOptSynthoscopy(Scenario_AFewAgents);
+SCENARIO_DECLARATION_withDefOptSynthoscopy(Scenario_DrosophilaRegular);
+SCENARIO_DECLARATION_withDefOptSynthoscopy(Scenario_DrosophilaRandom);
+SCENARIO_DECLARATION_withDefOptSynthoscopy(Scenario_pseudoDivision);
+SCENARIO_DECLARATION_withDefOptSynthoscopy(Scenario_modelledDivision);
+SCENARIO_DECLARATION_withDefOptSynthoscopy(Scenario_dragAndRotate);
+SCENARIO_DECLARATION_withDefOptSynthoscopy(Scenario_withCellCycle);
+SCENARIO_DECLARATION_withItsOwnSynthoscopy(Scenario_withTexture);
+SCENARIO_DECLARATION_withDefOptSynthoscopy(Scenario_dragRotateAndTexture);
+SCENARIO_DECLARATION_withDefOptSynthoscopy(Scenario_phaseIIandIII);
+SCENARIO_DECLARATION_withDefOptSynthoscopy(Scenario_PerlinShowCase);
+SCENARIO_DECLARATION_withDefOptSynthoscopy(Scenario_Parallel);
+SCENARIO_DECLARATION_withDefOptSynthoscopy(Scenario_mpiDebug);
+SCENARIO_DECLARATION_withDefOptSynthoscopy(Scenario_Tetris);
+//  ---> ADD NEW SCENARIO HERE AND ALSO BELOW <---
 
-    class Scenarios {
+class Scenarios {
   private:
 	/** list of system-recognized scenarios, actually simulations */
 	std::list<std::string> availableScenarios;

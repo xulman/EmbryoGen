@@ -1,8 +1,15 @@
-#include "../src/util/report.hxx"
+#include <iostream>
+
+int foo(int x) {
+	if (x < 10)
+		return 10;
+
+	return foo(x - 1) + x;
+}
+
+void bar() { std::cout << "Hello world\n"; }
 
 int main() {
-	using namespace std::string_literals;
-	std::string xxd("This is completely valid string");
-
-	report::message(xxd);
+	bar();
+	std::cout << foo(900) << "\n";
 }

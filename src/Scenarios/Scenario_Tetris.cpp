@@ -104,7 +104,7 @@ void Scenario_Tetris::initializeAgents(FrontOfficer* fo, int p, int) {
 
 	for (int x = 0; x < 4; ++x)
 		for (int y = 0; y < 4; ++y) {
-			currGridPos.fromScalars(x, y, 2).elemMult(gridStep);
+			currGridPos.from(x, y, 2).elemMult(gridStep);
 			currGridPos += gridStart;
 
 			switch (x) {
@@ -193,7 +193,7 @@ void Scenario_Tetris::initializeAgents(FrontOfficer* fo, int p, int) {
 	// right-most column with 2S
 	int x = 3;
 	for (int y = 0; y < 4; ++y) {
-		currGridPos.fromScalars(x, y, 2).elemMult(gridStep);
+		currGridPos.from(x, y, 2).elemMult(gridStep);
 		currGridPos += gridStart;
 		agentName = fmt::format("{} __2SModel", y);
 
@@ -284,8 +284,8 @@ SceneControls& Scenario_Tetris::provideSceneControls() {
 
 	// override the default stop time
 	myConstants.stopTime = 40.2f;
-	myConstants.sceneSize.fromScalars(250, 250,
-	                                  50); // microns, offset is at [0,0,0]
+	myConstants.sceneSize.from(250, 250,
+	                           50); // microns, offset is at [0,0,0]
 	// image res 2px/1um
 
 	return *(new SceneControls(myConstants));

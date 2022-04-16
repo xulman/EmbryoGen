@@ -510,7 +510,7 @@ class SimpleDividingAgent : public NucleusAgent {
 		z = (basalDir.x * x + basalDir.y * y) / -basalDir.z;
 
 		Vector3d<G_FLOAT> polarity;
-		polarity.fromScalars(x, y, z);
+		polarity.from(x, y, z);
 		polarity.changeToUnitOrZero();
 		return polarity; //"copy ellision", thank you!
 	}
@@ -523,7 +523,7 @@ class SimpleDividingAgent : public NucleusAgent {
 		z = GetRandomUniform(-5.f, +5.f);
 
 		Vector3d<G_FLOAT> position;
-		position.fromScalars(x, y, z);
+		position.from(x, y, z);
 		position.changeToUnitOrZero();
 		position *= radius;
 		return position; //"copy ellision", thank you!
@@ -587,8 +587,8 @@ SceneControls& Scenario_modelledDivision::provideSceneControls() {
 	// override the some defaults
 	SceneControls::Constants myConstants;
 	myConstants.stopTime = 10000.2f;
-	myConstants.imgRes.fromScalar(0.5f);
-	myConstants.sceneSize.fromScalars(300, 20, 20);
+	myConstants.imgRes.from(0.5f);
+	myConstants.sceneSize.from(300, 20, 20);
 	myConstants.sceneOffset = -0.5f * myConstants.sceneSize;
 
 	myConstants.expoTime = 3.f * myConstants.incrTime;
