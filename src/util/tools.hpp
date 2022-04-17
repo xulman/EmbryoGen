@@ -16,6 +16,53 @@ inline void boundary_check(std::size_t i, std::size_t size) {
 #endif
 }
 
+template <typename T>
+class ptr_iterator {
+	T* _ptr = nullptr;
+
+  public:
+	ptr_iterator() = default;
+	ptr_iterator(T* ptr) : _ptr(ptr) {}
+
+	ptr_iterator& operator++() {
+		++_ptr;
+		return *this;
+	}
+	ptr_iterator operator++(int) {
+		ptr_iterator cpy = *this;
+		++(*this);
+		return cpy;
+	}
+	T& operator*() { return *_ptr; }
+	T* operator->() { return _ptr; }
+	friend auto operator<=>(const ptr_iterator& lhs,
+	                        const ptr_iterator& rhs) = default;
+};
+
+template <typename T>
+class const_ptr_iterator {
+	const T* _ptr = nullptr;
+
+  public:
+	const_ptr_iterator() = default;
+	const_ptr_iterator(const T* ptr) : _ptr(ptr) {}
+
+	const_ptr_iterator& operator++() {
+		++_ptr;
+		return *this;
+	}
+	const_ptr_iterator operator++(int) {
+		ptr_iterator cpy = *this;
+		++(*this);
+		return cpy;
+	}
+	const T& operator*() const { return *_ptr; }
+	const T* operator->() const { return _ptr; }
+
+	friend auto operator<=>(const const_ptr_iterator& lhs,
+	                        const const_ptr_iterator& rhs) = default;
+};
+
 } // namespace details
 
 namespace tools {
@@ -32,27 +79,41 @@ concept basic_container = requires(T a, T::value_type b) {
 
 namespace structures {
 
-// TODO fix non-default constructible data
 template <typename T, std::size_t N>
 class SmallVector {
   private:
-	std::array<T, N> _static_data;
+	char _static_data[sizeof(T) * N];
+	T* _elems = (T*)(&_static_data[0]);
 	std::vector<T> _dynamic_data;
 	std::size_t _size = 0;
 
 	void arr_to_vec() {
-		_dynamic_data.insert(_dynamic_data.begin(), _static_data.begin(),
-		                     _static_data.end());
+		_dynamic_data.reserve(N * 2);
+		for (auto& val : *this) {
+			_dynamic_data.push_back(std::move(val));
+		}
+	}
+
+	void destroy_elems() {
+		for (std::size_t i = 0; i < std::min(N, _size); ++i) {
+			_elems[i].~T();
+		}
 	}
 
   public:
 	using value_type = T;
 	constexpr static std::size_t static_size = N;
 
+	SmallVector() = default;
+	SmallVector(const SmallVector&) = default;
+	SmallVector(SmallVector&&) = default;
+	SmallVector<T, N>& operator=(const SmallVector&) = default;
+	SmallVector<T, N>& operator=(SmallVector&&) = default;
+
 	std::size_t size() const { return _size; }
 	void push_back(T elem) {
 		if (_size < N)
-			_static_data[_size] = std::move(elem);
+			std::uninitialized_move_n(&elem, 1, _elems + _size);
 		else {
 			if (_size == N)
 				arr_to_vec();
@@ -63,34 +124,33 @@ class SmallVector {
 	}
 
 	void clear() {
+		destroy_elems();
 		_dynamic_data.clear();
 		_size = 0;
 	}
 
-	// TODO create full iterator
-	T* begin() {
+	auto begin() noexcept {
 		if (_size < N)
-			return &_static_data[0];
-		return &_dynamic_data[0];
+			return details::ptr_iterator(&_elems[0]);
+		return details::ptr_iterator(&_dynamic_data[0]);
 	}
-
-	T* end() {
+	auto end() noexcept {
 		if (_size < N)
-			return &_static_data[_size];
-		return &_dynamic_data[_size];
+			return details::ptr_iterator(&_elems[_size]);
+		return details::ptr_iterator(&_dynamic_data[_size]);
 	}
-
-	const T* begin() const {
+	auto cbegin() const noexcept {
 		if (_size < N)
-			return &_static_data[0];
-		return &_dynamic_data[0];
+			return details::const_ptr_iterator(&_elems[0]);
+		return details::const_ptr_iterator(&_dynamic_data[0]);
 	}
-
-	const T* end() const {
+	auto cend() const noexcept {
 		if (_size < N)
-			return &_static_data[_size];
-		return &_dynamic_data[_size];
+			return details::const_ptr_iterator(&_elems[_size]);
+		return details::const_ptr_iterator(&_dynamic_data[_size]);
 	}
+	auto begin() const noexcept { return cbegin(); }
+	auto end() const noexcept { return cend(); }
 
 	T& operator[](std::size_t i) {
 		details::boundary_check(i, _size);
@@ -109,46 +169,77 @@ class SmallVector {
 		}
 		return _dynamic_data[i];
 	}
+
+	~SmallVector() { destroy_elems(); }
 };
 
-// TODO fix non-default constructible data
 template <typename T, std::size_t N>
 class StaticVector {
-	std::array<T, N> _data;
+	char _data[sizeof(T) * N];
+	T* _elems = (T*)(&_data[0]);
 	std::size_t _size = 0;
+
+	void destroy_elems() noexcept {
+		for (T& elem : *this)
+			elem.~T();
+	}
 
   public:
 	using value_type = T;
 	constexpr static std::size_t static_size = N;
 
-	void clear() { _size = 0; }
+	StaticVector() = default;
+	StaticVector(const StaticVector&) = default;
+	StaticVector(StaticVector&&) = default;
+	StaticVector<T, N>& operator=(const StaticVector&) = default;
+	StaticVector<T, N>& operator=(StaticVector&&) = default;
+
+	void clear() noexcept {
+		destroy_elems();
+		_size = 0;
+	}
 	void push_back(T elem) {
 		details::boundary_check(_size, N);
-		_data[_size] = std::move(elem);
+		std::uninitialized_move_n(&elem, 1, _elems + _size);
 		++_size;
 	}
 
 	std::size_t size() const { return _size; }
-	auto begin() { return _data.begin(); }
-
-	auto end() { return _data.begin() + _size; }
-
-	auto begin() const { return _data.begin(); }
-
-	auto end() const { return _data.begin() + _size; }
 
 	T& operator[](std::size_t i) {
 		details::boundary_check(i, _size);
-		return _data[i];
+		return _elems[i];
 	}
 
 	const T& operator[](std::size_t i) const {
 		details::boundary_check(i, _size);
-		return _data[i];
+		return _elems[i];
 	}
+
+	auto begin() noexcept { return details::ptr_iterator(_elems); }
+	auto end() noexcept { return details::ptr_iterator(_elems + _size); }
+	auto cbegin() const noexcept { return details::const_ptr_iterator(_elems); }
+	auto cend() const noexcept {
+		return details::const_ptr_iterator(_elems + _size);
+	}
+	auto begin() const noexcept { return cbegin(); }
+	auto end() const noexcept { return cend(); }
+
+	~StaticVector() noexcept { destroy_elems(); }
 };
+
+template <typename T>
+using StaticVector3 = StaticVector<T, 3>;
+
+template <typename T>
+using StaticVector4 = StaticVector<T, 4>;
+
+template <typename T>
+using StaticVector5 = StaticVector<T, 5>;
+
+template <typename T>
+using StaticVector10 = StaticVector<T, 10>;
 
 } // namespace structures
 
 } // namespace tools
-
