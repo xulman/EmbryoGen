@@ -2,7 +2,7 @@
 
 #include "Geometry.hpp"
 #include <i3d/image3d.h>
-class Spheres;
+#include "Spheres.hpp"
 
 /**
  * Shape form based on image (given its size [px], offset [micrometers] and

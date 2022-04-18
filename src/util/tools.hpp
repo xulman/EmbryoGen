@@ -75,6 +75,13 @@ concept basic_container = requires(T a, T::value_type b) {
 	{a.end()};
 	{a.clear()};
 };
+
+template <typename T, typename U>
+concept basic_container_v = requires(T a, U b) {
+	basic_container<T>;
+	std::is_same_v<typename T::value_type, U>;
+};
+
 } // namespace concepts
 
 namespace structures {

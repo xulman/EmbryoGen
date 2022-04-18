@@ -108,7 +108,7 @@ class AxisAlignedBoundingBox {
 class NamedAxisAlignedBoundingBox : public AxisAlignedBoundingBox {
   public:
 	int ID;
-	size_t nameID;
+	std::size_t nameID;
 
 	// mostly repetition of the AxisAlignedBoundingBox c'tors
 	NamedAxisAlignedBoundingBox(void)
@@ -119,13 +119,13 @@ class NamedAxisAlignedBoundingBox : public AxisAlignedBoundingBox {
 
 	NamedAxisAlignedBoundingBox(const AxisAlignedBoundingBox& aabb,
 	                            const int boxID,
-	                            const size_t boxNameID)
+	                            const std::size_t boxNameID)
 	    : AxisAlignedBoundingBox(aabb), ID(boxID), nameID(boxNameID) {}
 
 	template <typename T>
 	NamedAxisAlignedBoundingBox(const i3d::Image3d<T>& img,
 	                            const int boxID,
-	                            const size_t boxNameID)
+	                            const std::size_t boxNameID)
 	    : AxisAlignedBoundingBox(img), ID(boxID), nameID(boxNameID) {}
 };
 
