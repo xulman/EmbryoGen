@@ -2,6 +2,7 @@
 
 #include "../util/report.hpp"
 #include "Geometry.hpp"
+#include <vector>
 
 /**
  * Collection of Spheres::noOfSpheres spheres, the represented shape/geometry
@@ -15,73 +16,25 @@ class Spheres : public Geometry {
 	const int noOfSpheres;
 
 	/** list of centres of the spheres */
-	Vector3d<G_FLOAT>* const centres;
+	std::vector<Vector3d<G_FLOAT>> centres;
 
 	/** list of radii of the spheres */
-	G_FLOAT* const radii;
-
-	/** a flag to prevent this object from freeing both 'centres' and 'radii'
-	    attributes in its (*this) destructor; this flag is set only in its
-	    (*this) moving constructor to signal arrays are "stolen" (technically,
-	    shared) into another object; note both attribs are immutable... */
-	bool dataMovedAwayDontDelete = false;
+	std::vector<G_FLOAT> radii;
 
   public:
 	/** empty shape constructor */
 	Spheres(const int _noOfSpheres)
 	    : Geometry(ListOfShapeForms::Spheres), noOfSpheres(_noOfSpheres),
-	      centres(new Vector3d<G_FLOAT>[noOfSpheres]),
-	      radii(new G_FLOAT[noOfSpheres]) {
+	      centres(noOfSpheres),
+	      radii(noOfSpheres) {
 		// sanity check...
 		if (_noOfSpheres < 0)
 			throw report::rtError(
 			    "Cannot construct geometry with negative number of spheres.");
 
-		for (int i = 0; i < noOfSpheres; ++i)
-			radii[i] = 0.0;
 		// report::message(fmt::format("Constructing spheres @ {}" , this));
 		// report::message(fmt::format("Obtaining new arrays in spheres @ {}" ,
 		// this));
-	}
-
-	/** move constructor */
-	Spheres(Spheres&& s)
-	    : Geometry(ListOfShapeForms::Spheres), noOfSpheres(s.noOfSpheres),
-	      centres(s.centres), radii(s.radii) {
-		s.dataMovedAwayDontDelete = true;
-		// report::message(fmt::format("/ Moving spheres from {}" , &s));
-		// report::message(fmt::format("\\ Moving spheres into {}" , this));
-		// report::message(fmt::format("Stealing arrays into spheres @ {}" ,
-		// this));
-	}
-
-	/** copy constructor */
-	Spheres(const Spheres& s)
-	    : Geometry(ListOfShapeForms::Spheres), noOfSpheres(s.getNoOfSpheres()),
-	      centres(new Vector3d<G_FLOAT>[noOfSpheres]),
-	      radii(new G_FLOAT[noOfSpheres]) {
-		const Vector3d<G_FLOAT>* sCentres = s.getCentres();
-		const G_FLOAT* sRadii = s.getRadii();
-
-		for (int i = 0; i < noOfSpheres; ++i) {
-			centres[i] = sCentres[i];
-			radii[i] = sRadii[i];
-		}
-		// report::message(fmt::format("/ Copying spheres from {}" , &s));
-		// report::message(fmt::format("\\ Copying spheres into {}" , this));
-		// report::message(fmt::format("Duplicating arrays into spheres @ {}" ,
-		// this));
-	}
-
-	~Spheres(void) {
-		// free only if we still "own" both arrays
-		if (dataMovedAwayDontDelete == false) {
-			delete[] centres;
-			delete[] radii;
-			// report::message(fmt::format("Freeing arrays in spheres @ {}" ,
-			// this));
-		}
-		// report::message(fmt::format("Destructing spheres @ {}" , this));
 	}
 
 	// ------------- distances -------------
@@ -116,9 +69,9 @@ class Spheres : public Geometry {
 	// ------------- get/set methods -------------
 	int getNoOfSpheres(void) const { return noOfSpheres; }
 
-	const Vector3d<G_FLOAT>* getCentres(void) const { return centres; }
+	const Vector3d<G_FLOAT>* getCentres(void) const { return &centres[0]; }
 
-	const G_FLOAT* getRadii(void) const { return radii; }
+	const G_FLOAT* getRadii(void) const { return &radii[0]; }
 
 	void updateCentre(const int i, const Vector3d<G_FLOAT>& centre) {
 		centres[i] = centre;
