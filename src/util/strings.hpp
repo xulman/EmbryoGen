@@ -1,8 +1,8 @@
 #pragma once
 
 #include "../Geometries/Geometry.hpp"
+#include "../tools/concepts.hpp"
 #include "report.hpp"
-#include "tools.hpp"
 #include <list>
 #include <map>
 #include <string>
