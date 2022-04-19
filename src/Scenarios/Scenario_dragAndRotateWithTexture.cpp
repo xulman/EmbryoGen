@@ -109,8 +109,8 @@ class myDragAndTextureNucleus_common : public NucleusNSAgent, Texture {
 		const Vector3d<G_FLOAT> off(img.GetOffset());
 
 		// shortcuts to our Own spheres
-		const Vector3d<G_FLOAT>* const centresO = futureGeometry.getCentres();
-		const G_FLOAT* const radiiO = futureGeometry.getRadii();
+		const std::vector<Vector3d<G_FLOAT>>& centresO = futureGeometry.getCentres();
+		const std::vector<G_FLOAT>& radiiO = futureGeometry.getRadii();
 		const std::size_t iO = futureGeometry.getNoOfSpheres();
 
 		// project and "clip" this AABB into the img frame

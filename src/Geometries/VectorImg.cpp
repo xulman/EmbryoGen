@@ -71,8 +71,8 @@ void VectorImg::getDistanceToSpheres(const class Spheres* otherSpheres,
 	vecPXhd2.elemMult(vecPXhd2); // make it squared
 
 	// shortcuts to the otherGeometry's spheres
-	const Vector3d<G_FLOAT>* const centresO = otherSpheres->getCentres();
-	const G_FLOAT* const radiiO = otherSpheres->getRadii();
+	const std::vector<Vector3d<G_FLOAT>>& centresO = otherSpheres->getCentres();
+	const std::vector<G_FLOAT>& radiiO = otherSpheres->getRadii();
 	const int io = int(otherSpheres->getNoOfSpheres());
 
 	// remember the squared lengths observed so far for every foreign sphere...

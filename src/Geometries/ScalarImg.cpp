@@ -75,14 +75,14 @@ void ScalarImg::getDistanceToSpheres(const class Spheres* otherSpheres,
 	vecPXhd2.elemMult(vecPXhd2); // make it squared
 
 	// shortcuts to the otherGeometry's spheres
-	const Vector3d<G_FLOAT>* const centresO = otherSpheres->getCentres();
-	const G_FLOAT* const radiiO = otherSpheres->getRadii();
-	const int io = int(otherSpheres->getNoOfSpheres());
+	const std::vector<Vector3d<G_FLOAT>>& centresO = otherSpheres->getCentres();
+	const std::vector<G_FLOAT>& radiiO = otherSpheres->getRadii();
+	const std::size_t io = otherSpheres->getNoOfSpheres();
 
 	// remember the smallest distance observed so far for every foreign
 	// sphere...
 	G_FLOAT* distances = new G_FLOAT[io];
-	for (int i = 0; i < io; ++i)
+	for (std::size_t i = 0; i < io; ++i)
 		distances[i] = TOOFAR;
 	//...and where it was observed
 	Vector3d<size_t>* hints = new Vector3d<size_t>[io];
@@ -100,7 +100,7 @@ void ScalarImg::getDistanceToSpheres(const class Spheres* otherSpheres,
 				centre.toMicronsFrom(curPos, distImgRes, distImgOff);
 
 				// check the current voxel against all spheres
-				for (int i = 0; i < io; ++i) {
+				for (std::size_t i = 0; i < io; ++i) {
 					surfPoint = centre;
 					surfPoint -= centresO[i];
 					// if sphere's surface would be 2*lenPXhd thick, would the
@@ -138,7 +138,7 @@ void ScalarImg::getDistanceToSpheres(const class Spheres* otherSpheres,
 			}     // over all voxels in the sweeping box
 
 	// add ProximityPairs where found some
-	for (int i = 0; i < io; ++i)
+	for (std::size_t i = 0; i < io; ++i)
 		if (distances[i] < TOOFAR) {
 			// found some pair:
 			// determine the local gradient at the coinciding voxel

@@ -73,9 +73,9 @@ class Spheres : public Geometry {
 		return centres.size();
 	}
 
-	const Vector3d<G_FLOAT>* getCentres(void) const { return &centres[0]; }
+	const std::vector<Vector3d<G_FLOAT>>& getCentres(void) const { return centres; }
 
-	const G_FLOAT* getRadii(void) const { return &radii[0]; }
+	const std::vector<G_FLOAT>& getRadii(void) const { return radii; }
 
 	void updateCentre(const int i, const Vector3d<G_FLOAT>& centre) {
 		centres[i] = centre;

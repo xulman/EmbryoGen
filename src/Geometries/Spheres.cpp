@@ -27,8 +27,8 @@ void Spheres::getDistance(const Geometry& otherGeometry,
 void Spheres::getDistanceToSpheres(const Spheres* otherSpheres,
                                    std::list<ProximityPair>& l) const {
 	// shortcuts to the otherGeometry's spheres
-	const Vector3d<G_FLOAT>* const centresO = otherSpheres->getCentres();
-	const G_FLOAT* const radiiO = otherSpheres->getRadii();
+	const std::vector<Vector3d<G_FLOAT>>& centresO = otherSpheres->getCentres();
+	const std::vector<G_FLOAT>& radiiO = otherSpheres->getRadii();
 
 	// for every my sphere: find nearest other sphere
 	for (std::size_t im = 0; im < getNoOfSpheres(); ++im) {
