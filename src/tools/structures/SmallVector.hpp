@@ -50,6 +50,12 @@ class SmallVector {
 		++_size;
 	}
 
+	template <typename... Args>
+	T& emplace_back(Args&&... args) {
+		push_back(T(std::forward<Args>(args)...));
+		return (*this[size() - 1]);
+	}
+
 	void clear() {
 		destroy_static_data();
 		_dynamic_data.clear();

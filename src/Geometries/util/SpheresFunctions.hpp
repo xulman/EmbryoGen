@@ -1,6 +1,8 @@
 #pragma once
 
 #include "../../tools/concepts.hpp"
+#include "../../tools/structures/SmallVector.hpp"
+#include "../../tools/structures/StaticVector.hpp"
 #include "../Spheres.hpp"
 #include <cmath>
 #include <functional>
@@ -431,7 +433,8 @@ class SpheresFunctions {
 		               const int toSrcIdx,
 		               const int noOfSpheresInBetween) {
 #ifndef NDEBUG
-			if (fromSrcIdx < 0 || fromSrcIdx >= int(sourceGeom.getNoOfSpheres()))
+			if (fromSrcIdx < 0 ||
+			    fromSrcIdx >= int(sourceGeom.getNoOfSpheres()))
 				throw report::rtError(
 				    fmt::format("src index is invalid, should be within [0,{}]",
 				                sourceGeom.getNoOfSpheres() - 1));
@@ -745,7 +748,8 @@ class SpheresFunctions {
 			// iterate over all azimuths, set up and apply the up-stream
 			// Interpolator
 			this->expansionPlan.clear();
-			this->optimalTargetSpheresNo = int(this->sourceGeom.getNoOfSpheres());
+			this->optimalTargetSpheresNo =
+			    int(this->sourceGeom.getNoOfSpheres());
 			positionShakers.clear();
 			radiusShakers.clear();
 
@@ -782,8 +786,8 @@ class SpheresFunctions {
 		}
 
 	  protected:
-		std::list<posShakerPtr> positionShakers;
-		std::list<radiusShakerPtr> radiusShakers;
+		tools::structures::StaticVector5<posShakerPtr> positionShakers;
+		tools::structures::StaticVector5<radiusShakerPtr> radiusShakers;
 
 		// ------------------- task implementation: maintain the layout
 		// -------------------
@@ -835,13 +839,14 @@ deltaRadius0, deltaRadius1, deltaMainAxisDist));
 					    static_cast<float>(m.second + 1);
 					for (int i = 1; i <= m.second; ++i, ++sNo) {
 						float frac = (float)i / intersections;
-						geom.updateRadius(int(sNo), geom.getRadii()[sNo] +
-						                           (1 - frac) * deltaRadius0 +
-						                           frac * deltaRadius1);
+						geom.updateRadius(int(sNo),
+						                  geom.getRadii()[sNo] +
+						                      (1 - frac) * deltaRadius0 +
+						                      frac * deltaRadius1);
 						geom.updateCentre(int(sNo), geom.getCentres()[sNo] +
-						                           deltaMainAxisDist *
-						                               (frac - 0.5f) *
-						                               posDeltaDir);
+						                                deltaMainAxisDist *
+						                                    (frac - 0.5f) *
+						                                    posDeltaDir);
 					}
 				}
 		}

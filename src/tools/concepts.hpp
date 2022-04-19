@@ -12,6 +12,7 @@ concept basic_container = requires(T a, T::value_type b) {
 	{a.begin()};
 	{a.end()};
 	{a.clear()};
+	{a.emplace_back(b)};
 };
 
 template <typename T, typename U>
