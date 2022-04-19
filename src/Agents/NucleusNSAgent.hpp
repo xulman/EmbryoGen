@@ -14,8 +14,8 @@ class NucleusNSAgent : public NucleusAgent {
 	               const float _currTime,
 	               const float _incrTime)
 	    : NucleusAgent(_ID, _type, shape, _currTime, _incrTime),
-	      distanceMatrix(shape.noOfSpheres) {
-		if (shape.noOfSpheres < 2)
+	      distanceMatrix(int(shape.getNoOfSpheres())) {
+		if (shape.getNoOfSpheres() < 2)
 			throw report::rtError("Cannot construct NucleusNSAgent with less "
 			                      "than two spheres geometry.");
 		resetDistanceMatrix();

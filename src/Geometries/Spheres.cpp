@@ -31,7 +31,7 @@ void Spheres::getDistanceToSpheres(const Spheres* otherSpheres,
 	const G_FLOAT* const radiiO = otherSpheres->getRadii();
 
 	// for every my sphere: find nearest other sphere
-	for (int im = 0; im < noOfSpheres; ++im) {
+	for (std::size_t im = 0; im < getNoOfSpheres(); ++im) {
 		// skip calculation for this sphere if it has no radius...
 		if (radii[im] == 0)
 			continue;
@@ -40,7 +40,7 @@ void Spheres::getDistanceToSpheres(const Spheres* otherSpheres,
 		int bestIo = -1;
 		G_FLOAT bestDist = TOOFAR;
 
-		for (int io = 0; io < otherSpheres->getNoOfSpheres(); ++io) {
+		for (std::size_t io = 0; io < otherSpheres->getNoOfSpheres(); ++io) {
 			// skip calculation for this sphere if it has no radius...
 			if (radiiO[io] == 0)
 				continue;
@@ -52,7 +52,7 @@ void Spheres::getDistanceToSpheres(const Spheres* otherSpheres,
 			// is nearer?
 			if (dist < bestDist) {
 				bestDist = dist;
-				bestIo = io;
+				bestIo = int(io);
 			}
 		}
 
@@ -79,18 +79,18 @@ int Spheres::collideWithPoint(const Vector3d<G_FLOAT>& point,
 	bool collision = false;
 
 	Vector3d<G_FLOAT> tmp;
-	int testingIndex = ignoreIdx == 0 ? 1 : 0;
-	while (!collision && testingIndex < noOfSpheres) {
+	std::size_t testingIndex = ignoreIdx == 0 ? 1 : 0;
+	while (!collision && testingIndex < radii.size()) {
 		tmp = centres[testingIndex];
 		tmp -= point;
 		collision = tmp.len() <= radii[testingIndex];
 
 		++testingIndex;
-		if (testingIndex == ignoreIdx)
+		if (int(testingIndex) == ignoreIdx)
 			++testingIndex;
 	}
 
-	return collision == false ? -1 : testingIndex - 1;
+	return !collision ? -1 : int(testingIndex) - 1;
 }
 
 void Spheres::updateThisAABB(AxisAlignedBoundingBox& AABB) const {
@@ -98,7 +98,7 @@ void Spheres::updateThisAABB(AxisAlignedBoundingBox& AABB) const {
 
 	// check centre plus/minus radius in every axis and record extremal
 	// coordinates
-	for (int i = 0; i < noOfSpheres; ++i)
+	for (std::size_t i = 0; i < getNoOfSpheres(); ++i)
 		if (radii[i] > 0.f) {
 			AABB.minCorner.x =
 			    std::min(AABB.minCorner.x, centres[i].x - radii[i]);
@@ -120,15 +120,18 @@ void Spheres::updateThisAABB(AxisAlignedBoundingBox& AABB) const {
 // ----------------- support for serialization and deserealization
 // -----------------
 long Spheres::getSizeInBytes() const {
-	return 2 * sizeof(int) + noOfSpheres * 4 * sizeof(G_FLOAT);
+	return sizeof(int) + 
+		+ sizeof(decltype(version)) 
+		+ centres.size() * sizeof(G_FLOAT) * 3 
+		+ radii.size() * sizeof(G_FLOAT);
 }
 
 void Spheres::serializeTo(char* buffer) const {
 	// store noOfSpheres
-	long off = Serialization::toBuffer(noOfSpheres, buffer);
+	long off = Serialization::toBuffer(int(getNoOfSpheres()), buffer);
 
 	// store individual spheres
-	for (int i = 0; i < noOfSpheres; ++i) {
+	for (std::size_t i = 0; i < getNoOfSpheres(); ++i) {
 		off += Serialization::toBuffer(centres[i], buffer + off);
 		off += Serialization::toBuffer(radii[i], buffer + off);
 	}
@@ -139,15 +142,16 @@ void Spheres::serializeTo(char* buffer) const {
 void Spheres::deserializeFrom(char* buffer) {
 	int recv_noOfSpheres;
 	long off = Deserialization::fromBuffer(buffer, recv_noOfSpheres);
+	std::size_t noOfSpheres = getNoOfSpheres();
 
-	if (noOfSpheres != recv_noOfSpheres)
+	if (int(noOfSpheres) != recv_noOfSpheres)
 		throw report::rtError(
 		    fmt::format("Deserialization mismatch: cannot fill geometry of {} "
 		                "spheres from the buffer with {} spheres",
 		                noOfSpheres, recv_noOfSpheres));
 
 	// read and setup individual spheres
-	for (int i = 0; i < noOfSpheres; ++i) {
+	for (std::size_t i = 0; i < noOfSpheres; ++i) {
 		off += Deserialization::fromBuffer(buffer + off, centres[i]);
 		off += Deserialization::fromBuffer(buffer + off, radii[i]);
 	}
@@ -188,7 +192,7 @@ void Spheres::renderIntoMask(i3d::Image3d<i3d::GRAY16>& mask,
 				centre.toMicronsFrom(curPos, res, off);
 
 				// check the current voxel against all spheres
-				for (int i = 0; i < noOfSpheres; ++i) {
+				for (std::size_t i = 0; i < getNoOfSpheres(); ++i) {
 					if ((centre - centres[i]).len() <= radii[i]) {
 #ifndef NDEBUG
 						i3d::GRAY16 val =

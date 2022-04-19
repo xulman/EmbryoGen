@@ -131,7 +131,7 @@ int Texture::collectOutlyingDots(const Spheres& geom) {
 		G_FLOAT nearestDist = TOOFAR;
 		int nearestIdx = -1;
 
-		for (int i = 0; i < geom.noOfSpheres && !foundInside; ++i) {
+		for (std::size_t i = 0; i < geom.getNoOfSpheres() && !foundInside; ++i) {
 			// test against the i-th sphere
 			tmp = geom.centres[i];
 			tmp -= dot.pos;
@@ -142,7 +142,7 @@ int Texture::collectOutlyingDots(const Spheres& geom) {
 			if (!foundInside && tmpLen < nearestDist) {
 				// update nearest distance
 				nearestDist = tmpLen;
-				nearestIdx = i;
+				nearestIdx = int(i);
 			}
 		}
 
@@ -374,7 +374,7 @@ template void Texture::sampleDotsFromImage(const i3d::Image3d<double>& img,
 void TextureUpdater4S::updateTextureCoords(std::vector<Dot>& dots,
                                            const Spheres& newGeom) {
 #ifndef NDEBUG
-	if (newGeom.noOfSpheres != 4)
+	if (newGeom.getNoOfSpheres() != 4)
 		throw report::rtError(
 		    "Cannot update coordinates for non-four sphere geometry.");
 #endif
@@ -444,11 +444,11 @@ void TextureUpdater4S::updateTextureCoords(std::vector<Dot>& dots,
 void TextureUpdater2pNS::updateTextureCoords(std::vector<Dot>& dots,
                                              const Spheres& newGeom) {
 #ifndef NDEBUG
-	if (newGeom.noOfSpheres != noOfSpheres)
+	if (int(newGeom.getNoOfSpheres()) != noOfSpheres)
 		throw report::rtError(
 		    fmt::format("Cannot update coordinates for {} sphere geometry, "
 		                "expected {} spheres.",
-		                newGeom.noOfSpheres, noOfSpheres));
+		                newGeom.getNoOfSpheres(), noOfSpheres));
 #endif
 	// backup: last geometry for which texture coordinates were valid
 	// and prepare the updating routines where "orientation is global"
@@ -507,11 +507,11 @@ void TextureUpdater2pNS::updateTextureCoords(std::vector<Dot>& dots,
 void TextureUpdaterNS::resetNeigWeightMatrix(const Spheres& spheres,
                                              int maxNoOfNeighs) {
 #ifndef NDEBUG
-	if (spheres.noOfSpheres != noOfSpheres)
+	if (int(spheres.getNoOfSpheres()) != noOfSpheres)
 		throw report::rtError(
 		    fmt::format("Cannot update coordinates for {} sphere geometry, "
 		                "expected {} spheres.",
-		                spheres.noOfSpheres, noOfSpheres));
+		                spheres.getNoOfSpheres(), noOfSpheres));
 
 	if (maxNoOfNeighs < 1 || maxNoOfNeighs >= noOfSpheres)
 		throw report::rtError(fmt::format("requesting maxNoOfNeighs={} when "
@@ -639,15 +639,15 @@ void TextureUpdaterNS::getLocalOrientation(const Spheres& spheres,
 	Vector3d<G_FLOAT> tmpVec;
 
 	orientVec = 0;
-	for (int i = 0; i < spheres.noOfSpheres; ++i)
-		if (i != idx && *neigWeightMatrix(idx, i) > 0) {
+	for (std::size_t i = 0; i < spheres.getNoOfSpheres(); ++i)
+		if (int(i) != idx && *neigWeightMatrix(idx, int(i)) > 0) {
 			// vec from 'idx' to 'i'
 			tmpVec = spheres.centres[i];
 			tmpVec -= spheres.centres[idx];
 
 			// weight this contribution
 			tmpVec.changeToUnitOrZero();
-			tmpVec *= *neigWeightMatrix(idx, i) / *neigWeightMatrix(idx, idx);
+			tmpVec *= *neigWeightMatrix(idx, int(i)) / *neigWeightMatrix(idx, idx);
 
 			orientVec += tmpVec;
 		}
@@ -657,11 +657,11 @@ void TextureUpdaterNS::getLocalOrientation(const Spheres& spheres,
 void TextureUpdaterNS::updateTextureCoords(std::vector<Dot>& dots,
                                            const Spheres& newGeom) {
 #ifndef NDEBUG
-	if (newGeom.noOfSpheres != noOfSpheres)
+	if (int(newGeom.getNoOfSpheres()) != noOfSpheres)
 		throw report::rtError(
 		    fmt::format("Cannot update coordinates for {} sphere geometry, "
 		                "expected {} spheres.",
-		                newGeom.noOfSpheres, noOfSpheres));
+		                newGeom.getNoOfSpheres(), noOfSpheres));
 #endif
 	// backup: last geometry for which user coordinates were valid
 	// and prepare the updating routines...

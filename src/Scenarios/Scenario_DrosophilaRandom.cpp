@@ -76,9 +76,9 @@ class GrowableNucleusRand : public NucleusNSAgent {
 	void drawMask(DisplayUnit& du) override {
 		NucleusAgent::drawMask(du);
 		int dID = DisplayUnit::firstIdForAgentObjects(ID);
-		for (int i = futureGeometry.getNoOfSpheres();
+		for (std::size_t i = futureGeometry.getNoOfSpheres();
 		     i < presentationGeom.getNoOfSpheres(); ++i)
-			du.DrawPoint(dID + i + 5, presentationGeom.getCentres()[i],
+			du.DrawPoint(dID + int(i) + 5, presentationGeom.getCentres()[i],
 			             presentationGeom.getRadii()[i], 3);
 	}
 };

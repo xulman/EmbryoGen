@@ -45,15 +45,15 @@ class TetrisNucleus : public NucleusNSAgent, TextureUpdaterNS {
 		// spheres all green, except: 0th is white, "active" is red
 		du.DrawPoint(dID++, futureGeometry.getCentres()[0],
 		             futureGeometry.getRadii()[0], 0);
-		for (int i = 1; i < futureGeometry.getNoOfSpheres(); ++i)
+		for (std::size_t i = 1; i < futureGeometry.getNoOfSpheres(); ++i)
 			du.DrawPoint(dID++, futureGeometry.getCentres()[i],
 			             futureGeometry.getRadii()[i],
-			             i == activeSphereIdx ? 1 : 2);
+			             int(i) == activeSphereIdx ? 1 : 2);
 
 		// sphere orientations as local debug, white vectors
 		Vector3d<G_FLOAT> orientVec;
-		for (int i = 0; i < futureGeometry.getNoOfSpheres(); ++i) {
-			getLocalOrientation(futureGeometry, i, orientVec);
+		for (std::size_t i = 0; i < futureGeometry.getNoOfSpheres(); ++i) {
+			getLocalOrientation(futureGeometry, int(i), orientVec);
 			du.DrawVector(ldID++, futureGeometry.getCentres()[i], orientVec, 0);
 		}
 		/*
@@ -164,9 +164,9 @@ void Scenario_Tetris::initializeAgents(FrontOfficer* fo, int p, int) {
 				break;
 			case 2:
 				agentName = fmt::format("{} __Bulk", y);
-				for (int i = 0; i < spheres.getNoOfSpheres(); ++i) {
+				for (std::size_t i = 0; i < spheres.getNoOfSpheres(); ++i) {
 					spheres.updateCentre(
-					    i,
+					    int(i),
 					    currGridPos +
 					        Vector3d<float>(
 					            GetRandomUniform(-0.8f * sDist, +0.8f * sDist),
@@ -180,13 +180,13 @@ void Scenario_Tetris::initializeAgents(FrontOfficer* fo, int p, int) {
 				    fmt::format("WARNING: no agents at grid pos {},{}", y, x));
 			}
 
-			for (int i = 0; i < spheres.getNoOfSpheres(); ++i)
-				spheres.updateRadius(i,
+			for (std::size_t i = 0; i < spheres.getNoOfSpheres(); ++i)
+				spheres.updateRadius(int(i),
 				                     sRadius + GetRandomUniform(-0.8f, +0.8f));
 
 			fo->startNewAgent(new TetrisNucleus(
 			    fo->getNextAvailAgentID(), agentName, spheres,
-			    y < 2 ? y + 1 : spheres.getNoOfSpheres() + y - 4,
+			    y < 2 ? y + 1 : int(spheres.getNoOfSpheres()) + y - 4,
 			    params.constants.initTime, params.constants.incrTime));
 		}
 
@@ -245,7 +245,7 @@ void Scenario_Tetris::initializeAgents(FrontOfficer* fo, int p, int) {
 		builder.printPlan();
 		report::message(fmt::format("necessary cnt: {}",
 		                            builder.getNoOfNecessarySpheres()));
-		Spheres manyS(builder.getNoOfNecessarySpheres());
+		Spheres manyS(int(builder.getNoOfNecessarySpheres()));
 		builder.buildInto(manyS);
 		builder.printPlan();
 

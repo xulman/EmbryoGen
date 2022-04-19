@@ -155,7 +155,7 @@ class SimpleDividingAgent : public NucleusAgent {
 		NucleusAgent::advanceAndBuildIntForces(futureGlobalTime);
 
 		// create forces based on the distance to the Globus
-		for (int i = 0; i < futureGeometry.getNoOfSpheres(); ++i) {
+		for (std::size_t i = 0; i < futureGeometry.getNoOfSpheres(); ++i) {
 			//(signed) distance between the Globus surface and this sphere's
 			// surface
 			float carrierVecLen = futureGeometry.getCentres()[i].len();
@@ -168,7 +168,7 @@ class SimpleDividingAgent : public NucleusAgent {
 			          std::min(surface * surface * fstrength_hinter_scale,
 			                   (G_FLOAT)10);
 			exertForceOnSphere(
-			    i, (surface / carrierVecLen) * futureGeometry.getCentres()[i],
+			    int(i), (surface / carrierVecLen) * futureGeometry.getCentres()[i],
 			    ftype_hinter);
 		}
 
@@ -212,7 +212,7 @@ class SimpleDividingAgent : public NucleusAgent {
 		for (int i = 0; i < divGeomModelled.getNoOfSpheres(); ++i)
 		    du.DrawPoint(++dID,divGeomModelled.getCentres()[i],divGeomModelled.getRadii()[i],i);
 		*/
-		for (int i = 0; i < geometryAlias.getNoOfSpheres(); ++i)
+		for (std::size_t i = 0; i < geometryAlias.getNoOfSpheres(); ++i)
 			du.DrawPoint(++dID, geometryAlias.getCentres()[i],
 			             geometryAlias.getRadii()[i], (ID % 3 + 1) * 2);
 
@@ -278,8 +278,8 @@ class SimpleDividingAgent : public NucleusAgent {
 			r1 /= 2.0f;
 			mainDir.changeToUnitOrZero();
 
-			Spheres d1Geom(futureGeometry.getNoOfSpheres());
-			Spheres d2Geom(futureGeometry.getNoOfSpheres());
+			Spheres d1Geom(int(futureGeometry.getNoOfSpheres()));
+			Spheres d2Geom(int(futureGeometry.getNoOfSpheres()));
 			d1Geom.updateCentre(0, mc0 - sideStepDir - r0 * mainDir);
 			d1Geom.updateCentre(1, mc0 + sideStepDir - r1 * mainDir);
 			d2Geom.updateCentre(0, mc1 - sideStepDir + r0 * mainDir);

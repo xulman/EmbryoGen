@@ -2,6 +2,7 @@
 
 #include "../util/report.hpp"
 #include "Geometry.hpp"
+#include <cassert>
 #include <vector>
 
 /**
@@ -12,8 +13,8 @@
  */
 class Spheres : public Geometry {
   protected:
-	/** length of the this.centres and this.radii arrays */
-	const int noOfSpheres;
+
+	/** centers and radii sizes are always the same */
 
 	/** list of centres of the spheres */
 	std::vector<Vector3d<G_FLOAT>> centres;
@@ -23,12 +24,12 @@ class Spheres : public Geometry {
 
   public:
 	/** empty shape constructor */
-	Spheres(const int _noOfSpheres)
-	    : Geometry(ListOfShapeForms::Spheres), noOfSpheres(_noOfSpheres),
+	Spheres(const int noOfSpheres)
+	    : Geometry(ListOfShapeForms::Spheres),
 	      centres(noOfSpheres),
 	      radii(noOfSpheres) {
 		// sanity check...
-		if (_noOfSpheres < 0)
+		if (noOfSpheres < 0)
 			throw report::rtError(
 			    "Cannot construct geometry with negative number of spheres.");
 
@@ -67,7 +68,10 @@ class Spheres : public Geometry {
 	void updateThisAABB(AxisAlignedBoundingBox& AABB) const override;
 
 	// ------------- get/set methods -------------
-	int getNoOfSpheres(void) const { return noOfSpheres; }
+	std::size_t getNoOfSpheres(void) const {
+		assert(centres.size() == radii.size());
+		return centres.size();
+	}
 
 	const Vector3d<G_FLOAT>* getCentres(void) const { return &centres[0]; }
 

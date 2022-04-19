@@ -73,7 +73,7 @@ void VectorImg::getDistanceToSpheres(const class Spheres* otherSpheres,
 	// shortcuts to the otherGeometry's spheres
 	const Vector3d<G_FLOAT>* const centresO = otherSpheres->getCentres();
 	const G_FLOAT* const radiiO = otherSpheres->getRadii();
-	const int io = otherSpheres->getNoOfSpheres();
+	const int io = int(otherSpheres->getNoOfSpheres());
 
 	// remember the squared lengths observed so far for every foreign sphere...
 	G_FLOAT* lengths2 = new G_FLOAT[io];

@@ -252,7 +252,7 @@ class TextureUpdater4S {
 	   the first when an object of this class is constructed, the purpose here
 	   is to test if the input geometry is valid for this class */
 	bool testNoOfSpheres(const Spheres& geom) {
-		if (geom.noOfSpheres != 4)
+		if (geom.getNoOfSpheres() != 4)
 			throw report::rtError("Cannot init updating of coordinates for "
 			                      "non-four sphere geometry.");
 		return true;
@@ -285,7 +285,7 @@ class TextureUpdater2pNS {
 	                   const int _sphereOnMainAxis = 1)
 	    : sphereAtCentre(testAndReturnSphereIdx(geom, _sphereAtCentre)),
 	      sphereOnMainAxis(testAndReturnSphereIdx(geom, _sphereOnMainAxis)),
-	      noOfSpheres(geom.noOfSpheres), prevCentre(noOfSpheres),
+	      noOfSpheres(int(geom.getNoOfSpheres())), prevCentre(noOfSpheres),
 	      prevRadius(noOfSpheres), __weights(new float[noOfSpheres]) {
 		// allocate and init properly
 		const Vector3d<G_FLOAT> orientVec(geom.centres[sphereOnMainAxis] -
@@ -314,13 +314,13 @@ class TextureUpdater2pNS {
 
   private:
 	int testAndReturnSphereIdx(const Spheres& geom, const int idx) {
-		if (geom.noOfSpheres < 2)
+		if (geom.getNoOfSpheres() < 2)
 			throw report::rtError("Cannot init updating of coordinates, needs "
 			                      "geometry of two or more spheres.");
-		if (idx < 0 || idx >= geom.noOfSpheres)
+		if (idx < 0 || idx >= int(geom.getNoOfSpheres()))
 			throw report::rtError(
 			    fmt::format("Invalid sphere idx ({}) when {} spheres avail.",
-			                idx, geom.noOfSpheres));
+			                idx, geom.getNoOfSpheres()));
 		return idx;
 	}
 
@@ -400,10 +400,10 @@ class TextureUpdaterNS {
 	   is to test if the input geometry is valid for this class, and to fill
 	   (const'ed) this.noOfSpheres */
 	int testAndGetNoOfSpheres(const Spheres& geom) {
-		if (geom.noOfSpheres < 2)
+		if (geom.getNoOfSpheres() < 2)
 			throw report::rtError("Cannot init updating of coordinates, needs "
 			                      "geometry of two or more spheres.");
-		return geom.noOfSpheres;
+		return int(geom.getNoOfSpheres());
 	}
 
 	/** coordinate updaters, one per sphere */

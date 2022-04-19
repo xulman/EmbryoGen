@@ -10,7 +10,7 @@ class Nucleus4SAgent : public NucleusAgent {
 	               const float _currTime,
 	               const float _incrTime)
 	    : NucleusAgent(_ID, _type, shape, _currTime, _incrTime) {
-		if (shape.noOfSpheres != 4)
+		if (shape.getNoOfSpheres() != 4)
 			throw report::rtError(
 			    "Cannot construct Nucleus4SAgent on non-four sphere geometry.");
 

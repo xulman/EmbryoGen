@@ -8,8 +8,7 @@ namespace structures {
 
 template <typename T, std::size_t N>
 class StaticVector {
-	char _data[sizeof(T) * N];
-	T* _elems = (T*)(&_data[0]);
+	T _elems[N];
 	std::size_t _size = 0;
 
 	void destroy_elems() noexcept {

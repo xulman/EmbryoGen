@@ -111,7 +111,7 @@ class myDragAndTextureNucleus_common : public NucleusNSAgent, Texture {
 		// shortcuts to our Own spheres
 		const Vector3d<G_FLOAT>* const centresO = futureGeometry.getCentres();
 		const G_FLOAT* const radiiO = futureGeometry.getRadii();
-		const int iO = futureGeometry.getNoOfSpheres();
+		const std::size_t iO = futureGeometry.getNoOfSpheres();
 
 		// project and "clip" this AABB into the img frame
 		// so that voxels to sweep can be narrowed down...
@@ -132,7 +132,7 @@ class myDragAndTextureNucleus_common : public NucleusNSAgent, Texture {
 					centre.toMicronsFrom(curPos, res, off);
 
 					// check the current voxel against all spheres
-					for (int i = 0; i < iO; ++i) {
+					for (std::size_t i = 0; i < iO; ++i) {
 						if ((centre - centresO[i]).len() <= radiiO[i]) {
 							img.SetVoxel(curPos.x, curPos.y, curPos.z,
 							             (i3d::GRAY16)(ID * 100 + i));
@@ -168,8 +168,8 @@ class myDragAndTextureNucleus_NStexture : public myDragAndTextureNucleus_common,
 		// and also the local orientations
 		Vector3d<float> orientVec;
 		int gdID = DisplayUnit::firstIdForSceneDebugObjects() + ID * 40 + 15000;
-		for (int i = 0; i < futureGeometry.getNoOfSpheres(); ++i) {
-			getLocalOrientation(futureGeometry, i, orientVec);
+		for (std::size_t i = 0; i < futureGeometry.getNoOfSpheres(); ++i) {
+			getLocalOrientation(futureGeometry, int(i), orientVec);
 			du.DrawVector(gdID++, futureGeometry.getCentres()[i], orientVec, 0);
 		}
 	}
@@ -203,7 +203,7 @@ class myDragAndTextureNucleus_2pNStexture
 		orientVec -= futureGeometry.getCentres()[sphereAtCentre];
 		orientVec.changeToUnitOrZero();
 		int gdID = DisplayUnit::firstIdForSceneDebugObjects() + ID * 40 + 15000;
-		for (int i = 0; i < futureGeometry.getNoOfSpheres(); ++i) {
+		for (std::size_t i = 0; i < futureGeometry.getNoOfSpheres(); ++i) {
 			du.DrawVector(gdID++, futureGeometry.getCentres()[i], orientVec, 0);
 		}
 	}
@@ -262,15 +262,15 @@ void Scenario_dragRotateAndTexture::initializeAgents(FrontOfficer* fo,
 		    params.constants.initTime, params.constants.incrTime, 3));
 
 		const Vector3d<float> shiftVec(14, 0, 0);
-		for (int i = 0; i < s.getNoOfSpheres(); ++i)
-			s.updateCentre(i, s.getCentres()[i] + shiftVec);
+		for (std::size_t i = 0; i < s.getNoOfSpheres(); ++i)
+			s.updateCentre(int(i), s.getCentres()[i] + shiftVec);
 
 		fo->startNewAgent(new myDragAndTextureNucleus_NStexture(
 		    fo->getNextAvailAgentID(), "nucleus travelling NS texture", s,
 		    params.constants.initTime, params.constants.incrTime));
 
-		for (int i = 0; i < s.getNoOfSpheres(); ++i)
-			s.updateCentre(i, s.getCentres()[i] + shiftVec);
+		for (std::size_t i = 0; i < s.getNoOfSpheres(); ++i)
+			s.updateCentre(int(i), s.getCentres()[i] + shiftVec);
 
 		fo->startNewAgent(new myDragAndTextureNucleus_2pNStexture(
 		    fo->getNextAvailAgentID(), "nucleus travelling 2pNS texture", s,

@@ -12,7 +12,7 @@ class SpheresFunctions {
 	/** grow 4 sphere geometry 's' in radius by 'dR', and in diameter by 'dD' */
 	template <typename FT>
 	static void grow4SpheresBy(Spheres& s, const FT dR, const FT dD) {
-		if (s.noOfSpheres != 4)
+		if (s.getNoOfSpheres() != 4)
 			throw report::rtError("Cannot grow non-four sphere geometry.");
 
 		// make the nuclei fatter by 'dD' um in diameter
@@ -82,7 +82,7 @@ class SpheresFunctions {
 		              const int index,
 		              const Vector3d<FT>& orientation) {
 #ifndef NDEBUG
-			if (index < 0 || index >= s.noOfSpheres)
+			if (index < 0 || index >= s.getNoOfSpheres())
 				throw report::rtError("Incorrect index of a sphere provided.");
 #endif
 			prevCentre = s.centres[index];
@@ -194,7 +194,7 @@ class SpheresFunctions {
 		                     const int index,
 		                     const Vector3d<FT>& newOrientation) {
 #ifndef NDEBUG
-			if (index < 0 || index >= s.noOfSpheres)
+			if (index < 0 || index >= s.getNoOfSpheres())
 				throw report::rtError("Incorrect index of a sphere provided.");
 #endif
 			prepareUpdating(s.centres[index], s.radii[index], newOrientation);
@@ -285,7 +285,7 @@ class SpheresFunctions {
 		   later to prevent form potential inconsistencies with the expansion
 		   plan */
 		Interpolator(const Spheres& _sourceGeom)
-		    : optimalTargetSpheresNo(_sourceGeom.getNoOfSpheres()),
+		    : optimalTargetSpheresNo(int(_sourceGeom.getNoOfSpheres())),
 		      sourceGeom(_sourceGeom) {}
 
 		/** considering the current expansion plan and the associated source
@@ -331,10 +331,10 @@ class SpheresFunctions {
 		    const std::function<FT(FT, FT)>& radiusShaker) const {
 #ifndef NDEBUG
 			// test appropriate size of the target geom
-			if (targetGeom.noOfSpheres != optimalTargetSpheresNo)
+			if (int(targetGeom.getNoOfSpheres()) != optimalTargetSpheresNo)
 				throw report::rtError(fmt::format(
 				    "Target geom is made of {} spheres but {} is expected.",
-				    targetGeom.noOfSpheres, optimalTargetSpheresNo));
+				    targetGeom.getNoOfSpheres(), optimalTargetSpheresNo));
 #endif
 			// create a single purpose receipt of constant content
 			std::vector<posShakerPtr> positionShakers;
@@ -371,17 +371,17 @@ class SpheresFunctions {
 				    positionShakers.size(), expansionPlan.size()));
 
 			// test appropriate size of the target geom
-			if (targetGeom.noOfSpheres != optimalTargetSpheresNo)
+			if (int(targetGeom.getNoOfSpheres()) != optimalTargetSpheresNo)
 				throw report::rtError(fmt::format(
 				    "Target geom is made of {} spheres but {} is expected.",
-				    targetGeom.noOfSpheres, optimalTargetSpheresNo));
+				    targetGeom.getNoOfSpheres(), optimalTargetSpheresNo));
 #endif
 			// copy the source as is
-			for (int i = 0; i < sourceGeom.noOfSpheres; ++i) {
+			for (std::size_t i = 0; i < sourceGeom.getNoOfSpheres(); ++i) {
 				targetGeom.centres[i] = sourceGeom.centres[i];
 				targetGeom.radii[i] = sourceGeom.radii[i];
 			}
-			int nextTargetIdx = sourceGeom.noOfSpheres;
+			std::size_t nextTargetIdx = sourceGeom.getNoOfSpheres();
 
 			// add interpolated spheres according to the plan
 			Vector3d<FT> distVec, newCentre;
@@ -431,14 +431,14 @@ class SpheresFunctions {
 		               const int toSrcIdx,
 		               const int noOfSpheresInBetween) {
 #ifndef NDEBUG
-			if (fromSrcIdx < 0 || fromSrcIdx >= sourceGeom.noOfSpheres)
+			if (fromSrcIdx < 0 || fromSrcIdx >= int(sourceGeom.getNoOfSpheres()))
 				throw report::rtError(
 				    fmt::format("src index is invalid, should be within [0,{}]",
-				                sourceGeom.noOfSpheres - 1));
-			if (toSrcIdx < 0 || toSrcIdx >= sourceGeom.noOfSpheres)
+				                sourceGeom.getNoOfSpheres() - 1));
+			if (toSrcIdx < 0 || toSrcIdx >= int(sourceGeom.getNoOfSpheres()))
 				throw report::rtError(
 				    fmt::format("to index is invalid, should be within [0,{}]",
-				                sourceGeom.noOfSpheres - 1));
+				                sourceGeom.getNoOfSpheres() - 1));
 			if (noOfSpheresInBetween <= 0)
 				throw report::rtError(
 				    fmt::format("illegal number of requested spheres: {}",
@@ -470,7 +470,7 @@ class SpheresFunctions {
 
 		void printPlan() const {
 			report::message(fmt::format("Exact copy of the src geometry ({})",
-			                            sourceGeom.noOfSpheres));
+			                            sourceGeom.getNoOfSpheres()));
 			for (const auto& plan : expansionPlan)
 				report::message(fmt::format("Between {} and {} ({})",
 				                            plan.fromSrcIdx, plan.toSrcIdx,
@@ -516,7 +516,7 @@ class SpheresFunctions {
 		// ------------------- task settings: spatial layout -------------------
 		LinkedSpheres(Spheres& referenceGeom, const Vector3d<FT>& basalSideDir)
 		    : Interpolator<FT>(referenceGeom), basalSideDir(1, 0, 0) {
-			if (referenceGeom.noOfSpheres < 2)
+			if (referenceGeom.getNoOfSpheres() < 2)
 				throw report::rtError(
 				    "reference geometry must include at least two spheres");
 
@@ -703,8 +703,8 @@ class SpheresFunctions {
 
 		// ------------------- task implementation: create the layout
 		// -------------------
-		int getNoOfNecessarySpheres() const {
-			int cnt = this->sourceGeom.getNoOfSpheres();
+		std::size_t getNoOfNecessarySpheres() const {
+			std::size_t cnt = this->sourceGeom.getNoOfSpheres();
 			for (auto& m : azimuthToNoOfSpheres)
 				cnt += m.second;
 			return cnt;
@@ -738,14 +738,14 @@ class SpheresFunctions {
 		 * (azimuths) */
 		void buildInto(Spheres& newGeom) {
 #ifndef NDEBUG
-			if (newGeom.noOfSpheres != getNoOfNecessarySpheres())
+			if (newGeom.getNoOfSpheres() != getNoOfNecessarySpheres())
 				throw report::rtError(
 				    "Given geometry cannot host the one defined here.");
 #endif
 			// iterate over all azimuths, set up and apply the up-stream
 			// Interpolator
 			this->expansionPlan.clear();
-			this->optimalTargetSpheresNo = this->sourceGeom.getNoOfSpheres();
+			this->optimalTargetSpheresNo = int(this->sourceGeom.getNoOfSpheres());
 			positionShakers.clear();
 			radiusShakers.clear();
 
@@ -774,7 +774,7 @@ class SpheresFunctions {
 
 		void rebuildInto(Spheres& newGeom) {
 #ifndef NDEBUG
-			if (newGeom.noOfSpheres != getNoOfNecessarySpheres())
+			if (newGeom.getNoOfSpheres() != getNoOfNecessarySpheres())
 				throw report::rtError(
 				    "Given geometry cannot host the one defined here.");
 #endif
@@ -794,7 +794,7 @@ class SpheresFunctions {
 		   mutual distance are detected, and distributed along the line ups */
 		void refreshThis(Spheres& geom) {
 #ifndef NDEBUG
-			if (geom.noOfSpheres != getNoOfNecessarySpheres())
+			if (geom.getNoOfSpheres() != getNoOfNecessarySpheres())
 				throw report::rtError("Given geometry is not compatible with "
 				                      "the one defined here.");
 #endif
@@ -828,17 +828,17 @@ deltaRadius0, deltaRadius1, deltaMainAxisDist));
 
 			// iterate the lineups and update, based on detected changes, the
 			// radii and positions along the main axis
-			int sNo = this->sourceGeom.getNoOfSpheres();
+			std::size_t sNo = this->sourceGeom.getNoOfSpheres();
 			for (const auto& m : azimuthToNoOfSpheres)
 				if (m.second > 0) {
 					const float intersections =
 					    static_cast<float>(m.second + 1);
 					for (int i = 1; i <= m.second; ++i, ++sNo) {
 						float frac = (float)i / intersections;
-						geom.updateRadius(sNo, geom.getRadii()[sNo] +
+						geom.updateRadius(int(sNo), geom.getRadii()[sNo] +
 						                           (1 - frac) * deltaRadius0 +
 						                           frac * deltaRadius1);
-						geom.updateCentre(sNo, geom.getCentres()[sNo] +
+						geom.updateCentre(int(sNo), geom.getCentres()[sNo] +
 						                           deltaMainAxisDist *
 						                               (frac - 0.5f) *
 						                               posDeltaDir);

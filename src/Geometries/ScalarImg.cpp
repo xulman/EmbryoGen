@@ -77,7 +77,7 @@ void ScalarImg::getDistanceToSpheres(const class Spheres* otherSpheres,
 	// shortcuts to the otherGeometry's spheres
 	const Vector3d<G_FLOAT>* const centresO = otherSpheres->getCentres();
 	const G_FLOAT* const radiiO = otherSpheres->getRadii();
-	const int io = otherSpheres->getNoOfSpheres();
+	const int io = int(otherSpheres->getNoOfSpheres());
 
 	// remember the smallest distance observed so far for every foreign
 	// sphere...

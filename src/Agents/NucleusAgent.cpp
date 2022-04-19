@@ -26,7 +26,7 @@ const G_FLOAT fstrength_hinter_scale = (G_FLOAT)0.25; // [1/um^2]
 void NucleusAgent::adjustGeometryByForces(void) {
 	// TRAgen paper, eq (1):
 	// reset the array with final forces (which will become accelerations soon)
-	for (int i = 0; i < futureGeometry.noOfSpheres; ++i)
+	for (std::size_t i = 0; i < futureGeometry.getNoOfSpheres(); ++i)
 		accels[i] = 0;
 
 	// collect all forces acting on every sphere to have one overall force per
@@ -42,13 +42,13 @@ void NucleusAgent::adjustGeometryByForces(void) {
 
 		std::ostringstream forcesReport;
 		forcesReport << ID << ": final forces";
-		for (int i = 0; i < futureGeometry.noOfSpheres; ++i)
+		for (std::size_t i = 0; i < futureGeometry.getNoOfSpheres(); ++i)
 			forcesReport << ", |" << i << "|=" << accels[i].len();
 		report::message(forcesReport.str());
 	}
 #endif
 	// now, translation is a result of forces:
-	for (int i = 0; i < futureGeometry.noOfSpheres; ++i) {
+	for (std::size_t i = 0; i < futureGeometry.getNoOfSpheres(); ++i) {
 		// calculate accelerations: F=ma -> a=F/m
 		// TODO: volume of a sphere should be taken into account
 		accels[i] /= weights[i];
@@ -74,7 +74,7 @@ void NucleusAgent::advanceAndBuildIntForces(const float futureGlobalTime) {
 	// add forces on the list that represent how and where the nucleus would
 	// like to move TRAgen paper, eq (2): Fdesired = weight *
 	// drivingForceMagnitude NB: the forces will act rigidly on the full nucleus
-	for (int i = 0; i < futureGeometry.noOfSpheres; ++i) {
+	for (std::size_t i = 0; i < futureGeometry.getNoOfSpheres(); ++i) {
 		forces.emplace_back((weights[i] / velocity_PersistenceTime) *
 		                        velocity_CurrentlyDesired,
 		                    futureGeometry.centres[i], i, ftype_drive);
@@ -92,7 +92,7 @@ void NucleusAgent::collectExtForces(void) {
 	// damping force (aka friction due to the environment,
 	// an ext. force that is independent of other agents)
 	// TRAgen paper, eq. (3)
-	for (int i = 0; i < futureGeometry.noOfSpheres; ++i) {
+	for (std::size_t i = 0; i < futureGeometry.getNoOfSpheres(); ++i) {
 		forces.emplace_back((-weights[i] / velocity_PersistenceTime) *
 		                        velocities[i],
 		                    futureGeometry.centres[i], i, ftype_friction);
@@ -259,7 +259,7 @@ void NucleusAgent::collectExtForces(void) {
 			              (G_FLOAT)1);
 
 			// apply the same force to all spheres
-			for (int i = 0; i < futureGeometry.noOfSpheres; ++i)
+			for (std::size_t i = 0; i < futureGeometry.getNoOfSpheres(); ++i)
 				forces.emplace_back(f, futureGeometry.centres[i], i,
 				                    ftype_hinter);
 		}
@@ -282,7 +282,7 @@ void NucleusAgent::drawMask(DisplayUnit& du) {
 	// NB: 'd'ID = is for 'd'rawing, not for 'd'ebug !
 
 	// draw spheres
-	for (int i = 0; i < futureGeometry.noOfSpheres; ++i) {
+	for (std::size_t i = 0; i < futureGeometry.getNoOfSpheres(); ++i) {
 		du.DrawPoint(detailedDrawingMode ? gdID : dID,
 		             futureGeometry.centres[i], futureGeometry.radii[i], color);
 		++dID;
@@ -314,7 +314,7 @@ void NucleusAgent::drawForDebug(DisplayUnit& du) {
 		int dID = DisplayUnit::firstIdForAgentDebugObjects(ID);
 
 		// cell centres connection "line" (green):
-		for (int i = 1; i < futureGeometry.noOfSpheres; ++i)
+		for (std::size_t i = 1; i < futureGeometry.getNoOfSpheres(); ++i)
 			du.DrawLine(dID++, futureGeometry.centres[i - 1],
 			            futureGeometry.centres[i], color);
 
@@ -325,14 +325,14 @@ void NucleusAgent::drawForDebug(DisplayUnit& du) {
 		Vector3d<float> periPoint;
 		int periPointCnt = 0;
 
-		for (int S = 0; S < geometryAlias.noOfSpheres; ++S) {
+		for (std::size_t S = 0; S < geometryAlias.getNoOfSpheres(); ++S) {
 			ss.resetByStepSize(geometryAlias.radii[S], 2.6f);
 			while (ss.next(periPoint)) {
 				periPoint += geometryAlias.centres[S];
 
 				// draw the periPoint only if it collides with no (and excluding
 				// this) sphere
-				if (geometryAlias.collideWithPoint(periPoint, S) == -1) {
+				if (geometryAlias.collideWithPoint(periPoint, int(S)) == -1) {
 					++periPointCnt;
 					du.DrawPoint(dID++, periPoint, 0.3f, 3);
 				}
@@ -386,14 +386,14 @@ void NucleusAgent::drawForDebug(DisplayUnit& du) {
 		// choose 2nd sphere if avail, else 1st sphere if avail, else none
 		// (then: Idx == -1)
 		const int velocityReportIdx =
-		    std::min(2, futureGeometry.noOfSpheres) - 1;
+		    std::min(2, int(futureGeometry.getNoOfSpheres())) - 1;
 		if (velocityReportIdx == -1)
 			velocitiesReport << ID << ": no spheres -> no velocities";
 		else
 			velocitiesReport << ID << ": velocity[" << velocityReportIdx
 			                 << "]=" << velocities[velocityReportIdx];
 		//
-		for (int i = 0; i < futureGeometry.noOfSpheres; ++i)
+		for (std::size_t i = 0; i < futureGeometry.getNoOfSpheres(); ++i)
 			velocitiesReport << ", |" << i << "|=" << velocities[i].len();
 		report::message(velocitiesReport.str());
 	}

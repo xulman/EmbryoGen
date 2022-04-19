@@ -4,13 +4,20 @@
 
 namespace tools {
 namespace details {
+#ifdef NDEBUG
+constexpr bool debug_macro = false;
+#else
+constexpr bool debug_macro = true;
+#endif
+
 inline void boundary_check(std::size_t i, std::size_t size) {
-#ifndef NDEBUG
+	if (!debug_macro)
+		return;
+
 	using namespace std::string_literals;
 	if (i >= size)
 		throw std::out_of_range("Index "s + std::to_string(i) +
 		                        " is >= size (" + std::to_string(size) + ")\n");
-#endif
 }
 
 template <typename T>

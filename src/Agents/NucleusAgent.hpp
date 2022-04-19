@@ -47,12 +47,12 @@ class NucleusAgent : public AbstractAgent {
 	             const float _incrTime)
 	    : AbstractAgent(_ID, _type, geometryAlias, _currTime, _incrTime),
 	      geometryAlias(shape), futureGeometry(shape),
-	      accels(new Vector3d<G_FLOAT>[2 * shape.noOfSpheres]),
+	      accels(new Vector3d<G_FLOAT>[2 * shape.getNoOfSpheres()]),
 	      // NB: relies on the fact that geometryAlias.noOfSpheres ==
 	      // futureGeometry.noOfSpheres NB: accels[] and velocities[] together
 	      // form one buffer (cache friendlier)
-	      velocities(accels + shape.noOfSpheres),
-	      weights(new G_FLOAT[shape.noOfSpheres]) {
+	      velocities(accels + shape.getNoOfSpheres()),
+	      weights(new G_FLOAT[shape.getNoOfSpheres()]) {
 		// update AABBs
 		geometryAlias.Geometry::updateOwnAABB();
 		futureGeometry.Geometry::updateOwnAABB();
@@ -64,7 +64,7 @@ class NucleusAgent : public AbstractAgent {
 		velocity_CurrentlyDesired = 0; // no own movement desired yet
 		velocity_PersistenceTime = (G_FLOAT)2.0;
 
-		for (int i = 0; i < shape.noOfSpheres; ++i)
+		for (std::size_t i = 0; i < shape.getNoOfSpheres(); ++i)
 			weights[i] = (G_FLOAT)1.0;
 
 		report::debugMessage(
@@ -168,7 +168,7 @@ class NucleusAgent : public AbstractAgent {
 		// promote my NucleusAgent::futureGeometry to my ShadowAgent::geometry,
 		// which happens to be overlaid/mapped-over with
 		// NucleusAgent::geometryAlias (see the constructor)
-		for (int i = 0; i < geometryAlias.noOfSpheres; ++i) {
+		for (std::size_t i = 0; i < geometryAlias.getNoOfSpheres(); ++i) {
 			geometryAlias.centres[i] = futureGeometry.centres[i];
 			geometryAlias.radii[i] = futureGeometry.radii[i] + cytoplasmWidth;
 		}
@@ -180,7 +180,7 @@ class NucleusAgent : public AbstractAgent {
   public:
 	const Vector3d<G_FLOAT>& getVelocityOfSphere(const long index) const {
 #ifndef NDEBUG
-		if (index >= geometryAlias.noOfSpheres)
+		if (index >= long(geometryAlias.getNoOfSpheres()))
 			throw report::rtError("requested sphere index out of bound.");
 #endif
 

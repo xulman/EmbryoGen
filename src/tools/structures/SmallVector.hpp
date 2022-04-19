@@ -10,8 +10,7 @@ namespace structures {
 template <typename T, std::size_t N>
 class SmallVector {
   private:
-	char _static_data[sizeof(T) * N];
-	T* _elems = (T*)(&_static_data[0]);
+	T _static_data[N];
 	std::vector<T> _dynamic_data;
 	std::size_t _size = 0;
 
@@ -22,9 +21,9 @@ class SmallVector {
 		}
 	}
 
-	void destroy_elems() {
+	void destroy_static_data() {
 		for (std::size_t i = 0; i < std::min(N, _size); ++i) {
-			_elems[i].~T();
+			_static_data[i].~T();
 		}
 	}
 
@@ -41,7 +40,7 @@ class SmallVector {
 	std::size_t size() const { return _size; }
 	void push_back(T elem) {
 		if (_size < N)
-			std::uninitialized_move_n(&elem, 1, _elems + _size);
+			std::uninitialized_move_n(&elem, 1, _static_data + _size);
 		else {
 			if (_size == N)
 				arr_to_vec();
@@ -52,29 +51,29 @@ class SmallVector {
 	}
 
 	void clear() {
-		destroy_elems();
+		destroy_static_data();
 		_dynamic_data.clear();
 		_size = 0;
 	}
 
 	auto begin() noexcept {
 		if (_size < N)
-			return details::ptr_iterator(&_elems[0]);
+			return details::ptr_iterator(&_static_data[0]);
 		return details::ptr_iterator(&_dynamic_data[0]);
 	}
 	auto end() noexcept {
 		if (_size < N)
-			return details::ptr_iterator(&_elems[_size]);
+			return details::ptr_iterator(&_static_data[_size]);
 		return details::ptr_iterator(&_dynamic_data[_size]);
 	}
 	auto cbegin() const noexcept {
 		if (_size < N)
-			return details::const_ptr_iterator(&_elems[0]);
+			return details::const_ptr_iterator(&_static_data[0]);
 		return details::const_ptr_iterator(&_dynamic_data[0]);
 	}
 	auto cend() const noexcept {
 		if (_size < N)
-			return details::const_ptr_iterator(&_elems[_size]);
+			return details::const_ptr_iterator(&_static_data[_size]);
 		return details::const_ptr_iterator(&_dynamic_data[_size]);
 	}
 	auto begin() const noexcept { return cbegin(); }
@@ -98,7 +97,7 @@ class SmallVector {
 		return _dynamic_data[i];
 	}
 
-	~SmallVector() { destroy_elems(); }
+	~SmallVector() { destroy_static_data(); }
 };
 
 template <typename T>
