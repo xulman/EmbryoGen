@@ -200,7 +200,7 @@ class mySceneControls : public SceneControls {
 
 SceneControls& Scenario_DrosophilaRandom::provideSceneControls() {
 	SceneControls::Constants c;
-	c.stopTime = 12.0f;
+	c.stopTime = 0.1f;
 
 	auto mSC = new mySceneControls(c);
 	mSC->disableWaitForUserPrompt();
