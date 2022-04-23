@@ -8,7 +8,8 @@ namespace structures {
 
 template <typename T, std::size_t N>
 class StaticVector {
-	T _elems[N];
+	char __raw_data[N * sizeof(T)];
+	T* _elems = reinterpret_cast<T*>(&__raw_data[0]);
 	std::size_t _size = 0;
 
 	void destroy_elems() noexcept {
@@ -39,7 +40,7 @@ class StaticVector {
 	template <typename... Args>
 	T& emplace_back(Args&&... args) {
 		push_back(T(std::forward<Args>(args)...));
-		return (*this[size() - 1]);
+		return (*this)[size() - 1];
 	}
 
 	std::size_t size() const { return _size; }

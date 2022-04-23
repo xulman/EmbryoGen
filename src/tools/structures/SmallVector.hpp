@@ -10,7 +10,8 @@ namespace structures {
 template <typename T, std::size_t N>
 class SmallVector {
   private:
-	T _static_data[N];
+	char __raw_data[N * sizeof(T)];
+	T* _static_data = reinterpret_cast<T*>(&__raw_data[0]);
 	std::vector<T> _dynamic_data;
 	std::size_t _size = 0;
 
@@ -53,7 +54,7 @@ class SmallVector {
 	template <typename... Args>
 	T& emplace_back(Args&&... args) {
 		push_back(T(std::forward<Args>(args)...));
-		return (*this[size() - 1]);
+		return (*this)[size() - 1];
 	}
 
 	void clear() {
