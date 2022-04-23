@@ -63,7 +63,7 @@ class SimpleDividingAgent : public NucleusAgent {
 	    const float _incrTime)
 	    : NucleusAgent(_ID, _type, shape, _currTime, _incrTime),
 	      divModels(divModel2S), divGeomModelled(2),
-	      futureGeometryBuilder(divGeomModelled, Vector3d<G_FLOAT>(1)) {
+	      futureGeometryBuilder(divGeomModelled, Vector3d<float>(1)) {
 		rotateDivModels(); // define the future division model
 		rotateDivModels(); // to make it the current model and to obtain a new
 		                   // valid future one
@@ -73,12 +73,11 @@ class SimpleDividingAgent : public NucleusAgent {
 		advanceAgent(_currTime); // start up the agent's shape
 
 		// set up agent's actual shape:
-		Vector3d<G_FLOAT> position = getRandomPositionOnBigSphere(globeRadius);
+		Vector3d<float> position = getRandomPositionOnBigSphere(globeRadius);
 		//
 		//-position is our basal direction...
 		position *= -1;
-		Vector3d<G_FLOAT> polarity =
-		    getRandomPolarityVecGivenBasalDir(position);
+		Vector3d<float> polarity = getRandomPolarityVecGivenBasalDir(position);
 		float centreHalfDist = 0.5f * (divGeomModelled.getCentres()[0] -
 		                               divGeomModelled.getCentres()[1])
 		                                  .len();
@@ -116,7 +115,7 @@ class SimpleDividingAgent : public NucleusAgent {
 	    const int _ID,
 	    const std::string& _type,
 	    const Spheres& shape,
-	    const Vector3d<G_FLOAT>& _basalSideDir,
+	    const Vector3d<float>& _basalSideDir,
 	    const DivisionModels2S<divModel_noOfSamples, divModel_noOfSamples>&
 	        divModel2S,
 	    const DivisionModels2S<divModel_noOfSamples,
@@ -127,7 +126,7 @@ class SimpleDividingAgent : public NucleusAgent {
 	    const float _incrTime)
 	    : NucleusAgent(_ID, _type, shape, _currTime, _incrTime),
 	      divModels(divModel2S), divGeomModelled(2),
-	      futureGeometryBuilder(divGeomModelled, Vector3d<G_FLOAT>(1)) {
+	      futureGeometryBuilder(divGeomModelled, Vector3d<float>(1)) {
 		// we gonna continue in the given division model
 		divFutureModel = daughterModel;
 		rotateDivModels(); // NB: daughterModel becomes the current model,
@@ -163,13 +162,13 @@ class SimpleDividingAgent : public NucleusAgent {
 			    (globeRadius + futureGeometry.getRadii()[i]) - carrierVecLen;
 			// the get-back-to-hinter force, now it is a (signed) force
 			// magnitude
-			surface = (surface > 0 ? +1.f : -1.f) * 2 *
-			          fstrength_overlap_level *
-			          std::min(surface * surface * fstrength_hinter_scale,
-			                   (G_FLOAT)10);
-			exertForceOnSphere(
-			    int(i), (surface / carrierVecLen) * futureGeometry.getCentres()[i],
-			    ftype_hinter);
+			surface =
+			    (surface > 0 ? +1.f : -1.f) * 2 * fstrength_overlap_level *
+			    std::min(surface * surface * fstrength_hinter_scale, 10.0f);
+			exertForceOnSphere(int(i),
+			                   (surface / carrierVecLen) *
+			                       futureGeometry.getCentres()[i],
+			                   ftype_hinter);
 		}
 
 #ifndef NDEBUG
@@ -259,11 +258,11 @@ class SimpleDividingAgent : public NucleusAgent {
 			    "nucleus"; // std::to_string(currentGen); agName += " gen";
 
 			// syntactic short-cut
-			const Vector3d<G_FLOAT>& mc0 = futureGeometry.getCentres()[0];
-			const Vector3d<G_FLOAT>& mc1 = futureGeometry.getCentres()[1];
+			const Vector3d<float>& mc0 = futureGeometry.getCentres()[0];
+			const Vector3d<float>& mc1 = futureGeometry.getCentres()[1];
 
-			Vector3d<G_FLOAT> mainDir = mc1 - mc0;
-			Vector3d<G_FLOAT> sideStepDir = crossProduct(mainDir, basalBaseDir);
+			Vector3d<float> mainDir = mc1 - mc0;
+			Vector3d<float> sideStepDir = crossProduct(mainDir, basalBaseDir);
 			sideStepDir.changeToUnitOrZero();
 
 			// get optimal centre distance of spheres that will most likely be
@@ -377,8 +376,8 @@ class SimpleDividingAgent : public NucleusAgent {
 	// ------------------------ model reference geometry
 	// ------------------------
 	Spheres divGeomModelled;
-	SpheresFunctions::LinkedSpheres<G_FLOAT> futureGeometryBuilder;
-	Vector3d<G_FLOAT> basalBaseDir;
+	SpheresFunctions::LinkedSpheres<float> futureGeometryBuilder;
+	Vector3d<float> basalBaseDir;
 
 	void updateDivGeom_asMother(float currTime) {
 		if (divModelState != modelMeAsMother) {
@@ -403,10 +402,10 @@ class SimpleDividingAgent : public NucleusAgent {
 		                "Mother time for the model = {}",
 		                currTime, timeOfNextDivision, modelRelativeTime));
 
-		divGeomModelled.updateCentre(0, Vector3d<G_FLOAT>(0));
+		divGeomModelled.updateCentre(0, Vector3d<float>(0));
 		divGeomModelled.updateCentre(
-		    1, Vector3d<G_FLOAT>(
-		           0, divModel->getMotherDist(modelRelativeTime, 0), 0));
+		    1, Vector3d<float>(0, divModel->getMotherDist(modelRelativeTime, 0),
+		                       0));
 		divGeomModelled.updateRadius(
 		    0, divModel->getMotherRadius(modelRelativeTime, 0));
 		divGeomModelled.updateRadius(
@@ -436,12 +435,12 @@ class SimpleDividingAgent : public NucleusAgent {
 		    "time for the model = {}",
 		    currTime, timeOfNextDivision, whichDaughterAmI, modelRelativeTime));
 
-		divGeomModelled.updateCentre(0, Vector3d<G_FLOAT>(0));
+		divGeomModelled.updateCentre(0, Vector3d<float>(0));
 		divGeomModelled.updateCentre(
-		    1, Vector3d<G_FLOAT>(0,
-		                         divModel->getDaughterDist(modelRelativeTime,
-		                                                   whichDaughterAmI, 0),
-		                         0));
+		    1, Vector3d<float>(0,
+		                       divModel->getDaughterDist(modelRelativeTime,
+		                                                 whichDaughterAmI, 0),
+		                       0));
 		divGeomModelled.updateRadius(
 		    0, divModel->getDaughterRadius(modelRelativeTime, whichDaughterAmI,
 		                                   0));
@@ -472,17 +471,17 @@ class SimpleDividingAgent : public NucleusAgent {
 
 		// interpolate linearly between the last daughter state to the first
 		// mother state
-		divGeomModelled.updateCentre(0, Vector3d<G_FLOAT>(0));
+		divGeomModelled.updateCentre(0, Vector3d<float>(0));
 		divGeomModelled.updateCentre(
-		    1, (1.f - progress) * Vector3d<G_FLOAT>(0,
-		                                            divModel->getDaughterDist(
-		                                                +divModel_halfTimeSpan,
-		                                                whichDaughterAmI, 0),
-		                                            0) +
-		           progress * Vector3d<G_FLOAT>(0,
-		                                        divFutureModel->getMotherDist(
-		                                            -divModel_halfTimeSpan, 0),
-		                                        0));
+		    1, (1.f - progress) * Vector3d<float>(0,
+		                                          divModel->getDaughterDist(
+		                                              +divModel_halfTimeSpan,
+		                                              whichDaughterAmI, 0),
+		                                          0) +
+		           progress * Vector3d<float>(0,
+		                                      divFutureModel->getMotherDist(
+		                                          -divModel_halfTimeSpan, 0),
+		                                      0));
 
 		divGeomModelled.updateRadius(
 		    0, (1.f - progress) *
@@ -499,30 +498,30 @@ class SimpleDividingAgent : public NucleusAgent {
 		                          -divModel_halfTimeSpan, 1));
 	}
 
-	static Vector3d<G_FLOAT>
-	getRandomPolarityVecGivenBasalDir(const Vector3d<G_FLOAT>& basalDir) {
+	static Vector3d<float>
+	getRandomPolarityVecGivenBasalDir(const Vector3d<float>& basalDir) {
 		// suppose we're at coordinate centre,
 		// we consider the equation for a plane through centre with normal of
 		// 'basalDir', we find some random point in that plane
-		G_FLOAT x, y, z;
+		float x, y, z;
 		x = GetRandomUniform(-5.f, +5.f);
 		y = GetRandomUniform(-5.f, +5.f);
 		z = (basalDir.x * x + basalDir.y * y) / -basalDir.z;
 
-		Vector3d<G_FLOAT> polarity;
+		Vector3d<float> polarity;
 		polarity.from(x, y, z);
 		polarity.changeToUnitOrZero();
 		return polarity; //"copy ellision", thank you!
 	}
 
-	static Vector3d<G_FLOAT>
+	static Vector3d<float>
 	getRandomPositionOnBigSphere(const float radius = 50) {
-		G_FLOAT x, y, z;
+		float x, y, z;
 		x = GetRandomUniform(-5.f, +5.f);
 		y = GetRandomUniform(-5.f, +5.f);
 		z = GetRandomUniform(-5.f, +5.f);
 
-		Vector3d<G_FLOAT> position;
+		Vector3d<float> position;
 		position.from(x, y, z);
 		position.changeToUnitOrZero();
 		position *= radius;

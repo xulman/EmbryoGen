@@ -97,7 +97,7 @@ class Texture {
 	    the highest over smallest intensity value) of the texture is essentially
 	   worsened. */
 	void createPerlinTexture(const Spheres& geom,
-	                         const Vector3d<G_FLOAT>& textureResolution,
+	                         const Vector3d<float>& textureResolution,
 	                         const double var,
 	                         const double alpha = 8,
 	                         const double beta = 4,
@@ -221,22 +221,22 @@ class TextureUpdater4S {
 	/** init the class with the current 4S geometry */
 	TextureUpdater4S(const Spheres& geom)
 	    : objectIsReady(testNoOfSpheres(geom)),
-	      cu{SpheresFunctions::CoordsUpdater<G_FLOAT>(geom.centres[0],
-	                                                  geom.radii[0],
-	                                                  geom.centres[0] -
-	                                                      geom.centres[1]),
-	         SpheresFunctions::CoordsUpdater<G_FLOAT>(geom.centres[1],
-	                                                  geom.radii[1],
-	                                                  geom.centres[0] -
-	                                                      geom.centres[2]),
-	         SpheresFunctions::CoordsUpdater<G_FLOAT>(geom.centres[2],
-	                                                  geom.radii[2],
-	                                                  geom.centres[1] -
-	                                                      geom.centres[3]),
-	         SpheresFunctions::CoordsUpdater<G_FLOAT>(geom.centres[3],
-	                                                  geom.radii[3],
-	                                                  geom.centres[2] -
-	                                                      geom.centres[3])} {}
+	      cu{SpheresFunctions::CoordsUpdater<float>(geom.centres[0],
+	                                                geom.radii[0],
+	                                                geom.centres[0] -
+	                                                    geom.centres[1]),
+	         SpheresFunctions::CoordsUpdater<float>(geom.centres[1],
+	                                                geom.radii[1],
+	                                                geom.centres[0] -
+	                                                    geom.centres[2]),
+	         SpheresFunctions::CoordsUpdater<float>(geom.centres[2],
+	                                                geom.radii[2],
+	                                                geom.centres[1] -
+	                                                    geom.centres[3]),
+	         SpheresFunctions::CoordsUpdater<float>(geom.centres[3],
+	                                                geom.radii[3],
+	                                                geom.centres[2] -
+	                                                    geom.centres[3])} {}
 
 	/** this method tracks the 4S geometry changes and updates, in accord, the
 	   coordinates of the given list of texture dots */
@@ -259,11 +259,11 @@ class TextureUpdater4S {
 	}
 
 	/** coordinate updaters, one per sphere */
-	SpheresFunctions::CoordsUpdater<G_FLOAT> cu[4];
+	SpheresFunctions::CoordsUpdater<float> cu[4];
 
 	/** aux arrays for the updateTextureCoords() */
-	Vector3d<G_FLOAT> prevCentre[4];
-	G_FLOAT prevRadius[4];
+	Vector3d<float> prevCentre[4];
+	float prevRadius[4];
 };
 
 /**
@@ -288,8 +288,8 @@ class TextureUpdater2pNS {
 	      noOfSpheres(int(geom.getNoOfSpheres())), prevCentre(noOfSpheres),
 	      prevRadius(noOfSpheres), __weights(new float[noOfSpheres]) {
 		// allocate and init properly
-		const Vector3d<G_FLOAT> orientVec(geom.centres[sphereOnMainAxis] -
-		                                  geom.centres[sphereAtCentre]);
+		const Vector3d<float> orientVec(geom.centres[sphereOnMainAxis] -
+		                                geom.centres[sphereAtCentre]);
 		cu.reserve(noOfSpheres);
 		for (int i = 0; i < noOfSpheres; ++i)
 			cu.emplace_back(geom.centres[i], geom.radii[i], orientVec);
@@ -325,11 +325,11 @@ class TextureUpdater2pNS {
 	}
 
 	/** coordinate updaters, one per sphere */
-	std::vector<SpheresFunctions::CoordsUpdater<G_FLOAT>> cu;
+	std::vector<SpheresFunctions::CoordsUpdater<float>> cu;
 
 	/** aux arrays for the updateTextureCoords() */
-	std::vector<Vector3d<G_FLOAT>> prevCentre;
-	std::vector<G_FLOAT> prevRadius;
+	std::vector<Vector3d<float>> prevCentre;
+	std::vector<float> prevRadius;
 
 	/** aux array to be allocated once and not repeatedly in
 	   updateTextureCoords(); despite private, gcc finds it in derived classes
@@ -359,7 +359,7 @@ class TextureUpdaterNS {
 	 * 'spheres' geometry */
 	void getLocalOrientation(const Spheres& spheres,
 	                         const int idx,
-	                         Vector3d<G_FLOAT>& orientVec);
+	                         Vector3d<float>& orientVec);
 
 	/** this method tracks the NS geometry changes and updates, in accord, the
 	   coordinates of the given list of texture dots */
@@ -370,7 +370,7 @@ class TextureUpdaterNS {
 		// NB: this method also tests for sanity, so we don't have to do it here
 		resetNeigWeightMatrix(geom, maxNoOfNeighs);
 
-		Vector3d<G_FLOAT> orientVec;
+		Vector3d<float> orientVec;
 		cu.clear();
 		cu.reserve(noOfSpheres);
 		for (int i = 0; i < noOfSpheres; ++i) {
@@ -389,7 +389,7 @@ class TextureUpdaterNS {
 
 	/** an alternative to resetNeigWeightMatrix() */
 	void setNeigWeightMatrix(
-	    const SpheresFunctions::SquareMatrix<G_FLOAT>& newWeightMatrix);
+	    const SpheresFunctions::SquareMatrix<float>& newWeightMatrix);
 
 	/** prints on the console */
 	void printNeigWeightMatrix();
@@ -407,17 +407,17 @@ class TextureUpdaterNS {
 	}
 
 	/** coordinate updaters, one per sphere */
-	std::vector<SpheresFunctions::CoordsUpdater<G_FLOAT>> cu;
+	std::vector<SpheresFunctions::CoordsUpdater<float>> cu;
 
 	/** neighbors and their weights, in this implementation the weights are
 	   binary: a sphere is influenced by another one sphere (or equally by a few
 	   others) */
-	SpheresFunctions::SquareMatrix<G_FLOAT> neigWeightMatrix;
+	SpheresFunctions::SquareMatrix<float> neigWeightMatrix;
 
 	/** aux arrays for the updateTextureCoords() */
-	std::vector<Vector3d<G_FLOAT>> prevCentre;
-	std::vector<G_FLOAT> prevRadius;
-	std::vector<Vector3d<G_FLOAT>> prevOrientation;
+	std::vector<Vector3d<float>> prevCentre;
+	std::vector<float> prevRadius;
+	std::vector<Vector3d<float>> prevOrientation;
 
 	/** aux array to be allocated once and not repeatedly in
 	   updateTextureCoords(); despite private, gcc finds it in derived classes

@@ -51,7 +51,7 @@ class TetrisNucleus : public NucleusNSAgent, TextureUpdaterNS {
 			             int(i) == activeSphereIdx ? 1 : 2);
 
 		// sphere orientations as local debug, white vectors
-		Vector3d<G_FLOAT> orientVec;
+		Vector3d<float> orientVec;
 		for (std::size_t i = 0; i < futureGeometry.getNoOfSpheres(); ++i) {
 			getLocalOrientation(futureGeometry, int(i), orientVec);
 			du.DrawVector(ldID++, futureGeometry.getCentres()[i], orientVec, 0);
@@ -64,8 +64,8 @@ class TetrisNucleus : public NucleusNSAgent, TextureUpdaterNS {
 	}
 
 	void advanceAgent(float time) override {
-		const G_FLOAT velocity = (G_FLOAT)1.0f;
-		const Vector3d<G_FLOAT> travellingVelocity(0, velocity, 0);
+		const float velocity = 1.0f;
+		const Vector3d<float> travellingVelocity(0, velocity, 0);
 		if (((int)time % 18) < 8) {
 			exertForceOnSphere(
 			    activeSphereIdx,
@@ -201,9 +201,9 @@ void Scenario_Tetris::initializeAgents(FrontOfficer* fo, int p, int) {
 		const int inbetweeners = 5;
 		Spheres twoS(2); // + connLines*inbetweeners);
 
-		std::vector<Vector3d<G_FLOAT>*> lineUps;
+		std::vector<Vector3d<float>*> lineUps;
 		for (int i = 0; i < inbetweeners; ++i)
-			lineUps.push_back(new Vector3d<G_FLOAT>());
+			lineUps.push_back(new Vector3d<float>());
 
 		const float maxAxisDev = 1.4f;
 		twoS.updateCentre(

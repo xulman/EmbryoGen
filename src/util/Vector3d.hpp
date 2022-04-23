@@ -45,41 +45,47 @@ class Vector3d {
 	/** init constructor... */
 	Vector3d(const T xyz) : x(xyz), y(xyz), z(xyz) {}
 
+	/** enable implicit conversion */
+	template <typename U>
+	requires std::is_convertible_v<U, T> Vector3d(const Vector3d<U> vec)
+	    : x(vec.x), y(vec.y), z(vec.z) {}
+
 	/** copy constructor from i3d::Vector3d */
 	Vector3d(const i3d::Vector3d<T>& iv3d) { fromI3dVector3d(iv3d); }
 
-	template <typename U> requires std::is_convertible_v<U,T>
-	Vector3d<T>& operator=(const U scal) {
+	template <typename U>
+	requires std::is_convertible_v<U, T> Vector3d<T>
+	&operator=(const U scal) {
 		x = y = z = T(scal);
 		return *this;
 	}
 
-	template <typename U> requires std::is_convertible_v<U,T>
-	Vector3d<T>& operator+=(const Vector3d<U>& vec) {
+	Vector3d<T>& operator+=(const Vector3d<T>& vec) {
 		x += T(vec.x);
 		y += T(vec.y);
 		z += T(vec.z);
 		return *this;
 	}
 
-	template <typename U> requires std::is_convertible_v<U,T>
-	Vector3d<T>& operator-=(const Vector3d<U>& vec) {
+	Vector3d<T>& operator-=(const Vector3d<T>& vec) {
 		x -= T(vec.x);
 		y -= T(vec.y);
 		z -= T(vec.z);
 		return *this;
 	}
 
-	template <typename U> requires std::is_convertible_v<U,T>
-	Vector3d<T>& operator*=(const U scal) {
+	template <typename U>
+	requires std::is_convertible_v<U, T> Vector3d<T>
+	&operator*=(const U scal) {
 		x *= T(scal);
 		y *= T(scal);
 		z *= T(scal);
 		return *this;
 	}
 
-	template <typename U> requires std::is_convertible_v<U,T>
-	Vector3d<T>& operator/=(const U scal) {
+	template <typename U>
+	requires std::is_convertible_v<U, T> Vector3d<T>
+	&operator/=(const U scal) {
 		x /= T(scal);
 		y /= T(scal);
 		z /= T(scal);
@@ -111,8 +117,7 @@ class Vector3d {
 	}
 
 	/** element-wise multiplication is stored in this vector */
-	template <typename U> requires std::is_convertible_v<U,T>
-	Vector3d<T>& elemMult(const Vector3d<U>& vec) {
+	Vector3d<T>& elemMult(const Vector3d<T>& vec) {
 		x *= T(vec.x);
 		y *= T(vec.y);
 		z *= T(vec.z);
@@ -120,8 +125,7 @@ class Vector3d {
 	}
 
 	/** element-wise division is stored in this vector */
-	template <typename U> requires std::is_convertible_v<U,T>
-	Vector3d<T>& elemDivBy(const Vector3d<U>& vec) {
+	Vector3d<T>& elemDivBy(const Vector3d<T>& vec) {
 		x /= T(vec.x);
 		y /= T(vec.y);
 		z /= T(vec.z);
@@ -134,9 +138,7 @@ class Vector3d {
 	}
 
 	/** change this vector with element-wise squared values */
-	Vector3d<T>& elemSquare(void) {
-		return elemMult(*this);
-	}
+	Vector3d<T>& elemSquare(void) { return elemMult(*this); }
 
 	Vector3d<T>& elemFloor(void) {
 		return _applyToElems([](T a) { return std::floor(a); });
@@ -332,7 +334,7 @@ class Vector3d {
 	/** converts image offset/index into this image coordinate given the image
 	 * size */
 	Vector3d<std::size_t>& fromImgIndex(std::size_t idx,
-	                               const Vector3d<size_t>& imgSize) {
+	                                    const Vector3d<size_t>& imgSize) {
 		z = idx / (imgSize.x * imgSize.y);
 		idx -= z * (imgSize.x * imgSize.y);
 		y = idx / imgSize.x;
@@ -375,7 +377,8 @@ class Vector3d {
 		return i3d::Vector3d<T>(x, y, z);
 	}
 
-	template <typename FT> requires std::is_convertible_v<T,FT>
+	template <typename FT>
+	requires std::is_convertible_v<T, FT>
 	void toScalars(FT& x, FT& y, FT& z) const {
 		x = this->x;
 		y = this->y;
@@ -387,23 +390,27 @@ class Vector3d {
 	/** converts this vector into the "same" vector whose elements
 	    are of another type (e.g., size_t -> float conversion),
 	    creates and returns the converted vector */
-	template <typename FT> requires std::is_convertible_v<T,FT> // FT = foreign type
-	Vector3d<FT> to(void) const {
-		return Vector3d<FT>(FT(x), FT(y), FT(z));
-	}
+	template <typename FT>
+	requires std::is_convertible_v<T, FT> // FT = foreign type
+	    Vector3d<FT> to(void)
+	const { return Vector3d<FT>(FT(x), FT(y), FT(z)); }
 
 	/** converts a given vector whose elements are of another type
 	    into this vector (e.g., size_t -> float conversion), returns
 	    *this to allow for concatenating of commands... */
-	template <typename FT> requires std::is_convertible_v<FT,T>  // FT = foreign type
-	Vector3d<T>& from(const Vector3d<FT>& vec) {
+	template <typename FT>
+	requires std::is_convertible_v<FT, T> // FT = foreign type
+	    Vector3d<T>
+	&from(const Vector3d<FT>& vec) {
 		return _applyToElems([](T, FT a) { return T(a); }, vec);
 	}
 
 	/** resets this vector with the elements (that may be of another
 	    type), returns *this to allow for concatenating of commands... */
-	template <typename FT> requires std::is_convertible_v<FT,T> // FT = foreign type
-    Vector3d<T> &from(const FT xx, const FT yy, const FT zz) {
+	template <typename FT>
+	requires std::is_convertible_v<FT, T> // FT = foreign type
+	    Vector3d<T>
+	&from(const FT xx, const FT yy, const FT zz) {
 		x = T(xx);
 		y = T(yy);
 		z = T(zz);
@@ -412,9 +419,11 @@ class Vector3d {
 
 	/** resets this vector's elems with the same element (that may be of another
 	    type), returns *this to allow for concatenating of commands... */
-	
-	template <typename FT> requires std::is_convertible_v<FT,T> // FT = foreign type
-	Vector3d<T> &from(const FT xyz) {
+
+	template <typename FT>
+	requires std::is_convertible_v<FT, T> // FT = foreign type
+	    Vector3d<T>
+	&from(const FT xyz) {
 		return _applyToElems([=](T) { return T(xyz); });
 	}
 };
@@ -440,24 +449,27 @@ Vector3d<T> crossProduct(const Vector3d<T>& u, const Vector3d<T>& v) {
 }
 
 /** calculates addition of two vectors: vecA + vecB */
-template <typename T, typename U> requires std::is_convertible_v<U, T>
-Vector3d<T> operator+(const Vector3d<T>& vecA, const Vector3d<U>& vecB) {
+template <typename T, typename U>
+requires std::is_convertible_v<U, T> Vector3d<T>
+operator+(const Vector3d<T>& vecA, const Vector3d<U>& vecB) {
 	Vector3d<T> res(vecA);
 	res += vecB;
 	return res;
 }
 
 /** calculates difference of two vectors: vecA - vecB */
-template <typename T, typename U> requires std::is_convertible_v<U, T>
-Vector3d<T> operator-(const Vector3d<T>& vecA, const Vector3d<U>& vecB) {
+template <typename T, typename U>
+requires std::is_convertible_v<U, T> Vector3d<T>
+operator-(const Vector3d<T>& vecA, const Vector3d<U>& vecB) {
 	Vector3d<T> res(vecA);
 	res -= vecB;
 	return res;
 }
 
 /** calculates scalar multiplication with vector: scal * vec */
-template <typename T, typename U> requires std::is_convertible_v<U, T>
-Vector3d<T> operator*(const U scal, const Vector3d<T>& vec) {
+template <typename T, typename U>
+requires std::is_convertible_v<U, T> Vector3d<T>
+operator*(const U scal, const Vector3d<T>& vec) {
 	Vector3d<T> res(vec);
 	res *= scal;
 	return res;

@@ -11,12 +11,11 @@ class RenderingFunctions {
 	    elements are required, so a couple of consecutive IDs are used
 	    starting from the given 'ID'. Returned value tells how many
 	    elements were finally used. */
-	template <typename G_FLOAT>
-	static int drawBox(DisplayUnit& du,
-	                   const int ID,
-	                   const int color,
-	                   const Vector3d<G_FLOAT>& minC,
-	                   const Vector3d<G_FLOAT>& maxC) {
+	inline static int drawBox(DisplayUnit& du,
+	                          const int ID,
+	                          const int color,
+	                          const Vector3d<float>& minC,
+	                          const Vector3d<float>& maxC) {
 		// horizontal lines
 		du.DrawLine(ID + 0, minC, Vector3d<float>(maxC.x, minC.y, minC.z),
 		            color);

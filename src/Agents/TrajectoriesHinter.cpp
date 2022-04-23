@@ -73,9 +73,9 @@ void TrajectoriesHinter::drawForDebug(DisplayUnit& du) {
 void TrajectoriesHinter::drawForDebug(i3d::Image3d<i3d::GRAY16>& img)
 {
     //running pointers...
-    const G_FLOAT* x = geometryAlias.getImgX().GetFirstVoxelAddr();     //input
-vector elements const G_FLOAT* y = geometryAlias.getImgY().GetFirstVoxelAddr();
-    const G_FLOAT* z = geometryAlias.getImgZ().GetFirstVoxelAddr();
+    const float* x = geometryAlias.getImgX().GetFirstVoxelAddr();     //input
+vector elements const float* y = geometryAlias.getImgY().GetFirstVoxelAddr();
+    const float* z = geometryAlias.getImgZ().GetFirstVoxelAddr();
     i3d::GRAY16* m = img.GetFirstVoxelAddr();         //for vector magnitude
     i3d::GRAY16* const mE = m + img.GetImageSize();
 

@@ -7,26 +7,26 @@
 #include <list>
 #include <vector>
 
-extern const ForceName_t ftype_s2s;      //"sphere-sphere"     //internal forces
-extern const ForceName_t ftype_drive;    //"desired movement"
-extern const ForceName_t ftype_friction; //"friction"
+const ForceName_t ftype_s2s = "sphere-sphere"; // internal forces
+const ForceName_t ftype_drive = "desired movement";
+const ForceName_t ftype_friction = "friction";
 
-extern const ForceName_t
-    ftype_repulsive; //"repulsive"         //due to external events with nuclei
-extern const ForceName_t ftype_body;  //"no overlap (body)"
-extern const ForceName_t ftype_slide; //"no sliding"
+const ForceName_t ftype_repulsive =
+    "repulsive"; // due to external events with nuclei
+const ForceName_t ftype_body = "no overlap (body)";
+const ForceName_t ftype_slide = "no sliding";
 
-extern const ForceName_t ftype_hinter; //"sphere-hinter"     //due to external
-                                     // events with shape hinters
+const ForceName_t ftype_hinter =
+    "sphere-hinter"; // due to external events with shape hinters
 
-extern const G_FLOAT fstrength_body_scale;    // [N/um]      TRAgen: N/A
-extern const G_FLOAT fstrength_overlap_scale; // [N/um]      TRAgen: k
-extern const G_FLOAT fstrength_overlap_level; // [N]         TRAgen: A
-extern const G_FLOAT
-    fstrength_overlap_depth;                 // [um]        TRAgen: delta_o (do)
-extern const G_FLOAT fstrength_rep_scale;    // [1/um]      TRAgen: B
-extern const G_FLOAT fstrength_slide_scale;  // unitless
-extern const G_FLOAT fstrength_hinter_scale; // [1/um^2]
+constexpr float fstrength_body_scale = 0.4f;    // [N/um]      TRAgen: N/A
+constexpr float fstrength_overlap_scale = 0.2f; // [N/um]      TRAgen: k
+constexpr float fstrength_overlap_level = 0.1f; // [N]         TRAgen: A
+constexpr float fstrength_overlap_depth =
+    0.5f;                                   // [um]        TRAgen: delta_o (do)
+constexpr float fstrength_rep_scale = 0.6f; // [1/um]      TRAgen: B
+constexpr float fstrength_slide_scale = 1.0f;   // unitless
+constexpr float fstrength_hinter_scale = 0.25f; // [1/um^2]
 
 /** Color coding:
  0 - white
@@ -47,12 +47,12 @@ class NucleusAgent : public AbstractAgent {
 	             const float _incrTime)
 	    : AbstractAgent(_ID, _type, geometryAlias, _currTime, _incrTime),
 	      geometryAlias(shape), futureGeometry(shape),
-	      accels(new Vector3d<G_FLOAT>[2 * shape.getNoOfSpheres()]),
+	      accels(new Vector3d<float>[2 * shape.getNoOfSpheres()]),
 	      // NB: relies on the fact that geometryAlias.noOfSpheres ==
 	      // futureGeometry.noOfSpheres NB: accels[] and velocities[] together
 	      // form one buffer (cache friendlier)
 	      velocities(accels + shape.getNoOfSpheres()),
-	      weights(new G_FLOAT[shape.getNoOfSpheres()]) {
+	      weights(new float[shape.getNoOfSpheres()]) {
 		// update AABBs
 		geometryAlias.Geometry::updateOwnAABB();
 		futureGeometry.Geometry::updateOwnAABB();
@@ -62,10 +62,10 @@ class NucleusAgent : public AbstractAgent {
 		// 10(neigs)*4(spheres)*4("outer" forces), and "up-rounded"...
 		forces.reserve(200);
 		velocity_CurrentlyDesired = 0; // no own movement desired yet
-		velocity_PersistenceTime = (G_FLOAT)2.0;
+		velocity_PersistenceTime = 2.0f;
 
 		for (std::size_t i = 0; i < shape.getNoOfSpheres(); ++i)
-			weights[i] = (G_FLOAT)1.0;
+			weights[i] = 1.0f;
 
 		report::debugMessage(
 		    fmt::format("Nucleus with ID={} was just created", ID));
@@ -82,13 +82,13 @@ class NucleusAgent : public AbstractAgent {
   protected:
 	// ------------- internals state -------------
 	/** motion: desired current velocity [um/min] */
-	Vector3d<G_FLOAT> velocity_CurrentlyDesired;
+	Vector3d<float> velocity_CurrentlyDesired;
 
 	/** motion: adaptation time, that is, how fast the desired velocity
 	    should be reached (from zero movement); this param is in
 	    the original literature termed as persistence time and so
 	    we keep to that term [min] */
-	G_FLOAT velocity_PersistenceTime;
+	float velocity_PersistenceTime;
 
 	// ------------- internals geometry -------------
 	/** reference to my exposed geometry ShadowAgents::geometry */
@@ -121,21 +121,21 @@ class NucleusAgent : public AbstractAgent {
 
 	// ------------- forces & movement (physics) -------------
 	/** all forces that are in present acting on this agent */
-	std::vector<ForceVector3d<G_FLOAT>> forces;
+	std::vector<ForceVector3d<float>> forces;
 
 	/** an aux array of acceleration vectors calculated for every sphere, the
 	   length of this array must match the length of the spheres in the
 	   'futureGeometry' */
-	Vector3d<G_FLOAT>* const accels;
+	Vector3d<float>* const accels;
 
 	/** an array of velocities vectors of the spheres, the length of this array
 	   must match the length of the spheres that are exposed (geometryAlias) to
 	   the outer world */
-	Vector3d<G_FLOAT>* const velocities;
+	Vector3d<float>* const velocities;
 
 	/** an aux array of weights of the spheres, the length of this array must
 	   match the length of the spheres in the 'futureGeometry' */
-	G_FLOAT* const weights;
+	float* const weights;
 
 	/** essentially creates a new version (next iteration) of 'futureGeometry'
 	   given the current content of the 'forces'; note that, in this particular
@@ -149,7 +149,7 @@ class NucleusAgent : public AbstractAgent {
 
 	/** helper method to (correctly) create a force acting on a sphere */
 	inline void exertForceOnSphere(const int sphereIdx,
-	                               const Vector3d<G_FLOAT>& forceVector,
+	                               const Vector3d<float>& forceVector,
 	                               const ForceName_t forceType) {
 		forces.emplace_back(forceVector, futureGeometry.centres[sphereIdx],
 		                    sphereIdx, forceType);
@@ -178,7 +178,7 @@ class NucleusAgent : public AbstractAgent {
 	}
 
   public:
-	const Vector3d<G_FLOAT>& getVelocityOfSphere(const long index) const {
+	const Vector3d<float>& getVelocityOfSphere(const long index) const {
 #ifndef NDEBUG
 		if (index >= long(geometryAlias.getNoOfSpheres()))
 			throw report::rtError("requested sphere index out of bound.");
@@ -197,6 +197,6 @@ class NucleusAgent : public AbstractAgent {
 	/** aux memory of the recently generated forces in
 	   advanceAndBuildIntForces() and in collectExtForces(), and displayed via
 	   drawForDebug() */
-	std::vector<ForceVector3d<G_FLOAT>> forcesForDisplay;
+	std::vector<ForceVector3d<float>> forcesForDisplay;
 #endif
 };

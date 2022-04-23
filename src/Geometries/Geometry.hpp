@@ -1,13 +1,17 @@
 #pragma once
 
 #include "../DisplayUnits/util/RenderingFunctions.hpp"
+#include "../config.hpp"
 #include "../util/Vector3d.hpp"
 #include <i3d/image3d.h>
 #include <list>
 class DisplayUnit;
 
-/** accuracy of the geometry representation, choose float or double */
-#define G_FLOAT float
+namespace details {
+namespace geometry {
+using point_t = Vector3d<config::geometry::precision_t>;
+}
+} // namespace details
 
 /** a coordinate value that is way far outside of any scene... [micrometers] */
 #define TOOFAR 999999999.f
@@ -16,13 +20,15 @@ class DisplayUnit;
  * agent's geometry */
 class AxisAlignedBoundingBox {
   public:
+	using precision_t = config::geometry::precision_t;
+	using point_t = details::geometry::point_t;
 	/** defines the bounding box with its volumetric diagonal,
 	    this is the "bottom-left" corner of the box [micrometers] */
-	Vector3d<G_FLOAT> minCorner;
+	point_t minCorner;
 
 	/** defines the bounding box with its volumetric diagonal,
 	    this is the "upper-right" corner of the box [micrometers] */
-	Vector3d<G_FLOAT> maxCorner;
+	point_t maxCorner;
 
 	/** construct an empty AABB */
 	AxisAlignedBoundingBox(void) { reset(); }
@@ -35,8 +41,8 @@ class AxisAlignedBoundingBox {
 	template <typename T>
 	AxisAlignedBoundingBox(const i3d::Image3d<T>& img)
 	    : minCorner(img.GetOffset()),
-	      maxCorner(Vector3d<size_t>(img.GetSize()).to<G_FLOAT>()) {
-		maxCorner.toMicrons(Vector3d<G_FLOAT>(img.GetResolution().GetRes()),
+	      maxCorner(Vector3d<size_t>(img.GetSize()).to<precision_t>()) {
+		maxCorner.toMicrons(Vector3d<precision_t>(img.GetResolution().GetRes()),
 		                    minCorner);
 	}
 
@@ -69,11 +75,12 @@ class AxisAlignedBoundingBox {
 
 	/** returns SQUARED shortest distance along any axis between this and
 	    the given AABB, or 0.0 if they intersect */
-	G_FLOAT minDistance(const AxisAlignedBoundingBox& AABB) const;
+	precision_t minDistance(const AxisAlignedBoundingBox& AABB) const;
 
 	/** Uses RenderingFunctions::drawBox() to render this bounding box. */
 	int drawIt(const int ID, const int color, DisplayUnit& du) {
-		return RenderingFunctions::drawBox(du, ID, color, minCorner, maxCorner);
+		return RenderingFunctions::drawBox(du, ID, color, minCorner.to<float>(),
+		                                   maxCorner.to<float>());
 	}
 };
 
@@ -143,16 +150,19 @@ class NamedAxisAlignedBoundingBox : public AxisAlignedBoundingBox {
  * collision.
  */
 struct ProximityPair {
+	using precision_t = config::geometry::precision_t;
+	using point_t = details::geometry::point_t;
+
 	/** position of 'local' colliding point [micrometers] */
-	Vector3d<G_FLOAT> localPos;
+	point_t localPos;
 	/** position of 'other' colliding point [micrometers] */
-	Vector3d<G_FLOAT> otherPos;
+	point_t otherPos;
 
 	/** Distance between the localPos and otherPos [micrometers].
 	    If the value is negative, the two points represent a collision pair.
 	    If the value is positive, the two points are assumed to form a pair
 	    of two nearest points between the two geometries. */
-	G_FLOAT distance;
+	precision_t distance;
 
 	/** hinting data about the 'local' point */
 	long localHint;
@@ -165,16 +175,14 @@ struct ProximityPair {
 	void* callerHint;
 
 	/** convenience constructor for just two colliding points */
-	ProximityPair(const Vector3d<G_FLOAT>& l,
-	              const Vector3d<G_FLOAT>& o,
-	              const G_FLOAT dist)
+	ProximityPair(const point_t& l, const point_t& o, const precision_t dist)
 	    : localPos(l), otherPos(o), distance(dist), localHint(0), otherHint(0),
 	      callerHint(NULL){};
 
 	/** convenience constructor for points with hints */
-	ProximityPair(const Vector3d<G_FLOAT>& l,
-	              const Vector3d<G_FLOAT>& o,
-	              const G_FLOAT dist,
+	ProximityPair(const point_t& l,
+	              const point_t& o,
+	              const precision_t dist,
 	              const long lh,
 	              const long oh)
 	    : localPos(l), otherPos(o), distance(dist), localHint(lh),
@@ -182,13 +190,8 @@ struct ProximityPair {
 
 	/** swap the notion of 'local' and 'other' */
 	void swap(void) {
-		Vector3d<G_FLOAT> tmpV(localPos);
-		localPos = otherPos;
-		otherPos = tmpV;
-
-		long tmpH = localHint;
-		localHint = otherHint;
-		otherHint = tmpH;
+		std::swap(localPos, otherPos);
+		std::swap(localHint, otherHint);
 	}
 };
 
@@ -196,6 +199,10 @@ struct ProximityPair {
    image representations of agent's geometry. It defines (pure virtual) methods
     to report collision pairs, see Geometry::getDistance(), between agents. */
 class Geometry {
+  public:
+	using precision_t = config::geometry::precision_t;
+	using point_t = details::geometry::point_t;
+
   protected:
 	/** A variant of how the shape of an simulated agent is represented */
 	enum class ListOfShapeForms {
@@ -220,7 +227,7 @@ class Geometry {
 	AxisAlignedBoundingBox AABB;
 
 	/** Calculate and determine proximity and collision pairs, if any,
-	    between myself and some other agent. A (scaled) ForceVector<G_FLOAT>
+	    between myself and some other agent. A (scaled) ForceVector<precision_t>
 	    can be easily constructed from the points of the ProximityPair.
 	    The discovered ProximityPairs are added to the current list l. */
 	virtual void getDistance(const Geometry& otherGeometry,
@@ -228,7 +235,7 @@ class Geometry {
 
 	/** Calculate and determine proximity and collision pairs, if any,
 	    between myself and some other agent. To facilitate construction
-	    of a (scaled) ForceVector<G_FLOAT> from the proximity pair, a caller
+	    of a (scaled) ForceVector<precision_t> from the proximity pair, a caller
 	    may supply its own callerHint data. This data will be stored in
 	    ProximityPair::callerHint only in the newly added ProximityPairs.
 	    The discovered ProximityPairs are added to the current list l. */
@@ -236,7 +243,7 @@ class Geometry {
 	                 std::list<ProximityPair>& l,
 	                 void* const callerHint) const {
 		// remember the length of the input list
-		size_t itemsOnTheList = l.size();
+		std::size_t itemsOnTheList = l.size();
 
 		// call the original implementation (that is without callerHint)
 		getDistance(otherGeometry, l);

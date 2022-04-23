@@ -27,8 +27,9 @@ void Spheres::getDistance(const Geometry& otherGeometry,
 void Spheres::getDistanceToSpheres(const Spheres* otherSpheres,
                                    std::list<ProximityPair>& l) const {
 	// shortcuts to the otherGeometry's spheres
-	const std::vector<Vector3d<G_FLOAT>>& centresO = otherSpheres->getCentres();
-	const std::vector<G_FLOAT>& radiiO = otherSpheres->getRadii();
+	const std::vector<Vector3d<precision_t>>& centresO =
+	    otherSpheres->getCentres();
+	const std::vector<precision_t>& radiiO = otherSpheres->getRadii();
 
 	// for every my sphere: find nearest other sphere
 	for (std::size_t im = 0; im < getNoOfSpheres(); ++im) {
@@ -38,7 +39,7 @@ void Spheres::getDistanceToSpheres(const Spheres* otherSpheres,
 
 		// nearest other sphere discovered so far
 		int bestIo = -1;
-		G_FLOAT bestDist = TOOFAR;
+		precision_t bestDist = TOOFAR;
 
 		for (std::size_t io = 0; io < otherSpheres->getNoOfSpheres(); ++io) {
 			// skip calculation for this sphere if it has no radius...
@@ -46,7 +47,7 @@ void Spheres::getDistanceToSpheres(const Spheres* otherSpheres,
 				continue;
 
 			// dist between surfaces of the two spheres
-			G_FLOAT dist = (centres[im] - centresO[io]).len();
+			precision_t dist = (centres[im] - centresO[io]).len();
 			dist -= radii[im] + radiiO[io];
 
 			// is nearer?
@@ -64,7 +65,7 @@ void Spheres::getDistanceToSpheres(const Spheres* otherSpheres,
 
 			// vector between the two centres (will be made
 			//'radius' longer, and offsets the 'centre' point)
-			Vector3d<G_FLOAT> dp = centresO[bestIo] - centres[im];
+			Vector3d<precision_t> dp = centresO[bestIo] - centres[im];
 			dp.changeToUnitOrZero();
 
 			l.emplace_back(centres[im] + (radii[im] * dp),
@@ -74,11 +75,11 @@ void Spheres::getDistanceToSpheres(const Spheres* otherSpheres,
 	}
 }
 
-int Spheres::collideWithPoint(const Vector3d<G_FLOAT>& point,
+int Spheres::collideWithPoint(const Vector3d<precision_t>& point,
                               const int ignoreIdx) const {
 	bool collision = false;
 
-	Vector3d<G_FLOAT> tmp;
+	Vector3d<precision_t> tmp;
 	std::size_t testingIndex = ignoreIdx == 0 ? 1 : 0;
 	while (!collision && testingIndex < radii.size()) {
 		tmp = centres[testingIndex];
@@ -120,10 +121,9 @@ void Spheres::updateThisAABB(AxisAlignedBoundingBox& AABB) const {
 // ----------------- support for serialization and deserealization
 // -----------------
 long Spheres::getSizeInBytes() const {
-	return sizeof(int) + 
-		+ sizeof(decltype(version)) 
-		+ centres.size() * sizeof(G_FLOAT) * 3 
-		+ radii.size() * sizeof(G_FLOAT);
+	return sizeof(int) + +sizeof(decltype(version)) +
+	       centres.size() * sizeof(precision_t) * 3 +
+	       radii.size() * sizeof(precision_t);
 }
 
 void Spheres::serializeTo(char* buffer) const {
@@ -171,8 +171,8 @@ Spheres* Spheres::createAndDeserializeFrom(char* buffer) {
 void Spheres::renderIntoMask(i3d::Image3d<i3d::GRAY16>& mask,
                              const i3d::GRAY16 drawID) const {
 	// shortcuts to the mask image parameters
-	const Vector3d<G_FLOAT> res(mask.GetResolution().GetRes());
-	const Vector3d<G_FLOAT> off(mask.GetOffset());
+	const Vector3d<precision_t> res(mask.GetResolution().GetRes());
+	const Vector3d<precision_t> off(mask.GetOffset());
 
 	// project and "clip" this AABB into the img frame
 	// so that voxels to sweep can be narrowed down...
@@ -182,7 +182,7 @@ void Spheres::renderIntoMask(i3d::Image3d<i3d::GRAY16>& mask,
 	AABB.exportInPixelCoords(mask, minSweepPX, maxSweepPX);
 	//
 	// micron coordinate of the running voxel 'curPos'
-	Vector3d<G_FLOAT> centre;
+	Vector3d<precision_t> centre;
 
 	// sweep and check intersection with spheres' volumes
 	for (curPos.z = minSweepPX.z; curPos.z < maxSweepPX.z; curPos.z++)

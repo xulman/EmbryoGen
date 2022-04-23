@@ -33,28 +33,28 @@ class myDragAndTextureNucleus_common : public NucleusNSAgent, Texture {
 		}
 		*/
 		TextureFunctions::addTextureAlongGrid(
-		    dots, geometryAlias, Vector3d<G_FLOAT>(0), Vector3d<G_FLOAT>(3),
-		    Vector3d<G_FLOAT>(0.5f));
+		    dots, geometryAlias, Vector3d<float>(0), Vector3d<float>(3),
+		    Vector3d<float>(0.5f));
 	}
 
 	void advanceAndBuildIntForces(const float futureGlobalTime) override {
 		// add own forces (mutually opposite) to "head&tail" spheres (to spin
 		// it)
 		/*
-		Vector3d<G_FLOAT> rotationVelocity;
+		Vector3d<float> rotationVelocity;
 		rotationVelocity.y = 1.5f* std::cos(currTime/30.f * 6.28f);
 		rotationVelocity.z = 1.5f* std::sin(currTime/30.f * 6.28f);
 		*/
 
 		/*
 		const int radialPos = (ID-1) % 3;
-		const G_FLOAT velocity = (float)radialPos*0.4f + 0.6f; - rings of
+		const float velocity = (float)radialPos*0.4f + 0.6f; - rings of
 		different velocities
 		*/
-		const G_FLOAT velocity = (float)1.0f;
+		const float velocity = 1.0f;
 		// report::message(fmt::format("ID= {} radialPos={} velocity={}", ID,
 		// radialPos, velocity));
-		Vector3d<G_FLOAT> travellingVelocity(0, velocity, 0);
+		Vector3d<float> travellingVelocity(0, velocity, 0);
 		exertForceOnSphere(
 		    1, (weights[0] / velocity_PersistenceTime) * travellingVelocity,
 		    ftype_drive);
@@ -105,12 +105,12 @@ class myDragAndTextureNucleus_common : public NucleusNSAgent, Texture {
 
 	void drawMask(i3d::Image3d<i3d::GRAY16>& img) override {
 		// shortcuts to the mask image parameters
-		const Vector3d<G_FLOAT> res(img.GetResolution().GetRes());
-		const Vector3d<G_FLOAT> off(img.GetOffset());
+		const Vector3d<float> res(img.GetResolution().GetRes());
+		const Vector3d<float> off(img.GetOffset());
 
 		// shortcuts to our Own spheres
-		const std::vector<Vector3d<G_FLOAT>>& centresO = futureGeometry.getCentres();
-		const std::vector<G_FLOAT>& radiiO = futureGeometry.getRadii();
+		const std::vector<Vector3d<float>>& centresO = futureGeometry.getCentres();
+		const std::vector<float>& radiiO = futureGeometry.getRadii();
 		const std::size_t iO = futureGeometry.getNoOfSpheres();
 
 		// project and "clip" this AABB into the img frame
@@ -121,7 +121,7 @@ class myDragAndTextureNucleus_common : public NucleusNSAgent, Texture {
 		futureGeometry.AABB.exportInPixelCoords(img, minSweepPX, maxSweepPX);
 		//
 		// micron coordinate of the running voxel 'curPos'
-		Vector3d<G_FLOAT> centre;
+		Vector3d<float> centre;
 
 		// sweep and check intersection with spheres' volumes
 		for (curPos.z = minSweepPX.z; curPos.z < maxSweepPX.z; curPos.z++)

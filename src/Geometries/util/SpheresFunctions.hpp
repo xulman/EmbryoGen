@@ -723,7 +723,7 @@ class SpheresFunctions {
 		                  const int skipSpheres = 2) const {
 			int ID = startWithThisID - 1;
 			int sNo = skipSpheres - 1;
-			const Vector3d<G_FLOAT>* centres = generatedGeom.getCentres();
+			const Vector3d<float>* centres = generatedGeom.getCentres();
 
 			for (const auto& m : azimuthToNoOfSpheres)
 				if (m.second > 0) {

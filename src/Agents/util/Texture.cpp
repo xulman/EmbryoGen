@@ -61,7 +61,7 @@ void Texture::sampleDotsFromImage(const i3d::Image3d<VT>& img,
 }
 
 void Texture::createPerlinTexture(const Spheres& geom,
-                                  const Vector3d<G_FLOAT>& textureResolution,
+                                  const Vector3d<float>& textureResolution,
                                   const double var,
                                   const double alpha,
                                   const double beta,
@@ -123,15 +123,16 @@ int Texture::collectOutlyingDots(const Spheres& geom) {
 	auto stopWatch = tic();
 #endif
 
-	Vector3d<G_FLOAT> tmp;
-	G_FLOAT tmpLen;
+	Vector3d<float> tmp;
+	float tmpLen;
 
 	for (auto& dot : dots) {
 		bool foundInside = false;
-		G_FLOAT nearestDist = TOOFAR;
+		float nearestDist = TOOFAR;
 		int nearestIdx = -1;
 
-		for (std::size_t i = 0; i < geom.getNoOfSpheres() && !foundInside; ++i) {
+		for (std::size_t i = 0; i < geom.getNoOfSpheres() && !foundInside;
+		     ++i) {
 			// test against the i-th sphere
 			tmp = geom.centres[i];
 			tmp -= dot.pos;
@@ -410,7 +411,7 @@ void TextureUpdater4S::updateTextureCoords(std::vector<Dot>& dots,
 		for (unsigned int i = 0; i < 4; ++i) {
 			tmp = dot.pos;
 			tmp -= prevCentre[i];
-			weights[i] = std::max(prevRadius[i] - tmp.len(), (G_FLOAT)0);
+			weights[i] = std::max(prevRadius[i] - tmp.len(), 0.0f);
 		}
 
 		// normalization factor
@@ -452,7 +453,7 @@ void TextureUpdater2pNS::updateTextureCoords(std::vector<Dot>& dots,
 #endif
 	// backup: last geometry for which texture coordinates were valid
 	// and prepare the updating routines where "orientation is global"
-	Vector3d<G_FLOAT> tmp(newGeom.centres[sphereOnMainAxis]);
+	Vector3d<float> tmp(newGeom.centres[sphereOnMainAxis]);
 	tmp -= newGeom.centres[sphereAtCentre];
 	for (int i = 0; i < noOfSpheres; ++i) {
 		prevCentre[i] = cu[i].prevCentre;
@@ -462,7 +463,7 @@ void TextureUpdater2pNS::updateTextureCoords(std::vector<Dot>& dots,
 
 	// aux variables
 	float sum;
-	Vector3d<G_FLOAT> newPos;
+	Vector3d<float> newPos;
 #ifndef NDEBUG
 	int outsideDots = 0;
 #endif
@@ -474,7 +475,7 @@ void TextureUpdater2pNS::updateTextureCoords(std::vector<Dot>& dots,
 		for (int i = 0; i < noOfSpheres; ++i) {
 			tmp = dot.pos;
 			tmp -= prevCentre[i];
-			__weights[i] = std::max(prevRadius[i] - tmp.len(), (G_FLOAT)0);
+			__weights[i] = std::max(prevRadius[i] - tmp.len(), 0.0f);
 			sum += __weights[i];
 		}
 
@@ -535,17 +536,17 @@ void TextureUpdaterNS::resetNeigWeightMatrix(const Spheres& spheres,
 			// need second test?
 			if (spheres.radii[l] == spheres.radii[r]) {
 				// secondary test: need to calculate overlaps
-				const G_FLOAT refRadius = spheres.radii[refIdx];
+				const float refRadius = spheres.radii[refIdx];
 
-				G_FLOAT otherRadius = spheres.radii[l];
-				G_FLOAT lOverlapSize = refRadius + otherRadius;
+				float otherRadius = spheres.radii[l];
+				float lOverlapSize = refRadius + otherRadius;
 				lOverlapSize -=
 				    (spheres.centres[refIdx] - spheres.centres[l]).len();
 				lOverlapSize = std::min(
 				    lOverlapSize, std::min(2 * refRadius, 2 * otherRadius));
 
 				otherRadius = spheres.radii[r];
-				G_FLOAT rOverlapSize = refRadius + otherRadius;
+				float rOverlapSize = refRadius + otherRadius;
 				rOverlapSize -=
 				    (spheres.centres[refIdx] - spheres.centres[r]).len();
 				rOverlapSize = std::min(
@@ -591,10 +592,10 @@ void TextureUpdaterNS::resetNeigWeightMatrix(const Spheres& spheres,
 
 			// only when not enough of neighs has been discovered so far,
 			// but consider only overlapping neighs!
-			const G_FLOAT overlap = std::max<G_FLOAT>(
-			    -(spheres.centres[row] - spheres.centres[col]).len() +
-			        spheres.radii[row] + spheres.radii[col],
-			    0);
+			const float overlap =
+			    std::max(-(spheres.centres[row] - spheres.centres[col]).len() +
+			                 spheres.radii[row] + spheres.radii[col],
+			             0.0f);
 			if (overlap > 0) {
 				*neigWeightMatrix(row, col) = 1;
 				++foundNeighs;
@@ -617,7 +618,7 @@ void TextureUpdaterNS::resetNeigWeightMatrix(const Spheres& spheres,
 }
 
 void TextureUpdaterNS::setNeigWeightMatrix(
-    const SpheresFunctions::SquareMatrix<G_FLOAT>& newWeightMatrix) {
+    const SpheresFunctions::SquareMatrix<float>& newWeightMatrix) {
 #ifndef NDEBUG
 	if (neigWeightMatrix.side != newWeightMatrix.side)
 		throw report::rtError("Attempting to set matrix of different size.");
@@ -635,8 +636,8 @@ void TextureUpdaterNS::printNeigWeightMatrix() {
 
 void TextureUpdaterNS::getLocalOrientation(const Spheres& spheres,
                                            const int idx,
-                                           Vector3d<G_FLOAT>& orientVec) {
-	Vector3d<G_FLOAT> tmpVec;
+                                           Vector3d<float>& orientVec) {
+	Vector3d<float> tmpVec;
 
 	orientVec = 0;
 	for (std::size_t i = 0; i < spheres.getNoOfSpheres(); ++i)
@@ -647,7 +648,8 @@ void TextureUpdaterNS::getLocalOrientation(const Spheres& spheres,
 
 			// weight this contribution
 			tmpVec.changeToUnitOrZero();
-			tmpVec *= *neigWeightMatrix(idx, int(i)) / *neigWeightMatrix(idx, idx);
+			tmpVec *=
+			    *neigWeightMatrix(idx, int(i)) / *neigWeightMatrix(idx, idx);
 
 			orientVec += tmpVec;
 		}
@@ -665,7 +667,7 @@ void TextureUpdaterNS::updateTextureCoords(std::vector<Dot>& dots,
 #endif
 	// backup: last geometry for which user coordinates were valid
 	// and prepare the updating routines...
-	Vector3d<G_FLOAT> tmp;
+	Vector3d<float> tmp;
 	for (int i = 0; i < noOfSpheres; ++i) {
 		prevCentre[i] = cu[i].prevCentre;
 		prevRadius[i] = cu[i].prevRadius;
@@ -675,7 +677,7 @@ void TextureUpdaterNS::updateTextureCoords(std::vector<Dot>& dots,
 
 	// aux variables
 	float sum;
-	Vector3d<G_FLOAT> newPos;
+	Vector3d<float> newPos;
 #ifndef NDEBUG
 	int outsideDots = 0;
 #endif
@@ -687,7 +689,7 @@ void TextureUpdaterNS::updateTextureCoords(std::vector<Dot>& dots,
 		for (int i = 0; i < noOfSpheres; ++i) {
 			tmp = dot.pos;
 			tmp -= prevCentre[i];
-			__weights[i] = std::max(prevRadius[i] - tmp.len(), (G_FLOAT)0);
+			__weights[i] = std::max(prevRadius[i] - tmp.len(), 0.0f);
 			sum += __weights[i];
 		}
 

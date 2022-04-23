@@ -2,27 +2,6 @@
 #include "../util/surfacesamplers.hpp"
 #include <fmt/core.h>
 
-const ForceName_t ftype_s2s = "sphere-sphere"; // internal forces
-const ForceName_t ftype_drive = "desired movement";
-const ForceName_t ftype_friction = "friction";
-
-const ForceName_t ftype_repulsive =
-    "repulsive"; // due to external events with nuclei
-const ForceName_t ftype_body = "no overlap (body)";
-const ForceName_t ftype_slide = "no sliding";
-
-const ForceName_t ftype_hinter =
-    "sphere-hinter"; // due to external events with shape hinters
-
-const G_FLOAT fstrength_body_scale = (G_FLOAT)0.4;    // [N/um]      TRAgen: N/A
-const G_FLOAT fstrength_overlap_scale = (G_FLOAT)0.2; // [N/um]      TRAgen: k
-const G_FLOAT fstrength_overlap_level = (G_FLOAT)0.1; // [N]         TRAgen: A
-const G_FLOAT fstrength_overlap_depth =
-    (G_FLOAT)0.5; // [um]        TRAgen: delta_o (do)
-const G_FLOAT fstrength_rep_scale = (G_FLOAT)0.6;     // [1/um]      TRAgen: B
-const G_FLOAT fstrength_slide_scale = (G_FLOAT)1.0;   // unitless
-const G_FLOAT fstrength_hinter_scale = (G_FLOAT)0.25; // [1/um^2]
-
 void NucleusAgent::adjustGeometryByForces(void) {
 	// TRAgen paper, eq (1):
 	// reset the array with final forces (which will become accelerations soon)
@@ -54,10 +33,10 @@ void NucleusAgent::adjustGeometryByForces(void) {
 		accels[i] /= weights[i];
 
 		// velocities: v=at
-		velocities[i] += (G_FLOAT)incrTime * accels[i];
+		velocities[i] += incrTime * accels[i];
 
 		// displacement: |trajectory|=vt
-		futureGeometry.centres[i] += (G_FLOAT)incrTime * velocities[i];
+		futureGeometry.centres[i] += incrTime * velocities[i];
 	}
 
 	// update AABB to the new geometry
@@ -148,7 +127,7 @@ void NucleusAgent::collectExtForces(void) {
 
 	// now, postprocess the proximityPairs, that is, to
 	// convert proximityPairs_toNuclei to forces according to TRAgen rules
-	Vector3d<G_FLOAT> f, g; // tmp vectors
+	Vector3d<float> f, g; // tmp vectors
 	for (const auto& pp : proximityPairs_toNuclei) {
 		if (pp.distance > 0) {
 			if (detailedReportingMode)
@@ -189,7 +168,7 @@ void NucleusAgent::collectExtForces(void) {
 			f -= pp.localPos;
 			f.changeToUnitOrZero();
 
-			G_FLOAT fScale = fstrength_overlap_level;
+			float fScale = fstrength_overlap_level;
 			if (-pp.distance > fstrength_overlap_depth) {
 				// in the non-calm response zone (where force increases with the
 				// penetration depth)
@@ -256,7 +235,7 @@ void NucleusAgent::collectExtForces(void) {
 			// the get-back-to-hinter force
 			f *= 2 * fstrength_overlap_level *
 			     std::min(pp.distance * pp.distance * fstrength_hinter_scale,
-			              (G_FLOAT)1);
+			              1.0f);
 
 			// apply the same force to all spheres
 			for (std::size_t i = 0; i < futureGeometry.getNoOfSpheres(); ++i)

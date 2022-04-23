@@ -13,20 +13,18 @@
  */
 class Spheres : public Geometry {
   protected:
-
 	/** centers and radii sizes are always the same */
 
 	/** list of centres of the spheres */
-	std::vector<Vector3d<G_FLOAT>> centres;
+	std::vector<Vector3d<precision_t>> centres;
 
 	/** list of radii of the spheres */
-	std::vector<G_FLOAT> radii;
+	std::vector<precision_t> radii;
 
   public:
 	/** empty shape constructor */
 	Spheres(const int noOfSpheres)
-	    : Geometry(ListOfShapeForms::Spheres),
-	      centres(noOfSpheres),
+	    : Geometry(ListOfShapeForms::Spheres), centres(noOfSpheres),
 	      radii(noOfSpheres) {
 		// sanity check...
 		if (noOfSpheres < 0)
@@ -61,7 +59,7 @@ class Spheres : public Geometry {
 	    there is no collision at all (with no sphere); the sphere at
 	    the 'ignore' index is omitted from the tests (note the default
 	    ignoreIdx is -1, which means to consider all spheres for the test) */
-	int collideWithPoint(const Vector3d<G_FLOAT>& point,
+	int collideWithPoint(const Vector3d<precision_t>& point,
 	                     const int ignoreIdx = -1) const;
 
 	// ------------- AABB -------------
@@ -73,15 +71,19 @@ class Spheres : public Geometry {
 		return centres.size();
 	}
 
-	const std::vector<Vector3d<G_FLOAT>>& getCentres(void) const { return centres; }
+	const std::vector<Vector3d<precision_t>>& getCentres(void) const {
+		return centres;
+	}
 
-	const std::vector<G_FLOAT>& getRadii(void) const { return radii; }
+	const std::vector<precision_t>& getRadii(void) const { return radii; }
 
-	void updateCentre(const int i, const Vector3d<G_FLOAT>& centre) {
+	void updateCentre(const int i, const Vector3d<precision_t>& centre) {
 		centres[i] = centre;
 	}
 
-	void updateRadius(const int i, const G_FLOAT radius) { radii[i] = radius; }
+	void updateRadius(const int i, const precision_t radius) {
+		radii[i] = radius;
+	}
 
 	friend class SpheresFunctions;
 	friend class NucleusAgent;

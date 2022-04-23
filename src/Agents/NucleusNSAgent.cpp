@@ -4,7 +4,8 @@
 void NucleusNSAgent::resetDistanceMatrix() {
 	for (std::size_t row = 0; row < futureGeometry.getNoOfSpheres(); ++row) {
 		*distanceMatrix(int(row), int(row)) = -1;
-		for (std::size_t col = row + 1; col < futureGeometry.getNoOfSpheres(); ++col) {
+		for (std::size_t col = row + 1; col < futureGeometry.getNoOfSpheres();
+		     ++col) {
 			const float dist =
 			    (futureGeometry.centres[row] - futureGeometry.centres[col])
 			        .len();
@@ -23,8 +24,8 @@ void NucleusNSAgent::printDistanceMatrix() {
 void NucleusNSAgent::advanceAndBuildIntForces(const float futureGlobalTime) {
 	// tolerated mis-position (no "adjustment" s2s forces are created within
 	// this radius)
-	const G_FLOAT keepCalmDistance = (G_FLOAT)0.1;
-	// const G_FLOAT keepCalmDistanceSq = keepCalmDistance*keepCalmDistance;
+	const float keepCalmDistance = 0.1f;
+	// const float keepCalmDistanceSq = keepCalmDistance*keepCalmDistance;
 
 #ifndef NDEBUG
 	if (int(futureGeometry.getNoOfSpheres()) != distanceMatrix.side)
@@ -35,12 +36,14 @@ void NucleusNSAgent::advanceAndBuildIntForces(const float futureGlobalTime) {
 	forces_s2sInducers.clear();
 #endif
 
-	Vector3d<G_FLOAT> forceVec;
+	Vector3d<float> forceVec;
 	for (std::size_t row = 0; row < futureGeometry.getNoOfSpheres(); ++row) {
-		for (std::size_t col = row + 1; col < futureGeometry.getNoOfSpheres(); ++col) {
+		for (std::size_t col = row + 1; col < futureGeometry.getNoOfSpheres();
+		     ++col) {
 			forceVec = futureGeometry.centres[col];
 			forceVec -= futureGeometry.centres[row];
-			G_FLOAT diffDist = forceVec.len() - distanceMatrix.get(int(row), int(col));
+			float diffDist =
+			    forceVec.len() - distanceMatrix.get(int(row), int(col));
 			if (diffDist > keepCalmDistance || diffDist < -keepCalmDistance) {
 				forceVec.changeToUnitOrZero();
 				forceVec *= diffDist * fstrength_body_scale;

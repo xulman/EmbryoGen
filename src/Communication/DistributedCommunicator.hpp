@@ -5,11 +5,11 @@
 
 extern "C" {
 typedef struct {
-	Vector3d<G_FLOAT> minCorner; // AABB minCorner from geometry
-	Vector3d<G_FLOAT> maxCorner; // AABB maxCorner from geometry
-	int version;                 // Version from geometry itself
-	int id;                      // Agent ID from agent
-	unsigned long long atype;    // Agent Type ID, from agent
+	Vector3d<Geometry::precision_t> minCorner; // AABB minCorner from geometry
+	Vector3d<Geometry::precision_t> maxCorner; // AABB maxCorner from geometry
+	int version;                               // Version from geometry itself
+	int id;                                    // Agent ID from agent
+	unsigned long long atype;                  // Agent Type ID, from agent
 } t_aabb;
 
 #define StringsImprintSize                                                     \

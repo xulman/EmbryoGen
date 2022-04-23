@@ -31,14 +31,14 @@ void ShapeHinter::drawForDebug(DisplayUnit& du) {
 
 void ShapeHinter::drawForDebug(i3d::Image3d<i3d::GRAY16>& img) {
 	// shortcuts to the mask image parameters
-	const Vector3d<G_FLOAT> res(img.GetResolution().GetRes());
-	const Vector3d<G_FLOAT> off(img.GetOffset().x, img.GetOffset().y,
-	                            img.GetOffset().z);
+	const Vector3d<float> res(img.GetResolution().GetRes());
+	const Vector3d<float> off(img.GetOffset().x, img.GetOffset().y,
+	                          img.GetOffset().z);
 
 	// shortcuts to our own geometry
 	const i3d::Image3d<float>& distImg = geometryAlias.getDistImg();
-	const Vector3d<G_FLOAT>& distImgRes = geometryAlias.getDistImgRes();
-	const Vector3d<G_FLOAT>& distImgOff = geometryAlias.getDistImgOff();
+	const Vector3d<float>& distImgRes = geometryAlias.getDistImgRes();
+	const Vector3d<float>& distImgOff = geometryAlias.getDistImgOff();
 	const ScalarImg::DistanceModel model = geometryAlias.getDistImgModel();
 
 	// project and "clip" this AABB into the img frame
@@ -49,7 +49,7 @@ void ShapeHinter::drawForDebug(i3d::Image3d<i3d::GRAY16>& img) {
 	geometryAlias.AABB.exportInPixelCoords(img, minSweepPX, maxSweepPX);
 	//
 	// micron coordinate of the running voxel 'curPos'
-	Vector3d<G_FLOAT> centre;
+	Vector3d<float> centre;
 	//
 	// px coordinate of the voxel that is counterpart in distImg to the running
 	// voxel

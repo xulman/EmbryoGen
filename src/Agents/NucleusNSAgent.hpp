@@ -25,7 +25,7 @@ class NucleusNSAgent : public NucleusAgent {
 	// ------------- internals state -------------
 
 	// ------------- internals geometry -------------
-	SpheresFunctions::SquareMatrix<G_FLOAT> distanceMatrix;
+	SpheresFunctions::SquareMatrix<float> distanceMatrix;
 
 	void resetDistanceMatrix();
 	void printDistanceMatrix();
