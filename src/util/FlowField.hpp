@@ -29,6 +29,7 @@
 #pragma once
 
 #include "../DisplayUnits/DisplayUnit.hpp"
+#include "../config.hpp"
 #include "report.hpp"
 #include <i3d/image3d.h>
 #include <i3d/vector3d.h>
@@ -202,9 +203,9 @@ struct FlowField {
 					// translate px coord into micron (real world) one
 					pos.toMicronsFrom(pxPos, res, off);
 
-					vec.x = x->GetVoxel(pxPos.x, pxPos.y, pxPos.z);
-					vec.y = y->GetVoxel(pxPos.x, pxPos.y, pxPos.z);
-					vec.z = z->GetVoxel(pxPos.x, pxPos.y, pxPos.z);
+					vec.x = float(x->GetVoxel(pxPos.x, pxPos.y, pxPos.z));
+					vec.y = float(y->GetVoxel(pxPos.x, pxPos.y, pxPos.z));
+					vec.z = float(z->GetVoxel(pxPos.x, pxPos.y, pxPos.z));
 
 					// display only non-zero vectors
 					if (vec.len2() > 0)

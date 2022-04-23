@@ -6,9 +6,9 @@ void NucleusNSAgent::resetDistanceMatrix() {
 		*distanceMatrix(int(row), int(row)) = -1;
 		for (std::size_t col = row + 1; col < futureGeometry.getNoOfSpheres();
 		     ++col) {
-			const float dist =
+			const float dist = float(
 			    (futureGeometry.centres[row] - futureGeometry.centres[col])
-			        .len();
+			        .len());
 			*distanceMatrix(int(row), int(col)) = dist;
 			*distanceMatrix(int(col), int(row)) = dist;
 		}
@@ -74,8 +74,8 @@ void NucleusNSAgent::drawMask(DisplayUnit& du) {
 
 	// draw spheres, each at different color
 	for (std::size_t i = 0; i < futureGeometry.getNoOfSpheres(); ++i)
-		du.DrawPoint(dID++, futureGeometry.centres[i], futureGeometry.radii[i],
-		             int(i));
+		du.DrawPoint(dID++, futureGeometry.centres[i],
+		             float(futureGeometry.radii[i]), int(i));
 
 	// cell centres connection "line" (green)
 	for (std::size_t i = 1; i < futureGeometry.getNoOfSpheres(); ++i)

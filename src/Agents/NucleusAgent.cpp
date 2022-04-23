@@ -173,7 +173,7 @@ void NucleusAgent::collectExtForces(void) {
 				// in the non-calm response zone (where force increases with the
 				// penetration depth)
 				fScale += fstrength_overlap_scale *
-				          (-pp.distance - fstrength_overlap_depth);
+				          float(-pp.distance - fstrength_overlap_depth);
 			}
 
 			// TRAgen paper, eq. (5)
@@ -212,7 +212,7 @@ void NucleusAgent::collectExtForces(void) {
 			forces.emplace_back(g, futureGeometry.centres[pp.localHint],
 			                    pp.localHint, ftype_slide);
 #ifndef NDEBUG
-			Officer->reportOverlap(-pp.distance);
+			Officer->reportOverlap(-float(pp.distance));
 #endif
 		}
 	}
@@ -235,7 +235,7 @@ void NucleusAgent::collectExtForces(void) {
 			// the get-back-to-hinter force
 			f *= 2 * fstrength_overlap_level *
 			     std::min(pp.distance * pp.distance * fstrength_hinter_scale,
-			              1.0f);
+			              ProximityPair::precision_t(1.0));
 
 			// apply the same force to all spheres
 			for (std::size_t i = 0; i < futureGeometry.getNoOfSpheres(); ++i)
@@ -263,7 +263,8 @@ void NucleusAgent::drawMask(DisplayUnit& du) {
 	// draw spheres
 	for (std::size_t i = 0; i < futureGeometry.getNoOfSpheres(); ++i) {
 		du.DrawPoint(detailedDrawingMode ? gdID : dID,
-		             futureGeometry.centres[i], futureGeometry.radii[i], color);
+		             futureGeometry.centres[i], float(futureGeometry.radii[i]),
+		             color);
 		++dID;
 		++gdID; // just update both counters
 	}
@@ -305,7 +306,7 @@ void NucleusAgent::drawForDebug(DisplayUnit& du) {
 		int periPointCnt = 0;
 
 		for (std::size_t S = 0; S < geometryAlias.getNoOfSpheres(); ++S) {
-			ss.resetByStepSize(geometryAlias.radii[S], 2.6f);
+			ss.resetByStepSize(float(geometryAlias.radii[S]), 2.6f);
 			while (ss.next(periPoint)) {
 				periPoint += geometryAlias.centres[S];
 

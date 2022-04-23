@@ -136,7 +136,7 @@ int Texture::collectOutlyingDots(const Spheres& geom) {
 			// test against the i-th sphere
 			tmp = geom.centres[i];
 			tmp -= dot.pos;
-			tmpLen = tmp.len() - geom.radii[i];
+			tmpLen = tmp.len() - float(geom.radii[i]);
 
 			foundInside = tmpLen <= 0;
 
@@ -150,12 +150,12 @@ int Texture::collectOutlyingDots(const Spheres& geom) {
 		if (!foundInside) {
 			// correct dot's position according to the nearestIdx:
 			// random position inside the (zero-centered) sphere
-			dot.pos.x =
-			    GetRandomGauss(0.f, geom.radii[nearestIdx] / 2.f, rngState);
-			dot.pos.y =
-			    GetRandomGauss(0.f, geom.radii[nearestIdx] / 2.f, rngState);
-			dot.pos.z =
-			    GetRandomGauss(0.f, geom.radii[nearestIdx] / 2.f, rngState);
+			dot.pos.x = GetRandomGauss(0.f, float(geom.radii[nearestIdx] / 2.f),
+			                           rngState);
+			dot.pos.y = GetRandomGauss(0.f, float(geom.radii[nearestIdx] / 2.f),
+			                           rngState);
+			dot.pos.z = GetRandomGauss(0.f, float(geom.radii[nearestIdx] / 2.f),
+			                           rngState);
 
 			// make sure we're inside this sphere
 			if (dot.pos.len() > geom.radii[nearestIdx]) {
@@ -382,7 +382,7 @@ void TextureUpdater4S::updateTextureCoords(std::vector<Dot>& dots,
 	// backup: last geometry for which user coordinates were valid
 	for (unsigned int i = 0; i < 4; ++i) {
 		prevCentre[i] = cu[i].prevCentre;
-		prevRadius[i] = cu[i].prevRadius;
+		prevRadius[i] = float(cu[i].prevRadius);
 	}
 
 	// prepare the updating routines...
@@ -399,9 +399,9 @@ void TextureUpdater4S::updateTextureCoords(std::vector<Dot>& dots,
 	                      newGeom.centres[2] - newGeom.centres[3]);
 
 	// aux variables
-	float weights[4];
-	float sum;
-	Vector3d<float> tmp, newPos;
+	Geometry::precision_t weights[4];
+	Geometry::precision_t sum;
+	Geometry::point_t tmp, newPos;
 #ifndef NDEBUG
 	int outsideDots = 0;
 #endif
@@ -411,7 +411,8 @@ void TextureUpdater4S::updateTextureCoords(std::vector<Dot>& dots,
 		for (unsigned int i = 0; i < 4; ++i) {
 			tmp = dot.pos;
 			tmp -= prevCentre[i];
-			weights[i] = std::max(prevRadius[i] - tmp.len(), 0.0f);
+			weights[i] =
+			    std::max(prevRadius[i] - tmp.len(), Geometry::precision_t(0));
 		}
 
 		// normalization factor
@@ -426,7 +427,7 @@ void TextureUpdater4S::updateTextureCoords(std::vector<Dot>& dots,
 					cu[i].updateCoord(tmp);
 					newPos += (weights[i] / sum) * tmp;
 				}
-			dot.pos = newPos;
+			dot.pos = newPos.to<float>();
 		} else {
 #ifndef NDEBUG
 			++outsideDots;
@@ -453,16 +454,16 @@ void TextureUpdater2pNS::updateTextureCoords(std::vector<Dot>& dots,
 #endif
 	// backup: last geometry for which texture coordinates were valid
 	// and prepare the updating routines where "orientation is global"
-	Vector3d<float> tmp(newGeom.centres[sphereOnMainAxis]);
+	Geometry::point_t tmp(newGeom.centres[sphereOnMainAxis]);
 	tmp -= newGeom.centres[sphereAtCentre];
 	for (int i = 0; i < noOfSpheres; ++i) {
 		prevCentre[i] = cu[i].prevCentre;
-		prevRadius[i] = cu[i].prevRadius;
+		prevRadius[i] = float(cu[i].prevRadius);
 		cu[i].prepareUpdating(newGeom.centres[i], newGeom.radii[i], tmp);
 	}
 
 	// aux variables
-	float sum;
+	Geometry::precision_t sum;
 	Vector3d<float> newPos;
 #ifndef NDEBUG
 	int outsideDots = 0;
@@ -475,7 +476,8 @@ void TextureUpdater2pNS::updateTextureCoords(std::vector<Dot>& dots,
 		for (int i = 0; i < noOfSpheres; ++i) {
 			tmp = dot.pos;
 			tmp -= prevCentre[i];
-			__weights[i] = std::max(prevRadius[i] - tmp.len(), 0.0f);
+			__weights[i] = float(
+			    std::max(prevRadius[i] - tmp.len(), Geometry::precision_t(0)));
 			sum += __weights[i];
 		}
 
@@ -536,17 +538,17 @@ void TextureUpdaterNS::resetNeigWeightMatrix(const Spheres& spheres,
 			// need second test?
 			if (spheres.radii[l] == spheres.radii[r]) {
 				// secondary test: need to calculate overlaps
-				const float refRadius = spheres.radii[refIdx];
+				const Geometry::precision_t refRadius = spheres.radii[refIdx];
 
-				float otherRadius = spheres.radii[l];
-				float lOverlapSize = refRadius + otherRadius;
+				Geometry::precision_t otherRadius = spheres.radii[l];
+				Geometry::precision_t lOverlapSize = refRadius + otherRadius;
 				lOverlapSize -=
 				    (spheres.centres[refIdx] - spheres.centres[l]).len();
 				lOverlapSize = std::min(
 				    lOverlapSize, std::min(2 * refRadius, 2 * otherRadius));
 
 				otherRadius = spheres.radii[r];
-				float rOverlapSize = refRadius + otherRadius;
+				Geometry::precision_t rOverlapSize = refRadius + otherRadius;
 				rOverlapSize -=
 				    (spheres.centres[refIdx] - spheres.centres[r]).len();
 				rOverlapSize = std::min(
@@ -592,10 +594,10 @@ void TextureUpdaterNS::resetNeigWeightMatrix(const Spheres& spheres,
 
 			// only when not enough of neighs has been discovered so far,
 			// but consider only overlapping neighs!
-			const float overlap =
-			    std::max(-(spheres.centres[row] - spheres.centres[col]).len() +
-			                 spheres.radii[row] + spheres.radii[col],
-			             0.0f);
+			const float overlap = std::max(
+			    float(-(spheres.centres[row] - spheres.centres[col]).len() +
+			          spheres.radii[row] + spheres.radii[col]),
+			    0.0f);
 			if (overlap > 0) {
 				*neigWeightMatrix(row, col) = 1;
 				++foundNeighs;
@@ -670,13 +672,14 @@ void TextureUpdaterNS::updateTextureCoords(std::vector<Dot>& dots,
 	Vector3d<float> tmp;
 	for (int i = 0; i < noOfSpheres; ++i) {
 		prevCentre[i] = cu[i].prevCentre;
-		prevRadius[i] = cu[i].prevRadius;
+		prevRadius[i] = float(cu[i].prevRadius);
 		getLocalOrientation(newGeom, i, tmp);
 		cu[i].prepareUpdating(newGeom.centres[i], newGeom.radii[i], tmp);
 	}
 
 	// aux variables
-	float sum;
+	Geometry::precision_t sum;
+	Geometry::point_t tmp2;
 	Vector3d<float> newPos;
 #ifndef NDEBUG
 	int outsideDots = 0;
@@ -687,9 +690,9 @@ void TextureUpdaterNS::updateTextureCoords(std::vector<Dot>& dots,
 		// determine the weights
 		sum = 0;
 		for (int i = 0; i < noOfSpheres; ++i) {
-			tmp = dot.pos;
-			tmp -= prevCentre[i];
-			__weights[i] = std::max(prevRadius[i] - tmp.len(), 0.0f);
+			tmp2 = dot.pos;
+			tmp2 -= prevCentre[i];
+			__weights[i] = std::max(float(prevRadius[i] - tmp2.len()), 0.0f);
 			sum += __weights[i];
 		}
 
@@ -698,10 +701,10 @@ void TextureUpdaterNS::updateTextureCoords(std::vector<Dot>& dots,
 			newPos = 0;
 			for (int i = 0; i < noOfSpheres; ++i)
 				if (__weights[i] > 0) {
-					tmp = dot.pos;
-					cu[i].updateCoord(tmp);
-					tmp *= __weights[i] / sum;
-					newPos += tmp;
+					tmp2 = dot.pos;
+					cu[i].updateCoord(tmp2);
+					tmp2 *= __weights[i] / sum;
+					newPos += tmp2;
 				}
 			dot.pos = newPos;
 		} else {

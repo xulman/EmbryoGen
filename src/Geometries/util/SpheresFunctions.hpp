@@ -353,14 +353,12 @@ class SpheresFunctions {
 			expandSrcIntoThis(targetGeom, positionShakers, radiusShakers);
 		}
 
-		template <tools::concepts::basic_container T,
-		          tools::concepts::basic_container U>
+		template <typename T, typename U>
+		requires tools::concepts::basic_container_v<T, posShakerPtr> &&
+		    tools::concepts::basic_container_v<U, radiusShakerPtr>
 		void expandSrcIntoThis(Spheres& targetGeom,
 		                       const T& positionShakers,
 		                       const U& radiusShakers) const {
-			static_assert(std::is_same_v<typename T::value_type, posShakerPtr>);
-			static_assert(
-			    std::is_same_v<typename U::value_type, radiusShakerPtr>);
 #ifndef NDEBUG
 			if (positionShakers.size() != radiusShakers.size())
 				throw report::rtError(
@@ -802,18 +800,19 @@ class SpheresFunctions {
 				throw report::rtError("Given geometry is not compatible with "
 				                      "the one defined here.");
 #endif
-			const float deltaRadius0 =
+			const Geometry::precision_t deltaRadius0 =
 			    this->sourceGeom.getRadii()[0] - geom.getRadii()[0];
-			const float deltaRadius1 =
+			const Geometry::precision_t deltaRadius1 =
 			    this->sourceGeom.getRadii()[1] - geom.getRadii()[1];
 
 			Vector3d<FT> posDeltaDir(geom.getCentres()[1]);
 			posDeltaDir -= geom.getCentres()[0];
 
-			float deltaMainAxisDist = (this->sourceGeom.getCentres()[1] -
-			                           this->sourceGeom.getCentres()[0])
-			                              .len() -
-			                          posDeltaDir.len();
+			Geometry::precision_t deltaMainAxisDist =
+			    (this->sourceGeom.getCentres()[1] -
+			     this->sourceGeom.getCentres()[0])
+			        .len() -
+			    posDeltaDir.len();
 			if (std::abs(deltaMainAxisDist) < 0.001f)
 				deltaMainAxisDist = 0; // stabilizes the mainDir axis
 			posDeltaDir.changeToUnitOrZero();

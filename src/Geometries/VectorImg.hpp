@@ -107,15 +107,15 @@ class VectorImg : public Geometry {
 	 * to a filename */
 	void saveFFmagnitudes(const char* fullFilename) {
 		// create a new image of the same dimension
-		i3d::Image3d<float> mImg;
+		i3d::Image3d<precision_t> mImg;
 		mImg.CopyMetaData(X);
 
 		// running pointers...
 		const precision_t* x = X.GetFirstVoxelAddr(); // input vector elements
 		const precision_t* y = Y.GetFirstVoxelAddr();
 		const precision_t* z = Z.GetFirstVoxelAddr();
-		float* m = mImg.GetFirstVoxelAddr(); // for vector magnitude
-		float* const mE = m + mImg.GetImageSize();
+		precision_t* m = mImg.GetFirstVoxelAddr(); // for vector magnitude
+		precision_t* const mE = m + mImg.GetImageSize();
 
 		// sweep the output image
 		while (m != mE) {

@@ -48,7 +48,7 @@ class Vector3d {
 	/** enable implicit conversion */
 	template <typename U>
 	requires std::is_convertible_v<U, T> Vector3d(const Vector3d<U> vec)
-	    : x(vec.x), y(vec.y), z(vec.z) {}
+	    : x(T(vec.x)), y(T(vec.y)), z(T(vec.z)) {}
 
 	/** copy constructor from i3d::Vector3d */
 	Vector3d(const i3d::Vector3d<T>& iv3d) { fromI3dVector3d(iv3d); }

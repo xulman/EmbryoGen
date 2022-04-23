@@ -54,7 +54,7 @@ class GrowableNucleusRand : public NucleusNSAgent {
 	}
 
 	// expanded masks
-	SpheresFunctions::Interpolator<float> si;
+	SpheresFunctions::Interpolator<Geometry::precision_t> si;
 	int setupSpheresInterpolationAndReturnNoOfSpheres() {
 		si.addToPlan(0, 1, 2);
 		si.addToPlan(1, 2, 2);
@@ -79,7 +79,7 @@ class GrowableNucleusRand : public NucleusNSAgent {
 		for (std::size_t i = futureGeometry.getNoOfSpheres();
 		     i < presentationGeom.getNoOfSpheres(); ++i)
 			du.DrawPoint(dID + int(i) + 5, presentationGeom.getCentres()[i],
-			             presentationGeom.getRadii()[i], 3);
+			             float(presentationGeom.getRadii()[i]), 3);
 	}
 };
 

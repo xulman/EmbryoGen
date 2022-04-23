@@ -32,7 +32,7 @@ class Texture {
 	    if the outlook is not good -- it is better to increase the capacity
 	    of the contained in larger chunks rather than increasing it in a
 	    dot by dot manner (= many small increases); returns the new capacity */
-	size_t
+	std::size_t
 	checkAndIncreaseCapacity(const unsigned int expectedNoOfNewDots = 10000) {
 		if (dots.capacity() - dots.size() < expectedNoOfNewDots) {
 			dots.reserve(dots.capacity() + expectedNoOfNewDots);
@@ -221,22 +221,22 @@ class TextureUpdater4S {
 	/** init the class with the current 4S geometry */
 	TextureUpdater4S(const Spheres& geom)
 	    : objectIsReady(testNoOfSpheres(geom)),
-	      cu{SpheresFunctions::CoordsUpdater<float>(geom.centres[0],
-	                                                geom.radii[0],
-	                                                geom.centres[0] -
-	                                                    geom.centres[1]),
-	         SpheresFunctions::CoordsUpdater<float>(geom.centres[1],
-	                                                geom.radii[1],
-	                                                geom.centres[0] -
-	                                                    geom.centres[2]),
-	         SpheresFunctions::CoordsUpdater<float>(geom.centres[2],
-	                                                geom.radii[2],
-	                                                geom.centres[1] -
-	                                                    geom.centres[3]),
-	         SpheresFunctions::CoordsUpdater<float>(geom.centres[3],
-	                                                geom.radii[3],
-	                                                geom.centres[2] -
-	                                                    geom.centres[3])} {}
+	      cu{SpheresFunctions::CoordsUpdater<Geometry::precision_t>(
+	             geom.centres[0],
+	             geom.radii[0],
+	             geom.centres[0] - geom.centres[1]),
+	         SpheresFunctions::CoordsUpdater<Geometry::precision_t>(
+	             geom.centres[1],
+	             geom.radii[1],
+	             geom.centres[0] - geom.centres[2]),
+	         SpheresFunctions::CoordsUpdater<Geometry::precision_t>(
+	             geom.centres[2],
+	             geom.radii[2],
+	             geom.centres[1] - geom.centres[3]),
+	         SpheresFunctions::CoordsUpdater<Geometry::precision_t>(
+	             geom.centres[3],
+	             geom.radii[3],
+	             geom.centres[2] - geom.centres[3])} {}
 
 	/** this method tracks the 4S geometry changes and updates, in accord, the
 	   coordinates of the given list of texture dots */
@@ -259,7 +259,7 @@ class TextureUpdater4S {
 	}
 
 	/** coordinate updaters, one per sphere */
-	SpheresFunctions::CoordsUpdater<float> cu[4];
+	SpheresFunctions::CoordsUpdater<Geometry::precision_t> cu[4];
 
 	/** aux arrays for the updateTextureCoords() */
 	Vector3d<float> prevCentre[4];
@@ -325,7 +325,7 @@ class TextureUpdater2pNS {
 	}
 
 	/** coordinate updaters, one per sphere */
-	std::vector<SpheresFunctions::CoordsUpdater<float>> cu;
+	std::vector<SpheresFunctions::CoordsUpdater<Geometry::precision_t>> cu;
 
 	/** aux arrays for the updateTextureCoords() */
 	std::vector<Vector3d<float>> prevCentre;
@@ -407,7 +407,7 @@ class TextureUpdaterNS {
 	}
 
 	/** coordinate updaters, one per sphere */
-	std::vector<SpheresFunctions::CoordsUpdater<float>> cu;
+	std::vector<SpheresFunctions::CoordsUpdater<Geometry::precision_t>> cu;
 
 	/** neighbors and their weights, in this implementation the weights are
 	   binary: a sphere is influenced by another one sphere (or equally by a few

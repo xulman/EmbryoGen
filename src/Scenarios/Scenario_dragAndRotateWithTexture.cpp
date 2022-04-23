@@ -33,7 +33,7 @@ class myDragAndTextureNucleus_common : public NucleusNSAgent, Texture {
 		}
 		*/
 		TextureFunctions::addTextureAlongGrid(
-		    dots, geometryAlias, Vector3d<float>(0), Vector3d<float>(3),
+		    dots, geometryAlias, Geometry::point_t(0), Geometry::point_t(3),
 		    Vector3d<float>(0.5f));
 	}
 
@@ -109,8 +109,10 @@ class myDragAndTextureNucleus_common : public NucleusNSAgent, Texture {
 		const Vector3d<float> off(img.GetOffset());
 
 		// shortcuts to our Own spheres
-		const std::vector<Vector3d<float>>& centresO = futureGeometry.getCentres();
-		const std::vector<float>& radiiO = futureGeometry.getRadii();
+		const std::vector<Geometry::point_t>& centresO =
+		    futureGeometry.getCentres();
+		const std::vector<Geometry::precision_t>& radiiO =
+		    futureGeometry.getRadii();
 		const std::size_t iO = futureGeometry.getNoOfSpheres();
 
 		// project and "clip" this AABB into the img frame

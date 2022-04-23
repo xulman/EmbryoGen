@@ -78,9 +78,10 @@ class SimpleDividingAgent : public NucleusAgent {
 		//-position is our basal direction...
 		position *= -1;
 		Vector3d<float> polarity = getRandomPolarityVecGivenBasalDir(position);
-		float centreHalfDist = 0.5f * (divGeomModelled.getCentres()[0] -
-		                               divGeomModelled.getCentres()[1])
-		                                  .len();
+		Geometry::precision_t centreHalfDist =
+		    0.5f *
+		    (divGeomModelled.getCentres()[0] - divGeomModelled.getCentres()[1])
+		        .len();
 		report::message(fmt::format("Placing agent {} at {}, with polarity {}",
 		                            ID, toString(position),
 		                            toString(polarity)));
@@ -157,14 +158,16 @@ class SimpleDividingAgent : public NucleusAgent {
 		for (std::size_t i = 0; i < futureGeometry.getNoOfSpheres(); ++i) {
 			//(signed) distance between the Globus surface and this sphere's
 			// surface
-			float carrierVecLen = futureGeometry.getCentres()[i].len();
-			float surface =
+			Geometry::precision_t carrierVecLen =
+			    futureGeometry.getCentres()[i].len();
+			Geometry::precision_t surface =
 			    (globeRadius + futureGeometry.getRadii()[i]) - carrierVecLen;
 			// the get-back-to-hinter force, now it is a (signed) force
 			// magnitude
-			surface =
-			    (surface > 0 ? +1.f : -1.f) * 2 * fstrength_overlap_level *
-			    std::min(surface * surface * fstrength_hinter_scale, 10.0f);
+			surface = (surface > 0 ? +1.f : -1.f) * 2 *
+			          fstrength_overlap_level *
+			          std::min<Geometry::precision_t>(
+			              surface * surface * fstrength_hinter_scale, 10.0f);
 			exertForceOnSphere(int(i),
 			                   (surface / carrierVecLen) *
 			                       futureGeometry.getCentres()[i],
@@ -213,7 +216,7 @@ class SimpleDividingAgent : public NucleusAgent {
 		*/
 		for (std::size_t i = 0; i < geometryAlias.getNoOfSpheres(); ++i)
 			du.DrawPoint(++dID, geometryAlias.getCentres()[i],
-			             geometryAlias.getRadii()[i], (ID % 3 + 1) * 2);
+			             float(geometryAlias.getRadii()[i]), (ID % 3 + 1) * 2);
 
 		drawForDebug(du);
 

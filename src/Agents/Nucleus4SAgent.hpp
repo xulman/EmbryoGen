@@ -16,11 +16,11 @@ class Nucleus4SAgent : public NucleusAgent {
 
 		// init centreDistances based on the initial geometry
 		centreDistance[0] =
-		    (geometryAlias.centres[1] - geometryAlias.centres[0]).len();
+		    float((geometryAlias.centres[1] - geometryAlias.centres[0]).len());
 		centreDistance[1] =
-		    (geometryAlias.centres[2] - geometryAlias.centres[1]).len();
+		    float((geometryAlias.centres[2] - geometryAlias.centres[1]).len());
 		centreDistance[2] =
-		    (geometryAlias.centres[3] - geometryAlias.centres[2]).len();
+		    float((geometryAlias.centres[3] - geometryAlias.centres[2]).len());
 	}
 
   protected:

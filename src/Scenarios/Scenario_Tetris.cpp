@@ -44,10 +44,10 @@ class TetrisNucleus : public NucleusNSAgent, TextureUpdaterNS {
 
 		// spheres all green, except: 0th is white, "active" is red
 		du.DrawPoint(dID++, futureGeometry.getCentres()[0],
-		             futureGeometry.getRadii()[0], 0);
+		             float(futureGeometry.getRadii()[0]), 0);
 		for (std::size_t i = 1; i < futureGeometry.getNoOfSpheres(); ++i)
 			du.DrawPoint(dID++, futureGeometry.getCentres()[i],
-			             futureGeometry.getRadii()[i],
+			             float(futureGeometry.getRadii()[i]),
 			             int(i) == activeSphereIdx ? 1 : 2);
 
 		// sphere orientations as local debug, white vectors
@@ -224,7 +224,7 @@ void Scenario_Tetris::initializeAgents(FrontOfficer* fo, int p, int) {
 		twoS.updateRadius(1, 4.5);
 
 		report::message(fmt::format("-------------------------------------"));
-		SpheresFunctions::LinkedSpheres<float> builder(
+		SpheresFunctions::LinkedSpheres<Geometry::precision_t> builder(
 		    twoS, Vector3d<float>(0, 1, 0));
 		float minAngle = (float)-M_PI_2;
 		float maxAngle = (float)+M_PI_2;
