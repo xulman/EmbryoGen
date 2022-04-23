@@ -56,40 +56,27 @@ class Vector3d {
 	template <typename U>
 	requires std::is_convertible_v<U, T> Vector3d<T>
 	&operator=(const U scal) {
-		x = y = z = T(scal);
-		return *this;
+		return _applyToElems([=](T) { return T(scal); });
 	}
 
 	Vector3d<T>& operator+=(const Vector3d<T>& vec) {
-		x += T(vec.x);
-		y += T(vec.y);
-		z += T(vec.z);
-		return *this;
+		return _applyToElems(std::plus{}, vec);
 	}
 
 	Vector3d<T>& operator-=(const Vector3d<T>& vec) {
-		x -= T(vec.x);
-		y -= T(vec.y);
-		z -= T(vec.z);
-		return *this;
+		return _applyToElems(std::minus{}, vec);
 	}
 
 	template <typename U>
 	requires std::is_convertible_v<U, T> Vector3d<T>
 	&operator*=(const U scal) {
-		x *= T(scal);
-		y *= T(scal);
-		z *= T(scal);
-		return *this;
+		return _applyToElems([=](T a) { return a * T(scal); });
 	}
 
 	template <typename U>
 	requires std::is_convertible_v<U, T> Vector3d<T>
 	&operator/=(const U scal) {
-		x /= T(scal);
-		y /= T(scal);
-		z /= T(scal);
-		return *this;
+		return _applyToElems([=](T a) { return a / T(scal); });
 	}
 
 	T inline len(void) const { return static_cast<T>(std::sqrt(len2())); }
@@ -118,18 +105,12 @@ class Vector3d {
 
 	/** element-wise multiplication is stored in this vector */
 	Vector3d<T>& elemMult(const Vector3d<T>& vec) {
-		x *= T(vec.x);
-		y *= T(vec.y);
-		z *= T(vec.z);
-		return *this;
+		return _applyToElems(std::multiplies{}, vec);
 	}
 
 	/** element-wise division is stored in this vector */
 	Vector3d<T>& elemDivBy(const Vector3d<T>& vec) {
-		x /= T(vec.x);
-		y /= T(vec.y);
-		z /= T(vec.z);
-		return *this;
+		return _applyToElems(std::divides{}, vec);
 	}
 
 	/** change this vector with element-wise absolute values */

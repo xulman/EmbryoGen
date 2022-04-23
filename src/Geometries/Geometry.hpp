@@ -2,6 +2,7 @@
 
 #include "../DisplayUnits/util/RenderingFunctions.hpp"
 #include "../config.hpp"
+#include "../tools/structures/SmallVector.hpp"
 #include "../util/Vector3d.hpp"
 #include <i3d/image3d.h>
 #include <list>
@@ -242,19 +243,21 @@ class Geometry {
 	void getDistance(const Geometry& otherGeometry,
 	                 std::list<ProximityPair>& l,
 	                 void* const callerHint) const {
-		// remember the length of the input list
-		std::size_t itemsOnTheList = l.size();
-
 		// call the original implementation (that is without callerHint)
 		getDistance(otherGeometry, l);
 
 		// scan the newly added items and supply them with the callerHint
+		for (auto& item : l)
+			item.callerHint = callerHint;
+
+		/**
 		std::list<ProximityPair>::iterator ll = l.end();
 		while (itemsOnTheList < l.size()) {
-			--ll;
-			ll->callerHint = callerHint;
-			++itemsOnTheList;
+		    --ll;
+		    ll->callerHint = callerHint;
+		    ++itemsOnTheList;
 		}
+		**/
 	}
 
   protected:
