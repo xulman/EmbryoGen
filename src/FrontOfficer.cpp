@@ -102,7 +102,7 @@ void FrontOfficer::close(void) {
 	shadowAgents.clear();
 
 	// clean up aux attribs
-	delete __agentTypeBuf;
+	delete[] __agentTypeBuf;
 }
 
 void FrontOfficer::execute(void) {

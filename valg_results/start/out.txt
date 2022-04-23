@@ -1,4 +1,4 @@
-This is EmbryoGen at commit rev 48f2bcd33933b382ee0943ff0db621ded50866a1.
+This is EmbryoGen at commit rev 233bc663abdc2217065793261bd71c2a1e234cb7.
 Scenarios.hpp::Scenarios::Scenarios(int, char**) at 92: Going to use the scenario: randomDrosophila
 Scenario.hpp::void Scenario::declareDirektorContext() at 568: Not distributed: Keeping local images because they are used directly from FO.
 Scenarios.hpp::Scenarios::Scenarios(int, char**) at 92: Going to use the scenario: randomDrosophila
@@ -18,6 +18,6 @@ Director.cpp::void Director::execute() at 114: Direktor has just started the sim
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 0.1 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
 no change
 no change
-main.cpp::int main(int, char**) at 96: simulation required 11.187398 seconds
+main.cpp::int main(int, char**) at 96: simulation required 11.802981 seconds
 Happy end.
 

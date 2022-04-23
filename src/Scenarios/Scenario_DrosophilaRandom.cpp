@@ -168,8 +168,11 @@ void Scenario_DrosophilaRandom::initializeAgents(FrontOfficer* fo, int p, int) {
 }
 
 void Scenario_DrosophilaRandom::initializeScene() {
-	displays.registerDisplayUnit(
-	    []() { return new SceneryBufferedDisplayUnit("localhost:8765"); });
+	displays.registerDisplayUnit([]() {
+		auto unit = new SceneryBufferedDisplayUnit("localhost:8765");
+		unit->InitBuffers();
+		return unit;
+	});
 	displays.registerDisplayUnit([]() {
 		return new FlightRecorderDisplayUnit("/temp/FR_randomDro.txt");
 	});
@@ -200,7 +203,7 @@ class mySceneControls : public SceneControls {
 
 SceneControls& Scenario_DrosophilaRandom::provideSceneControls() {
 	SceneControls::Constants c;
-	c.stopTime = 0.1f;
+	c.stopTime = 12.0f;
 
 	auto mSC = new mySceneControls(c);
 	mSC->disableWaitForUserPrompt();

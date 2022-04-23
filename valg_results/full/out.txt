@@ -1,4 +1,4 @@
-This is EmbryoGen at commit rev 48f2bcd33933b382ee0943ff0db621ded50866a1.
+This is EmbryoGen at commit rev 233bc663abdc2217065793261bd71c2a1e234cb7.
 Scenarios.hpp::Scenarios::Scenarios(int, char**) at 92: Going to use the scenario: randomDrosophila
 Scenario.hpp::void Scenario::declareDirektorContext() at 568: Not distributed: Keeping local images because they are used directly from FO.
 Scenarios.hpp::Scenarios::Scenarios(int, char**) at 92: Going to use the scenario: randomDrosophila
@@ -426,6 +426,6 @@ Director.cpp::void Director::renderNextFrame() at 308: Rendering time point 24
 FrontOfficer.cpp::void FrontOfficer::renderNextFrame() at 498: Rendering time point 24
 no change
 no change
-main.cpp::int main(int, char**) at 96: simulation required 2025.107315 seconds
+main.cpp::int main(int, char**) at 96: simulation required 2193.272756 seconds
 Happy end.
 
