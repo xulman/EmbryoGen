@@ -31,6 +31,16 @@ class StaticVector {
 		destroy_elems();
 		_size = 0;
 	}
+
+	T& back() { return (*this)[size() - 1]; }
+	const T& back() const { return (*this)[size() - 1]; }
+
+	void pop_back() {
+		details::boundary_check(0, _size);
+		back().~T();
+		--size;
+	}
+
 	void push_back(T elem) {
 		details::boundary_check(_size, N);
 		std::uninitialized_move_n(&elem, 1, _elems + _size);

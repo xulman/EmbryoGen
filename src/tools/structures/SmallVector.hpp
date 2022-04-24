@@ -14,11 +14,13 @@ class SmallVector {
 	T* _static_data = reinterpret_cast<T*>(&__raw_data[0]);
 	std::vector<T> _dynamic_data;
 	std::size_t _size = 0;
+	bool _in_dynamic = false;
 
 	void arr_to_vec() {
 		_dynamic_data.reserve(N * 2);
 		for (std::size_t i = 0; i < N; ++i)
 			_dynamic_data.push_back(std::move(_static_data[i]));
+		_in_dynamic = true;
 	}
 
 	void destroy_static_data() {
@@ -28,13 +30,13 @@ class SmallVector {
 	}
 
 	T* valid_data() {
-		if (_size <= N)
+		if (!_in_dynamic)
 			return _static_data;
 		return &_dynamic_data[0];
 	}
 
 	const T* valid_data() const {
-		if (_size <= N)
+		if (!_in_dynamic)
 			return _static_data;
 		return &_dynamic_data[0];
 	}
@@ -62,10 +64,24 @@ class SmallVector {
 		++_size;
 	}
 
+	T& back() { return (*this)[size() - 1]; }
+	const T& back() const { return (*this)[size() - 1]; }
+
 	template <typename... Args>
 	T& emplace_back(Args&&... args) {
 		push_back(T(std::forward<Args>(args)...));
-		return (*this)[size() - 1];
+		return back();
+	}
+
+	void pop_back() {
+		details::boundary_check(0, _size);
+
+		if (_in_dynamic)
+			_dynamic_data.pop_back();
+		else
+			back().~T();
+
+		--size;
 	}
 
 	void clear() {

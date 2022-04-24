@@ -101,7 +101,7 @@ std::string("PlanarImg"); //IMPORTANT
         DAIS::StartSendingOneImage(imgParams,cnnParams,URL.c_str(),30);
 
         //set and send metadata
-        std::list<std::string> metaData;
+        std::vector<std::string> metaData;
         //IMPORTANT two lines: 'imagename' and 'some name with allowed
 whitespaces' metaData.push_back(std::string("imagename"));
         metaData.push_back(std::string("EmbryoGen's Image(s)"));
