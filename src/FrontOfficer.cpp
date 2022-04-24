@@ -381,9 +381,9 @@ void FrontOfficer::registerThatThisAgentIsAtThisFO(const int agentID,
 }
 
 void FrontOfficer::getNearbyAABBs(
-    const ShadowAgent* const fromSA,                  // reference agent
-    const float maxDist,                              // threshold dist
-    std::list<const NamedAxisAlignedBoundingBox*>& l) // output list
+    const ShadowAgent* const fromSA,                   // reference agent
+    const float maxDist,                               // threshold dist
+    std::deque<const NamedAxisAlignedBoundingBox*>& l) // output list
 {
 	getNearbyAABBs(NamedAxisAlignedBoundingBox(fromSA->getAABB(),
 	                                           fromSA->getID(),
@@ -392,9 +392,9 @@ void FrontOfficer::getNearbyAABBs(
 }
 
 void FrontOfficer::getNearbyAABBs(
-    const NamedAxisAlignedBoundingBox& fromThisAABB,  // reference box
-    const float maxDist,                              // threshold dist
-    std::list<const NamedAxisAlignedBoundingBox*>& l) // output list
+    const NamedAxisAlignedBoundingBox& fromThisAABB,   // reference box
+    const float maxDist,                               // threshold dist
+    std::deque<const NamedAxisAlignedBoundingBox*>& l) // output list
 {
 	const float maxDist2 = maxDist * maxDist;
 
@@ -416,13 +416,13 @@ FrontOfficer::translateNameIdToAgentName(const size_t nameID) {
 }
 
 void FrontOfficer::getNearbyAgents(
-    const ShadowAgent* const fromSA,  // reference agent
-    const float maxDist,              // threshold dist
-    std::list<const ShadowAgent*>& l) // output list
+    const ShadowAgent* const fromSA,   // reference agent
+    const float maxDist,               // threshold dist
+    std::deque<const ShadowAgent*>& l) // output list
 {
 	// list with pointers on (nearby) boxes that live in this->AABBs,
 	// these were not created explicitly and so we must not delete them
-	std::list<const NamedAxisAlignedBoundingBox*> nearbyBoxes;
+	std::deque<const NamedAxisAlignedBoundingBox*> nearbyBoxes;
 
 	getNearbyAABBs(NamedAxisAlignedBoundingBox(fromSA->getAABB(),
 	                                           fromSA->getID(),

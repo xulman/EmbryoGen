@@ -4,6 +4,7 @@
 #include "Scenarios/common/Scenario.hpp"
 #include "util/report.hpp"
 #include "util/strings.hpp"
+#include <deque>
 #include <list>
 #include <map>
 
@@ -145,16 +146,16 @@ class FrontOfficer //: public Simulation
 	    Consider also the docs of translateNameIdToAgentName() to understand
 	    the grand scheme of things, please. */
 	void getNearbyAABBs(
-	    const NamedAxisAlignedBoundingBox& fromThisAABB,   // reference box
-	    const float maxDist,                               // threshold dist
-	    std::list<const NamedAxisAlignedBoundingBox*>& l); // output list
+	    const NamedAxisAlignedBoundingBox& fromThisAABB,    // reference box
+	    const float maxDist,                                // threshold dist
+	    std::deque<const NamedAxisAlignedBoundingBox*>& l); // output list
 
 	/** Basically, just calls
 	 * getNearbyAABBs(fromSA->createNamedAABB(),maxDist,l) */
 	void getNearbyAABBs(
-	    const ShadowAgent* const fromSA,                   // reference agent
-	    const float maxDist,                               // threshold dist
-	    std::list<const NamedAxisAlignedBoundingBox*>& l); // output list
+	    const ShadowAgent* const fromSA,                    // reference agent
+	    const float maxDist,                                // threshold dist
+	    std::deque<const NamedAxisAlignedBoundingBox*>& l); // output list
 
 	/** Queries this->agentsTypesDictionary for the given 'nameID', and, if all
 	   is well, returns the agent type string (ShadowAgent::agentType::_string).
@@ -184,9 +185,9 @@ class FrontOfficer //: public Simulation
 	    This method is not optimal to use during distributed runs of the
 	   simulation. Consider the DISTRIBUTED macro to see if this run is a
 	   distributed one. */
-	void getNearbyAgents(const ShadowAgent* const fromSA,   // reference agent
-	                     const float maxDist,               // threshold dist
-	                     std::list<const ShadowAgent*>& l); // output list
+	void getNearbyAgents(const ShadowAgent* const fromSA,    // reference agent
+	                     const float maxDist,                // threshold dist
+	                     std::deque<const ShadowAgent*>& l); // output list
 
 	/** Returns the reference in a ShadowAgent that
 	    represents the agent with 'fetchThisID'.
@@ -227,7 +228,7 @@ class FrontOfficer //: public Simulation
 	/** lists of existing agents scheduled for the addition to or
 	    for the removal from the simulation (at the appropriate,
 	    occasion) and computed on this node (managed by this FO) */
-	std::list<AbstractAgent*> newAgents, deadAgents;
+	std::deque<AbstractAgent*> newAgents, deadAgents;
 
 	/** list of all agents currently active in the simulation
 	    and computed on this node (managed by this FO) */
@@ -241,7 +242,7 @@ class FrontOfficer //: public Simulation
 
 	/** list of AABBs of all agents currently active in the entire
 	    simulation, that is, managed by all FOs */
-	std::list<NamedAxisAlignedBoundingBox> AABBs;
+	std::deque<NamedAxisAlignedBoundingBox> AABBs;
 
 	/** cache of all recently retrieved geometries of agents
 	    that are computed elsewhere (managed by foreign FO) */

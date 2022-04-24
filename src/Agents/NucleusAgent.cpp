@@ -80,7 +80,7 @@ void NucleusAgent::collectExtForces(void) {
 	// scheduler, please give me ShadowAgents that are not further than
 	// ignoreDistance (and the distance is evaluated based on distances of
 	// AABBs)
-	std::list<const NamedAxisAlignedBoundingBox*> nearbyAgentBoxes;
+	std::deque<const NamedAxisAlignedBoundingBox*> nearbyAgentBoxes;
 	Officer->getNearbyAABBs(this, ignoreDistance, nearbyAgentBoxes);
 
 #ifndef NDEBUG
@@ -145,7 +145,6 @@ void NucleusAgent::collectExtForces(void) {
 				f = pp.localPos;
 				f -= pp.otherPos;
 				f.changeToUnitOrZero();
-
 
 				// TRAgen paper, eq. (4)
 				forces.emplace_back(
