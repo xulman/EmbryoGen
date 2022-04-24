@@ -111,13 +111,13 @@ class NucleusAgent : public AbstractAgent {
 	float ignoreDistance = 10.0f;
 
 	/** locations of possible interaction with nearby nuclei */
-	std::list<ProximityPair> proximityPairs_toNuclei;
+	tools::structures::SmallVector5<ProximityPair> proximityPairs_toNuclei;
 
 	/** locations of possible interaction with nearby yolk */
-	std::list<ProximityPair> proximityPairs_toYolk;
+	tools::structures::SmallVector5<ProximityPair> proximityPairs_toYolk;
 
 	/** locations of possible interaction with guiding trajectories */
-	std::list<ProximityPair> proximityPairs_tracks;
+	tools::structures::SmallVector5<ProximityPair> proximityPairs_tracks;
 
 	// ------------- forces & movement (physics) -------------
 	/** all forces that are in present acting on this agent */

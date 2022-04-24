@@ -2,8 +2,9 @@
 #include "Spheres.hpp"
 #include "util/Serialization.hpp"
 
-void VectorImg::getDistance(const Geometry& otherGeometry,
-                            std::list<ProximityPair>& l) const {
+void VectorImg::getDistance(
+    const Geometry& otherGeometry,
+    tools::structures::SmallVector5<ProximityPair>& l) const {
 	switch (otherGeometry.shapeForm) {
 	case ListOfShapeForms::Spheres:
 		getDistanceToSpheres((class Spheres*)&otherGeometry, l);
@@ -35,8 +36,9 @@ void VectorImg::getDistance(const Geometry& otherGeometry,
 	}
 }
 
-void VectorImg::getDistanceToSpheres(const class Spheres* otherSpheres,
-                                     std::list<ProximityPair>& l) const {
+void VectorImg::getDistanceToSpheres(
+    const class Spheres* otherSpheres,
+    tools::structures::SmallVector5<ProximityPair>& l) const {
 	// da plan: determine bounding box within this VectorImg where
 	// we can potentially see any piece of the foreign Spheres;
 	// sweep it and consider voxel centres; construct a thought

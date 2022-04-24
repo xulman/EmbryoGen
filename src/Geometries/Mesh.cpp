@@ -2,8 +2,9 @@
 #include "../util/report.hpp"
 
 /** calculate min surface distance between myself and some foreign agent */
-void Mesh::getDistance(const Geometry& otherGeometry,
-                       std::list<ProximityPair>& l) const {
+void Mesh::getDistance(
+    const Geometry& otherGeometry,
+    tools::structures::SmallVector5<ProximityPair>& l) const {
 	switch (otherGeometry.shapeForm) {
 	case ListOfShapeForms::Spheres:
 		// TODO: attempt to project mesh vertices against the spheres (or their

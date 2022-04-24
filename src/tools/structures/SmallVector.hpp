@@ -17,15 +17,26 @@ class SmallVector {
 
 	void arr_to_vec() {
 		_dynamic_data.reserve(N * 2);
-		for (auto& val : *this) {
-			_dynamic_data.push_back(std::move(val));
-		}
+		for (std::size_t i = 0; i < N; ++i)
+			_dynamic_data.push_back(std::move(_static_data[i]));
 	}
 
 	void destroy_static_data() {
 		for (std::size_t i = 0; i < std::min(N, _size); ++i) {
 			_static_data[i].~T();
 		}
+	}
+
+	T* valid_data() {
+		if (_size <= N)
+			return _static_data;
+		return &_dynamic_data[0];
+	}
+
+	const T* valid_data() const {
+		if (_size <= N)
+			return _static_data;
+		return &_dynamic_data[0];
 	}
 
   public:
@@ -63,45 +74,23 @@ class SmallVector {
 		_size = 0;
 	}
 
-	auto begin() noexcept {
-		if (_size < N)
-			return details::ptr_iterator(&_static_data[0]);
-		return details::ptr_iterator(&_dynamic_data[0]);
-	}
-	auto end() noexcept {
-		if (_size < N)
-			return details::ptr_iterator(&_static_data[_size]);
-		return details::ptr_iterator(&_dynamic_data[_size]);
-	}
-	auto cbegin() const noexcept {
-		if (_size < N)
-			return details::const_ptr_iterator(&_static_data[0]);
-		return details::const_ptr_iterator(&_dynamic_data[0]);
-	}
+	auto begin() noexcept { return details::ptr_iterator(valid_data()); }
+	auto end() noexcept { return details::ptr_iterator(valid_data() + _size); }
+	auto cbegin() const noexcept { return details::ptr_iterator(valid_data()); }
 	auto cend() const noexcept {
-		if (_size < N)
-			return details::const_ptr_iterator(&_static_data[_size]);
-		return details::const_ptr_iterator(&_dynamic_data[_size]);
+		return details::ptr_iterator(valid_data() + _size);
 	}
 	auto begin() const noexcept { return cbegin(); }
 	auto end() const noexcept { return cend(); }
 
 	T& operator[](std::size_t i) {
 		details::boundary_check(i, _size);
-
-		if (i < N) {
-			return _static_data[i];
-		}
-		return _dynamic_data[i];
+		return valid_data()[i];
 	}
 
 	const T& operator[](std::size_t i) const {
 		details::boundary_check(i, _size);
-
-		if (i < N) {
-			return _static_data[i];
-		}
-		return _dynamic_data[i];
+		return valid_data()[i];
 	}
 
 	~SmallVector() { destroy_static_data(); }

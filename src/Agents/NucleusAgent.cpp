@@ -146,6 +146,7 @@ void NucleusAgent::collectExtForces(void) {
 				f -= pp.otherPos;
 				f.changeToUnitOrZero();
 
+
 				// TRAgen paper, eq. (4)
 				forces.emplace_back(
 				    (fstrength_overlap_level *
