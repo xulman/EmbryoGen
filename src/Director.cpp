@@ -5,6 +5,7 @@
 #include <chrono>
 #include <fmt/core.h>
 #include <thread>
+#include <unordered_set>
 
 void Director::init1_SMP(void) {
 	report::message(fmt::format("Direktor initializing now..."));
@@ -197,13 +198,13 @@ void Director::updateAndPublishAgents() {
 	// notifications had been transferred during the recent simulation
 
 	// remove dead agents from both lists
-	auto ag = deadAgents.begin();
-	while (ag != deadAgents.end()) {
-		// remove if agentID matches
-		agents.remove_if(
-		    [ag](std::pair<int, int> p) { return p.first == ag->first; });
-		ag = deadAgents.erase(ag);
-	}
+	std::unordered_set<int> to_remove;
+	for (auto [id, _] : deadAgents)
+		to_remove.insert(id);
+
+	agents.remove_if(
+	    [&](std::pair<int, int> p) { return to_remove.contains(p.first); });
+	deadAgents.clear();
 
 	// move new agents between both lists
 	agents.splice(agents.begin(), newAgents);
