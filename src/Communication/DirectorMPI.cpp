@@ -3,6 +3,7 @@
 #include "DistributedCommunicator.hpp"
 #include <chrono>
 #include <thread>
+#include <cassert>
 
 void Director::respond_getNextAvailAgentID() {
 	communicator->sendNextID(getNextAvailAgentID());

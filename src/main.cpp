@@ -12,9 +12,9 @@
 	report::message("Broadcasting the following expection:");                  \
 	std::cout << x << "\n\n";                                                  \
 	if (d != NULL)                                                             \
-		d->broadcast_throwException(std::format("Outside exception: {}", x));  \
+		d->broadcast_throwException(fmt::format("Outside exception: {}", x));  \
 	if (fo != NULL)                                                            \
-		fo->broadcast_throwException(std::format("Outside exception: {}", x));
+		fo->broadcast_throwException(fmt::format("Outside exception: {}", x));
 #else
 #define REPORT_EXCEPTION(x) std::cout << x << "\n\n";
 #endif
@@ -105,19 +105,19 @@ int main(int argc, char** argv) {
 			delete d;
 		return (0);
 	} catch (const char* e) {
-		REPORT_EXCEPTION("Got this message: " << e)
+		REPORT_EXCEPTION(fmt::format("Got this message: {}",e));
 	} catch (std::string& e) {
-		REPORT_EXCEPTION("Got this message: " << e)
+		REPORT_EXCEPTION(fmt::format("Got this message: {}", e));
 	} catch (std::runtime_error* e) {
-		REPORT_EXCEPTION("RuntimeError: " << e->what())
+		REPORT_EXCEPTION(fmt::format("RuntimeError: {}", e->what()));
 	} catch (i3d::IOException* e) {
-		REPORT_EXCEPTION("i3d::IOException: " << e->what)
+		REPORT_EXCEPTION(fmt::format("i3d::IOException: {}", e->what));
 	} catch (i3d::LibException* e) {
-		REPORT_EXCEPTION("i3d::LibException: " << e->what)
+		REPORT_EXCEPTION(fmt::format("i3d::LibException: {}",e->what));
 	} catch (std::bad_alloc&) {
-		REPORT_EXCEPTION("Not enough memory.")
+		REPORT_EXCEPTION("Not enough memory.");
 	} catch (...) {
-		REPORT_EXCEPTION("System exception.")
+		REPORT_EXCEPTION("System exception.");
 	}
 
 	// calls destructor for very final clean up, which may also call

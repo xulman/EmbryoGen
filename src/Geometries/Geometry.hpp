@@ -204,7 +204,7 @@ class Geometry {
 	using precision_t = config::geometry::precision_t;
 	using point_t = details::geometry::point_t;
 
-  protected:
+ 
 	/** A variant of how the shape of an simulated agent is represented */
 	enum class ListOfShapeForms {
 		Spheres = 0,
@@ -214,6 +214,7 @@ class Geometry {
 		undefGeometry = 10
 	};
 
+ 	protected:
 	/** Construct empty geometry object of given shape form.
 	    This class should never be used constructed directly, always use some
 	    derived class such as Spheres, Mesh, ScalarImg or VectorImg. */

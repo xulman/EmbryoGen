@@ -339,7 +339,7 @@ class FrontOfficer //: public Simulation
 #endif
 
   public:
-	void broadcast_throwException(const char* exceptionMessage);
+	void broadcast_throwException(const std::string& exceptionMessage);
 
   protected:
 	void respond_throwException();

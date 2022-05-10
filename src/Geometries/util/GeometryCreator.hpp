@@ -6,7 +6,7 @@
 #include "../Spheres.hpp"
 #include "../VectorImg.hpp"
 
-Geometry* geometryCreateAndDeserializeFrom(ListOfShapeForms g_type,
+Geometry* geometryCreateAndDeserializeFrom(Geometry::ListOfShapeForms g_type,
                                            char* buffer) {
 	switch (g_type) {
 	case Geometry::ListOfShapeForms::Spheres:
