@@ -64,7 +64,7 @@ void debugToStream(const std::string& msg,
                    ReportAttrs attrs /* = ReportAttrs{} */,
                    const std::source_location&
                        location /* = std::source_location::current() */) {
-	if constexpr (!macro_debug)
+	if constexpr (macro_debug)
 		toStream(msg, stream, attrs, location);
 }
 
@@ -73,7 +73,7 @@ void debugMessage(const std::string& msg,
                   const std::source_location&
                       location /* = std::source_location::current() */) {
 
-	if constexpr (!macro_debug)
+	if constexpr (macro_debug)
 		message(msg, attrs, location);
 }
 
@@ -81,7 +81,7 @@ void debugError(const std::string& msg,
                 ReportAttrs attrs /* = {true, true, true} */,
                 const std::source_location&
                     location /* = std::source_location::current() */) {
-	if constexpr (!macro_debug)
+	if constexpr (macro_debug)
 		error(msg, attrs, location);
 }
 
