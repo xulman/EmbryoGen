@@ -6,6 +6,7 @@
 #include "../Geometries/ScalarImg.hpp"
 #include "../Geometries/VectorImg.hpp"
 #include "../Geometries/util/SpheresFunctions.hpp"
+#include "../config.hpp"
 #include "../util/Vector3d.hpp"
 #include "../util/rnd_generators.hpp"
 #include "common/Scenarios.hpp"
@@ -182,7 +183,7 @@ void Scenario_DrosophilaRandom::initializeScene() {
 
 class mySceneControls : public SceneControls {
   public:
-	mySceneControls(Constants& callersOwnConstants)
+	mySceneControls(config::scenario::ControlConstants& callersOwnConstants)
 	    : SceneControls(callersOwnConstants) {}
 
 	int doMasks = 0;
@@ -202,7 +203,7 @@ class mySceneControls : public SceneControls {
 };
 
 SceneControls& Scenario_DrosophilaRandom::provideSceneControls() {
-	SceneControls::Constants c;
+	config::scenario::ControlConstants c;
 	c.stopTime = 12.0f;
 
 	auto mSC = new mySceneControls(c);

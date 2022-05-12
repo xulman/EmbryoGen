@@ -587,7 +587,7 @@ void Scenario_modelledDivision::initializeScene() {
 
 SceneControls& Scenario_modelledDivision::provideSceneControls() {
 	// override the some defaults
-	SceneControls::Constants myConstants;
+	config::scenario::ControlConstants myConstants;
 	myConstants.stopTime = 10000.2f;
 	myConstants.imgRes.from(0.5f);
 	myConstants.sceneSize.from(300, 20, 20);

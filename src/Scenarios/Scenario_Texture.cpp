@@ -78,7 +78,7 @@ void Scenario_withTexture::initializeScene() {
 }
 
 SceneControls& Scenario_withTexture::provideSceneControls() {
-	SceneControls::Constants myConstants;
+	config::scenario::ControlConstants myConstants;
 	myConstants.stopTime = 0.2f;
 
 	return *(new SceneControls(myConstants));

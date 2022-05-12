@@ -24,7 +24,7 @@ project(EmbryoGen)
 include(GNUInstallDirs)
 set(CMAKE_VERBOSE_MAKEFILE ON CACHE STRING "Tracing the compilation process" FORCE)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wconversion -Werror -fmax-errors=1")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wconversion -Werror -O3 -fmax-errors=1")
 
 #------------------------------------------------
 # ALL OPTIONS ARE SUMMARIZED HERE (CONTROL PANEL)
@@ -41,10 +41,6 @@ option(FEATURE_USEOpenMP             "Use OpenMP for single node parallelization
 #-------------------------------------------------------
 # TRANSLATE FEATURE REQUESTS INTO PREPROCESSOR CONSTANTS
 #-------------------------------------------------------
-
-if (NOT DEBUG_VERSION)
-    add_definitions(-DNDEBUG)
-endif (NOT DEBUG_VERSION)
 
 if (DEBUG_DIST_VERSION)
 	add_definitions(-DDISTRIBUTED_DEBUG)

@@ -135,7 +135,7 @@ void Scenario_withCellCycle::initializeScene() {
 }
 
 SceneControls& Scenario_withCellCycle::provideSceneControls() {
-	SceneControls::Constants myConstants;
+	config::scenario::ControlConstants myConstants;
 	myConstants.stopTime = 8.2f;
 
 	return *(new SceneControls(myConstants));

@@ -1,6 +1,7 @@
 #include "../Agents/NucleusAgent.hpp"
 #include "../DisplayUnits/SceneryBufferedDisplayUnit.hpp"
 #include "../Geometries/Spheres.hpp"
+#include "../config.hpp"
 #include "../util/Vector3d.hpp"
 #include "common/Scenarios.hpp"
 #include <fmt/core.h>
@@ -100,7 +101,7 @@ void Scenario_pseudoDivision::initializeScene() {
 }
 
 SceneControls& Scenario_pseudoDivision::provideSceneControls() {
-	SceneControls::Constants myConstants;
+	config::scenario::ControlConstants myConstants;
 	myConstants.stopTime = 6.0f;
 
 	return *(new SceneControls(myConstants));

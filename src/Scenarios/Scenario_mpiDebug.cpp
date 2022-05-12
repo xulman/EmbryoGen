@@ -5,12 +5,12 @@
 
 SceneControls& Scenario_mpiDebug::provideSceneControls() {
 	// does 3 iterations (but w/o agents)
-	SceneControls::Constants myConstants;
+	config::scenario::ControlConstants myConstants;
 	myConstants.stopTime = myConstants.initTime + 3 * myConstants.incrTime;
 
 	class mySceneControl : public SceneControls {
 	  public:
-		mySceneControl(Constants& c) : SceneControls(c) {}
+		mySceneControl(config::scenario::ControlConstants& c) : SceneControls(c) {}
 
 		void updateControls(const float currTime) override {
 			// execute the following own code after every iteration

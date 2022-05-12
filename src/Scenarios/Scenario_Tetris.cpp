@@ -280,7 +280,7 @@ void Scenario_Tetris::initializeScene() {
 }
 
 SceneControls& Scenario_Tetris::provideSceneControls() {
-	SceneControls::Constants myConstants;
+	config::scenario::ControlConstants myConstants;
 
 	// override the default stop time
 	myConstants.stopTime = 40.2f;

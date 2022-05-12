@@ -183,7 +183,7 @@ class ParallelNucleus : public AbstractAgent {
 // ------------------ setting up the simulation scenario ------------------
 //
 SceneControls& Scenario_Parallel::provideSceneControls() {
-	SceneControls::Constants myConstants;
+	config::scenario::ControlConstants myConstants;
 	//
 	// do 20 (internal) iterations and then stop
 	myConstants.stopTime = myConstants.initTime + 20 * myConstants.incrTime;
@@ -196,7 +196,7 @@ SceneControls& Scenario_Parallel::provideSceneControls() {
 
 	class mySceneControl : public SceneControls {
 	  public:
-		mySceneControl(Constants& c) : SceneControls(c) {
+		mySceneControl(config::scenario::ControlConstants& c) : SceneControls(c) {
 			// DisplayUnits handling: variant A
 			displayUnit.RegisterUnit(myDU);
 		}

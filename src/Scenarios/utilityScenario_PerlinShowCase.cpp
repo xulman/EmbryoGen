@@ -90,7 +90,7 @@ void Scenario_PerlinShowCase::initializeScene() {
 }
 
 SceneControls& Scenario_PerlinShowCase::provideSceneControls() {
-	SceneControls::Constants myConstants;
+	config::scenario::ControlConstants myConstants;
 	myConstants.stopTime = 0;
 	return *(new SceneControls(myConstants));
 }

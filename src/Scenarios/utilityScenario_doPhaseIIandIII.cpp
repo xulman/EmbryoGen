@@ -77,7 +77,7 @@ void Scenario_phaseIIandIII::initializeScene() {
 }
 
 SceneControls& Scenario_phaseIIandIII::provideSceneControls() {
-	SceneControls::Constants myConstants;
+	config::scenario::ControlConstants myConstants;
 	myConstants.stopTime = 0;
 	return *(new SceneControls(myConstants));
 }

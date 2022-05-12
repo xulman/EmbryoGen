@@ -301,7 +301,7 @@ void Scenario_dragRotateAndTexture::initializeScene() {
 }
 
 SceneControls& Scenario_dragRotateAndTexture::provideSceneControls() {
-	SceneControls::Constants myConstants;
+	config::scenario::ControlConstants myConstants;
 
 	// override the default stop time
 	myConstants.stopTime = 40.2f;
