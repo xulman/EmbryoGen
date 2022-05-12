@@ -1,0 +1,431 @@
+This is EmbryoGen at commit rev 9ace1dacb8d2d3459080c660ae0bb573e6947131.
+Scenarios.hpp::Scenarios::Scenarios(int, char**) at 92: Going to use the scenario: randomDrosophila
+Scenario.hpp::void Scenario::declareDirektorContext() at 512: Not distributed: Keeping local images because they are used directly from FO.
+Scenarios.hpp::Scenarios::Scenarios(int, char**) at 92: Going to use the scenario: randomDrosophila
+Scenario.hpp::void Scenario::declareFOcontext(int) at 500: Not distributed: Down-sizing local images because they are (normally) not used from FO.
+Director.cpp::void Director::init1_SMP() at 11: Direktor initializing now...
+Director.cpp::void Director::init1_SMP() at 33: scenario suggests this scene size: 480 x 220 x 220 um -> 960 x 440 x 440 px (177.2 Mvoxels)
+Scenario.cpp::virtual void Scenario::initializePhaseIIandIII() at 20: You can request to use own PSF image via command line switch.
+Scenario.cpp::virtual void Scenario::initializePhaseIIandIII() at 22: e.g.:  -psf ../2013-07-25_1_1_9_0_2_0_0_1_0_0_0_0_9_12.ics
+FrontOfficer.cpp::void FrontOfficer::init1_SMP() at 10: FO #1 initializing now...
+Director.cpp::void Director::reportSituation() at 90: --------------- 0 min (908 in the entire world) ---------------
+Director.cpp::void Director::init2_SMP() at 75: Direktor initialized
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 0 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+FrontOfficer.cpp::void FrontOfficer::init2_SMP() at 29: FO #1 initialized
+Director.cpp::void Director::renderNextFrame() at 309: Rendering time point 0
+FrontOfficer.cpp::void FrontOfficer::renderNextFrame() at 498: Rendering time point 0
+Director.cpp::void Director::execute() at 115: Direktor has just started the simulation
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 0.1 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 0.2 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 0.3 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 0.4 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 0.5 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+Director.cpp::void Director::renderNextFrame() at 309: Rendering time point 1
+FrontOfficer.cpp::void FrontOfficer::renderNextFrame() at 498: Rendering time point 1
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 0.6 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 0.70000005 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 0.8000001 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 0.9000001 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 1.0000001 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+Director.cpp::void Director::renderNextFrame() at 309: Rendering time point 2
+FrontOfficer.cpp::void FrontOfficer::renderNextFrame() at 498: Rendering time point 2
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 1.1000001 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 1.2000002 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 1.3000002 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 1.4000002 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 1.5000002 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+Director.cpp::void Director::renderNextFrame() at 309: Rendering time point 3
+FrontOfficer.cpp::void FrontOfficer::renderNextFrame() at 498: Rendering time point 3
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 1.6000003 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 1.7000003 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 1.8000003 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 1.9000003 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 2.0000002 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+Director.cpp::void Director::renderNextFrame() at 309: Rendering time point 4
+FrontOfficer.cpp::void FrontOfficer::renderNextFrame() at 498: Rendering time point 4
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 2.1000001 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 2.2 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 2.3 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 2.3999999 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 2.4999998 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 2.5999997 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+Director.cpp::void Director::renderNextFrame() at 309: Rendering time point 5
+FrontOfficer.cpp::void FrontOfficer::renderNextFrame() at 498: Rendering time point 5
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 2.6999996 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 2.7999995 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 2.8999994 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 2.9999993 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 3.0999992 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+Director.cpp::void Director::renderNextFrame() at 309: Rendering time point 6
+FrontOfficer.cpp::void FrontOfficer::renderNextFrame() at 498: Rendering time point 6
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 3.199999 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 3.299999 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 3.399999 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 3.4999988 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 3.5999987 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+Director.cpp::void Director::renderNextFrame() at 309: Rendering time point 7
+FrontOfficer.cpp::void FrontOfficer::renderNextFrame() at 498: Rendering time point 7
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 3.6999986 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 3.7999985 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 3.8999984 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 3.9999983 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 4.0999985 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+Director.cpp::void Director::renderNextFrame() at 309: Rendering time point 8
+FrontOfficer.cpp::void FrontOfficer::renderNextFrame() at 498: Rendering time point 8
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 4.1999984 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 4.2999983 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 4.399998 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 4.499998 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 4.599998 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+Director.cpp::void Director::renderNextFrame() at 309: Rendering time point 9
+FrontOfficer.cpp::void FrontOfficer::renderNextFrame() at 498: Rendering time point 9
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 4.699998 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 4.799998 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 4.8999977 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 4.9999976 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 5.0999975 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+Director.cpp::void Director::renderNextFrame() at 309: Rendering time point 10
+FrontOfficer.cpp::void FrontOfficer::renderNextFrame() at 498: Rendering time point 10
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 5.1999974 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 5.2999973 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 5.399997 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 5.499997 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 5.599997 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+Director.cpp::void Director::renderNextFrame() at 309: Rendering time point 11
+FrontOfficer.cpp::void FrontOfficer::renderNextFrame() at 498: Rendering time point 11
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 5.699997 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 5.799997 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 5.8999968 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 5.9999967 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 6.0999966 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+Director.cpp::void Director::renderNextFrame() at 309: Rendering time point 12
+FrontOfficer.cpp::void FrontOfficer::renderNextFrame() at 498: Rendering time point 12
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 6.1999965 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 6.2999964 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 6.3999963 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 6.499996 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 6.599996 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+Director.cpp::void Director::renderNextFrame() at 309: Rendering time point 13
+FrontOfficer.cpp::void FrontOfficer::renderNextFrame() at 498: Rendering time point 13
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 6.699996 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 6.799996 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 6.899996 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 6.9999957 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 7.0999956 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+Director.cpp::void Director::renderNextFrame() at 309: Rendering time point 14
+FrontOfficer.cpp::void FrontOfficer::renderNextFrame() at 498: Rendering time point 14
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 7.1999955 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 7.2999954 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 7.3999953 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 7.499995 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 7.599995 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+Director.cpp::void Director::renderNextFrame() at 309: Rendering time point 15
+FrontOfficer.cpp::void FrontOfficer::renderNextFrame() at 498: Rendering time point 15
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 7.699995 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 7.799995 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 7.899995 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 7.9999948 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 8.099995 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+Director.cpp::void Director::renderNextFrame() at 309: Rendering time point 16
+FrontOfficer.cpp::void FrontOfficer::renderNextFrame() at 498: Rendering time point 16
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 8.199995 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 8.299995 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 8.399996 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 8.499996 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 8.599997 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+Director.cpp::void Director::renderNextFrame() at 309: Rendering time point 17
+FrontOfficer.cpp::void FrontOfficer::renderNextFrame() at 498: Rendering time point 17
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 8.699997 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 8.799997 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 8.899998 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 8.999998 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 9.099998 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+Director.cpp::void Director::renderNextFrame() at 309: Rendering time point 18
+FrontOfficer.cpp::void FrontOfficer::renderNextFrame() at 498: Rendering time point 18
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 9.199999 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 9.299999 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 9.4 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 9.5 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+Director.cpp::void Director::renderNextFrame() at 309: Rendering time point 19
+FrontOfficer.cpp::void FrontOfficer::renderNextFrame() at 498: Rendering time point 19
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 9.6 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+enabling export of masks
+enabling export of masks
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 9.700001 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 9.800001 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 9.900002 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 10.000002 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+Director.cpp::void Director::renderNextFrame() at 309: Rendering time point 20
+FrontOfficer.cpp::void FrontOfficer::renderNextFrame() at 498: Rendering time point 20
+Director.cpp::void Director::renderNextFrame() at 340: Saving mask020.tif, hold on...
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 10.100002 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 10.200003 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 10.300003 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 10.400003 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 10.500004 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+Director.cpp::void Director::renderNextFrame() at 309: Rendering time point 21
+FrontOfficer.cpp::void FrontOfficer::renderNextFrame() at 498: Rendering time point 21
+Director.cpp::void Director::renderNextFrame() at 340: Saving mask021.tif, hold on...
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 10.600004 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 10.700005 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 10.800005 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 10.900005 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 11.000006 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+Director.cpp::void Director::renderNextFrame() at 309: Rendering time point 22
+FrontOfficer.cpp::void FrontOfficer::renderNextFrame() at 498: Rendering time point 22
+Director.cpp::void Director::renderNextFrame() at 340: Saving mask022.tif, hold on...
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 11.100006 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+disabling export of masks
+disabling export of masks
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 11.2000065 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 11.300007 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 11.400007 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 11.500008 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+Director.cpp::void Director::renderNextFrame() at 309: Rendering time point 23
+FrontOfficer.cpp::void FrontOfficer::renderNextFrame() at 498: Rendering time point 23
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 11.600008 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 11.700008 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 11.800009 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 11.900009 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+no change
+no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 12.00001 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
+Director.cpp::void Director::renderNextFrame() at 309: Rendering time point 24
+FrontOfficer.cpp::void FrontOfficer::renderNextFrame() at 498: Rendering time point 24
+no change
+no change
+main.cpp::int main(int, char**) at 96: simulation required 625.898898 seconds
+Happy end.
+
