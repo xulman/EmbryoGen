@@ -190,15 +190,17 @@ class mySceneControls : public SceneControls {
 
 	void updateControls(const float currTime) override {
 		if (currTime > 9.5 && doMasks == 0) {
-			report::message(fmt::format("enabling export of masks"), {false});
+			report::debugMessage(fmt::format("enabling export of masks"),
+			                     {false});
 			ctx().disks.enableImgMaskTIFFs();
 			doMasks = 1;
 		} else if (currTime > 11.1 && doMasks == 1) {
-			report::message(fmt::format("disabling export of masks"), {false});
+			report::debugMessage(fmt::format("disabling export of masks"),
+			                     {false});
 			ctx().disks.disableImgMaskTIFFs();
 			doMasks = 2;
 		} else
-			report::message(fmt::format("no change"), {false});
+			report::debugMessage(fmt::format("no change"), {false});
 	}
 };
 
@@ -211,3 +213,4 @@ SceneControls& Scenario_DrosophilaRandom::provideSceneControls() {
 
 	return *mSC;
 }
+

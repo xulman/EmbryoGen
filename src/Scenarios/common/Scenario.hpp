@@ -53,13 +53,15 @@ class SceneControls {
 	   something own, it achieves so by making a private const copy of the input
 	   Constants (which makes it immune to any possible later changes in the
 	   given input Constants) */
-	SceneControls(config::scenario::ControlConstants& callersOwnConstants)
+	SceneControls(const config::scenario::ControlConstants& callersOwnConstants)
 	    : constants(callersOwnConstants) // makes own copy!
 	{
 		// sets up all images but does not allocate them
 		setOutputImgSpecs(constants.sceneOffset, constants.sceneSize,
 		                  constants.imgRes);
 	}
+
+	virtual ~SceneControls() = default;
 
 	/** the callback method that is regularly executed by the
 	    Direktor and all FOs after every full simulation round is over */
@@ -111,7 +113,7 @@ class SceneControls {
 			    fmt::format("Removing transfer channel \"{}\", it might hang "
 			                "here if the send buffers are not empty...",
 			                channelName));
-			// TODO remove this IF, when ->second is not void *
+							
 			delete existingChannel->second;
 
 			transferChannels.erase(existingChannel);
@@ -159,7 +161,7 @@ class SceneControls {
 	}
 
 	void imagesSaving_enableForImgMask() { enableProducingOutput(imgMask); };
-	bool imagesSaving_isEnabledForImgMask() {
+	bool imagesSaving_isEnabledForImgMask() const {
 		return isProducingOutput(imgMask);
 	};
 	void imagesSaving_disableForImgMask() { disableProducingOutput(imgMask); };
@@ -167,7 +169,7 @@ class SceneControls {
 	void imagesSaving_enableForImgPhantom() {
 		enableProducingOutput(imgPhantom);
 	};
-	bool imagesSaving_isEnabledForImgPhantom() {
+	bool imagesSaving_isEnabledForImgPhantom() const {
 		return isProducingOutput(imgPhantom);
 	};
 	void imagesSaving_disableForImgPhantom() {
@@ -177,7 +179,7 @@ class SceneControls {
 	void imagesSaving_enableForImgOptics() {
 		enableProducingOutput(imgOptics);
 	};
-	bool imagesSaving_isEnabledForImgOptics() {
+	bool imagesSaving_isEnabledForImgOptics() const {
 		return isProducingOutput(imgOptics);
 	};
 	void imagesSaving_disableForImgOptics() {
@@ -185,7 +187,7 @@ class SceneControls {
 	};
 
 	void imagesSaving_enableForImgFinal() { enableProducingOutput(imgFinal); };
-	bool imagesSaving_isEnabledForImgFinal() {
+	bool imagesSaving_isEnabledForImgFinal() const {
 		return isProducingOutput(imgFinal);
 	};
 	void imagesSaving_disableForImgFinal() {
@@ -607,12 +609,13 @@ class Scenario {
 			if (ctx.amIinDirektorContext())
 				params.displayChannel_disableForImgFinal(unitNickName);
 		}
-	} displays;
+	};
+	Displays displays;
 
 	struct Disks {
 		Disks(Scenario& thisScenario, SceneControls& thisSceneControls)
 		    : ctx(thisScenario), params(thisSceneControls) {}
-		Scenario& ctx;
+		const Scenario& ctx;
 		SceneControls& params;
 
 		//----- image storing channels -----
@@ -638,7 +641,8 @@ class Scenario {
 		void disableImgFinalTIFFs() {
 			params.imagesSaving_disableForImgFinal();
 		}
-	} disks;
+	};
+	Disks disks;
 
 #ifdef ENABLE_FILOGEN_PHASEIIandIII
   private:
