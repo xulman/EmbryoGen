@@ -22,6 +22,7 @@ class GrowableNucleusRand : public NucleusNSAgent {
 	      si(futureGeometry),
 	      presentationGeom(setupSpheresInterpolationAndReturnNoOfSpheres()) {}
 
+
 	float startGrowTime = 99999999.f;
 	float stopGrowTime = 99999999.f;
 
@@ -101,8 +102,8 @@ void Scenario_DrosophilaRandom::initializeAgents(FrontOfficer* fo, int p, int) {
 	// longer axis x
 	// symmetric/short axes y,z
 
-	const float Xside = (0.90f * params.constants.sceneSize.x) / 2.0f;
-	const float YZside = (0.75f * params.constants.sceneSize.y) / 2.0f;
+	const float Xside = (0.90f * params->constants.sceneSize.x) / 2.0f;
+	const float YZside = (0.75f * params->constants.sceneSize.y) / 2.0f;
 
 	// rnd shifter along axes
 	rndGeneratorHandle coordShifterRNG;
@@ -125,14 +126,14 @@ void Scenario_DrosophilaRandom::initializeAgents(FrontOfficer* fo, int p, int) {
 			Vector3d<float> pos(z, radius * axis.y, radius * axis.z);
 
 			// position is shifted to the scene centre
-			pos.x += params.constants.sceneSize.x / 2.0f;
-			pos.y += params.constants.sceneSize.y / 2.0f;
-			pos.z += params.constants.sceneSize.z / 2.0f;
+			pos.x += params->constants.sceneSize.x / 2.0f;
+			pos.y += params->constants.sceneSize.y / 2.0f;
+			pos.z += params->constants.sceneSize.z / 2.0f;
 
 			// position is shifted due to scene offset
-			pos.x += params.constants.sceneOffset.x;
-			pos.y += params.constants.sceneOffset.y;
-			pos.z += params.constants.sceneOffset.z;
+			pos.x += params->constants.sceneOffset.x;
+			pos.y += params->constants.sceneOffset.y;
+			pos.z += params->constants.sceneOffset.z;
 
 			// also random shift along the main axis
 			pos.x += GetRandomGauss(0.f, 0.3f * dx, coordShifterRNG);
@@ -148,8 +149,8 @@ void Scenario_DrosophilaRandom::initializeAgents(FrontOfficer* fo, int p, int) {
 			s.updateRadius(3, 3.0f);
 
 			GrowableNucleusRand* ag = new GrowableNucleusRand(
-			    ID++, "nucleus growable random", s, params.constants.initTime,
-			    params.constants.incrTime);
+			    ID++, "nucleus growable random", s, params->constants.initTime,
+			    params->constants.incrTime);
 			ag->startGrowTime = 10.0f;
 			fo->startNewAgent(ag);
 		}
@@ -164,18 +165,19 @@ void Scenario_DrosophilaRandom::initializeAgents(FrontOfficer* fo, int p, int) {
 
 	// finally, create the simulation agent to register this shape
 	ShapeHinter* ag = new ShapeHinter(
-	    ID++, "yolk", m, params.constants.initTime, params.constants.incrTime);
+	    ID++, "yolk", m, params->constants.initTime, params->constants.incrTime);
 	fo->startNewAgent(ag, false);
+
 }
 
 void Scenario_DrosophilaRandom::initializeScene() {
 	displays.registerDisplayUnit([]() {
-		auto unit = new SceneryBufferedDisplayUnit("localhost:8765");
+		auto unit = std::make_unique<SceneryBufferedDisplayUnit>("localhost:8765");
 		unit->InitBuffers();
 		return unit;
 	});
 	displays.registerDisplayUnit([]() {
-		return new FlightRecorderDisplayUnit("/temp/FR_randomDro.txt");
+		return std::make_unique<FlightRecorderDisplayUnit>("/temp/FR_randomDro.txt");
 	});
 
 	// disks.enableImgMaskTIFFs();
@@ -204,13 +206,13 @@ class mySceneControls : public SceneControls {
 	}
 };
 
-SceneControls& Scenario_DrosophilaRandom::provideSceneControls() {
+std::unique_ptr<SceneControls> Scenario_DrosophilaRandom::provideSceneControls() const 
+{
 	config::scenario::ControlConstants c;
 	c.stopTime = 12.0f;
-
-	auto mSC = new mySceneControls(c);
+	
+	auto mSC = std::make_unique<mySceneControls>(c);
 	mSC->disableWaitForUserPrompt();
 
-	return *mSC;
+	return mSC;
 }
-

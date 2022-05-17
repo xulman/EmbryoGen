@@ -2,6 +2,7 @@
 
 #include "../__details.hpp"
 #include <vector>
+#include <cstring>
 
 namespace tools {
 
@@ -62,6 +63,26 @@ class SmallVector {
 			_dynamic_data.push_back(std::forward<T>(elem));
 		}
 		++_size;
+	}
+
+	void erase_at(std::size_t idx)
+	{
+		details::boundary_check(idx, _size);
+
+		if (!_in_dynamic)
+		{
+			_static_data[idx].~T();
+			std::memmove(
+				__raw_data + idx * sizeof(T), 		// dest
+				__raw_data + (idx + 1) * sizeof(T), // src
+				sizeof(T) 							// count in bytes
+			);
+		}
+		else
+		{
+			_dynamic_data.erase(_dynamic_data.begin() + idx);
+		}
+		--_size;
 	}
 
 	T& back() { return (*this)[size() - 1]; }

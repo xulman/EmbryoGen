@@ -39,13 +39,13 @@ void Scenario_phaseIIandIII::initializeAgents(FrontOfficer*, int p, int) {
 	while (shouldTryOneMore && frameCnt <= lastTP) {
 		try {
 			if (useCannonicalName)
-				sprintf(fn, params.constants.imgPhantom_filenameTemplate,
+				sprintf(fn, params->constants.imgPhantom_filenameTemplate,
 				        frameCnt); // default filename
 			else
 				sprintf(fn, argv[2], frameCnt); // user-given filename
 			report::message(fmt::format("READING: {}", fn));
 
-			params.imgPhantom.ReadImage(fn);
+			params->imgPhantom.ReadImage(fn);
 		} catch (...) {
 			shouldTryOneMore = false;
 		}
@@ -55,12 +55,12 @@ void Scenario_phaseIIandIII::initializeAgents(FrontOfficer*, int p, int) {
 			// yes...
 			// prepare the output image (allows to have inputs of different
 			// sizes...)
-			params.imgFinal.CopyMetaData(params.imgPhantom);
+			params->imgFinal.CopyMetaData(params->imgPhantom);
 
 			// populate and save it...
 			doPhaseIIandIII();
-			sprintf(fn, params.constants.imgFinal_filenameTemplate, frameCnt);
-			params.imgFinal.SaveImage(fn);
+			sprintf(fn, params->constants.imgFinal_filenameTemplate, frameCnt);
+			params->imgFinal.SaveImage(fn);
 
 			++frameCnt;
 		}
@@ -68,16 +68,16 @@ void Scenario_phaseIIandIII::initializeAgents(FrontOfficer*, int p, int) {
 
 	// needs to be called here because the initializeScene(), which would have
 	// been much more appropriate place for this, is called prior this method
-	params.imagesSaving_disableForImgPhantom();
-	params.imagesSaving_disableForImgFinal();
+	params->imagesSaving_disableForImgPhantom();
+	params->imagesSaving_disableForImgFinal();
 }
 
 void Scenario_phaseIIandIII::initializeScene() {
-	params.disableWaitForUserPrompt();
+	params->disableWaitForUserPrompt();
 }
 
-SceneControls& Scenario_phaseIIandIII::provideSceneControls() {
+std::unique_ptr<SceneControls> Scenario_phaseIIandIII::provideSceneControls() const {
 	config::scenario::ControlConstants myConstants;
 	myConstants.stopTime = 0;
-	return *(new SceneControls(myConstants));
+	return std::make_unique<SceneControls>(myConstants);
 }

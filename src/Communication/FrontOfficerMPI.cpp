@@ -403,7 +403,7 @@ void FrontOfficer::waitHereUntilEveryoneIsHereToo() // Will this work without
 }
 
 void FrontOfficer::waitFor_renderNextFrame(const int FOsID) {
-	SceneControls& sc = scenario.params;
+	SceneControls& sc = *scenario.params;
 	if (!(sc.imagesSaving_isEnabledForImgMask() ||
 	      sc.imagesSaving_isEnabledForImgPhantom() ||
 	      sc.imagesSaving_isEnabledForImgOptics())) {

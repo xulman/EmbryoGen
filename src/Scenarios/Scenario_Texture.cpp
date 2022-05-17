@@ -41,12 +41,12 @@ void Scenario_withTexture::initializeAgents(FrontOfficer* fo, int p, int) {
 	// to obtain a sequence of IDs for new agents...
 	int ID = 1;
 
-	const float radius = 0.4f * params.constants.sceneSize.y;
+	const float radius = 0.4f * params->constants.sceneSize.y;
 	const int howManyToPlace = argc > 2 ? atoi(argv[2]) : 6;
 
-	Vector3d<float> sceneCentre(params.constants.sceneSize);
+	Vector3d<float> sceneCentre(params->constants.sceneSize);
 	sceneCentre /= 2.0f;
-	sceneCentre += params.constants.sceneOffset;
+	sceneCentre += params->constants.sceneOffset;
 
 	for (int i = 0; i < howManyToPlace; ++i) {
 		const float ang = float(i) / float(howManyToPlace);
@@ -65,8 +65,8 @@ void Scenario_withTexture::initializeAgents(FrontOfficer* fo, int p, int) {
 		s.updateRadius(1, 5.0f);
 
 		myTexturedNucleus* ag = new myTexturedNucleus(
-		    ID++, "nucleus with texture", s, params.constants.initTime,
-		    params.constants.incrTime);
+		    ID++, "nucleus with texture", s, params->constants.initTime,
+		    params->constants.incrTime);
 		fo->startNewAgent(ag);
 	}
 }
@@ -77,11 +77,11 @@ void Scenario_withTexture::initializeScene() {
 	disks.enableImgFinalTIFFs();
 }
 
-SceneControls& Scenario_withTexture::provideSceneControls() {
+std::unique_ptr<SceneControls> Scenario_withTexture::provideSceneControls() const {
 	config::scenario::ControlConstants myConstants;
 	myConstants.stopTime = 0.2f;
 
-	return *(new SceneControls(myConstants));
+	return std::make_unique<SceneControls>(myConstants);
 }
 
 void Scenario_withTexture::initializePhaseIIandIII(void) {

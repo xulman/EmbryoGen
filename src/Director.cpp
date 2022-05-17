@@ -9,12 +9,12 @@
 
 void Director::init1_SMP(void) {
 	report::message(fmt::format("Direktor initializing now..."));
-	currTime = scenario.params.constants.initTime;
+	currTime = scenario.params->constants.initTime;
 
 	// a bit of stats before we start...
-	const auto& sSum = scenario.params.constants.sceneSize;
+	const auto& sSum = scenario.params->constants.sceneSize;
 	Vector3d<float> sSpx(sSum);
-	sSpx.elemMult(scenario.params.constants.imgRes);
+	sSpx.elemMult(scenario.params->constants.imgRes);
 	std::string sMsg = fmt::format(
 	    "scenario suggests this scene size: {} x {} x {} um -> {} x {} x {} px",
 	    sSum.x, sSum.y, sSum.z, sSpx.x, sSpx.y, sSpx.z);
@@ -46,15 +46,15 @@ void Director::init1_SMP(void) {
 	scenario.initializePhaseIIandIII();
 
 	//"reminder" test
-	if (scenario.params.imagesSaving_isEnabledForImgPhantom() ||
-	    scenario.params.imagesSaving_isEnabledForImgOptics()) {
-		if (!scenario.params.imagesSaving_isEnabledForImgOptics()) {
+	if (scenario.params->imagesSaving_isEnabledForImgPhantom() ||
+	    scenario.params->imagesSaving_isEnabledForImgOptics()) {
+		if (!scenario.params->imagesSaving_isEnabledForImgOptics()) {
 			report::message(fmt::format("===> Found enabled phantom images, "
 			                            "but disabled optics images."));
 			report::message(fmt::format(
 			    "===> Will actually not render agents until both is enabled."));
 		}
-		if (!scenario.params.imagesSaving_isEnabledForImgPhantom()) {
+		if (!scenario.params->imagesSaving_isEnabledForImgPhantom()) {
 			report::message(fmt::format("===> Found enabled optics images, but "
 			                            "disabled phantom images."));
 			report::message(fmt::format(
@@ -114,9 +114,9 @@ void Director::close(void) {
 void Director::execute(void) {
 	report::message(fmt::format("Direktor has just started the simulation"));
 
-	const float stopTime = scenario.params.constants.stopTime;
-	const float incrTime = scenario.params.constants.incrTime;
-	const float expoTime = scenario.params.constants.expoTime;
+	const float stopTime = scenario.params->constants.stopTime;
+	const float incrTime = scenario.params->constants.incrTime;
+	const float expoTime = scenario.params->constants.expoTime;
 
 	// run the simulation rounds, one after another one
 	while (currTime < stopTime) {
@@ -307,7 +307,7 @@ void Director::setSimulationDebugRendering(const bool state) {
 
 void Director::renderNextFrame() {
 	report::message(fmt::format("Rendering time point {}", frameCnt));
-	SceneControls& sc = scenario.params;
+	SceneControls& sc = *scenario.params;
 
 	// ----------- OUTPUT EVENTS -----------
 	// prepare the output images

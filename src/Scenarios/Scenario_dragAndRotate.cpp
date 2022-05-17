@@ -66,14 +66,14 @@ void Scenario_dragAndRotate::initializeAgents(FrontOfficer* fo, int p, int) {
 		Vector3d<float> pos(0, radius * axis.y, radius * axis.z);
 
 		// position is shifted to the scene centre
-		pos.x += params.constants.sceneSize.x / 2.0f;
-		pos.y += params.constants.sceneSize.y / 2.0f;
-		pos.z += params.constants.sceneSize.z / 2.0f;
+		pos.x += params->constants.sceneSize.x / 2.0f;
+		pos.y += params->constants.sceneSize.y / 2.0f;
+		pos.z += params->constants.sceneSize.z / 2.0f;
 
 		// position is shifted due to scene offset
-		pos.x += params.constants.sceneOffset.x;
-		pos.y += params.constants.sceneOffset.y;
-		pos.z += params.constants.sceneOffset.z;
+		pos.x += params->constants.sceneOffset.x;
+		pos.y += params->constants.sceneOffset.y;
+		pos.z += params->constants.sceneOffset.z;
 
 		Spheres s(4);
 		s.updateCentre(0, pos);
@@ -86,8 +86,8 @@ void Scenario_dragAndRotate::initializeAgents(FrontOfficer* fo, int p, int) {
 		s.updateRadius(3, 3.0f);
 
 		myNucleus* ag =
-		    new myNucleus(ID++, "nucleus", s, params.constants.initTime,
-		                  params.constants.incrTime);
+		    new myNucleus(ID++, "nucleus", s, params->constants.initTime,
+		                  params->constants.incrTime);
 		ag->setDetailedDrawingMode(true);
 		fo->startNewAgent(ag);
 	}
@@ -95,12 +95,12 @@ void Scenario_dragAndRotate::initializeAgents(FrontOfficer* fo, int p, int) {
 
 void Scenario_dragAndRotate::initializeScene() {
 	displays.registerDisplayUnit(
-	    []() { return new SceneryBufferedDisplayUnit("localhost:8765"); });
+	    []() { return std::make_unique<SceneryBufferedDisplayUnit>("localhost:8765"); });
 	displays.registerDisplayUnit([]() {
-		return new FlightRecorderDisplayUnit("/temp/FR_dragAndRotate.txt");
+		return std::make_unique<FlightRecorderDisplayUnit>("/temp/FR_dragAndRotate.txt");
 	});
 }
 
-SceneControls& Scenario_dragAndRotate::provideSceneControls() {
-	return DefaultSceneControls;
+std::unique_ptr<SceneControls> Scenario_dragAndRotate::provideSceneControls() const {
+	return std::make_unique<SceneControls>(DefaultSceneControls);
 }

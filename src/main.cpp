@@ -20,15 +20,16 @@
 #endif
 
 int main(int argc, char** argv) {
-	std::cout << "This is EmbryoGen at commit rev " << gitCommitHash << ".\n";
+	report::message(fmt::format("This is EmbryoGen at commit rev {}.", gitCommitHash), {false});
 
 	Director* d = NULL;
 	FrontOfficer* fo = NULL;
+	Scenarios scenarios(argc,const_cast<const char **>(argv));
 
 	try {
 		// the Scenario object paradigm: there's always (independent) one per
 		// Direktor and each FO; thus, it is always created inline in respective
-		// c'tor calls
+		// c'tor calls (scenarios.getScenario() returns reference to copy)
 
 #ifdef DISTRIBUTED
 		DistributedCommunicator* dc = new MPI_Communicator(argc, argv);
@@ -45,7 +46,7 @@ int main(int argc, char** argv) {
 
 		if (MPI_IDOfThisInstance == 0) {
 			// hoho, I'm the Direktor  (NB: Direktor == main simulation loop)
-			d = new Director(Scenarios(argc, argv).getScenario(), 1,
+			d = new Director(scenarios.getScenario(), 1,
 			                 MPI_noOfNodesInTotal - 1, dc);
 			d->initMPI(); // init the simulation, and render the first frame
 			d->execute(); // execute the simulation, and render frames
@@ -60,7 +61,7 @@ int main(int argc, char** argv) {
 			if (nextFOsID == MPI_noOfNodesInTotal)
 				nextFOsID = 0;
 
-			fo = new FrontOfficer(Scenarios(argc, argv).getScenario(),
+			fo = new FrontOfficer(scenarios.getScenario(),
 			                      nextFOsID, MPI_IDOfThisInstance,
 			                      MPI_noOfNodesInTotal - 1, dc);
 			fo->initMPI(); // populate/create my part of the scene
@@ -72,8 +73,8 @@ int main(int argc, char** argv) {
 		}
 #else
 		// single machine case
-		d = new Director(Scenarios(argc, argv).getScenario(), 1, 1);
-		fo = new FrontOfficer(Scenarios(argc, argv).getScenario(), 0, 1, 1);
+		d = new Director(scenarios.getScenario(), 1, 1);
+		fo = new FrontOfficer(scenarios.getScenario(), 0, 1, 1);
 
 		fo->connectWithDirektor(d);
 		d->connectWithFrontOfficer(fo);

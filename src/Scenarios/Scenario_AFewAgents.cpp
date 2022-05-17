@@ -19,12 +19,12 @@ void Scenario_AFewAgents::initializeAgents(FrontOfficer* fo, int p, int) {
 	// to obtain a sequence of IDs for new agents...
 	int ID = 1;
 
-	const float radius = 0.4f * params.constants.sceneSize.y;
+	const float radius = 0.4f * params->constants.sceneSize.y;
 	const int howManyToPlace = 6;
 
-	Vector3d<float> sceneCentre(params.constants.sceneSize);
+	Vector3d<float> sceneCentre(params->constants.sceneSize);
 	sceneCentre /= 2.0f;
-	sceneCentre += params.constants.sceneOffset;
+	sceneCentre += params->constants.sceneOffset;
 
 	for (int i = 0; i < howManyToPlace; ++i) {
 		const float ang = float(i) / float(howManyToPlace);
@@ -47,8 +47,8 @@ void Scenario_AFewAgents::initializeAgents(FrontOfficer* fo, int p, int) {
 		s.updateRadius(3, 3.0f);
 
 		Nucleus4SAgent* ag =
-		    new Nucleus4SAgent(ID++, "nucleus", s, params.constants.initTime,
-		                       params.constants.incrTime);
+		    new Nucleus4SAgent(ID++, "nucleus", s, params->constants.initTime,
+		                       params->constants.incrTime);
 		fo->startNewAgent(ag);
 	}
 
@@ -90,15 +90,15 @@ void Scenario_AFewAgents::initializeAgents(FrontOfficer* fo, int p, int) {
 
 	// finally, create the simulation agent to register this shape
 	ShapeHinter* ag = new ShapeHinter(
-	    ID++, "yolk", m, params.constants.initTime, params.constants.incrTime);
+	    ID++, "yolk", m, params->constants.initTime, params->constants.incrTime);
 	fo->startNewAgent(ag, false);
 }
 
 void Scenario_AFewAgents::initializeScene() {
 	displays.registerDisplayUnit(
-	    []() { return new SceneryBufferedDisplayUnit("localhost:8765"); });
+	    []() { return std::make_unique<SceneryBufferedDisplayUnit>("localhost:8765"); });
 }
 
-SceneControls& Scenario_AFewAgents::provideSceneControls() {
-	return DefaultSceneControls;
+std::unique_ptr<SceneControls> Scenario_AFewAgents::provideSceneControls() const {
+	return std::make_unique<SceneControls>(DefaultSceneControls);
 }

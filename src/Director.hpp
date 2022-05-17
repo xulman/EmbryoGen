@@ -22,7 +22,7 @@ class Director {
 	         DistributedCommunicator* dc = NULL)
 	    : scenario(s), communicator(dc), firstFOsID(firstFO),
 	      FOsCount(allPortions),
-	      shallWaitForUserPromptFlag(scenario.params.shallWaitForUserPromptFlag)
+	      shallWaitForUserPromptFlag(scenario.params->shallWaitForUserPromptFlag)
 #ifdef DISTRIBUTED
 	      ,
 	      responder([this] { respond_Loop(); })
@@ -261,15 +261,15 @@ class Director {
 	// provides shortcuts for the FO to the output images of
 	// the Direktor to have them filled directly
 	i3d::Image3d<i3d::GRAY16>& refOnDirektorsImgMask(void) {
-		return scenario.params.imgMask;
+		return scenario.params->imgMask;
 	}
 
 	i3d::Image3d<float>& refOnDirektorsImgPhantom(void) {
-		return scenario.params.imgPhantom;
+		return scenario.params->imgPhantom;
 	}
 
 	i3d::Image3d<float>& refOnDirektorsImgOptics(void) {
-		return scenario.params.imgOptics;
+		return scenario.params->imgOptics;
 	}
 
 	void connectWithFrontOfficer(FrontOfficer* fo) {

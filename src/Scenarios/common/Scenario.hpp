@@ -9,6 +9,7 @@
 #include "../../util/report.hpp"
 #include <i3d/image3d.h>
 #include <type_traits>
+#include <memory>
 
 // instead of the #include statement, the FrontOfficer type is only declared to
 // exists, FrontOfficer's definition depends on Scenario and so we'd end up in a
@@ -388,8 +389,9 @@ extern SceneControls DefaultSceneControls;
 class Scenario {
   public:
 	/** the one and only must-provide-SceneControls-enforcer c'tor */
-	Scenario(SceneControls& params)
-	    : params(params), displays(*this, params), disks(*this, params) {}
+	Scenario(std::unique_ptr<SceneControls> _params)
+	    : params(std::move(_params)), displays(*this, *params), disks(*this, *params) {}
+
 
 	// to shortcut the Direktor's and FOs' access to this->params
 	friend class FrontOfficer;
@@ -400,27 +402,27 @@ class Scenario {
 	    (the source object is typically created in new scene's own
 	    provideSceneControls()) and whose updateControls() is
 	    regularly called in this->updateScene() */
-	SceneControls& params;
+	std::unique_ptr<SceneControls> params;
 
 	/** CLI params that might be considered by some of the initialize...()
 	 * methods */
 	int argc = 0;
 	/** CLI params that might be considered by some of the initialize...()
 	 * methods */
-	char** argv;
+	const char** argv;
 
   public:
 	/** explicit additional setter of the CLI params, which is not part
 	    of the c'tor in order to keep it simple for the scenarios and
 	    which is always called right after this object is constructed */
-	void setArgs(int argc, char** argv) {
+	void setArgs(int argc,const char** argv) {
 		this->argc = argc;
 		this->argv = argv;
 	}
 
 	/** provides (to the outside world) only a read-only look into
 	    the current state of this scenario's controls */
-	const SceneControls& seeCurrentControls() const { return params; }
+	const SceneControls& seeCurrentControls() const { return *params; }
 
 	/** A callback to ask this scenario to set up itself, except for
 	   instantiating its agents (that shall happen inside initializeAgents()).
@@ -447,7 +449,7 @@ class Scenario {
 			report::debugMessage(fmt::format("by FO #{}: ", contextID),
 			                     {true, false});
 		}
-		params.updateControls(currTime);
+		params->updateControls(currTime);
 	}
 
 	/** A callback to ask this scenario to set up its digital phantom to final
@@ -502,7 +504,7 @@ class Scenario {
 		report::message(
 		    fmt::format("Not distributed: Down-sizing local images because "
 		                "they are (normally) not used from FO."));
-		params.setOutputImgSpecs(params.constants.sceneOffset,
+		params->setOutputImgSpecs(params->constants.sceneOffset,
 		                         Vector3d<float>(0.000001f));
 #endif
 	}
@@ -540,18 +542,19 @@ class Scenario {
 		   FrontOfficer(s) but the object should not be registered and created!
 		   for the Direktor... */
 		DisplayUnit* registerDisplayUnit(
-		    const std::function<DisplayUnit*(void)>& unitFactory) {
+		    std::function<std::shared_ptr<DisplayUnit>(void)> unitFactory) {
 			if (ctx.amIinFOContext()) {
-				DisplayUnit* ds = unitFactory();
-				params.displayUnit.RegisterUnit(ds);
-				return ds;
+				std::shared_ptr<DisplayUnit> ds = unitFactory();
+				auto ptr = ds.get();
+				params.displayUnit.RegisterUnit(std::move(ds));
+				return ptr;
 			} else
-				return NULL;
+				return nullptr;
 		}
 
 		/** registers already existing DisplayUnit;
 		    don't use from Scenario::initializeScene() */
-		void registerDisplayUnit(DisplayUnit* ds) {
+		void registerDisplayUnit(std::shared_ptr<DisplayUnit> ds) {
 			if (ctx.amIinFOContext())
 				params.displayUnit.RegisterUnit(ds);
 		}

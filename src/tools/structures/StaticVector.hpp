@@ -2,6 +2,7 @@
 
 #include "../__details.hpp"
 #include <memory>
+#include <cstring>
 
 namespace tools {
 namespace structures {
@@ -38,13 +39,25 @@ class StaticVector {
 	void pop_back() {
 		details::boundary_check(0, _size);
 		back().~T();
-		--size;
+		--_size;
 	}
 
 	void push_back(T elem) {
 		details::boundary_check(_size, N);
 		std::uninitialized_move_n(&elem, 1, _elems + _size);
 		++_size;
+	}
+
+	void erase_at(std::size_t idx)
+	{
+		details::boundary_check(idx, _size);
+		_elems[idx].~T();
+		std::memmove(
+			__raw_data + idx * sizeof(T), 		// dest
+			__raw_data + (idx + 1) * sizeof(T), // src
+			sizeof(T) // count in bytes
+		);
+		--_size;
 	}
 
 	template <typename... Args>

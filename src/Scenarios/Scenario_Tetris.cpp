@@ -90,7 +90,7 @@ void Scenario_Tetris::initializeAgents(FrontOfficer* fo, int p, int) {
 	// shapes: 2x2 box, 1x4 line, big-T, random bulk
 	// arranged in a 4x4 grid (that is, boundaries of 5x5 blocks)
 	const Vector3d<float> gridStart(
-	    Vector3d<float>(params.constants.sceneSize).elemMathOp([](float e) {
+	    Vector3d<float>(params->constants.sceneSize).elemMathOp([](float e) {
 		    return e / 5;
 	    }));
 	const Vector3d<float> gridStep(gridStart);
@@ -187,7 +187,7 @@ void Scenario_Tetris::initializeAgents(FrontOfficer* fo, int p, int) {
 			fo->startNewAgent(new TetrisNucleus(
 			    fo->getNextAvailAgentID(), agentName, spheres,
 			    y < 2 ? y + 1 : int(spheres.getNoOfSpheres()) + y - 4,
-			    params.constants.initTime, params.constants.incrTime));
+			    params->constants.initTime, params->constants.incrTime));
 		}
 
 	// right-most column with 2S
@@ -258,7 +258,7 @@ void Scenario_Tetris::initializeAgents(FrontOfficer* fo, int p, int) {
 		*/
 		fo->startNewAgent(new TetrisNucleus(
 		    fo->getNextAvailAgentID(), agentName, manyS, 0,
-		    params.constants.initTime, params.constants.incrTime));
+		    params->constants.initTime, params->constants.incrTime));
 
 		for (auto v : lineUps)
 			delete v;
@@ -267,7 +267,7 @@ void Scenario_Tetris::initializeAgents(FrontOfficer* fo, int p, int) {
 
 void Scenario_Tetris::initializeScene() {
 	displays.registerDisplayUnit(
-	    []() { return new SceneryBufferedDisplayUnit("localhost:8765"); });
+	    []() { return std::make_unique<SceneryBufferedDisplayUnit>("localhost:8765"); });
 	// displays.registerDisplayUnit( [](){ return new
 	// FlightRecorderDisplayUnit("/temp/FR_tetris.txt"); } );
 
@@ -279,7 +279,7 @@ void Scenario_Tetris::initializeScene() {
 	// displays.enableImgPhantomInImagingUnit("localFiji");
 }
 
-SceneControls& Scenario_Tetris::provideSceneControls() {
+std::unique_ptr<SceneControls> Scenario_Tetris::provideSceneControls() const {
 	config::scenario::ControlConstants myConstants;
 
 	// override the default stop time
@@ -288,5 +288,5 @@ SceneControls& Scenario_Tetris::provideSceneControls() {
 	                           50); // microns, offset is at [0,0,0]
 	// image res 2px/1um
 
-	return *(new SceneControls(myConstants));
+	return std::make_unique<SceneControls>(myConstants);
 }

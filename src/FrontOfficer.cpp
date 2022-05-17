@@ -8,7 +8,7 @@
 
 void FrontOfficer::init1_SMP() {
 	report::message(fmt::format("FO #{} initializing now...", ID));
-	currTime = scenario.params.constants.initTime;
+	currTime = scenario.params->constants.initTime;
 
 	scenario.initializeScene();
 	scenario.initializeAgents(this, ID, FOsCount);
@@ -108,9 +108,9 @@ void FrontOfficer::close(void) {
 void FrontOfficer::execute(void) {
 	report::message(fmt::format("FO #{} is waiting to start simulating", ID));
 
-	const float stopTime = scenario.params.constants.stopTime;
-	const float incrTime = scenario.params.constants.incrTime;
-	const float expoTime = scenario.params.constants.expoTime;
+	const float stopTime = scenario.params->constants.stopTime;
+	const float incrTime = scenario.params->constants.incrTime;
+	const float expoTime = scenario.params->constants.expoTime;
 
 	// run the simulation rounds, one after another one
 	while (currTime < stopTime) {
@@ -156,7 +156,7 @@ void FrontOfficer::execute(void) {
 
 void FrontOfficer::executeEndSub1() {
 	// move to the next simulation time point
-	currTime += scenario.params.constants.incrTime;
+	currTime += scenario.params->constants.incrTime;
 	reportSituation();
 }
 
@@ -169,7 +169,7 @@ void FrontOfficer::executeInternals() {
 	// after this simulation round is done, all agents should
 	// reach local times greater than this global time
 	const float futureTime =
-	    currTime + scenario.params.constants.incrTime - 0.0001f;
+	    currTime + scenario.params->constants.incrTime - 0.0001f;
 
 	// develop (willingly) new shapes... (can run in parallel),
 	// the agents' (external at least!) geometries must not change during this
@@ -496,7 +496,7 @@ const ShadowAgent* FrontOfficer::getNearbyAgent(const int fetchThisID) {
 
 void FrontOfficer::renderNextFrame() {
 	report::message(fmt::format("Rendering time point {}", frameCnt));
-	SceneControls& sc = scenario.params;
+	SceneControls& sc = *scenario.params;
 
 	// ----------- OUTPUT EVENTS -----------
 	// clear the output images
