@@ -37,20 +37,20 @@ class StaticVector {
 	const T& back() const { return (*this)[size() - 1]; }
 
 	void pop_back() {
-		details::boundary_check(0, _size);
+		details::boundary_check(0, _size, "StaticVector: pop_back failed");
 		back().~T();
 		--_size;
 	}
 
 	void push_back(T elem) {
-		details::boundary_check(_size, N);
+		details::boundary_check(_size, N, "StaticVector: push_back failed");
 		std::uninitialized_move_n(&elem, 1, _elems + _size);
 		++_size;
 	}
 
 	void erase_at(std::size_t idx)
 	{
-		details::boundary_check(idx, _size);
+		details::boundary_check(idx, _size, "StaticVector: erase_at invalid index");
 		_elems[idx].~T();
 		std::memmove(
 			__raw_data + idx * sizeof(T), 		// dest
@@ -69,12 +69,12 @@ class StaticVector {
 	std::size_t size() const { return _size; }
 
 	T& operator[](std::size_t i) {
-		details::boundary_check(i, _size);
+		details::boundary_check(i, _size, "StaticVector: operator[] on invalid index");
 		return _elems[i];
 	}
 
 	const T& operator[](std::size_t i) const {
-		details::boundary_check(i, _size);
+		details::boundary_check(i, _size, "StaticVector: const operator[] on invalid index");
 		return _elems[i];
 	}
 
