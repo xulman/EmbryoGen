@@ -1,320 +1,145 @@
-==37498== Memcheck, a memory error detector
-==37498== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
-==37498== Using Valgrind-3.18.1-42b08ed5bd-20211015 and LibVEX; rerun with -h for copyright info
-==37498== Command: ../embryogen_dbgO0 randomDrosophila
-==37498== Parent PID: 11207
-==37498== 
---37498-- 
---37498-- Valgrind options:
---37498--    --leak-check=full
---37498--    --show-leak-kinds=all
---37498--    --track-origins=yes
---37498--    --verbose
---37498--    --log-file=valg.txt
---37498-- Contents of /proc/version:
---37498--   Linux version 5.15.0-27-generic (buildd@ubuntu) (gcc (Ubuntu 11.2.0-19ubuntu1) 11.2.0, GNU ld (GNU Binutils for Ubuntu) 2.38) #28-Ubuntu SMP Thu Apr 14 04:55:28 UTC 2022
---37498-- 
---37498-- Arch and hwcaps: AMD64, LittleEndian, amd64-cx16-lzcnt-rdtscp-sse3-ssse3-avx-avx2-bmi-f16c-rdrand-rdseed
---37498-- Page sizes: currently 4096, max supported 4096
---37498-- Valgrind library directory: /usr/libexec/valgrind
---37498-- Reading syms from /home/somik/CBIA/EmbryoGen/build_man/embryogen_dbgO0
---37498-- Reading syms from /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
---37498--   Considering /usr/lib/debug/.build-id/aa/1b0b998999c397062e1016f0c95dc0e8820117.debug ..
---37498--   .. build-id is valid
---37498-- Reading syms from /usr/libexec/valgrind/memcheck-amd64-linux
---37498--    object doesn't have a symbol table
---37498--    object doesn't have a dynamic symbol table
---37498-- Scheduler: using generic scheduler lock implementation.
---37498-- Reading suppressions file: /usr/libexec/valgrind/default.supp
-==37498== embedded gdbserver: reading from /tmp/vgdb-pipe-from-vgdb-to-37498-by-somik-on-???
-==37498== embedded gdbserver: writing to   /tmp/vgdb-pipe-to-vgdb-from-37498-by-somik-on-???
-==37498== embedded gdbserver: shared mem   /tmp/vgdb-pipe-shared-mem-vgdb-37498-by-somik-on-???
-==37498== 
-==37498== TO CONTROL THIS PROCESS USING vgdb (which you probably
-==37498== don't want to do, unless you know exactly what you're doing,
-==37498== or are doing some strange experiment):
-==37498==   /usr/bin/vgdb --pid=37498 ...command...
-==37498== 
-==37498== TO DEBUG THIS PROCESS USING GDB: start GDB like this
-==37498==   /path/to/gdb ../embryogen_dbgO0
-==37498== and then give GDB the following command
-==37498==   target remote | /usr/bin/vgdb --pid=37498
-==37498== --pid is optional if only one valgrind process is running
-==37498== 
---37498-- REDIR: 0x402aa60 (ld-linux-x86-64.so.2:strlen) redirected to 0x580bcec2 (???)
---37498-- REDIR: 0x402a830 (ld-linux-x86-64.so.2:index) redirected to 0x580bcedc (???)
---37498-- Reading syms from /usr/libexec/valgrind/vgpreload_core-amd64-linux.so
---37498--    object doesn't have a symbol table
---37498-- Reading syms from /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so
---37498--    object doesn't have a symbol table
-==37498== WARNING: new redirection conflicts with existing -- ignoring it
---37498--     old: 0x0402aa60 (strlen              ) R-> (0000.0) 0x580bcec2 ???
---37498--     new: 0x0402aa60 (strlen              ) R-> (2007.0) 0x0484ee30 strlen
---37498-- REDIR: 0x4027240 (ld-linux-x86-64.so.2:strcmp) redirected to 0x484fcd0 (strcmp)
---37498-- REDIR: 0x402afc0 (ld-linux-x86-64.so.2:mempcpy) redirected to 0x4853840 (mempcpy)
---37498-- Reading syms from /usr/local/lib/libi3dcore.so.1.1.0
---37498-- Reading syms from /usr/local/lib/libi3dalgo.so.1.1.0
---37498-- Reading syms from /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30
---37498--    object doesn't have a symbol table
---37498-- Reading syms from /usr/lib/x86_64-linux-gnu/libm.so.6
---37498--   Considering /usr/lib/debug/.build-id/27/a8c28af0bfefefcf69ba73f7d4582d82e01f71.debug ..
---37498--   .. build-id is valid
---37498-- Reading syms from /usr/lib/x86_64-linux-gnu/libgcc_s.so.1
---37498--    object doesn't have a symbol table
---37498-- Reading syms from /usr/lib/x86_64-linux-gnu/libc.so.6
---37498--   Considering /usr/lib/debug/.build-id/89/c3cb85f9e55046776471fed05ec441581d1969.debug ..
---37498--   .. build-id is valid
-==37498== WARNING: new redirection conflicts with existing -- ignoring it
---37498--     old: 0x056f8ce0 (memalign            ) R-> (1011.0) 0x0484e080 memalign
---37498--     new: 0x056f8ce0 (memalign            ) R-> (1017.0) 0x0484e050 aligned_alloc
-==37498== WARNING: new redirection conflicts with existing -- ignoring it
---37498--     old: 0x056f8ce0 (memalign            ) R-> (1011.0) 0x0484e080 memalign
---37498--     new: 0x056f8ce0 (memalign            ) R-> (1017.0) 0x0484e020 aligned_alloc
-==37498== WARNING: new redirection conflicts with existing -- ignoring it
---37498--     old: 0x056f8ce0 (memalign            ) R-> (1011.0) 0x0484e080 memalign
---37498--     new: 0x056f8ce0 (memalign            ) R-> (1017.0) 0x0484e050 aligned_alloc
-==37498== WARNING: new redirection conflicts with existing -- ignoring it
---37498--     old: 0x056f8ce0 (memalign            ) R-> (1011.0) 0x0484e080 memalign
---37498--     new: 0x056f8ce0 (memalign            ) R-> (1017.0) 0x0484e020 aligned_alloc
---37498-- REDIR: 0x56fb7a0 (libc.so.6:strnlen) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
---37498-- REDIR: 0x56fba60 (libc.so.6:strpbrk) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
---37498-- REDIR: 0x56fb360 (libc.so.6:strcmp) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
---37498-- REDIR: 0x5719d50 (libc.so.6:wcsnlen) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
---37498-- REDIR: 0x56fc750 (libc.so.6:memset) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
---37498-- REDIR: 0x57185c0 (libc.so.6:wcslen) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
---37498-- REDIR: 0x56fcc90 (libc.so.6:memcpy@@GLIBC_2.14) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
---37498-- REDIR: 0x57183f0 (libc.so.6:wcschr) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
---37498-- REDIR: 0x56fb2e0 (libc.so.6:index) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
---37498-- REDIR: 0x56fb9e0 (libc.so.6:rindex) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
---37498-- REDIR: 0x56fc620 (libc.so.6:memmove) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
-==37498== Preferring higher priority redirection:
---37498--     old: 0x057f3940 (__memcpy_avx_unalign) R-> (2018.0) 0x04850f90 __memcpy_avx_unaligned_erms
---37498--     new: 0x057f3940 (__memcpy_avx_unalign) R-> (2018.1) 0x04852880 memmove
---37498-- REDIR: 0x5718470 (libc.so.6:wcscmp) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
---37498-- REDIR: 0x56fca60 (libc.so.6:stpncpy) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
---37498-- REDIR: 0x5718a30 (libc.so.6:wmemchr) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
---37498-- REDIR: 0x56fb8b0 (libc.so.6:strncmp) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
---37498-- REDIR: 0x56fcaf0 (libc.so.6:strcasecmp) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
---37498-- REDIR: 0x56fb4a0 (libc.so.6:strcspn) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
---37498-- REDIR: 0x57184f0 (libc.so.6:wcscpy) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
---37498-- REDIR: 0x56fb250 (libc.so.6:strcat) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
---37498-- REDIR: 0x56fcbe0 (libc.so.6:strncasecmp_l) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
---37498-- REDIR: 0x56fc500 (libc.so.6:bcmp) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
---37498-- REDIR: 0x57045f0 (libc.so.6:memrchr) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
---37498-- REDIR: 0x56fe090 (libc.so.6:strchrnul) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
---37498-- REDIR: 0x56fb410 (libc.so.6:strcpy) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
---37498-- REDIR: 0x56fcb90 (libc.so.6:strcasecmp_l) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
---37498-- REDIR: 0x56fb720 (libc.so.6:strlen) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
---37498-- REDIR: 0x56fb950 (libc.so.6:strncpy) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
---37498-- REDIR: 0x56fc9d0 (libc.so.6:stpcpy) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
---37498-- REDIR: 0x56fc470 (libc.so.6:memchr) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
---37498-- REDIR: 0x56fbb80 (libc.so.6:strspn) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
---37498-- REDIR: 0x56fc850 (libc.so.6:mempcpy) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
---37498-- REDIR: 0x56fcb40 (libc.so.6:strncasecmp) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
---37498-- REDIR: 0x56fe000 (libc.so.6:rawmemchr) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
---37498-- REDIR: 0x57f0790 (libc.so.6:__strrchr_avx2) redirected to 0x484e810 (rindex)
---37498-- REDIR: 0x56f8120 (libc.so.6:malloc) redirected to 0x4848820 (malloc)
---37498-- REDIR: 0x57f0960 (libc.so.6:__strlen_avx2) redirected to 0x484ed10 (strlen)
---37498-- REDIR: 0x57ecc00 (libc.so.6:__memcmp_avx2_movbe) redirected to 0x4852010 (bcmp)
---37498-- REDIR: 0x57ebac0 (libc.so.6:__strcmp_avx2) redirected to 0x484fbd0 (strcmp)
---37498-- REDIR: 0x57f3940 (libc.so.6:__memcpy_avx_unaligned_erms) redirected to 0x4852880 (memmove)
---37498-- REDIR: 0x56f95a0 (libc.so.6:calloc) redirected to 0x484d9d0 (calloc)
---37498-- REDIR: 0x53cc9f0 (libstdc++.so.6:operator new(unsigned long)) redirected to 0x4848fa0 (operator new(unsigned long))
---37498-- REDIR: 0x53caca0 (libstdc++.so.6:operator delete(void*, unsigned long)) redirected to 0x484bb00 (operator delete(void*, unsigned long))
---37498-- REDIR: 0x57f3900 (libc.so.6:__mempcpy_avx_unaligned_erms) redirected to 0x4853440 (mempcpy)
---37498-- REDIR: 0x57ec440 (libc.so.6:__memchr_avx2) redirected to 0x484fd50 (memchr)
---37498-- REDIR: 0x53cca50 (libstdc++.so.6:operator new[](unsigned long)) redirected to 0x484a280 (operator new[](unsigned long))
---37498-- REDIR: 0x56f8460 (libc.so.6:free) redirected to 0x484b210 (free)
---37498-- REDIR: 0x57f4100 (libc.so.6:__memset_avx2_unaligned_erms) redirected to 0x4852770 (memset)
---37498-- REDIR: 0x57f1e30 (libc.so.6:__strcpy_avx2) redirected to 0x484ee60 (strcpy)
---37498-- REDIR: 0x56f87c0 (libc.so.6:realloc) redirected to 0x484dc50 (realloc)
---37498-- REDIR: 0x57ebf00 (libc.so.6:__strncmp_avx2) redirected to 0x484f3e0 (strncmp)
---37498-- REDIR: 0x53cac90 (libstdc++.so.6:operator delete(void*)) redirected to 0x484b840 (operator delete(void*))
---37498-- REDIR: 0x57f0580 (libc.so.6:__strchrnul_avx2) redirected to 0x4853330 (strchrnul)
---37498-- REDIR: 0x53cacc0 (libstdc++.so.6:operator delete[](void*)) redirected to 0x484ca20 (operator delete[](void*))
-==37498== Warning: set address range perms: large range [0x12cb2040, 0x28f30040) (undefined)
---37498-- REDIR: 0x56fc040 (libc.so.6:__GI_strstr) redirected to 0x4853ae0 (__strstr_sse2)
-==37498== 
-==37498== HEAP SUMMARY:
-==37498==     in use at exit: 372,835,533 bytes in 15 blocks
-==37498==   total heap usage: 2,219,462 allocs, 2,219,447 frees, 816,771,531 bytes allocated
-==37498== 
-==37498== Searching for pointers to 15 not-freed blocks
-==37498== Checked 372,016,656 bytes
-==37498== 
-==37498== 2 bytes in 1 blocks are indirectly lost in loss record 1 of 15
-==37498==    at 0x4849013: operator new(unsigned long) (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
-==37498==    by 0x48F1B47: i3d::Image3d<unsigned short>::MakeRoom(unsigned long, unsigned long, unsigned long) (in /usr/local/lib/libi3dcore.so.1.1.0)
-==37498==    by 0x1D61B2: i3d::Image3d<unsigned short>::MakeRoom(i3d::Vector3d<unsigned long> const&) (image3d.h:687)
-==37498==    by 0x1E366D: void SceneControls::enableProducingOutput<unsigned short>(i3d::Image3d<unsigned short>&) (Scenario.hpp:292)
-==37498==    by 0x1E1646: SceneControls::imagesSaving_enableForImgMask() (Scenario.hpp:161)
-==37498==    by 0x1E180F: Scenario::Disks::enableImgMaskTIFFs() (Scenario.hpp:620)
-==37498==    by 0x216E5F: mySceneControls::updateControls(float) (Scenario_DrosophilaRandom.cpp:194)
-==37498==    by 0x24BD92: Scenario::updateScene(float) (Scenario.hpp:448)
-==37498==    by 0x248BFA: FrontOfficer::executeEndSub2() (FrontOfficer.cpp:165)
-==37498==    by 0x283041: Director::execute() (Director.cpp:173)
-==37498==    by 0x221039: main (main.cpp:91)
-==37498== 
-==37498== 16 bytes in 1 blocks are indirectly lost in loss record 2 of 15
-==37498==    at 0x4849013: operator new(unsigned long) (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
-==37498==    by 0x1DA8DD: std::__new_allocator<std::_Fwd_list_node<DisplayUnit*> >::allocate(unsigned long, void const*) (new_allocator.h:137)
-==37498==    by 0x1D9818: allocate (allocator.h:183)
-==37498==    by 0x1D9818: std::allocator_traits<std::allocator<std::_Fwd_list_node<DisplayUnit*> > >::allocate(std::allocator<std::_Fwd_list_node<DisplayUnit*> >&, unsigned long) (alloc_traits.h:464)
-==37498==    by 0x1D89D0: std::_Fwd_list_base<DisplayUnit*, std::allocator<DisplayUnit*> >::_M_get_node() (forward_list.h:360)
-==37498==    by 0x1D78D0: std::_Fwd_list_node<DisplayUnit*>* std::_Fwd_list_base<DisplayUnit*, std::allocator<DisplayUnit*> >::_M_create_node<DisplayUnit* const&>(DisplayUnit* const&) (forward_list.h:368)
-==37498==    by 0x1D5E17: std::_Fwd_list_node_base* std::_Fwd_list_base<DisplayUnit*, std::allocator<DisplayUnit*> >::_M_insert_after<DisplayUnit* const&>(std::_Fwd_list_const_iterator<DisplayUnit*>, DisplayUnit* const&) (forward_list.tcc:55)
-==37498==    by 0x1D3F15: std::forward_list<DisplayUnit*, std::allocator<DisplayUnit*> >::push_front(DisplayUnit* const&) (forward_list.h:878)
-==37498==    by 0x1D1272: BroadcasterDisplayUnit::RegisterUnit(DisplayUnit*) (BroadcasterDisplayUnit.hpp:63)
-==37498==    by 0x1D1C40: Scenario::Displays::registerDisplayUnit(std::function<DisplayUnit* ()> const&) (Scenario.hpp:544)
-==37498==    by 0x2157AD: Scenario_DrosophilaRandom::initializeScene() (Scenario_DrosophilaRandom.cpp:172)
-==37498==    by 0x24786A: FrontOfficer::init1_SMP() (FrontOfficer.cpp:13)
-==37498==    by 0x220FFD: main (main.cpp:84)
-==37498== 
-==37498== 16 bytes in 1 blocks are indirectly lost in loss record 3 of 15
-==37498==    at 0x4849013: operator new(unsigned long) (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
-==37498==    by 0x1DA8DD: std::__new_allocator<std::_Fwd_list_node<DisplayUnit*> >::allocate(unsigned long, void const*) (new_allocator.h:137)
-==37498==    by 0x1D9818: allocate (allocator.h:183)
-==37498==    by 0x1D9818: std::allocator_traits<std::allocator<std::_Fwd_list_node<DisplayUnit*> > >::allocate(std::allocator<std::_Fwd_list_node<DisplayUnit*> >&, unsigned long) (alloc_traits.h:464)
-==37498==    by 0x1D89D0: std::_Fwd_list_base<DisplayUnit*, std::allocator<DisplayUnit*> >::_M_get_node() (forward_list.h:360)
-==37498==    by 0x1D78D0: std::_Fwd_list_node<DisplayUnit*>* std::_Fwd_list_base<DisplayUnit*, std::allocator<DisplayUnit*> >::_M_create_node<DisplayUnit* const&>(DisplayUnit* const&) (forward_list.h:368)
-==37498==    by 0x1D5E17: std::_Fwd_list_node_base* std::_Fwd_list_base<DisplayUnit*, std::allocator<DisplayUnit*> >::_M_insert_after<DisplayUnit* const&>(std::_Fwd_list_const_iterator<DisplayUnit*>, DisplayUnit* const&) (forward_list.tcc:55)
-==37498==    by 0x1D3F15: std::forward_list<DisplayUnit*, std::allocator<DisplayUnit*> >::push_front(DisplayUnit* const&) (forward_list.h:878)
-==37498==    by 0x1D1272: BroadcasterDisplayUnit::RegisterUnit(DisplayUnit*) (BroadcasterDisplayUnit.hpp:63)
-==37498==    by 0x1D1C40: Scenario::Displays::registerDisplayUnit(std::function<DisplayUnit* ()> const&) (Scenario.hpp:544)
-==37498==    by 0x2157E3: Scenario_DrosophilaRandom::initializeScene() (Scenario_DrosophilaRandom.cpp:177)
-==37498==    by 0x24786A: FrontOfficer::init1_SMP() (FrontOfficer.cpp:13)
-==37498==    by 0x220FFD: main (main.cpp:84)
-==37498== 
-==37498== 520 bytes in 1 blocks are indirectly lost in loss record 4 of 15
-==37498==    at 0x4849013: operator new(unsigned long) (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
-==37498==    by 0x215714: Scenario_DrosophilaRandom::initializeScene()::{lambda()#2}::operator()() const (Scenario_DrosophilaRandom.cpp:178)
-==37498==    by 0x215F8B: FlightRecorderDisplayUnit* std::__invoke_impl<FlightRecorderDisplayUnit*, Scenario_DrosophilaRandom::initializeScene()::{lambda()#2}&>(std::__invoke_other, Scenario_DrosophilaRandom::initializeScene()::{lambda()#2}&) (invoke.h:61)
-==37498==    by 0x215DCF: std::enable_if<is_invocable_r_v<DisplayUnit*, Scenario_DrosophilaRandom::initializeScene()::{lambda()#2}&>, DisplayUnit*>::type std::__invoke_r<DisplayUnit*, Scenario_DrosophilaRandom::initializeScene()::{lambda()#2}&>(Scenario_DrosophilaRandom::initializeScene()::{lambda()#2}&) (invoke.h:114)
-==37498==    by 0x215B87: std::_Function_handler<DisplayUnit* (), Scenario_DrosophilaRandom::initializeScene()::{lambda()#2}>::_M_invoke(std::_Any_data const&) (std_function.h:290)
-==37498==    by 0x1D47B1: std::function<DisplayUnit* ()>::operator()() const (std_function.h:591)
-==37498==    by 0x1D1C1E: Scenario::Displays::registerDisplayUnit(std::function<DisplayUnit* ()> const&) (Scenario.hpp:543)
-==37498==    by 0x2157E3: Scenario_DrosophilaRandom::initializeScene() (Scenario_DrosophilaRandom.cpp:177)
-==37498==    by 0x24786A: FrontOfficer::init1_SMP() (FrontOfficer.cpp:13)
-==37498==    by 0x220FFD: main (main.cpp:84)
-==37498== 
-==37498== 912 bytes in 1 blocks are indirectly lost in loss record 5 of 15
-==37498==    at 0x4849013: operator new(unsigned long) (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
-==37498==    by 0x215896: Scenario_DrosophilaRandom::provideSceneControls() (Scenario_DrosophilaRandom.cpp:209)
-==37498==    by 0x223227: Scenario_DrosophilaRandom::provideSceneControls(Scenario*) (Scenarios.hpp:64)
-==37498==    by 0x2231E7: Scenario_DrosophilaRandom::Scenario_DrosophilaRandom() (Scenarios.hpp:64)
-==37498==    by 0x223D55: Scenarios::Scenarios(int, char**) (Scenarios.hpp:92)
-==37498==    by 0x220EEA: main (main.cpp:75)
-==37498== 
-==37498== 912 bytes in 1 blocks are indirectly lost in loss record 6 of 15
-==37498==    at 0x4849013: operator new(unsigned long) (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
-==37498==    by 0x215896: Scenario_DrosophilaRandom::provideSceneControls() (Scenario_DrosophilaRandom.cpp:209)
-==37498==    by 0x223227: Scenario_DrosophilaRandom::provideSceneControls(Scenario*) (Scenarios.hpp:64)
-==37498==    by 0x2231E7: Scenario_DrosophilaRandom::Scenario_DrosophilaRandom() (Scenarios.hpp:64)
-==37498==    by 0x223D55: Scenarios::Scenarios(int, char**) (Scenarios.hpp:92)
-==37498==    by 0x220F5B: main (main.cpp:76)
-==37498== 
-==37498== 1,144 (232 direct, 912 indirect) bytes in 1 blocks are definitely lost in loss record 7 of 15
-==37498==    at 0x4849013: operator new(unsigned long) (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
-==37498==    by 0x223D44: Scenarios::Scenarios(int, char**) (Scenarios.hpp:92)
-==37498==    by 0x220EEA: main (main.cpp:75)
-==37498== 
-==37498== 1,560 bytes in 1 blocks are indirectly lost in loss record 8 of 15
-==37498==    at 0x4849013: operator new(unsigned long) (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
-==37498==    by 0x215698: Scenario_DrosophilaRandom::initializeScene()::{lambda()#1}::operator()() const (Scenario_DrosophilaRandom.cpp:173)
-==37498==    by 0x215EE7: SceneryBufferedDisplayUnit* std::__invoke_impl<SceneryBufferedDisplayUnit*, Scenario_DrosophilaRandom::initializeScene()::{lambda()#1}&>(std::__invoke_other, Scenario_DrosophilaRandom::initializeScene()::{lambda()#1}&) (invoke.h:61)
-==37498==    by 0x215C8A: std::enable_if<is_invocable_r_v<DisplayUnit*, Scenario_DrosophilaRandom::initializeScene()::{lambda()#1}&>, DisplayUnit*>::type std::__invoke_r<DisplayUnit*, Scenario_DrosophilaRandom::initializeScene()::{lambda()#1}&>(Scenario_DrosophilaRandom::initializeScene()::{lambda()#1}&) (invoke.h:114)
-==37498==    by 0x215A94: std::_Function_handler<DisplayUnit* (), Scenario_DrosophilaRandom::initializeScene()::{lambda()#1}>::_M_invoke(std::_Any_data const&) (std_function.h:290)
-==37498==    by 0x1D47B1: std::function<DisplayUnit* ()>::operator()() const (std_function.h:591)
-==37498==    by 0x1D1C1E: Scenario::Displays::registerDisplayUnit(std::function<DisplayUnit* ()> const&) (Scenario.hpp:543)
-==37498==    by 0x2157AD: Scenario_DrosophilaRandom::initializeScene() (Scenario_DrosophilaRandom.cpp:172)
-==37498==    by 0x24786A: FrontOfficer::init1_SMP() (FrontOfficer.cpp:13)
-==37498==    by 0x220FFD: main (main.cpp:84)
-==37498== 
-==37498== 5,000 bytes in 1 blocks are indirectly lost in loss record 9 of 15
-==37498==    at 0x484DA83: calloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
-==37498==    by 0x28E324: gsl_rng_alloc (rng.c:39)
-==37498==    by 0x22D301: PossiblyReSeed(rndGeneratorHandle_t&) (rnd_generators.cpp:37)
-==37498==    by 0x22D0BA: GetRandomGauss(float, float, rndGeneratorHandle_t&) (rnd_generators.cpp:53)
-==37498==    by 0x214DAE: Scenario_DrosophilaRandom::initializeAgents(FrontOfficer*, int, int) (Scenario_DrosophilaRandom.cpp:116)
-==37498==    by 0x2478A9: FrontOfficer::init1_SMP() (FrontOfficer.cpp:14)
-==37498==    by 0x220FFD: main (main.cpp:84)
-==37498== 
-==37498== 5,016 (16 direct, 5,000 indirect) bytes in 1 blocks are definitely lost in loss record 10 of 15
-==37498==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
-==37498==    by 0x28E2D7: gsl_rng_alloc (rng.c:31)
-==37498==    by 0x22D301: PossiblyReSeed(rndGeneratorHandle_t&) (rnd_generators.cpp:37)
-==37498==    by 0x22D0BA: GetRandomGauss(float, float, rndGeneratorHandle_t&) (rnd_generators.cpp:53)
-==37498==    by 0x214DAE: Scenario_DrosophilaRandom::initializeAgents(FrontOfficer*, int, int) (Scenario_DrosophilaRandom.cpp:116)
-==37498==    by 0x2478A9: FrontOfficer::init1_SMP() (FrontOfficer.cpp:14)
-==37498==    by 0x220FFD: main (main.cpp:84)
-==37498== 
-==37498== 65,537 bytes in 1 blocks are indirectly lost in loss record 11 of 15
-==37498==    at 0x4849013: operator new(unsigned long) (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
-==37498==    by 0x1CD18A: std::__new_allocator<char>::allocate(unsigned long, void const*) (new_allocator.h:137)
-==37498==    by 0x1CB083: allocate (allocator.h:183)
-==37498==    by 0x1CB083: std::allocator_traits<std::allocator<char> >::allocate(std::allocator<char>&, unsigned long) (alloc_traits.h:464)
-==37498==    by 0x1CA525: std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_create(unsigned long&, unsigned long) (basic_string.tcc:155)
-==37498==    by 0x546A4B4: std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::reserve(unsigned long) (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30)
-==37498==    by 0x5460932: std::__cxx11::basic_stringbuf<char, std::char_traits<char>, std::allocator<char> >::overflow(int) (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30)
-==37498==    by 0x546871A: std::basic_streambuf<char, std::char_traits<char> >::xsputn(char const*, long) (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30)
-==37498==    by 0x544BDC5: std::ostreambuf_iterator<char, std::char_traits<char> > std::num_put<char, std::ostreambuf_iterator<char, std::char_traits<char> > >::_M_insert_float<double>(std::ostreambuf_iterator<char, std::char_traits<char> >, std::ios_base&, char, char, double) const (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30)
-==37498==    by 0x545BD0D: std::ostream& std::ostream::_M_insert<double>(double) (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30)
-==37498==    by 0x21F797: SceneryBufferedDisplayUnit::DrawVector(int, Vector3d<float> const&, Vector3d<float> const&, int) (SceneryBufferedDisplayUnit.cpp:58)
-==37498==    by 0x1D0FCF: BroadcasterDisplayUnit::DrawVector(int, Vector3d<float> const&, Vector3d<float> const&, int) (BroadcasterDisplayUnit.hpp:36)
-==37498==    by 0x270864: NucleusAgent::drawMask(DisplayUnit&) (NucleusAgent.cpp:276)
-==37498== 
-==37498== 524,289 bytes in 1 blocks are indirectly lost in loss record 12 of 15
-==37498==    at 0x4849013: operator new(unsigned long) (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
-==37498==    by 0x1CD18A: std::__new_allocator<char>::allocate(unsigned long, void const*) (new_allocator.h:137)
-==37498==    by 0x1CB083: allocate (allocator.h:183)
-==37498==    by 0x1CB083: std::allocator_traits<std::allocator<char> >::allocate(std::allocator<char>&, unsigned long) (alloc_traits.h:464)
-==37498==    by 0x1CA525: std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_create(unsigned long&, unsigned long) (basic_string.tcc:155)
-==37498==    by 0x546A4B4: std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::reserve(unsigned long) (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30)
-==37498==    by 0x5460932: std::__cxx11::basic_stringbuf<char, std::char_traits<char>, std::allocator<char> >::overflow(int) (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30)
-==37498==    by 0x546871A: std::basic_streambuf<char, std::char_traits<char> >::xsputn(char const*, long) (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30)
-==37498==    by 0x544BDC5: std::ostreambuf_iterator<char, std::char_traits<char> > std::num_put<char, std::ostreambuf_iterator<char, std::char_traits<char> > >::_M_insert_float<double>(std::ostreambuf_iterator<char, std::char_traits<char> >, std::ios_base&, char, char, double) const (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30)
-==37498==    by 0x545BD0D: std::ostream& std::ostream::_M_insert<double>(double) (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30)
-==37498==    by 0x21F5E2: SceneryBufferedDisplayUnit::DrawLine(int, Vector3d<float> const&, Vector3d<float> const&, int) (SceneryBufferedDisplayUnit.cpp:35)
-==37498==    by 0x1D0F09: BroadcasterDisplayUnit::DrawLine(int, Vector3d<float> const&, Vector3d<float> const&, int) (BroadcasterDisplayUnit.hpp:28)
-==37498==    by 0x270963: NucleusAgent::drawMask(DisplayUnit&) (NucleusAgent.cpp:286)
-==37498== 
-==37498== 524,289 bytes in 1 blocks are indirectly lost in loss record 13 of 15
-==37498==    at 0x4849013: operator new(unsigned long) (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
-==37498==    by 0x1CD18A: std::__new_allocator<char>::allocate(unsigned long, void const*) (new_allocator.h:137)
-==37498==    by 0x1CB083: allocate (allocator.h:183)
-==37498==    by 0x1CB083: std::allocator_traits<std::allocator<char> >::allocate(std::allocator<char>&, unsigned long) (alloc_traits.h:464)
-==37498==    by 0x1CA525: std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_create(unsigned long&, unsigned long) (basic_string.tcc:155)
-==37498==    by 0x546A4B4: std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::reserve(unsigned long) (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30)
-==37498==    by 0x5460932: std::__cxx11::basic_stringbuf<char, std::char_traits<char>, std::allocator<char> >::overflow(int) (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30)
-==37498==    by 0x546871A: std::basic_streambuf<char, std::char_traits<char> >::xsputn(char const*, long) (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30)
-==37498==    by 0x544BDC5: std::ostreambuf_iterator<char, std::char_traits<char> > std::num_put<char, std::ostreambuf_iterator<char, std::char_traits<char> > >::_M_insert_float<double>(std::ostreambuf_iterator<char, std::char_traits<char> >, std::ios_base&, char, char, double) const (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30)
-==37498==    by 0x545BD0D: std::ostream& std::ostream::_M_insert<double>(double) (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30)
-==37498==    by 0x21F430: SceneryBufferedDisplayUnit::DrawPoint(int, Vector3d<float> const&, float, int) (SceneryBufferedDisplayUnit.cpp:16)
-==37498==    by 0x1D0E43: BroadcasterDisplayUnit::DrawPoint(int, Vector3d<float> const&, float, int) (BroadcasterDisplayUnit.hpp:20)
-==37498==    by 0x270795: NucleusAgent::drawMask(DisplayUnit&) (NucleusAgent.cpp:265)
-==37498== 
-==37498== 1,117,373 (232 direct, 1,117,141 indirect) bytes in 1 blocks are definitely lost in loss record 14 of 15
-==37498==    at 0x4849013: operator new(unsigned long) (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
-==37498==    by 0x223D44: Scenarios::Scenarios(int, char**) (Scenarios.hpp:92)
-==37498==    by 0x220F5B: main (main.cpp:76)
-==37498== 
-==37498== 371,712,000 bytes in 1 blocks are possibly lost in loss record 15 of 15
-==37498==    at 0x4849013: operator new(unsigned long) (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
-==37498==    by 0x48F1B47: i3d::Image3d<unsigned short>::MakeRoom(unsigned long, unsigned long, unsigned long) (in /usr/local/lib/libi3dcore.so.1.1.0)
-==37498==    by 0x1D61B2: i3d::Image3d<unsigned short>::MakeRoom(i3d::Vector3d<unsigned long> const&) (image3d.h:687)
-==37498==    by 0x1E366D: void SceneControls::enableProducingOutput<unsigned short>(i3d::Image3d<unsigned short>&) (Scenario.hpp:292)
-==37498==    by 0x1E1646: SceneControls::imagesSaving_enableForImgMask() (Scenario.hpp:161)
-==37498==    by 0x1E180F: Scenario::Disks::enableImgMaskTIFFs() (Scenario.hpp:620)
-==37498==    by 0x216E5F: mySceneControls::updateControls(float) (Scenario_DrosophilaRandom.cpp:194)
-==37498==    by 0x24BD92: Scenario::updateScene(float) (Scenario.hpp:448)
-==37498==    by 0x283064: Director::execute() (Director.cpp:175)
-==37498==    by 0x221039: main (main.cpp:91)
-==37498== 
-==37498== LEAK SUMMARY:
-==37498==    definitely lost: 480 bytes in 3 blocks
-==37498==    indirectly lost: 1,123,053 bytes in 11 blocks
-==37498==      possibly lost: 371,712,000 bytes in 1 blocks
-==37498==    still reachable: 0 bytes in 0 blocks
-==37498==         suppressed: 0 bytes in 0 blocks
-==37498== 
-==37498== ERROR SUMMARY: 4 errors from 4 contexts (suppressed: 0 from 0)
+==37968== Memcheck, a memory error detector
+==37968== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==37968== Using Valgrind-3.18.1-42b08ed5bd-20211015 and LibVEX; rerun with -h for copyright info
+==37968== Command: ../embryogen_dbgO0 randomDrosophila
+==37968== Parent PID: 37967
+==37968== 
+--37968-- 
+--37968-- Valgrind options:
+--37968--    --leak-check=full
+--37968--    --show-leak-kinds=all
+--37968--    --track-origins=yes
+--37968--    --verbose
+--37968--    --log-file=valg.txt
+--37968-- Contents of /proc/version:
+--37968--   Linux version 5.15.0-30-generic (buildd@lgw01-amd64-058) (gcc (Ubuntu 11.2.0-19ubuntu1) 11.2.0, GNU ld (GNU Binutils for Ubuntu) 2.38) #31-Ubuntu SMP Thu May 5 10:00:34 UTC 2022
+--37968-- 
+--37968-- Arch and hwcaps: AMD64, LittleEndian, amd64-cx16-lzcnt-rdtscp-sse3-ssse3-avx-avx2-bmi-f16c-rdrand-rdseed
+--37968-- Page sizes: currently 4096, max supported 4096
+--37968-- Valgrind library directory: /usr/libexec/valgrind
+--37968-- Reading syms from /home/somik/CBIA/EmbryoGen/build_man/embryogen_dbgO0
+--37968-- Reading syms from /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+--37968--   Considering /usr/lib/debug/.build-id/aa/1b0b998999c397062e1016f0c95dc0e8820117.debug ..
+--37968--   .. build-id is valid
+--37968-- Reading syms from /usr/libexec/valgrind/memcheck-amd64-linux
+--37968--    object doesn't have a symbol table
+--37968--    object doesn't have a dynamic symbol table
+--37968-- Scheduler: using generic scheduler lock implementation.
+--37968-- Reading suppressions file: /usr/libexec/valgrind/default.supp
+==37968== embedded gdbserver: reading from /tmp/vgdb-pipe-from-vgdb-to-37968-by-somik-on-???
+==37968== embedded gdbserver: writing to   /tmp/vgdb-pipe-to-vgdb-from-37968-by-somik-on-???
+==37968== embedded gdbserver: shared mem   /tmp/vgdb-pipe-shared-mem-vgdb-37968-by-somik-on-???
+==37968== 
+==37968== TO CONTROL THIS PROCESS USING vgdb (which you probably
+==37968== don't want to do, unless you know exactly what you're doing,
+==37968== or are doing some strange experiment):
+==37968==   /usr/bin/vgdb --pid=37968 ...command...
+==37968== 
+==37968== TO DEBUG THIS PROCESS USING GDB: start GDB like this
+==37968==   /path/to/gdb ../embryogen_dbgO0
+==37968== and then give GDB the following command
+==37968==   target remote | /usr/bin/vgdb --pid=37968
+==37968== --pid is optional if only one valgrind process is running
+==37968== 
+--37968-- REDIR: 0x402aa60 (ld-linux-x86-64.so.2:strlen) redirected to 0x580bcec2 (???)
+--37968-- REDIR: 0x402a830 (ld-linux-x86-64.so.2:index) redirected to 0x580bcedc (???)
+--37968-- Reading syms from /usr/libexec/valgrind/vgpreload_core-amd64-linux.so
+--37968--    object doesn't have a symbol table
+--37968-- Reading syms from /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so
+--37968--    object doesn't have a symbol table
+==37968== WARNING: new redirection conflicts with existing -- ignoring it
+--37968--     old: 0x0402aa60 (strlen              ) R-> (0000.0) 0x580bcec2 ???
+--37968--     new: 0x0402aa60 (strlen              ) R-> (2007.0) 0x0484ee30 strlen
+--37968-- REDIR: 0x4027240 (ld-linux-x86-64.so.2:strcmp) redirected to 0x484fcd0 (strcmp)
+--37968-- REDIR: 0x402afc0 (ld-linux-x86-64.so.2:mempcpy) redirected to 0x4853840 (mempcpy)
+--37968-- Reading syms from /usr/local/lib/libi3dcore.so.1.1.0
+--37968-- Reading syms from /usr/local/lib/libi3dalgo.so.1.1.0
+--37968-- Reading syms from /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30
+--37968--    object doesn't have a symbol table
+--37968-- Reading syms from /usr/lib/x86_64-linux-gnu/libm.so.6
+--37968--   Considering /usr/lib/debug/.build-id/27/a8c28af0bfefefcf69ba73f7d4582d82e01f71.debug ..
+--37968--   .. build-id is valid
+--37968-- Reading syms from /usr/lib/x86_64-linux-gnu/libgcc_s.so.1
+--37968--    object doesn't have a symbol table
+--37968-- Reading syms from /usr/lib/x86_64-linux-gnu/libc.so.6
+--37968--   Considering /usr/lib/debug/.build-id/89/c3cb85f9e55046776471fed05ec441581d1969.debug ..
+--37968--   .. build-id is valid
+==37968== WARNING: new redirection conflicts with existing -- ignoring it
+--37968--     old: 0x056f9ce0 (memalign            ) R-> (1011.0) 0x0484e080 memalign
+--37968--     new: 0x056f9ce0 (memalign            ) R-> (1017.0) 0x0484e050 aligned_alloc
+==37968== WARNING: new redirection conflicts with existing -- ignoring it
+--37968--     old: 0x056f9ce0 (memalign            ) R-> (1011.0) 0x0484e080 memalign
+--37968--     new: 0x056f9ce0 (memalign            ) R-> (1017.0) 0x0484e020 aligned_alloc
+==37968== WARNING: new redirection conflicts with existing -- ignoring it
+--37968--     old: 0x056f9ce0 (memalign            ) R-> (1011.0) 0x0484e080 memalign
+--37968--     new: 0x056f9ce0 (memalign            ) R-> (1017.0) 0x0484e050 aligned_alloc
+==37968== WARNING: new redirection conflicts with existing -- ignoring it
+--37968--     old: 0x056f9ce0 (memalign            ) R-> (1011.0) 0x0484e080 memalign
+--37968--     new: 0x056f9ce0 (memalign            ) R-> (1017.0) 0x0484e020 aligned_alloc
+--37968-- REDIR: 0x56fc7a0 (libc.so.6:strnlen) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--37968-- REDIR: 0x56fca60 (libc.so.6:strpbrk) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--37968-- REDIR: 0x56fc360 (libc.so.6:strcmp) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--37968-- REDIR: 0x571ad50 (libc.so.6:wcsnlen) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--37968-- REDIR: 0x56fd750 (libc.so.6:memset) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--37968-- REDIR: 0x57195c0 (libc.so.6:wcslen) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--37968-- REDIR: 0x56fdc90 (libc.so.6:memcpy@@GLIBC_2.14) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--37968-- REDIR: 0x57193f0 (libc.so.6:wcschr) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--37968-- REDIR: 0x56fc2e0 (libc.so.6:index) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--37968-- REDIR: 0x56fc9e0 (libc.so.6:rindex) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--37968-- REDIR: 0x56fd620 (libc.so.6:memmove) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+==37968== Preferring higher priority redirection:
+--37968--     old: 0x057f4940 (__memcpy_avx_unalign) R-> (2018.0) 0x04850f90 __memcpy_avx_unaligned_erms
+--37968--     new: 0x057f4940 (__memcpy_avx_unalign) R-> (2018.1) 0x04852880 memmove
+--37968-- REDIR: 0x5719470 (libc.so.6:wcscmp) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--37968-- REDIR: 0x56fda60 (libc.so.6:stpncpy) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--37968-- REDIR: 0x5719a30 (libc.so.6:wmemchr) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--37968-- REDIR: 0x56fc8b0 (libc.so.6:strncmp) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--37968-- REDIR: 0x56fdaf0 (libc.so.6:strcasecmp) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--37968-- REDIR: 0x56fc4a0 (libc.so.6:strcspn) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--37968-- REDIR: 0x57194f0 (libc.so.6:wcscpy) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--37968-- REDIR: 0x56fc250 (libc.so.6:strcat) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--37968-- REDIR: 0x56fdbe0 (libc.so.6:strncasecmp_l) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--37968-- REDIR: 0x56fd500 (libc.so.6:bcmp) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--37968-- REDIR: 0x57055f0 (libc.so.6:memrchr) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--37968-- REDIR: 0x56ff090 (libc.so.6:strchrnul) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--37968-- REDIR: 0x56fc410 (libc.so.6:strcpy) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--37968-- REDIR: 0x56fdb90 (libc.so.6:strcasecmp_l) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--37968-- REDIR: 0x56fc720 (libc.so.6:strlen) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--37968-- REDIR: 0x56fc950 (libc.so.6:strncpy) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--37968-- REDIR: 0x56fd9d0 (libc.so.6:stpcpy) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--37968-- REDIR: 0x56fd470 (libc.so.6:memchr) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--37968-- REDIR: 0x56fcb80 (libc.so.6:strspn) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--37968-- REDIR: 0x56fd850 (libc.so.6:mempcpy) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--37968-- REDIR: 0x56fdb40 (libc.so.6:strncasecmp) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--37968-- REDIR: 0x56ff000 (libc.so.6:rawmemchr) redirected to 0x483f220 (_vgnU_ifunc_wrapper)
+--37968-- REDIR: 0x57f1790 (libc.so.6:__strrchr_avx2) redirected to 0x484e810 (rindex)
+--37968-- REDIR: 0x56f9120 (libc.so.6:malloc) redirected to 0x4848820 (malloc)
+--37968-- REDIR: 0x57f1960 (libc.so.6:__strlen_avx2) redirected to 0x484ed10 (strlen)
+--37968-- REDIR: 0x57edc00 (libc.so.6:__memcmp_avx2_movbe) redirected to 0x4852010 (bcmp)
+--37968-- REDIR: 0x57ecac0 (libc.so.6:__strcmp_avx2) redirected to 0x484fbd0 (strcmp)
+--37968-- REDIR: 0x57f4940 (libc.so.6:__memcpy_avx_unaligned_erms) redirected to 0x4852880 (memmove)
+--37968-- REDIR: 0x56fa5a0 (libc.so.6:calloc) redirected to 0x484d9d0 (calloc)
+--37968-- REDIR: 0x53cd9f0 (libstdc++.so.6:operator new(unsigned long)) redirected to 0x4848fa0 (operator new(unsigned long))
+--37968-- REDIR: 0x53cbca0 (libstdc++.so.6:operator delete(void*, unsigned long)) redirected to 0x484bb00 (operator delete(void*, unsigned long))
+--37968-- REDIR: 0x57ed440 (libc.so.6:__memchr_avx2) redirected to 0x484fd50 (memchr)
+--37968-- REDIR: 0x57f4900 (libc.so.6:__mempcpy_avx_unaligned_erms) redirected to 0x4853440 (mempcpy)
+--37968-- REDIR: 0x53cbc90 (libstdc++.so.6:operator delete(void*)) redirected to 0x484b840 (operator delete(void*))
+--37968-- REDIR: 0x53cda50 (libstdc++.so.6:operator new[](unsigned long)) redirected to 0x484a280 (operator new[](unsigned long))
+--37968-- REDIR: 0x56f9460 (libc.so.6:free) redirected to 0x484b210 (free)
+--37968-- REDIR: 0x57f5100 (libc.so.6:__memset_avx2_unaligned_erms) redirected to 0x4852770 (memset)
+--37968-- REDIR: 0x57f2e30 (libc.so.6:__strcpy_avx2) redirected to 0x484ee60 (strcpy)
+--37968-- REDIR: 0x56f97c0 (libc.so.6:realloc) redirected to 0x484dc50 (realloc)
+--37968-- REDIR: 0x57ecf00 (libc.so.6:__strncmp_avx2) redirected to 0x484f3e0 (strncmp)
+--37968-- REDIR: 0x57f1580 (libc.so.6:__strchrnul_avx2) redirected to 0x4853330 (strchrnul)
+--37968-- REDIR: 0x53cbcc0 (libstdc++.so.6:operator delete[](void*)) redirected to 0x484ca20 (operator delete[](void*))
+==37968== Warning: set address range perms: large range [0x13a38040, 0x29cb6040) (undefined)
+--37968-- REDIR: 0x56fd040 (libc.so.6:__GI_strstr) redirected to 0x4853ae0 (__strstr_sse2)
+==37968== Warning: set address range perms: large range [0x13a38028, 0x29cb6058) (noaccess)
+==37968== 
+==37968== HEAP SUMMARY:
+==37968==     in use at exit: 0 bytes in 0 blocks
+==37968==   total heap usage: 9,864,156 allocs, 9,864,156 frees, 1,108,780,382 bytes allocated
+==37968== 
+==37968== All heap blocks were freed -- no leaks are possible
+==37968== 
+==37968== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)

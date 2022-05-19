@@ -1,8 +1,9 @@
-This is EmbryoGen at commit rev 4e7649574bac0f78b84f1f6513e1e57016920549.
-Scenarios.hpp::Scenarios::Scenarios(int, char**) at 92: Going to use the scenario: randomDrosophila
-Scenario.hpp::void Scenario::declareDirektorContext() at 512: Not distributed: Keeping local images because they are used directly from FO.
-Scenarios.hpp::Scenarios::Scenarios(int, char**) at 92: Going to use the scenario: randomDrosophila
-Scenario.hpp::void Scenario::declareFOcontext(int) at 500: Not distributed: Down-sizing local images because they are (normally) not used from FO.
+This is EmbryoGen at commit rev a1b4357464a515cf539679f3baabb903b084aebc.
+Scenarios.hpp::std::unique_ptr<Scenario> Scenarios::getNewScenario(const std::string&) at 102: Creating instance of scenario: randomDrosophila
+Scenarios.hpp::std::unique_ptr<Scenario> Scenarios::getNewScenario(const std::string&) at 102: Creating instance of scenario: randomDrosophila
+Scenario.hpp::void Scenario::declareDirektorContext() at 516: Not distributed: Keeping local images because they are used directly from FO.
+Scenarios.hpp::std::unique_ptr<Scenario> Scenarios::getNewScenario(const std::string&) at 102: Creating instance of scenario: randomDrosophila
+Scenario.hpp::void Scenario::declareFOcontext(int) at 504: Not distributed: Down-sizing local images because they are (normally) not used from FO.
 Director.cpp::void Director::init1_SMP() at 11: Direktor initializing now...
 Director.cpp::void Director::init1_SMP() at 33: scenario suggests this scene size: 480 x 220 x 220 um -> 960 x 440 x 440 px (177.2 Mvoxels)
 Scenario.cpp::virtual void Scenario::initializePhaseIIandIII() at 13: This scenario is using the default initialization routine.
@@ -10,7 +11,7 @@ Scenario.cpp::virtual void Scenario::initializePhaseIIandIII() at 20: You can re
 Scenario.cpp::virtual void Scenario::initializePhaseIIandIII() at 22: e.g.:  -psf ../2013-07-25_1_1_9_0_2_0_0_1_0_0_0_0_9_12.ics
 FrontOfficer.cpp::void FrontOfficer::init1_SMP() at 10: FO #1 initializing now...
 FlightRecorderDisplayUnit.hpp::FlightRecorderDisplayUnit::FlightRecorderDisplayUnit(const char*) at 39: Recording into: /temp/FR_randomDro.txt
-rnd_generators.cpp::void PossiblyReSeed(rndGeneratorHandle&) at 42: randomness started with seed 690493327
+rnd_generators.cpp::void PossiblyReSeed(rndGeneratorHandle&) at 42: randomness started with seed 44084077
 NucleusAgent.hpp::NucleusAgent::NucleusAgent(int, const std::string&, const Spheres&, float, float) at 70: Nucleus with ID=1 was just created
 FrontOfficer.cpp::void FrontOfficer::startNewAgent(AbstractAgent*, bool) at 310: just registered this new agent: "1:nucleus growable random"
 NucleusAgent.hpp::NucleusAgent::NucleusAgent(int, const std::string&, const Spheres&, float, float) at 70: Nucleus with ID=2 was just created
@@ -1836,539 +1837,539 @@ FrontOfficer.cpp::void FrontOfficer::init2_SMP() at 29: FO #1 initialized
 Director.cpp::void Director::renderNextFrame() at 309: Rendering time point 0
 FrontOfficer.cpp::void FrontOfficer::renderNextFrame() at 498: Rendering time point 0
 Director.cpp::void Director::execute() at 115: Direktor has just started the simulation
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 12.338281, avg overlap: 3.1098344, cnt of overlaps: 2918
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 12.617223, avg overlap: 3.1365864, cnt of overlaps: 3019
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 0.1 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 12.239758, avg overlap: 3.0943065, cnt of overlaps: 2913
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 12.51658, avg overlap: 3.1190698, cnt of overlaps: 3016
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 0.2 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 12.048435, avg overlap: 3.0572996, cnt of overlaps: 2910
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 12.321157, avg overlap: 3.0927062, cnt of overlaps: 3003
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 0.3 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 11.770507, avg overlap: 2.9994135, cnt of overlaps: 2910
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 12.0373335, avg overlap: 3.0405107, cnt of overlaps: 2998
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 0.4 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 11.41398, avg overlap: 2.9267166, cnt of overlaps: 2910
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 11.671892, avg overlap: 2.9686992, cnt of overlaps: 2997
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 0.5 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
 Director.cpp::void Director::renderNextFrame() at 309: Rendering time point 1
 FrontOfficer.cpp::void FrontOfficer::renderNextFrame() at 498: Rendering time point 1
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 10.987938, avg overlap: 2.8479958, cnt of overlaps: 2903
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 11.244396, avg overlap: 2.8823283, cnt of overlaps: 2997
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 0.6 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 10.501534, avg overlap: 2.7467792, cnt of overlaps: 2907
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 10.818714, avg overlap: 2.7848346, cnt of overlaps: 2996
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 0.70000005 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 10.613879, avg overlap: 2.644468, cnt of overlaps: 2902
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 10.70925, avg overlap: 2.6737585, cnt of overlaps: 2999
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 0.8000001 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 10.634784, avg overlap: 2.5340374, cnt of overlaps: 2896
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 10.747193, avg overlap: 2.558241, cnt of overlaps: 2998
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 0.9000001 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 10.508793, avg overlap: 2.4151368, cnt of overlaps: 2892
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 10.681072, avg overlap: 2.4309123, cnt of overlaps: 3004
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 1.0000001 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
 Director.cpp::void Director::renderNextFrame() at 309: Rendering time point 2
 FrontOfficer.cpp::void FrontOfficer::renderNextFrame() at 498: Rendering time point 2
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 10.263666, avg overlap: 2.276493, cnt of overlaps: 2907
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 10.524591, avg overlap: 2.2763174, cnt of overlaps: 3042
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 1.1000001 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 9.923876, avg overlap: 2.1462405, cnt of overlaps: 2909
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 10.291161, avg overlap: 2.1380622, cnt of overlaps: 3059
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 1.2000002 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 9.510332, avg overlap: 2.0072072, cnt of overlaps: 2922
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 9.993899, avg overlap: 1.9998584, cnt of overlaps: 3080
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 1.3000002 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 9.039341, avg overlap: 1.8719509, cnt of overlaps: 2930
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 10.053177, avg overlap: 1.8587857, cnt of overlaps: 3111
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 1.4000002 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 8.523844, avg overlap: 1.7329618, cnt of overlaps: 2948
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 10.043117, avg overlap: 1.7369308, cnt of overlaps: 3115
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 1.5000002 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
 Director.cpp::void Director::renderNextFrame() at 309: Rendering time point 3
 FrontOfficer.cpp::void FrontOfficer::renderNextFrame() at 498: Rendering time point 3
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 7.9752564, avg overlap: 1.5951537, cnt of overlaps: 2972
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 9.953839, avg overlap: 1.6067418, cnt of overlaps: 3143
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 1.6000003 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 7.413194, avg overlap: 1.4673381, cnt of overlaps: 2990
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 9.804323, avg overlap: 1.4872158, cnt of overlaps: 3161
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 1.7000003 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 6.846002, avg overlap: 1.3575287, cnt of overlaps: 2983
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 9.630227, avg overlap: 1.376769, cnt of overlaps: 3171
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 1.8000003 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 6.281014, avg overlap: 1.2418382, cnt of overlaps: 3004
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 9.728828, avg overlap: 1.2679815, cnt of overlaps: 3194
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 1.9000003 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 5.7248874, avg overlap: 1.1561706, cnt of overlaps: 2969
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 9.802633, avg overlap: 1.1761571, cnt of overlaps: 3194
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 2.0000002 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
 Director.cpp::void Director::renderNextFrame() at 309: Rendering time point 4
 FrontOfficer.cpp::void FrontOfficer::renderNextFrame() at 498: Rendering time point 4
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 5.1831827, avg overlap: 1.0740883, cnt of overlaps: 2942
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 9.849573, avg overlap: 1.1074897, cnt of overlaps: 3147
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 2.1000001 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 5.0985947, avg overlap: 1.041246, cnt of overlaps: 2805
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 9.868317, avg overlap: 1.0852591, cnt of overlaps: 2987
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 2.2 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 5.215273, avg overlap: 1.0575643, cnt of overlaps: 2597
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 9.853727, avg overlap: 1.0978448, cnt of overlaps: 2797
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 2.3 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 5.3035455, avg overlap: 1.0533757, cnt of overlaps: 2488
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 9.8073635, avg overlap: 1.0932134, cnt of overlaps: 2689
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 2.3999999 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 5.363417, avg overlap: 1.0484389, cnt of overlaps: 2412
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 9.731529, avg overlap: 1.0845168, cnt of overlaps: 2614
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 2.4999998 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 5.3952703, avg overlap: 1.0499542, cnt of overlaps: 2340
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 9.632559, avg overlap: 1.0857551, cnt of overlaps: 2533
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 2.5999997 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
 Director.cpp::void Director::renderNextFrame() at 309: Rendering time point 5
 FrontOfficer.cpp::void FrontOfficer::renderNextFrame() at 498: Rendering time point 5
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 5.3998275, avg overlap: 1.0417218, cnt of overlaps: 2303
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 9.56931, avg overlap: 1.0960559, cnt of overlaps: 2445
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 2.6999996 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 5.378065, avg overlap: 1.0423096, cnt of overlaps: 2255
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 9.482369, avg overlap: 1.1001258, cnt of overlaps: 2379
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 2.7999995 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 5.331267, avg overlap: 1.030439, cnt of overlaps: 2239
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 9.372959, avg overlap: 1.0920173, cnt of overlaps: 2344
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 2.8999994 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 5.2610183, avg overlap: 1.0326555, cnt of overlaps: 2194
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 9.287934, avg overlap: 1.0957859, cnt of overlaps: 2287
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 2.9999993 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 5.1690497, avg overlap: 1.0228109, cnt of overlaps: 2176
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 9.187568, avg overlap: 1.083109, cnt of overlaps: 2265
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 3.0999992 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
 Director.cpp::void Director::renderNextFrame() at 309: Rendering time point 6
 FrontOfficer.cpp::void FrontOfficer::renderNextFrame() at 498: Rendering time point 6
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 5.0572534, avg overlap: 1.0090994, cnt of overlaps: 2166
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 9.086168, avg overlap: 1.0698707, cnt of overlaps: 2243
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 3.199999 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 4.92768, avg overlap: 0.9957043, cnt of overlaps: 2154
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 8.958834, avg overlap: 1.061175, cnt of overlaps: 2209
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 3.299999 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 4.7824755, avg overlap: 0.97489953, cnt of overlaps: 2154
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 8.796259, avg overlap: 1.0305496, cnt of overlaps: 2219
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 3.399999 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 4.6238284, avg overlap: 0.96488506, cnt of overlaps: 2127
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 8.600689, avg overlap: 1.0147338, cnt of overlaps: 2196
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 3.4999988 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 4.453889, avg overlap: 0.94294596, cnt of overlaps: 2124
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 8.374834, avg overlap: 0.9970592, cnt of overlaps: 2175
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 3.5999987 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
 Director.cpp::void Director::renderNextFrame() at 309: Rendering time point 7
 FrontOfficer.cpp::void FrontOfficer::renderNextFrame() at 498: Rendering time point 7
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 4.2748084, avg overlap: 0.92059946, cnt of overlaps: 2118
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 8.121599, avg overlap: 0.9731539, cnt of overlaps: 2165
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 3.6999986 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 4.0888257, avg overlap: 0.89142245, cnt of overlaps: 2125
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 7.844061, avg overlap: 0.94789195, cnt of overlaps: 2155
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 3.7999985 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 3.8981297, avg overlap: 0.8697296, cnt of overlaps: 2112
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 7.5453415, avg overlap: 0.92289674, cnt of overlaps: 2142
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 3.8999984 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 3.7048154, avg overlap: 0.843114, cnt of overlaps: 2108
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 7.232164, avg overlap: 0.8962299, cnt of overlaps: 2132
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 3.9999983 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 3.510962, avg overlap: 0.817907, cnt of overlaps: 2099
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 6.9071302, avg overlap: 0.8686083, cnt of overlaps: 2123
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 4.0999985 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
 Director.cpp::void Director::renderNextFrame() at 309: Rendering time point 8
 FrontOfficer.cpp::void FrontOfficer::renderNextFrame() at 498: Rendering time point 8
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 3.31854, avg overlap: 0.79539204, cnt of overlaps: 2082
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 6.571089, avg overlap: 0.83853614, cnt of overlaps: 2120
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 4.1999984 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 3.1293185, avg overlap: 0.7660144, cnt of overlaps: 2081
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 6.226663, avg overlap: 0.8099383, cnt of overlaps: 2113
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 4.2999983 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.9449198, avg overlap: 0.73787683, cnt of overlaps: 2076
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 5.8766336, avg overlap: 0.79246473, cnt of overlaps: 2078
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 4.399998 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.7669444, avg overlap: 0.7134917, cnt of overlaps: 2060
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 5.523814, avg overlap: 0.77419925, cnt of overlaps: 2045
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 4.499998 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.8111672, avg overlap: 0.69380647, cnt of overlaps: 2030
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 5.170884, avg overlap: 0.7550865, cnt of overlaps: 2016
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 4.599998 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
 Director.cpp::void Director::renderNextFrame() at 309: Rendering time point 9
 FrontOfficer.cpp::void FrontOfficer::renderNextFrame() at 498: Rendering time point 9
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.88051, avg overlap: 0.6667089, cnt of overlaps: 2022
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 4.8203945, avg overlap: 0.73741955, cnt of overlaps: 1985
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 4.699998 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.9390507, avg overlap: 0.6430037, cnt of overlaps: 2005
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 4.4779434, avg overlap: 0.71872306, cnt of overlaps: 1958
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 4.799998 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.9863653, avg overlap: 0.6258226, cnt of overlaps: 1968
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 4.137844, avg overlap: 0.71134293, cnt of overlaps: 1903
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 4.8999977 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 3.022142, avg overlap: 0.6043488, cnt of overlaps: 1945
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 3.8017578, avg overlap: 0.6953675, cnt of overlaps: 1874
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 4.9999976 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 3.0462353, avg overlap: 0.58770376, cnt of overlaps: 1908
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 3.471695, avg overlap: 0.67742354, cnt of overlaps: 1852
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 5.0999975 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
 Director.cpp::void Director::renderNextFrame() at 309: Rendering time point 10
 FrontOfficer.cpp::void FrontOfficer::renderNextFrame() at 498: Rendering time point 10
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 3.0588965, avg overlap: 0.57169133, cnt of overlaps: 1871
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 3.149887, avg overlap: 0.6632503, cnt of overlaps: 1822
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 5.1999974 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 3.0605228, avg overlap: 0.56346864, cnt of overlaps: 1811
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.8384047, avg overlap: 0.65303963, cnt of overlaps: 1784
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 5.2999973 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 3.05145, avg overlap: 0.5551043, cnt of overlaps: 1757
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.8450441, avg overlap: 0.63973355, cnt of overlaps: 1757
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 5.399997 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 3.0321314, avg overlap: 0.5426208, cnt of overlaps: 1721
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.8573427, avg overlap: 0.62993276, cnt of overlaps: 1722
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 5.499997 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 3.003123, avg overlap: 0.533381, cnt of overlaps: 1680
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.8512583, avg overlap: 0.6225842, cnt of overlaps: 1682
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 5.599997 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
 Director.cpp::void Director::renderNextFrame() at 309: Rendering time point 11
 FrontOfficer.cpp::void FrontOfficer::renderNextFrame() at 498: Rendering time point 11
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.9650667, avg overlap: 0.5223041, cnt of overlaps: 1648
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.8274336, avg overlap: 0.61820966, cnt of overlaps: 1638
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 5.699997 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.9185505, avg overlap: 0.51603323, cnt of overlaps: 1603
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.80764, avg overlap: 0.6153372, cnt of overlaps: 1594
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 5.799997 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.8642452, avg overlap: 0.51460683, cnt of overlaps: 1547
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.7876682, avg overlap: 0.6136732, cnt of overlaps: 1550
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 5.8999968 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.8029828, avg overlap: 0.504175, cnt of overlaps: 1521
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.7573662, avg overlap: 0.6091672, cnt of overlaps: 1516
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 5.9999967 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.7356293, avg overlap: 0.49466875, cnt of overlaps: 1496
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.7174473, avg overlap: 0.60223943, cnt of overlaps: 1490
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 6.0999966 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
 Director.cpp::void Director::renderNextFrame() at 309: Rendering time point 12
 FrontOfficer.cpp::void FrontOfficer::renderNextFrame() at 498: Rendering time point 12
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.66509, avg overlap: 0.48765138, cnt of overlaps: 1467
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.668686, avg overlap: 0.593455, cnt of overlaps: 1470
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 6.1999965 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.5920348, avg overlap: 0.48569378, cnt of overlaps: 1425
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.6120825, avg overlap: 0.5851864, cnt of overlaps: 1450
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 6.2999964 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.5170963, avg overlap: 0.4748842, cnt of overlaps: 1412
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.5486937, avg overlap: 0.57867604, cnt of overlaps: 1427
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 6.3999963 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.441485, avg overlap: 0.47628433, cnt of overlaps: 1366
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.4795074, avg overlap: 0.5715458, cnt of overlaps: 1407
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 6.499996 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.3657985, avg overlap: 0.4731125, cnt of overlaps: 1337
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.4054747, avg overlap: 0.5655916, cnt of overlaps: 1385
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 6.599996 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
 Director.cpp::void Director::renderNextFrame() at 309: Rendering time point 13
 FrontOfficer.cpp::void FrontOfficer::renderNextFrame() at 498: Rendering time point 13
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.2905648, avg overlap: 0.47279298, cnt of overlaps: 1302
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.3274937, avg overlap: 0.56045485, cnt of overlaps: 1362
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 6.699996 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.2161703, avg overlap: 0.4777581, cnt of overlaps: 1255
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.2597084, avg overlap: 0.55420625, cnt of overlaps: 1343
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 6.799996 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.1430323, avg overlap: 0.4734837, cnt of overlaps: 1235
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.222952, avg overlap: 0.5409151, cnt of overlaps: 1342
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 6.899996 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.0715256, avg overlap: 0.46890742, cnt of overlaps: 1216
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.184348, avg overlap: 0.5444569, cnt of overlaps: 1301
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 6.9999957 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.0018744, avg overlap: 0.46036628, cnt of overlaps: 1207
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.14427, avg overlap: 0.5411213, cnt of overlaps: 1278
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 7.0999956 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
 Director.cpp::void Director::renderNextFrame() at 309: Rendering time point 14
 FrontOfficer.cpp::void FrontOfficer::renderNextFrame() at 498: Rendering time point 14
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.9342897, avg overlap: 0.46112248, cnt of overlaps: 1175
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.1030684, avg overlap: 0.5417659, cnt of overlaps: 1247
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 7.1999955 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.8690342, avg overlap: 0.45771077, cnt of overlaps: 1155
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.0611506, avg overlap: 0.5376446, cnt of overlaps: 1228
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 7.2999954 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.8062571, avg overlap: 0.45677683, cnt of overlaps: 1129
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.018714, avg overlap: 0.53452146, cnt of overlaps: 1207
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 7.3999953 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.7461393, avg overlap: 0.45330924, cnt of overlaps: 1110
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.9758654, avg overlap: 0.5287986, cnt of overlaps: 1192
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 7.499995 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.688898, avg overlap: 0.45124757, cnt of overlaps: 1088
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.9330797, avg overlap: 0.526329, cnt of overlaps: 1170
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 7.599995 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
 Director.cpp::void Director::renderNextFrame() at 309: Rendering time point 15
 FrontOfficer.cpp::void FrontOfficer::renderNextFrame() at 498: Rendering time point 15
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.6480156, avg overlap: 0.45270216, cnt of overlaps: 1059
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.8907146, avg overlap: 0.52324206, cnt of overlaps: 1150
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 7.699995 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.6210673, avg overlap: 0.44495964, cnt of overlaps: 1052
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.848999, avg overlap: 0.51624334, cnt of overlaps: 1139
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 7.799995 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.5966265, avg overlap: 0.44263855, cnt of overlaps: 1032
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.8081532, avg overlap: 0.5085183, cnt of overlaps: 1130
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 7.899995 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.5743858, avg overlap: 0.43559912, cnt of overlaps: 1023
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.7781649, avg overlap: 0.50732034, cnt of overlaps: 1107
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 7.9999948 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.5540599, avg overlap: 0.43228528, cnt of overlaps: 1005
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.7527685, avg overlap: 0.5018939, cnt of overlaps: 1094
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 8.099995 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
 Director.cpp::void Director::renderNextFrame() at 309: Rendering time point 16
 FrontOfficer.cpp::void FrontOfficer::renderNextFrame() at 498: Rendering time point 16
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.5354768, avg overlap: 0.42922077, cnt of overlaps: 987
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.7387905, avg overlap: 0.49695778, cnt of overlaps: 1080
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 8.199995 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.518462, avg overlap: 0.4215365, cnt of overlaps: 980
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.723278, avg overlap: 0.49169236, cnt of overlaps: 1067
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 8.299995 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.502871, avg overlap: 0.4215679, cnt of overlaps: 955
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.7063255, avg overlap: 0.48924145, cnt of overlaps: 1048
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 8.399996 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.4884392, avg overlap: 0.4188983, cnt of overlaps: 937
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.6880846, avg overlap: 0.4888881, cnt of overlaps: 1025
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 8.499996 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.4748975, avg overlap: 0.41024503, cnt of overlaps: 933
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.6686754, avg overlap: 0.48888072, cnt of overlaps: 1002
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 8.599997 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
 Director.cpp::void Director::renderNextFrame() at 309: Rendering time point 17
 FrontOfficer.cpp::void FrontOfficer::renderNextFrame() at 498: Rendering time point 17
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.4620738, avg overlap: 0.41100466, cnt of overlaps: 908
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.6482172, avg overlap: 0.48264992, cnt of overlaps: 992
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 8.699997 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.451838, avg overlap: 0.4099619, cnt of overlaps: 888
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.6312981, avg overlap: 0.47954443, cnt of overlaps: 976
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 8.799997 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.44385, avg overlap: 0.40925965, cnt of overlaps: 868
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.6173382, avg overlap: 0.47600874, cnt of overlaps: 961
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 8.899998 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.4377725, avg overlap: 0.40884775, cnt of overlaps: 848
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.6028938, avg overlap: 0.4753175, cnt of overlaps: 941
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 8.999998 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.4332756, avg overlap: 0.40798286, cnt of overlaps: 830
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.5878983, avg overlap: 0.4751178, cnt of overlaps: 921
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 9.099998 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
 Director.cpp::void Director::renderNextFrame() at 309: Rendering time point 18
 FrontOfficer.cpp::void FrontOfficer::renderNextFrame() at 498: Rendering time point 18
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.4300374, avg overlap: 0.40809643, cnt of overlaps: 811
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.5722809, avg overlap: 0.46744448, cnt of overlaps: 916
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 9.199999 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.4276311, avg overlap: 0.40641892, cnt of overlaps: 796
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.5559711, avg overlap: 0.4655981, cnt of overlaps: 900
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 9.299999 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.4256725, avg overlap: 0.40833044, cnt of overlaps: 775
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.5389576, avg overlap: 0.46510172, cnt of overlaps: 882
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 9.4 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.4239339, avg overlap: 0.40535113, cnt of overlaps: 764
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.5212679, avg overlap: 0.46347728, cnt of overlaps: 867
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 9.5 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
 Director.cpp::void Director::renderNextFrame() at 309: Rendering time point 19
 FrontOfficer.cpp::void FrontOfficer::renderNextFrame() at 498: Rendering time point 19
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.4223424, avg overlap: 0.39762136, cnt of overlaps: 762
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.5029287, avg overlap: 0.4604718, cnt of overlaps: 855
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 9.6 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: enabling export of masks
-Scenario.hpp::void SceneControls::enableProducingOutput(i3d::Image3d<VOXEL>&) [with T = short unsigned int] at 286: allocating 0 MB of memory for image of size (1, 1, 1) px
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: enabling export of masks
-Scenario.hpp::void SceneControls::enableProducingOutput(i3d::Image3d<VOXEL>&) [with T = short unsigned int] at 286: allocating 354 MB of memory for image of size (960, 440, 440) px
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.4208275, avg overlap: 0.4011587, cnt of overlaps: 739
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: enabling export of masks
+Scenario.hpp::void SceneControls::enableProducingOutput(i3d::Image3d<VOXEL>&) [with T = short unsigned int] at 289: allocating 0 MB of memory for image of size (1, 1, 1) px
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: enabling export of masks
+Scenario.hpp::void SceneControls::enableProducingOutput(i3d::Image3d<VOXEL>&) [with T = short unsigned int] at 289: allocating 354 MB of memory for image of size (960, 440, 440) px
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.4840469, avg overlap: 0.4555049, cnt of overlaps: 847
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 9.700001 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.4192156, avg overlap: 0.40068877, cnt of overlaps: 724
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.4646091, avg overlap: 0.4522906, cnt of overlaps: 836
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 9.800001 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.417354, avg overlap: 0.39768568, cnt of overlaps: 714
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.4445801, avg overlap: 0.44637385, cnt of overlaps: 830
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 9.900002 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.5181756, avg overlap: 0.4192521, cnt of overlaps: 850
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.5274191, avg overlap: 0.46827975, cnt of overlaps: 966
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 10.000002 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
 Director.cpp::void Director::renderNextFrame() at 309: Rendering time point 20
 FrontOfficer.cpp::void FrontOfficer::renderNextFrame() at 498: Rendering time point 20
 Director.cpp::void Director::renderNextFrame() at 340: Saving mask020.tif, hold on...
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.6148652, avg overlap: 0.42243603, cnt of overlaps: 1049
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.6165714, avg overlap: 0.47166628, cnt of overlaps: 1165
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 10.100002 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.7078294, avg overlap: 0.41662437, cnt of overlaps: 1330
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.7083874, avg overlap: 0.47743672, cnt of overlaps: 1402
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 10.200003 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.7974626, avg overlap: 0.4257967, cnt of overlaps: 1628
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.7978601, avg overlap: 0.48304722, cnt of overlaps: 1684
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 10.300003 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.8841457, avg overlap: 0.4311159, cnt of overlaps: 2010
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.8850384, avg overlap: 0.49164724, cnt of overlaps: 2008
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 10.400003 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.9682437, avg overlap: 0.45262882, cnt of overlaps: 2379
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 1.9699793, avg overlap: 0.5048219, cnt of overlaps: 2368
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 10.500004 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
 Director.cpp::void Director::renderNextFrame() at 309: Rendering time point 21
 FrontOfficer.cpp::void FrontOfficer::renderNextFrame() at 498: Rendering time point 21
 Director.cpp::void Director::renderNextFrame() at 340: Saving mask021.tif, hold on...
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.0500958, avg overlap: 0.48501858, cnt of overlaps: 2723
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.0527525, avg overlap: 0.53826547, cnt of overlaps: 2666
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 10.600004 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.1300282, avg overlap: 0.516675, cnt of overlaps: 3096
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.1334362, avg overlap: 0.5620239, cnt of overlaps: 3035
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 10.700005 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.2083352, avg overlap: 0.5573907, cnt of overlaps: 3432
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.2246523, avg overlap: 0.5984615, cnt of overlaps: 3362
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 10.800005 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.2853122, avg overlap: 0.5971292, cnt of overlaps: 3787
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.3191938, avg overlap: 0.63464427, cnt of overlaps: 3703
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 10.900005 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.3612456, avg overlap: 0.64409566, cnt of overlaps: 4100
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.411275, avg overlap: 0.6744978, cnt of overlaps: 4034
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 11.000006 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
 Director.cpp::void Director::renderNextFrame() at 309: Rendering time point 22
 FrontOfficer.cpp::void FrontOfficer::renderNextFrame() at 498: Rendering time point 22
 Director.cpp::void Director::renderNextFrame() at 340: Saving mask022.tif, hold on...
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.436558, avg overlap: 0.68696994, cnt of overlaps: 4444
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.5011492, avg overlap: 0.7192448, cnt of overlaps: 4340
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 11.100006 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: disabling export of masks
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: disabling export of masks
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.5116858, avg overlap: 0.73717844, cnt of overlaps: 4741
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: disabling export of masks
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: disabling export of masks
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.5890846, avg overlap: 0.75882936, cnt of overlaps: 4684
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 11.2000065 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.5870848, avg overlap: 0.7872618, cnt of overlaps: 5038
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.6751633, avg overlap: 0.80100614, cnt of overlaps: 5016
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 11.300007 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.6633837, avg overlap: 0.83588564, cnt of overlaps: 5341
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.7594776, avg overlap: 0.8496776, cnt of overlaps: 5310
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 11.400007 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.7404153, avg overlap: 0.88993067, cnt of overlaps: 5607
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.842143, avg overlap: 0.9014695, cnt of overlaps: 5582
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 11.500008 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
 Director.cpp::void Director::renderNextFrame() at 309: Rendering time point 23
 FrontOfficer.cpp::void FrontOfficer::renderNextFrame() at 498: Rendering time point 23
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.8179576, avg overlap: 0.9401896, cnt of overlaps: 5890
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.922945, avg overlap: 0.951373, cnt of overlaps: 5863
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 11.600008 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.8961065, avg overlap: 0.9883366, cnt of overlaps: 6187
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 3.0019827, avg overlap: 0.9897491, cnt of overlaps: 6216
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 11.700008 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 2.9749894, avg overlap: 1.0411407, cnt of overlaps: 6452
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 3.0794353, avg overlap: 1.037938, cnt of overlaps: 6509
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 11.800009 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 3.0545874, avg overlap: 1.0898063, cnt of overlaps: 6741
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 3.1563597, avg overlap: 1.0859203, cnt of overlaps: 6802
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 11.900009 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
-FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 3.1348844, avg overlap: 1.140514, cnt of overlaps: 7014
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
+FrontOfficer.cpp::void FrontOfficer::reportSituation() at 37: max overlap: 3.2392464, avg overlap: 1.1338323, cnt of overlaps: 7094
 FrontOfficer.cpp::void FrontOfficer::reportSituation() at 47: --------------- 12.00001 min (908 in this FO #1 / 908 AABBs (entire world), 0 cached geometries) ---------------
 Director.cpp::void Director::renderNextFrame() at 309: Rendering time point 24
 FrontOfficer.cpp::void FrontOfficer::renderNextFrame() at 498: Rendering time point 24
-Scenario.hpp::void Scenario::updateScene(float) at 445: by FO #1: no change
-Scenario.hpp::void Scenario::updateScene(float) at 443: by Direktor: no change
+Scenario.hpp::void Scenario::updateScene(float) at 449: by FO #1: no change
+Scenario.hpp::void Scenario::updateScene(float) at 447: by Direktor: no change
 Director.cpp::void Director::close() at 98: running the closing sequence
 Director.cpp::void Director::close() at 111: tracks.txt was saved...
 FrontOfficer.cpp::void FrontOfficer::close() at 56: running the closing sequence
@@ -3283,7 +3284,7 @@ NucleusAgent.hpp::virtual NucleusAgent::~NucleusAgent() at 78: Nucleus with ID=9
 ShapeHinter.hpp::virtual ShapeHinter::~ShapeHinter() at 29: EmbryoShell with ID= 908 was just deleted
 FrontOfficer.cpp::void FrontOfficer::close() at 83: will remove 0 and 0 agents from newAgents and deadAgents, respectively
 FrontOfficer.cpp::void FrontOfficer::close() at 96: will remove 0 shadow agents
-main.cpp::int main(int, char**) at 96: simulation required 372.330081 seconds
+main.cpp::int main(int, char**) at 97: simulation required 409.241830 seconds
 Happy end.
 
 FrontOfficer.hpp::FrontOfficer::~FrontOfficer() at 99: FrontOfficer #1 already closed? yes
