@@ -9,22 +9,24 @@
 
 #ifdef DISTRIBUTED
 #define REPORT_EXCEPTION(x)                                                    \
-	report::message("Broadcasting the following expection:");                  \
-	std::cout << x << "\n\n";                                                  \
-	if (d != NULL)                                                             \
+	report::message(                                                           \
+	    fmt::format("Broadcasting the following expection:\n{}\n\n", x));      \
+	if (d)                                                                     \
 		d->broadcast_throwException(fmt::format("Outside exception: {}", x));  \
-	if (fo != NULL)                                                            \
+	if (fo)                                                                    \
 		fo->broadcast_throwException(fmt::format("Outside exception: {}", x));
 #else
-#define REPORT_EXCEPTION(x) std::cout << x << "\n\n";
+#define REPORT_EXCEPTION(x) report::message(fmt::format("{}\n\n", x));
 #endif
 
 int main(int argc, char** argv) {
-	report::message(fmt::format("This is EmbryoGen at commit rev {}.", gitCommitHash), {false});
+	report::message(
+	    fmt::format("This is EmbryoGen at commit rev {}.", gitCommitHash),
+	    {false});
 
-	Director* d = NULL;
-	FrontOfficer* fo = NULL;
-	Scenarios scenarios(argc,const_cast<const char **>(argv));
+	std::unique_ptr<Director> d;
+	std::unique_ptr<FrontOfficer> fo;
+	Scenarios scenarios(argc, const_cast<const char**>(argv));
 
 	try {
 		// the Scenario object paradigm: there's always (independent) one per
@@ -46,8 +48,8 @@ int main(int argc, char** argv) {
 
 		if (MPI_IDOfThisInstance == 0) {
 			// hoho, I'm the Direktor  (NB: Direktor == main simulation loop)
-			d = new Director(scenarios.getScenario(), 1,
-			                 MPI_noOfNodesInTotal - 1, dc);
+			d = std::make_unique<Director>(scenarios.getScenario(), 1,
+			                               MPI_noOfNodesInTotal - 1, dc);
 			d->initMPI(); // init the simulation, and render the first frame
 			d->execute(); // execute the simulation, and render frames
 			d->close();   // close the simulation, deletes agents, and save
@@ -61,9 +63,9 @@ int main(int argc, char** argv) {
 			if (nextFOsID == MPI_noOfNodesInTotal)
 				nextFOsID = 0;
 
-			fo = new FrontOfficer(scenarios.getScenario(),
-			                      nextFOsID, MPI_IDOfThisInstance,
-			                      MPI_noOfNodesInTotal - 1, dc);
+			fo = std::make_unique<FrontOfficer>(scenarios.getScenario(),
+			                                    nextFOsID, MPI_IDOfThisInstance,
+			                                    MPI_noOfNodesInTotal - 1, dc);
 			fo->initMPI(); // populate/create my part of the scene
 			report::message(
 			    fmt::format("Multi node case, init MPI: {} nodes, instance {}",
@@ -73,11 +75,11 @@ int main(int argc, char** argv) {
 		}
 #else
 		// single machine case
-		d = new Director(scenarios.getScenario(), 1, 1);
-		fo = new FrontOfficer(scenarios.getScenario(), 0, 1, 1);
+		d = std::make_unique<Director>(scenarios.getScenario(), 1, 1);
+		fo = std::make_unique<FrontOfficer>(scenarios.getScenario(), 0, 1, 1);
 
-		fo->connectWithDirektor(d);
-		d->connectWithFrontOfficer(fo);
+		fo->connectWithDirektor(d.get());
+		d->connectWithFrontOfficer(fo.get());
 
 		auto timeHandle = tic();
 
@@ -99,14 +101,10 @@ int main(int argc, char** argv) {
 
 		std::cout << "Happy end.\n\n";
 
-		// calls also destructor for very final clean up
-		if (fo != NULL)
-			delete fo;
-		if (d != NULL)
-			delete d;
-		return (0);
+		return 0;
+
 	} catch (const char* e) {
-		REPORT_EXCEPTION(fmt::format("Got this message: {}",e));
+		REPORT_EXCEPTION(fmt::format("Got this message: {}", e));
 	} catch (std::string& e) {
 		REPORT_EXCEPTION(fmt::format("Got this message: {}", e));
 	} catch (std::runtime_error* e) {
@@ -114,25 +112,12 @@ int main(int argc, char** argv) {
 	} catch (i3d::IOException* e) {
 		REPORT_EXCEPTION(fmt::format("i3d::IOException: {}", e->what));
 	} catch (i3d::LibException* e) {
-		REPORT_EXCEPTION(fmt::format("i3d::LibException: {}",e->what));
+		REPORT_EXCEPTION(fmt::format("i3d::LibException: {}", e->what));
 	} catch (std::bad_alloc&) {
 		REPORT_EXCEPTION("Not enough memory.");
 	} catch (...) {
 		REPORT_EXCEPTION("System exception.");
 	}
 
-	// calls destructor for very final clean up, which may also call
-	// the respective close() methods if they had not been called before...
-	if (fo != NULL) {
-		report::message(fmt::format(
-		    "trying to close (and save the most from) the simulation's FO #{}",
-		    fo->getID()));
-		delete fo;
-	}
-	if (d != NULL) {
-		report::message(fmt::format("trying to close (and save the most from) "
-		                            "the simulation's Direktor"));
-		delete d;
-	}
-	return (1);
+	return 1;
 }
