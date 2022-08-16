@@ -24,6 +24,7 @@
         "gsl",
         "grpc",
         "openmpi",
-        "fmt"
+        "fmt",
+        "poco"
     ]
 }

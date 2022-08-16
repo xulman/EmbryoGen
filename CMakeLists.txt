@@ -231,6 +231,10 @@ if (FEATURE_RUNDISTRIBUTED)
 	set(LIBS ${LIBS} MPI::MPI_CXX)
 endif (FEATURE_RUNDISTRIBUTED)
 
+# POCO library
+find_package(Poco CONFIG REQUIRED Net JSON)
+set(LIBS ${LIBS} Poco::Net Poco::JSON)
+
 #----------------
 # TARGET LINKING
 #----------------
