@@ -111,11 +111,15 @@ int main(int argc, char** argv) {
 		REPORT_EXCEPTION(fmt::format("RuntimeError: {}", e->what()));
 	} catch (i3d::IOException* e) {
 		REPORT_EXCEPTION(fmt::format("i3d::IOException: {}", e->what));
+	} catch (const i3d::IOException& e) {
+		REPORT_EXCEPTION(fmt::format("i3d::IOException: {}", e.what));
 	} catch (i3d::LibException* e) {
 		REPORT_EXCEPTION(fmt::format("i3d::LibException: {}", e->what));
 	} catch (std::bad_alloc&) {
 		REPORT_EXCEPTION("Not enough memory.");
-	} catch (...) {
+	}
+
+	catch (...) {
 		REPORT_EXCEPTION("System exception.");
 	}
 
