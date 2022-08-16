@@ -191,8 +191,8 @@ std::unique_ptr<SceneControls> Scenario_Parallel::provideSceneControls() const {
 	// ask the system to report after every (internal) simulation step
 	myConstants.expoTime = myConstants.incrTime;
 
-	myConstants.imgPhantom_filenameTemplate = "timeStamps_%03u.tif";
-	myConstants.imgOptics_filenameTemplate = "neighbors_%03u.tif";
+	myConstants.imgPhantom_filenameTemplate = "timeStamps_{:03}.tif";
+	myConstants.imgOptics_filenameTemplate = "neighbors_{:03}.tif";
 
 	class mySceneControl : public SceneControls {
 	  public:

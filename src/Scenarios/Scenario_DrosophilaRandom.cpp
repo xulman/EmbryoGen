@@ -171,15 +171,16 @@ void Scenario_DrosophilaRandom::initializeAgents(FrontOfficer* fo, int p, int) {
 }
 
 void Scenario_DrosophilaRandom::initializeScene() {
+	
 	displays.registerDisplayUnit([]() {
 		auto unit = std::make_unique<SceneryBufferedDisplayUnit>("localhost:8765");
 		unit->InitBuffers();
 		return unit;
 	});
+	
 	displays.registerDisplayUnit([]() {
 		return std::make_unique<FlightRecorderDisplayUnit>("/temp/FR_randomDro.txt");
 	});
-
 	// disks.enableImgMaskTIFFs();
 }
 
