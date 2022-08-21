@@ -3,7 +3,12 @@
     "version-string": "0.0.1",
     "dependencies": [
         "gsl",
-        "grpc",
+        {
+            "name": "grpc",
+            "features": [
+                "codegen"
+            ]
+        },
         "openmpi",
         "fmt",
         "poco"

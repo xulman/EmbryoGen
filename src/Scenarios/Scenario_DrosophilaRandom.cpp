@@ -187,11 +187,16 @@ void Scenario_DrosophilaRandom::initializeScene() {
 class mySceneControls : public SceneControls {
   public:
 	mySceneControls(config::scenario::ControlConstants& callersOwnConstants)
-	    : SceneControls(callersOwnConstants) {}
+	    : SceneControls(callersOwnConstants) {
+		}
 
 	int doMasks = 0;
 
-	void updateControls(const float currTime) override {
+	void updateControls(const float /* currTime */) override {
+				if (doMasks == 0)
+						ctx().disks.enableImgMaskTIFFs();
+				doMasks = 1;
+			/*
 		if (currTime > 9.5 && doMasks == 0) {
 			report::debugMessage(fmt::format("enabling export of masks"),
 			                     {false});
@@ -204,13 +209,14 @@ class mySceneControls : public SceneControls {
 			doMasks = 2;
 		} else
 			report::debugMessage(fmt::format("no change"), {false});
+		*/
 	}
 };
 
 std::unique_ptr<SceneControls> Scenario_DrosophilaRandom::provideSceneControls() const 
 {
 	config::scenario::ControlConstants c;
-	c.stopTime = 12.0f;
+	c.stopTime = 100.0f;
 	
 	auto mSC = std::make_unique<mySceneControls>(c);
 	mSC->disableWaitForUserPrompt();

@@ -100,6 +100,7 @@ set(SOURCES
 		src/util/synthoscopy/SNR.cpp
 		src/DisplayUnits/SceneryDisplayUnit.cpp
 		src/DisplayUnits/SceneryBufferedDisplayUnit.cpp
+		src/DisplayUnits/GrpcDisplayUnit.cpp
 		src/Geometries/Geometry.cpp
 		src/Geometries/Spheres.cpp
 		src/Geometries/ScalarImg.cpp
@@ -226,7 +227,8 @@ set(LIBS ${LIBS} GSL::gsl GSL::gslcblas)
 
 # Google rpc
 find_package(gRPC CONFIG REQUIRED)
-set(LIBS ${LIBS} gRPC::gpr gRPC::grpc gRPC::grpc++ gRPC::grpc++_alts)
+set(gRPC_LIBS  gRPC::gpr gRPC::grpc gRPC::grpc++ gRPC::grpc++_alts)
+set(LIBS ${LIBS} ${gRPC_LIBS})
 
 # FMT library
 find_package(fmt CONFIG REQUIRED)
@@ -239,6 +241,46 @@ endif (FEATURE_RUNDISTRIBUTED)
 # POCO library
 find_package(Poco CONFIG REQUIRED Net JSON)
 set(LIBS ${LIBS} Poco::Net Poco::JSON)
+
+#-----------------------------
+# GENERATING PROTO CODE
+#-----------------------------
+
+# ========= GENERATING PROTO CODE =========
+set(proto_name "protocol")
+set(proto_path "${CMAKE_SOURCE_DIR}/src/proto")
+set(proto_file "${proto_path}/${proto_name}.proto")
+
+# this is kind of ugly, but i have not found a better way
+set(grpc_cpp_plugin "${gRPC_DIR}/../../tools/grpc/grpc_cpp_plugin")
+
+set(bin_proto_srcs "${proto_path}/${proto_name}.pb.cc")
+set(bin_proto_hdrs "${proto_path}/${proto_name}.pb.h")
+set(bin_grpc_srcs "${proto_path}/${proto_name}.grpc.pb.cc")
+set(bin_grpc_hdrs "${proto_path}/${proto_name}.grpc.pb.h")
+
+# generate to binary dir
+add_custom_command(
+    OUTPUT "${bin_proto_srcs}" "${bin_proto_hdrs}" "${bin_grpc_srcs}" "${bin_grpc_hdrs}"
+    "${src_proto_hdrs}" "${src_grpc_hdrs}"
+    COMMAND ${Protobuf_PROTOC_EXECUTABLE}
+    ARGS  --grpc_out "${proto_path}"
+         --cpp_out "${proto_path}"
+         --plugin=protoc-gen-grpc="${grpc_cpp_plugin}"
+         -I "${proto_path}"
+         "${proto_file}"
+)
+
+add_library(grpc_proto_lib
+    "${bin_grpc_srcs}"
+    "${bin_grpc_hdrs}"
+    "${bin_proto_srcs}"
+    "${bin_proto_hdrs}"
+)
+
+target_link_libraries(grpc_proto_lib ${gRPC_LIBS})
+
+set(LIBS ${LIBS} grpc_proto_lib)
 
 #----------------
 # TARGET LINKING

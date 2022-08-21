@@ -48,7 +48,7 @@ class ControlConstants {
 	float expoTime = 0.5f;
 
 	bool outputToTiff = true;
-	bool outputToDatastore = true;
+	bool outputToDatastore = false;
 
 	/** output filename pattern in the std::format notation
 	    that includes exactly one 'unsigned' parameter: instance masks */
