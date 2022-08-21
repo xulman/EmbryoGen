@@ -37,6 +37,7 @@ option(FEATURE_ENABLEPHOTOBLEACHING  "Shall texture particles be loosing their i
 option(FEATURE_USEFILOGENSYNTHOSCOPY "Shall synthoscopy code from FiloGen be used instead of the one from MitoGen?" ON)
 option(FEATURE_RUNDISTRIBUTED        "Shall the simulation use MPI (message passing interface) and run distributed?" OFF)
 option(FEATURE_USEOpenMP             "Use OpenMP for single node parallelization" OFF)
+option(ENABLE_HPC_DATASTORE_LOG      "Shall I display hpc datastore log?" OFF)
 
 #-------------------------------------------------------
 # TRANSLATE FEATURE REQUESTS INTO PREPROCESSOR CONSTANTS
@@ -59,6 +60,10 @@ endif (FEATURE_USEFILOGENSYNTHOSCOPY)
 if (FEATURE_RUNDISTRIBUTED)
 	add_definitions(-DDISTRIBUTED)
 endif (FEATURE_RUNDISTRIBUTED)
+
+if (NOT ENABLE_HPC_DATASTORE_LOG)
+	add_definitions(-DDATASTORE_NLOG)
+endif(NOT ENABLE_HPC_DATASTORE_LOG)
 
 #-------------------------
 # TARGET COMPILATION SETUP

@@ -71,11 +71,11 @@ class ControlConstants {
 
 	std::string ds_serverAddress = "127.0.0.1";
 	int ds_port = 9080;
-	std::string ds_datasetUUID = "59c4e076-c4c8-4703-b5ee-fbfdb47d340d";
-	std::size_t ds_maskChannel = 0;
-	std::size_t ds_phantomChannel = 1;
-	std::size_t ds_opticsChannel = 2;
-	std::size_t ds_finalChannel = 3;
+	std::string ds_datasetUUID = "6316f28a-a56d-4bcd-8ab9-b30b2abfdeba";
+	int ds_maskChannel = 0;
+	int ds_phantomChannel = 1;
+	int ds_opticsChannel = 2;
+	int ds_finalChannel = 3;
 };
 } // namespace scenario
 

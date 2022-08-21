@@ -119,9 +119,12 @@ int main(int argc, char** argv) {
 		REPORT_EXCEPTION("Not enough memory.");
 	}
 
+	/*
 	catch (...) {
 		REPORT_EXCEPTION("System exception.");
 	}
+	*/
+	
 
 	return 1;
 }

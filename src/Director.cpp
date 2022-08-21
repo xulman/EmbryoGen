@@ -347,7 +347,7 @@ void Director::renderNextFrame() {
 
 		if (sc.constants.outputToDatastore) {
 			report::message(
-			    fmt::format("Sending {} to datastore, hold on...", fn));
+			    fmt::format("Sending timepoint {} to datastore, hold on...", frameCnt));
 			ds_conn.write_with_pyramids(sc.imgMask, sc.constants.ds_maskChannel,
 			                            frameCnt, 0, "latest",
 			                            ds::SamplingMode::NEAREST_NEIGHBOUR);
@@ -367,7 +367,7 @@ void Director::renderNextFrame() {
 
 		if (sc.constants.outputToDatastore) {
 			report::message(
-			    fmt::format("Sending {} to datastore, hold on...", fn));
+			    fmt::format("Sending timepoint {} to datastore, hold on...", frameCnt));
 			ds_conn.write_with_pyramids(
 			    sc.imgPhantom, sc.constants.ds_phantomChannel, frameCnt, 0,
 			    "latest", ds::SamplingMode::NEAREST_NEIGHBOUR);
@@ -387,7 +387,7 @@ void Director::renderNextFrame() {
 
 		if (sc.constants.outputToDatastore) {
 			report::message(
-			    fmt::format("Sending {} to datastore, hold on...", fn));
+			    fmt::format("Sending timepoint {} to datastore, hold on...", frameCnt));
 			ds_conn.write_with_pyramids(
 			    sc.imgOptics, sc.constants.ds_opticsChannel, frameCnt, 0,
 			    "latest", ds::SamplingMode::NEAREST_NEIGHBOUR);
@@ -408,7 +408,7 @@ void Director::renderNextFrame() {
 
 		if (sc.constants.outputToDatastore) {
 			report::message(
-			    fmt::format("Sending {} to datastore, hold on...", fn));
+			    fmt::format("Sending timepoint {} to datastore, hold on...", frameCnt));
 			ds_conn.write_with_pyramids(
 			    sc.imgFinal, sc.constants.ds_finalChannel, frameCnt, 0,
 			    "latest", ds::SamplingMode::NEAREST_NEIGHBOUR);
