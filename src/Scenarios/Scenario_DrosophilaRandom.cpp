@@ -2,6 +2,7 @@
 #include "../Agents/ShapeHinter.hpp"
 #include "../Agents/TrajectoriesHinter.hpp"
 #include "../DisplayUnits/FlightRecorderDisplayUnit.hpp"
+#include "../DisplayUnits/GrpcDisplayUnit.hpp"
 #include "../DisplayUnits/SceneryBufferedDisplayUnit.hpp"
 #include "../Geometries/ScalarImg.hpp"
 #include "../Geometries/VectorImg.hpp"
@@ -21,7 +22,6 @@ class GrowableNucleusRand : public NucleusNSAgent {
 	    : NucleusNSAgent(_ID, _type, shape, _currTime, _incrTime),
 	      si(futureGeometry),
 	      presentationGeom(setupSpheresInterpolationAndReturnNoOfSpheres()) {}
-
 
 	float startGrowTime = 99999999.f;
 	float stopGrowTime = 99999999.f;
@@ -164,39 +164,40 @@ void Scenario_DrosophilaRandom::initializeAgents(FrontOfficer* fo, int p, int) {
 	// m.saveDistImg("GradIN_ZeroOUT.tif");
 
 	// finally, create the simulation agent to register this shape
-	ShapeHinter* ag = new ShapeHinter(
-	    ID++, "yolk", m, params->constants.initTime, params->constants.incrTime);
+	ShapeHinter* ag =
+	    new ShapeHinter(ID++, "yolk", m, params->constants.initTime,
+	                    params->constants.incrTime);
 	fo->startNewAgent(ag, false);
-
 }
 
 void Scenario_DrosophilaRandom::initializeScene() {
-	
+
 	displays.registerDisplayUnit([]() {
-		auto unit = std::make_unique<SceneryBufferedDisplayUnit>("localhost:8765");
+		auto unit =
+		    std::make_unique<SceneryBufferedDisplayUnit>("localhost:8765");
 		unit->InitBuffers();
 		return unit;
 	});
-	
+
 	displays.registerDisplayUnit([]() {
-		return std::make_unique<FlightRecorderDisplayUnit>("/temp/FR_randomDro.txt");
+		return std::make_unique<FlightRecorderDisplayUnit>(
+		    "/temp/FR_randomDro.txt");
 	});
+
+	displays.registerDisplayUnit(
+	    []() { return std::make_unique<GrpcDisplayUnit>(); });
 	// disks.enableImgMaskTIFFs();
 }
 
 class mySceneControls : public SceneControls {
   public:
 	mySceneControls(config::scenario::ControlConstants& callersOwnConstants)
-	    : SceneControls(callersOwnConstants) {
-		}
+	    : SceneControls(callersOwnConstants) {}
 
 	int doMasks = 0;
 
-	void updateControls(const float /* currTime */) override {
-				if (doMasks == 0)
-						ctx().disks.enableImgMaskTIFFs();
-				doMasks = 1;
-			/*
+	void updateControls(const float currTime) override {
+
 		if (currTime > 9.5 && doMasks == 0) {
 			report::debugMessage(fmt::format("enabling export of masks"),
 			                     {false});
@@ -209,15 +210,14 @@ class mySceneControls : public SceneControls {
 			doMasks = 2;
 		} else
 			report::debugMessage(fmt::format("no change"), {false});
-		*/
 	}
 };
 
-std::unique_ptr<SceneControls> Scenario_DrosophilaRandom::provideSceneControls() const 
-{
+std::unique_ptr<SceneControls>
+Scenario_DrosophilaRandom::provideSceneControls() const {
 	config::scenario::ControlConstants c;
-	c.stopTime = 100.0f;
-	
+	c.stopTime = 12.0f;
+
 	auto mSC = std::make_unique<mySceneControls>(c);
 	mSC->disableWaitForUserPrompt();
 

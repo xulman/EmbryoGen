@@ -82,6 +82,6 @@ class ControlConstants {
 
 /** GRPC properties */
 const std::string grpc_serverAddress = "127.0.0.1";
-constexpr int grpc_port = 51001;
+constexpr int grpc_port = 50051;
 
 } // namespace config

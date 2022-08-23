@@ -31,8 +31,11 @@ class GrpcDisplayUnit : public DisplayUnit {
 
 	/** Used as an indicator of new timepoint */
 	void Tick(const std::string&) override;
+	~GrpcDisplayUnit() override;
 
   private:
+	void Send();
+
 	int _timepoint = 0;
 
 	const std::string _serverURL =
@@ -41,4 +44,10 @@ class GrpcDisplayUnit : public DisplayUnit {
 	std::unique_ptr<mastodon_blender_view::ViewService::Stub> _stub =
 	    mastodon_blender_view::ViewService::NewStub(grpc::CreateChannel(
 	        _serverURL, grpc::InsecureChannelCredentials()));
+
+	struct _Point {
+		std::vector<float> coords;
+		std::vector<int> timepoints;
+	};
+	std::map<int, _Point> _requestCache;
 };
