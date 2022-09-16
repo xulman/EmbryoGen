@@ -17,10 +17,10 @@ void Spheres::getDistance(const Geometry& otherGeometry,
 		break;
 
 	case ListOfShapeForms::undefGeometry:
-		REPORT("Ignoring other geometry of type 'undefGeometry'.");
+report::message(fmt::format("Ignoring other geometry of type 'undefGeometry'." ));
 		break;
 	default:
-		throw ERROR_REPORT("Not supported combination of shape representations.");
+throw report::rtError("Not supported combination of shape representations.");
 	}
 }
 
@@ -148,9 +148,7 @@ void Spheres::deserializeFrom(char* buffer)
 	long off = Deserialization::fromBuffer(buffer, recv_noOfSpheres);
 
 	if (noOfSpheres != recv_noOfSpheres)
-		throw ERROR_REPORT( "Deserialization mismatch: cannot fill geometry of "
-			<< noOfSpheres << " spheres from the buffer with "
-			<< recv_noOfSpheres << " spheres" );
+throw report::rtError(fmt::format("Deserialization mismatch: cannot fill geometry of {} spheres from the buffer with {} spheres", noOfSpheres, recv_noOfSpheres));
 
 	//read and setup individual spheres
 	for (int i=0; i < noOfSpheres; ++i)
@@ -206,7 +204,7 @@ void Spheres::renderIntoMask(i3d::Image3d<i3d::GRAY16>& mask, const i3d::GRAY16 
 #ifdef DEBUG
 				i3d::GRAY16 val = mask.GetVoxel(curPos.x,curPos.y,curPos.z);
 				if (val > 0 && val != drawID)
-					REPORT(drawID << " overwrites mask of " << val << " at " << curPos);
+report::message(fmt::format("{} overwrites mask of {} at {}" , drawID, val, curPos));
 #endif
 				mask.SetVoxel(curPos.x,curPos.y,curPos.z, drawID);
 				break; //no need to test against the remaining spheres

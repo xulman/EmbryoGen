@@ -80,7 +80,7 @@ void Scenario_Tetris::initializeAgents(FrontOfficer* fo,int p,int)
 {
 	if (p != 1)
 	{
-		REPORT("Populating only the first FO (which is not this one).");
+report::message(fmt::format("Populating only the first FO (which is not this one)." ));
 		return;
 	}
 
@@ -105,7 +105,7 @@ void Scenario_Tetris::initializeAgents(FrontOfficer* fo,int p,int)
 
 		switch (x) {
 		case -1:
-			agentName = buildStringFromStream("" << y << "__Box");
+			agentName = fmt::format("{} __Box", y);
 			spheres.updateCentre(0,currGridPos);
 			spheres.updateCentre(1,currGridPos + Vector3d<float>(-sDist,-sDist/2.0f,0));
 			spheres.updateCentre(2,currGridPos + Vector3d<float>(-sDist,+sDist/2.0f,0));
@@ -115,7 +115,7 @@ void Scenario_Tetris::initializeAgents(FrontOfficer* fo,int p,int)
 			spheres.updateCentre(6,currGridPos + Vector3d<float>(+sDist,+sDist/2.0f,0));
 			break;
 		case 0:
-			agentName = buildStringFromStream("" << y << "__Line");
+			agentName = fmt::format("{} __Line", y);
 			spheres.updateCentre(0,currGridPos);
 			spheres.updateCentre(1,currGridPos + Vector3d<float>(-sDist*3,-sDist*0.9f,0));
 			spheres.updateCentre(2,currGridPos + Vector3d<float>(-sDist*2,-sDist*0.6f,0));
@@ -125,7 +125,7 @@ void Scenario_Tetris::initializeAgents(FrontOfficer* fo,int p,int)
 			spheres.updateCentre(6,currGridPos + Vector3d<float>(+sDist*3,+sDist*0.9f,0));
 			break;
 		case 1:
-			agentName = buildStringFromStream("" << y << "__BigT");
+			agentName = fmt::format("{} __BigT", y);
 			spheres.updateCentre(0,currGridPos);
 			spheres.updateCentre(1,currGridPos + Vector3d<float>(-sDist*2,       0,0));
 			spheres.updateCentre(2,currGridPos + Vector3d<float>(-sDist*1,       0,0));
@@ -135,7 +135,7 @@ void Scenario_Tetris::initializeAgents(FrontOfficer* fo,int p,int)
 			spheres.updateCentre(6,currGridPos + Vector3d<float>(+sDist*2,       0,0));
 			break;
 		case 2:
-			agentName = buildStringFromStream("" << y << "__Bulk");
+			agentName = fmt::format("{} __Bulk", y);
 			for (int i=0; i < spheres.getNoOfSpheres(); ++i)
 			{
 				spheres.updateCentre(i, currGridPos + Vector3d<float>(
@@ -146,7 +146,7 @@ void Scenario_Tetris::initializeAgents(FrontOfficer* fo,int p,int)
 			}
 			break;
 		default:
-			REPORT("WARNING: no agents at grid pos " << y << "," << x);
+report::message(fmt::format("WARNING: no agents at grid pos {},{}" , y, x));
 		}
 
 		for (int i=0; i < spheres.getNoOfSpheres(); ++i)
@@ -165,7 +165,7 @@ void Scenario_Tetris::initializeAgents(FrontOfficer* fo,int p,int)
 	{
 		currGridPos.fromScalars(x,y,2).elemMult(gridStep);
 		currGridPos += gridStart;
-		agentName = buildStringFromStream("" << y << "__2SModel");
+		agentName = fmt::format("{} __2SModel", y);
 
 		const int connLines = 5;
 		const int inbetweeners = 5;
@@ -185,7 +185,7 @@ void Scenario_Tetris::initializeAgents(FrontOfficer* fo,int p,int)
 		twoS.updateRadius(0, 3.5);
 		twoS.updateRadius(1, 4.5);
 
-		REPORT("-------------------------------------");
+report::message(fmt::format("-------------------------------------" ));
 		SpheresFunctions::LinkedSpheres<float> builder(twoS, Vector3d<float>(0,1,0));
 		float minAngle = (float)-M_PI_2;
 		float maxAngle = (float)+M_PI_2;
@@ -201,7 +201,7 @@ void Scenario_Tetris::initializeAgents(FrontOfficer* fo,int p,int)
 		//builder.removeAzimuth(M_PI+0.2);
 		//builder.addToPlan(0,1,3); //content of Interpolator is forbidden in LinkedSpheres
 		builder.printPlan();
-		REPORT("necessary cnt: " << builder.getNoOfNecessarySpheres());
+report::message(fmt::format("necessary cnt: {}" , builder.getNoOfNecessarySpheres()));
 		Spheres manyS(builder.getNoOfNecessarySpheres());
 		builder.buildInto(manyS);
 		builder.printPlan();

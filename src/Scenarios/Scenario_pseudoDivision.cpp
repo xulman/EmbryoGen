@@ -3,6 +3,7 @@
 #include "../Geometries/Spheres.hpp"
 #include "../Agents/NucleusAgent.hpp"
 #include "common/Scenarios.hpp"
+#include <fmt/core.h>
 
 class myNucleusB: public NucleusAgent
 {
@@ -12,11 +13,11 @@ public:
 	          const float _currTime, const float _incrTime):
 		NucleusAgent(_ID,_type, shape, _currTime,_incrTime)
 		{
-			REPORT(IDSIGN << "c'tor");
+			report::message(fmt::format("{} c'tor", getSignature()));
 			cytoplasmWidth = 25.0f;
 		}
 
-	~myNucleusB(void) { REPORT(IDSIGN << "d'tor"); }
+	~myNucleusB(void) { report::message(fmt::format("{} d'tor", getSignature())); }
 
 
 	void advanceAndBuildIntForces(const float gTime) override
@@ -58,7 +59,7 @@ void Scenario_pseudoDivision::initializeAgents(FrontOfficer* fo,int p,int)
 {
 	if (p != 1)
 	{
-		REPORT("Populating only the first FO (which is not this one).");
+		report::message("Populating only the first FO (which is not this one).");
 		return;
 	}
 

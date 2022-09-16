@@ -76,7 +76,7 @@ public:
 		responder.join();
 		close_communication();
 #endif
-		DEBUG_REPORT("Direktor already closed? " << (isProperlyClosedFlag ? "yes":"no"));
+report::debugMessage(fmt::format("Direktor already closed? {}" , (isProperlyClosedFlag ? "yes":"no")));
 		if (!isProperlyClosedFlag) this->close();
 	}
 
@@ -232,7 +232,7 @@ protected:
 #endif
 
 public:
-	void broadcast_throwException(const char* exceptionMessage);
+	void broadcast_throwException(const std::string& exceptionMessage);
 protected:
 	void respond_throwException();
 
@@ -253,7 +253,7 @@ public:
 
 	void connectWithFrontOfficer(FrontOfficer* fo)
 	{
-		if (fo == NULL) throw ERROR_REPORT("Provided FrontOfficer is actually NULL.");
+		if (fo == NULL) throw report::rtError("Provided FrontOfficer is actually NULL.");
 		FO = fo;
 	}
 #endif

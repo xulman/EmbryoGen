@@ -57,7 +57,7 @@ public:
 			(*it)->Flush();
 	}
 
-	void Tick(const char* msg) override
+	void Tick(const std::string& msg) override
 	{
 		for (auto it = displayUnits.begin(); it != displayUnits.end(); ++it)
 			(*it)->Tick(msg);

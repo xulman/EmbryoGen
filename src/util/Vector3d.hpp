@@ -5,6 +5,7 @@
 #include <cmath>
 #include <i3d/vector3d.h>
 #include <functional>
+#include <fmt/core.h>
 
 /** simply a 3D vector... */
 template <typename T>
@@ -461,7 +462,7 @@ public:
 template <typename T>
 std::ostream& operator<<(std::ostream& s,const Vector3d<T>& v)
 {
-	s << "(" << v.x << "," << v.y << "," << v.z << ")";
+	s << fmt::format("({}, {}, {})", v.x, v.y, v.z);
 	return s;
 }
 

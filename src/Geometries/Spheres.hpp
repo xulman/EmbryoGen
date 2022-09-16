@@ -38,11 +38,11 @@ public:
 	{
 		//sanity check...
 		if (_noOfSpheres < 0)
-			throw ERROR_REPORT("Cannot construct geometry with negative number of spheres.");
+throw report::rtError("Cannot construct geometry with negative number of spheres.");
 
 		for (int i=0; i < noOfSpheres; ++i) radii[i] = 0.0;
-		//REPORT("Constructing spheres @ " << this);
-		//REPORT("Obtaining new arrays in spheres @ " << this);
+// report::message(fmt::format("Constructing spheres @ {}" , this));
+// report::message(fmt::format("Obtaining new arrays in spheres @ {}" , this));
 	}
 
 	/** move constructor */
@@ -53,9 +53,9 @@ public:
 		  radii(s.radii)
 	{
 		s.dataMovedAwayDontDelete = true;
-		//REPORT( "/ Moving spheres from " << &s);
-		//REPORT("\\ Moving spheres into " << this);
-		//REPORT("Stealing arrays into spheres @ " << this);
+// report::message(fmt::format("/ Moving spheres from {}" , &s));
+// report::message(fmt::format("\\ Moving spheres into {}" , this));
+// report::message(fmt::format("Stealing arrays into spheres @ {}" , this));
 	}
 
 	/** copy constructor */
@@ -73,9 +73,9 @@ public:
 			centres[i] = sCentres[i];
 			radii[i]   = sRadii[i];
 		}
-		//REPORT( "/ Copying spheres from " << &s);
-		//REPORT("\\ Copying spheres into " << this);
-		//REPORT("Duplicating arrays into spheres @ " << this);
+// report::message(fmt::format("/ Copying spheres from {}" , &s));
+// report::message(fmt::format("\\ Copying spheres into {}" , this));
+// report::message(fmt::format("Duplicating arrays into spheres @ {}" , this));
 	}
 
 	~Spheres(void)
@@ -85,9 +85,9 @@ public:
 		{
 			delete[] centres;
 			delete[] radii;
-			//REPORT("Freeing arrays in spheres @ " << this);
+// report::message(fmt::format("Freeing arrays in spheres @ {}" , this));
 		}
-		//REPORT("Destructing spheres @ " << this);
+// report::message(fmt::format("Destructing spheres @ {}" , this));
 	}
 
 

@@ -9,10 +9,10 @@
 
 #ifdef DISTRIBUTED
 	#define REPORT_EXCEPTION(x) \
-		REPORT("Broadcasting the following expection:"); \
+		report::message("Broadcasting the following expection:"); \
 		std::cout << x << "\n\n"; \
-		if ( d != NULL)  d->broadcast_throwException(buildStringFromStream("Outside exception: " << x).c_str()); \
-		if (fo != NULL) fo->broadcast_throwException(buildStringFromStream("Outside exception: " << x).c_str());
+		if ( d != NULL)  d->broadcast_throwException(std::format("Outside exception: {}", x)); \
+		if (fo != NULL) fo->broadcast_throwException(std::format("Outside exception: {}", x));
 #else
 	#define REPORT_EXCEPTION(x) \
 		std::cout << x << "\n\n";
@@ -62,7 +62,7 @@ int main(int argc, char** argv)
 
 			fo = new FrontOfficer(Scenarios(argc,argv).getScenario(), nextFOsID, MPI_IDOfThisInstance,MPI_noOfNodesInTotal-1, dc);
 			fo->initMPI(); //populate/create my part of the scene
-			REPORT("Multi node case, init MPI: " << MPI_noOfNodesInTotal << " nodes, instance " << MPI_IDOfThisInstance);
+report::message(fmt::format("Multi node case, init MPI: {} nodes, instance {}" , MPI_noOfNodesInTotal, MPI_IDOfThisInstance));
 			fo->execute(); //wait for Direktor's events
 			fo->close();   //deletes my agents
 		}
@@ -89,7 +89,7 @@ int main(int argc, char** argv)
 		d->close();    //close the simulation, deletes agents, and save tracks.txt
 		fo->close();   //deletes my agents
 
-		REPORT("simulation required " << toc(timeHandle));
+report::message(fmt::format("simulation required {}" , toc(timeHandle)));
 #endif
 
 		std::cout << "Happy end.\n\n";
@@ -132,12 +132,12 @@ int main(int argc, char** argv)
 	//the respective close() methods if they had not been called before...
 	if (fo != NULL)
 	{
-		REPORT("trying to close (and save the most from) the simulation's FO #" << fo->getID());
+report::message(fmt::format("trying to close (and save the most from) the simulation's FO #{}" , fo->getID()));
 		delete fo;
 	}
 	if (d != NULL)
 	{
-		REPORT("trying to close (and save the most from) the simulation's Direktor");
+report::message(fmt::format("trying to close (and save the most from) the simulation's Direktor" ));
 		delete d;
 	}
 	return (1);

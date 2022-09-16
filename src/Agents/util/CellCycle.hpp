@@ -2,6 +2,7 @@
 #define CELLCYCLE_H
 
 #include "../../util/report.hpp"
+#include <fmt/core.h>
 
 /**
  * Utility class that governs proper cycling through a (normal) cell cycle.
@@ -99,8 +100,7 @@ public:
 	void setNormalPhaseDurations(const float fullCycleDuration,  //input
 	                             float phaseDurations[8])        //output
 	{
-		DEBUG_REPORT("setting up phase durations for standard cell cycle of "
-		             << fullCycleDuration << " mins");
+report::debugMessage(fmt::format("setting up phase durations for standard cell cycle of {} mins" , fullCycleDuration));
 
 		phaseDurations[G1Phase    ] = 0.5f     * fullCycleDuration;
 		phaseDurations[SPhase     ] = 0.3f     * fullCycleDuration;

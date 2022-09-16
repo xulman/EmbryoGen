@@ -37,6 +37,7 @@
 #include <i3d/transform.h>
 #include <i3d/filters.h>
 #include <i3d/convolution.h>
+#include <fmt/core.h>
 #include "../rnd_generators.hpp"
 #include "../texture/texture.hpp"
 #include "../report.hpp"
@@ -69,25 +70,25 @@ void PhaseII(i3d::Image3d<float>& fimg,
 			  res_psf = psf.GetResolution().GetRes(),
 			  res_fimg = fimg.GetResolution().GetRes();
 
-	DEBUG_REPORT("res img: " << res_fimg);
-	DEBUG_REPORT("res psf: " << res_psf);
+report::debugMessage(fmt::format("res img: {}" , toString(res_fimg)));
+report::debugMessage(fmt::format("res psf: {}" , toString(res_psf)));
 
 	i3d::Image3d<float> psfII(psf);
 
 	if (res_fimg != res_psf)
 	{
-		DEBUG_REPORT("resampling psf");
+report::debugMessage(fmt::format("resampling psf" ));
 		i3d::ResampleToDesiredResolution(psfII, res_fimg, i3d::LANCZOS);
 	}
 
-	DEBUG_REPORT("image size: " << fimg.GetSize());
-	DEBUG_REPORT("psf size: " << psfII.GetSize());
+report::debugMessage(fmt::format("image size: {}" , toString(fimg.GetSize())));
+report::debugMessage(fmt::format("psf size: {}" , toString(psfII.GetSize())));
 
 	// convolution with real confocal PSF
 	i3d::Image3d<float> blurred_texture;
 	i3d::Convolution<double,float,float>(fimg, psfII, blurred_texture);
 
-	DEBUG_REPORT("convolution done.");
+report::debugMessage(fmt::format("convolution done." ));
 
 	// Let us add the uneven illumination (with its brightest loci in the cell
 	// centre, which happens to be in the image centre)
@@ -109,7 +110,7 @@ void PhaseII(i3d::Image3d<float>& fimg,
 			  }
 
 	//fimg = blurred_texture;
-	DEBUG_REPORT("all done.");
+report::debugMessage(fmt::format("all done." ));
 }
 
 ///------------------------------------------------------------------------
@@ -129,8 +130,8 @@ void PhaseIII(i3d::Image3d<float>& blurred,
 	bgImg.CopyMetaData(blurred);
 	DoPerlin3D(bgImg,10.0,7.0,1.0,10); // very smooth a wide coherent noise
 
-	DEBUG_REPORT("BG Perlin done.");
-	DEBUG_REPORT("Image contains " << blurred.GetImageSize() << " voxels");
+report::debugMessage(fmt::format("BG Perlin done." ));
+report::debugMessage(fmt::format("Image contains {} voxels" , blurred.GetImageSize()));
 
 	// reset the maximum and minimum intensity levels of the background
 	// to the expected values
@@ -200,7 +201,7 @@ void PhaseIII(i3d::Image3d<float>& blurred,
 
 	//obtain final GRAY16 image
 	i3d::FloatToGrayNoWeight(blurred,texture);
-	DEBUG_REPORT("all done.");
+report::debugMessage(fmt::format("all done." ));
 }
 
 ///------------------------------------------------------------------------

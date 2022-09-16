@@ -92,7 +92,7 @@ void Scenario_DrosophilaRandom::initializeAgents(FrontOfficer* fo,int p,int)
 {
 	if (p != 1)
 	{
-		REPORT("Populating only the first FO (which is not this one).");
+report::message(fmt::format("Populating only the first FO (which is not this one)." ));
 		return;
 	}
 
@@ -186,19 +186,19 @@ class mySceneControls : public SceneControls
 	{
 		if (currTime > 9.5 && doMasks == 0)
 		{
-			REPORT_NOHEADER("enabling export of masks")
+report::message(fmt::format("enabling export of masks" ), {false});
 			ctx().disks.enableImgMaskTIFFs();
 			doMasks = 1;
 		}
 		else
 		if (currTime > 11.1 && doMasks == 1)
 		{
-			REPORT_NOHEADER("disabling export of masks")
+report::message(fmt::format("disabling export of masks" ), {false});
 			ctx().disks.disableImgMaskTIFFs();
 			doMasks = 2;
 		}
 		else
-			REPORT_NOHEADER("no change");
+report::message(fmt::format("no change" ), {false});
 	}
 };
 

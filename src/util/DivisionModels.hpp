@@ -7,6 +7,7 @@
 #include <cmath>
 #include "report.hpp"
 #include "rnd_generators.hpp"
+#include <fmt/core.h>
 
 
 /** timelapse configurations of sphere-based geometry (for agents
@@ -39,20 +40,20 @@ struct DivisionModel
 	{
 		for (int i=0; i < TB; ++i)
 		{
-			REPORT_NOENDL("mother at " << Mtimes[i] << ": " << Mradii[i][0]);
+			report::message(fmt::format("mother at {}: {}", Mtimes[i], Mradii[i][0], {true, false, false}));
 			for (int n=0; n < N-1; ++n)
-				REPORT_NOHEADER_NOENDL("-" << Mdists[i][n] << "-" << Mradii[i][n+1]);
-			REPORT_NOHEADER_JUSTENDL();
+				report::message(fmt::format("-{}-{}", Mdists[i][n], Mradii[i][n+1]), {false, false, false});
+			report::message("",{false, true});
 		}
-		REPORT("# division here (DBG entry ptr=" << (long)Mtimes << ")");
+		report::message(fmt::format("# division here (DBG entry ptr={})", long(Mtimes)));
 
 		for (int d=0; d < D;  ++d)
 		for (int i=0; i < TA; ++i)
 		{
-			REPORT_NOENDL("daughter" << d+1 << " at " << Dtimes[d][i] << ": " << Dradii[d][i][0]);
+			report::message(fmt::format("daughter{} at {}: {}", d+1, Dtimes[d][i], Dradii[d][i][0]), {true, false});
 			for (int n=0; n < N-1; ++n)
-				REPORT_NOHEADER_NOENDL("-" << Ddists[d][i][n] << "-" << Dradii[d][i][n+1]);
-			REPORT_NOHEADER_JUSTENDL();
+				report::message(fmt::format("-{}-{}", Ddists[d][i][n], Dradii[d][i][n+1]), {false, false});
+			report::message("",{false, true});
 		}
 	}
 
@@ -61,7 +62,7 @@ struct DivisionModel
 	{
 #ifdef DEBUG
 		if (time >= 0)
-			REPORT("WARNING: Mother's configuration not available for positive time.");
+			report::message("WARNING: Mother's configuration not available for positive time.");
 #endif
 		return getArrayValue<TB,N>(time,sphereNo, Mtimes,Mradii);
 	}
@@ -70,7 +71,7 @@ struct DivisionModel
 	{
 #ifdef DEBUG
 		if (time >= 0)
-			REPORT("WARNING: Mother's configuration not available for positive time.");
+			report::message("WARNING: Mother's configuration not available for positive time.");
 #endif
 		return getArrayValue<TB,N-1>(time,sphereNo, Mtimes,Mdists);
 	}
@@ -80,9 +81,9 @@ struct DivisionModel
 	{
 #ifdef DEBUG
 		if (time < 0)
-			REPORT("WARNING: Daughter's configuration not available for negative time.");
+			report::message("WARNING: Daughter's configuration not available for negative time.");
 		if (daughterNo < 0 || daughterNo >= D)
-			throw ERROR_REPORT("Wrong index (" << daughterNo << ") of the asked daughter.");
+throw report::rtError(fmt::format("Wrong index ({}) of the asked daughter.", daughterNo));
 #endif
 		return getArrayValue<TA,N>(time,sphereNo, Dtimes[daughterNo],Dradii[daughterNo]);
 	}
@@ -91,9 +92,9 @@ struct DivisionModel
 	{
 #ifdef DEBUG
 		if (time < 0)
-			REPORT("WARNING: Daughter's configuration not available for negative time.");
+			report::message("WARNING: Daughter's configuration not available for negative time.");
 		if (daughterNo < 0 || daughterNo >= D)
-			throw ERROR_REPORT("Wrong index (" << daughterNo << ") of the asked daughter.");
+throw report::rtError(("Wrong index ({}) of the asked daughter.", daughterNo));
 #endif
 		return getArrayValue<TA,N-1>(time,sphereNo, Dtimes[daughterNo],Ddists[daughterNo]);
 	}
@@ -106,7 +107,7 @@ private:
 	{
 #ifdef DEBUG
 		if (itemIdx < 0 || itemIdx >= I)
-			throw ERROR_REPORT("Wrong index (" << itemIdx << ") of the asked sphere.");
+throw report::rtError(("Wrong index ({}) of the asked sphere." , itemIdx));
 #endif
 
 		//(time-wise) before the values? never mind, return the first value
@@ -186,7 +187,7 @@ public:
 	const DivModelType& getModel(const int id) const
 	{
 		try { return models.at(id); }
-		catch (std::out_of_range* e) { throw ERROR_REPORT("Out of range with model id " << id); }
+		catch (std::out_of_range* e) { throw report::rtError(fmt::format("Out of range with model id {}",  id)); }
 	}
 
 	const DivModelType& getRandomModel() const
@@ -199,7 +200,7 @@ public:
 	DivModelType& getModel(const int id)
 	{
 		try { return models.at(id); }
-		catch (std::out_of_range* e) { throw ERROR_REPORT("Out of range with model id " << id); }
+		catch (std::out_of_range* e) { throw report::rtError(fmt::format("Out of range with model id {}", id)); }
 	}
 
 	DivModelType& getRandomModel()
@@ -387,13 +388,13 @@ public:
 		for (int t=0; t < T; ++t)
 		{
 			double sum = 0;
-			REPORT_NOENDL(t << ":");
+			report::message(fmt::format("{}:", t), {true, false});
 			for (int m=0; m < M; ++m)
 			{
-				REPORT_NOHEADER_NOENDL("\t" << w[t][m]);
+				report::message(fmt::format("\t{}", w[t][m]), {false, false});
 				sum += w[t][m];
 			}
-			REPORT_NOHEADER("\t" << "(sum = " << sum << ")");
+			report::message(fmt::format("\t(sum = {})", sum), {false});
 		}
 	}
 
@@ -405,25 +406,25 @@ public:
 
 		for (int m=0; m < M; ++m)
 		{
-			REPORT_NOENDL(m << ":");
+			report::message(fmt::format("{}:", m), {true, false});
 			for (int t=0; t < T; ++t)
 			{
-				REPORT_NOHEADER_NOENDL("\t" << w[t][m]);
+				report::message(fmt::format("\t{}", w[t][m]), {false, false});
 				sum[t] += w[t][m];
 			}
-			REPORT_NOHEADER_JUSTENDL();
+			report::message("",{false, true});
 		}
 
-		REPORT_NOENDL("sums:");
-		for (int t=0; t < T; ++t) REPORT_NOHEADER_NOENDL("\t" << sum[t]);
-		REPORT_NOHEADER_JUSTENDL();
+		report::message("sums:", {true, false});
+		for (int t=0; t < T; ++t) report::message(fmt::format("\t{}",sum[t]), {false, false});
+		report::message("",{false, true});
 	}
 
 	// ---------------------- IO stuff ----------------------
 	void printModel(const int id) const
 	{
 		try { models.at(id).printModel(); }
-		catch (std::out_of_range* e) { throw ERROR_REPORT("Out of range with model id " << id); }
+		catch (std::out_of_range* e) { throw report::rtError(fmt::format("Out of range with model id {}", id)); }
 	}
 
 
@@ -474,20 +475,20 @@ public:
 			if (role == 0)
 			{
 				if (lines[0] == TB)
-					throw ERROR_REPORT("Too many mother (role 0) lines defined.");
+throw report::rtError("Too many mother (role 0) lines defined." );
 
 				//filling up mother record, role should be 0
 				dm.Mtimes[lines[0]] = -timeStep * static_cast<float>(TB-lines[0]);
 			}
 			else if (role < 0 || role > D)
 			{
-				throw ERROR_REPORT("Found definition for daughter" << role << " but can store only " << D << " daughters.");
+throw report::rtError(fmt::format("Found definition for daughter{} but can store only {} daughters." , role, D));
 			}
 			else
 			{
 				//filling up some daughter record
 				if (lines[role] == TA)
-					throw ERROR_REPORT("Too many daughter (role " << role << ") lines defined.");
+throw report::rtError(fmt::format("Too many daughter (role {}) lines defined.", role));
 
 				dm.Dtimes[role-1][lines[role]] = timeStep * static_cast<float>(lines[role]);
 			}
@@ -533,11 +534,11 @@ public:
 
 		//control-check:
 		if (lines[0] != TB)
-			throw ERROR_REPORT("Not enough mother (role 0) lines defined.");
+throw report::rtError(fmt::format("Not enough mother (role 0) lines defined."));
 
 		for (int d=1; d < D+1; ++d)
 			if (lines[d] != TA)
-				throw ERROR_REPORT("Not enough daughter (role " << d << ") lines defined.");
+throw report::rtError(fmt::format("Not enough daughter (role {}) lines defined.", d));
 	}
 };
 

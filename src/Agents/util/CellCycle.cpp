@@ -2,6 +2,7 @@
 #include "../../util/rnd_generators.hpp"
 #include "CellCycle.hpp"
 
+
 float CellCycle::RandomizeCellCycleDuration(const float refDuration, const float spreadFactor)
 {
 	return ( GetRandomGauss(refDuration, spreadFactor * refDuration) );
@@ -11,37 +12,28 @@ float CellCycle::RandomizeCellCycleDuration(const float refDuration, const float
 /** (debug) report of the internal setting */
 void CellCycle::reportPhaseDurations(void) const
 {
-	REPORT("full cycle duration is: " << fullCycleDuration << " minutes ("
-	       << fullCycleDuration/60 << " hrs)");
+report::message(fmt::format("full cycle duration is: {} minutes ({} hrs)" , fullCycleDuration, fullCycleDuration/60));
 
 	float phaseTotalTime = 0;
 	for (int i=G1Phase; i <= Cytokinesis; ++i)
 		phaseTotalTime += phaseDurations[i];
-	REPORT("all cycles duration is: " << phaseTotalTime << " minutes");
+report::message(fmt::format("all cycles duration is: {} minutes" , phaseTotalTime));
 
-	REPORT("  G1Phase    : " << phaseDurations[G1Phase    ] << " mins\t ("
-	       << phaseDurations[G1Phase    ]/fullCycleDuration << "%)");
-	REPORT("  SPhase     : " << phaseDurations[SPhase     ] << " mins\t ("
-	       << phaseDurations[SPhase     ]/fullCycleDuration << "%)");
-	REPORT("  G2Phase    : " << phaseDurations[G2Phase    ] << " mins\t ("
-	       << phaseDurations[G2Phase    ]/fullCycleDuration << "%)");
-	REPORT("  Prophase   : " << phaseDurations[Prophase   ] << " mins\t ("
-	       << phaseDurations[Prophase   ]/fullCycleDuration << "%)");
-	REPORT("  Metaphase  : " << phaseDurations[Metaphase  ] << " mins\t ("
-	       << phaseDurations[Metaphase  ]/fullCycleDuration << "%)");
-	REPORT("  Anaphase   : " << phaseDurations[Anaphase   ] << " mins\t ("
-	       << phaseDurations[Anaphase   ]/fullCycleDuration << "%)");
-	REPORT("  Telophase  : " << phaseDurations[Telophase  ] << " mins\t ("
-	       << phaseDurations[Telophase  ]/fullCycleDuration << "%)");
-	REPORT("  Cytokinesis: " << phaseDurations[Cytokinesis] << " mins\t ("
-	       << phaseDurations[Cytokinesis]/fullCycleDuration << "%)");
+report::message(fmt::format("  G1Phase    : {} mins\t ({}%)" , phaseDurations[G1Phase    ], phaseDurations[G1Phase    ]/fullCycleDuration));
+report::message(fmt::format("  SPhase     : {} mins\t ({}%)" , phaseDurations[SPhase     ], phaseDurations[SPhase     ]/fullCycleDuration));
+report::message(fmt::format("  G2Phase    : {} mins\t ({}%)" , phaseDurations[G2Phase    ], phaseDurations[G2Phase    ]/fullCycleDuration));
+report::message(fmt::format("  Prophase   : {} mins\t ({}%)" , phaseDurations[Prophase   ], phaseDurations[Prophase   ]/fullCycleDuration));
+report::message(fmt::format("  Metaphase  : {} mins\t ({}%)" , phaseDurations[Metaphase  ], phaseDurations[Metaphase  ]/fullCycleDuration));
+report::message(fmt::format("  Anaphase   : {} mins\t ({}%)" , phaseDurations[Anaphase   ], phaseDurations[Anaphase   ]/fullCycleDuration));
+report::message(fmt::format("  Telophase  : {} mins\t ({}%)" , phaseDurations[Telophase  ], phaseDurations[Telophase  ]/fullCycleDuration));
+report::message(fmt::format("  Cytokinesis: {} mins\t ({}%)" , phaseDurations[Cytokinesis], phaseDurations[Cytokinesis]/fullCycleDuration));
 }
 
 
 void CellCycle::startCycling(const float currentGlobalTime)
 {
 	if (curPhase != newBorn)
-		throw ERROR_REPORT("Re-initializing already initialized cell cycle");
+throw report::rtError("Re-initializing already initialized cell cycle");
 
 	//define the phase durations
 	determinePhaseDurations();
@@ -60,7 +52,7 @@ void CellCycle::startCycling(const float currentGlobalTime)
 void CellCycle::triggerCycleMethods(const float currentGlobalTime)
 {
 	if (curPhase == newBorn)
-		throw ERROR_REPORT("Not yet fully initialized cell cycle; did you call startCycling()?");
+throw report::rtError("Not yet fully initialized cell cycle; did you call startCycling()?");
 
 	//beyond the cell cycle, do nothing
 	if (curPhase == RestInPeace) return;
@@ -75,16 +67,16 @@ void CellCycle::triggerCycleMethods(const float currentGlobalTime)
 		   /*  \ B: */         : std::copysign(1.0f, currentGlobalTime-lastPhaseChangeGlobalTime));
 		//A: the same behaviour as for "normal phase", i.e. prevention from re-running with time=0
 		//B: returns +1 (OK state) or -1 (indication of a sanity check fail, same as for "normal phase")
-		DEBUG_REPORT("progress=" << progress);
+report::debugMessage(fmt::format("progress={}" , progress));
 
 		if (progress < 0)
 		{
-			throw ERROR_REPORT("lastPhaseChange is ahead given currentGlobalTime (or phase duration is negative), quitting confusedly");
+throw report::rtError("lastPhaseChange is ahead given currentGlobalTime (or phase duration is negative), quitting confusedly" );
 		}
 		else if (progress == 0)
 		{
 			//there's really no progress required from us, just skip this call
-			DEBUG_REPORT("skipping this call...");
+report::debugMessage(fmt::format("skipping this call..." ));
 			tryNextPhase = false;
 		}
 		else if (progress < 1)
@@ -125,7 +117,7 @@ void CellCycle::triggerCycleMethods(const float currentGlobalTime)
 				break;
 
 			default:
-				throw ERROR_REPORT("Unknown cycle state!");
+throw report::rtError("Unknown cycle state!");
 			}
 
 			//couldn't cross the phase boundaries, yet has done its portion of the work
@@ -210,7 +202,7 @@ void CellCycle::triggerCycleMethods(const float currentGlobalTime)
 				break;
 
 			default:
-				throw ERROR_REPORT("Unknown cycle state!");
+throw report::rtError("Unknown cycle state!");
 			}
 
 			//it might, however, still not be the end of this:

@@ -8,7 +8,7 @@
 
 void FrontOfficer::init1_SMP()
 {
-	REPORT("FO #" << ID << " initializing now...");
+report::message(fmt::format("FO #{} initializing now..." , ID));
 	currTime = scenario.params.constants.initTime;
 
 	scenario.initializeScene();
@@ -28,7 +28,7 @@ void FrontOfficer::init2_SMP()
 	postprocessAfterUpdateAndPublishAgents();
 #endif
 	reportSituation();
-	REPORT("FO #" << ID << " initialized");
+report::message(fmt::format("FO #{} initialized" , ID));
 }
 
 
@@ -37,21 +37,16 @@ void FrontOfficer::reportSituation()
 	//overlap reports:
 	if (overlapSubmissionsCounter == 0)
 	{
-		DEBUG_REPORT("no overlaps reported at all");
+report::debugMessage(fmt::format("no overlaps reported at all" ));
 	}
 	else
 	{
-		DEBUG_REPORT("max overlap: " << overlapMax
-	        << ", avg overlap: " << (overlapSubmissionsCounter > 0 ? overlapAvg/float(overlapSubmissionsCounter) : 0.f)
-	        << ", cnt of overlaps: " << overlapSubmissionsCounter);
+report::debugMessage(fmt::format("max overlap: {}, avg overlap: {}, cnt of overlaps: {}" , overlapMax, (overlapSubmissionsCounter > 0 ? overlapAvg/float(overlapSubmissionsCounter) : 0.f), overlapSubmissionsCounter));
 	}
 	overlapMax = overlapAvg = 0.f;
 	overlapSubmissionsCounter = 0;
 
-	REPORT("--------------- " << currTime << " min ("
-	  << agents.size() << " in this FO #" << ID << " / "
-	  << AABBs.size() << " AABBs (entire world), "
-	  << shadowAgents.size() << " cached geometries) ---------------");
+report::message(fmt::format("--------------- {} min ({} in this FO #{} / {} AABBs (entire world), {} cached geometries) ---------------" , currTime, agents.size(), ID, AABBs.size(), shadowAgents.size()));
 }
 
 
@@ -59,13 +54,13 @@ void FrontOfficer::close(void)
 {
 	//mark before closing is attempted...
 	isProperlyClosedFlag = true;
-	DEBUG_REPORT("running the closing sequence");
+report::debugMessage(fmt::format("running the closing sequence" ));
 
 	//TODO: should close/kill the service thread too
 
 	//delete all agents... also later from newAgents & deadAgents, note that
 	//the same agent may exist on the agents and deadAgents lists simultaneously
-	DEBUG_REPORT("will remove " << agents.size() << " active agents");
+report::debugMessage(fmt::format("will remove {} active agents" , agents.size()));
 	for (auto ag : agents)
 	{
 		//check and possibly remove from the deadAgents list
@@ -73,7 +68,7 @@ void FrontOfficer::close(void)
 		while (daIt != deadAgents.end() && *daIt != ag.second) ++daIt;
 		if (daIt != deadAgents.end())
 		{
-			DEBUG_REPORT("removing from deadAgents list the duplicate agent ID " << (*daIt)->ID);
+report::debugMessage(fmt::format("removing from deadAgents list the duplicate agent ID {}" , (*daIt)->ID));
 			deadAgents.erase(daIt);
 		}
 
@@ -83,8 +78,7 @@ void FrontOfficer::close(void)
 	agents.clear();
 
 	//now remove what's left on newAgents and deadAgents
-	DEBUG_REPORT("will remove " << newAgents.size() << " and " << deadAgents.size()
-	          << " agents from newAgents and deadAgents, respectively");
+report::debugMessage(fmt::format("will remove {} and {} agents from newAgents and deadAgents, respectively" , newAgents.size(), deadAgents.size()));
 	while (!newAgents.empty())
 	{
 		delete newAgents.front();
@@ -97,7 +91,7 @@ void FrontOfficer::close(void)
 	}
 
 	//also clean up any shadow agents one may have
-	DEBUG_REPORT("will remove " << shadowAgents.size() << " shadow agents");
+report::debugMessage(fmt::format("will remove {} shadow agents" , shadowAgents.size()));
 	for (auto sh : shadowAgents)
 	{
 		delete sh.second;
@@ -112,7 +106,7 @@ void FrontOfficer::close(void)
 
 void FrontOfficer::execute(void)
 {
-	REPORT("FO #" << ID << " is waiting to start simulating");
+report::message(fmt::format("FO #{} is waiting to start simulating" , ID));
 
 	const float stopTime = scenario.params.constants.stopTime;
 	const float incrTime = scenario.params.constants.incrTime;
@@ -188,7 +182,7 @@ void FrontOfficer::executeInternals()
 		c->second->advanceAndBuildIntForces(futureTime);
 #ifdef DEBUG
 		if (c->second->getLocalTime() < futureTime)
-			throw ERROR_REPORT("Agent is not synchronized.");
+throw report::report_rt("Agent is not synchronized." );
 #endif
 	}
 
@@ -256,7 +250,7 @@ void FrontOfficer::updateAndPublishAgents()
 	{
 #ifdef DEBUG
 		if (agents.find((*ag)->ID) != agents.end())
-			throw ERROR_REPORT("Attempting to add another agent with the same ID " << (*ag)->ID);
+throw report::rtError(fmt::format("Attempting to add another agent with the same ID {}" , (*ag)->ID));
 #endif
 		agents[(*ag)->ID] = *ag;
 		ag = newAgents.erase(ag);
@@ -279,7 +273,7 @@ void FrontOfficer::updateAndPublishAgents()
 	size_t cnt = agents.size();
 	for (auto ag : agents)
 	{
-		DEBUG_REPORT("reporting AABB of agent ID " << ag.first);
+report::debugMessage(fmt::format("reporting AABB of agent ID {}" , ag.first));
 		if (cnt > 1)
 			broadcast_AABBofAgent(*(ag.second),0);
 		else
@@ -313,7 +307,7 @@ int FrontOfficer::getNextAvailAgentID()
 void FrontOfficer::startNewAgent(AbstractAgent* ag, const bool wantsToAppearInCTCtracksTXTfile)
 {
 	if (ag == NULL)
-		throw ERROR_REPORT("refuse to include NULL agent.");
+throw report::rtError("refuse to include NULL agent.");
 
 	//register the agent for adding into the system:
 	//local registration:
@@ -324,14 +318,14 @@ void FrontOfficer::startNewAgent(AbstractAgent* ag, const bool wantsToAppearInCT
 	//remote registration:
 	request_startNewAgent(ag->ID,this->ID,wantsToAppearInCTCtracksTXTfile);
 
-	DEBUG_REPORT("just registered this new agent: " << IDSIGNHIM(*ag));
+report::debugMessage(fmt::format("just registered this new agent: {}" , ag->getSignature()));
 }
 
 
 void FrontOfficer::closeAgent(AbstractAgent* ag)
 {
 	if (ag == NULL)
-		throw ERROR_REPORT("refuse to deal with NULL agent.");
+throw report::rtError(fmt::format("refuse to deal with NULL agent."));
 
 	//register the agent for removing from the system:
 	//local registration
@@ -340,7 +334,7 @@ void FrontOfficer::closeAgent(AbstractAgent* ag)
 	//remote registration
 	request_closeAgent(ag->ID,this->ID);
 
-	DEBUG_REPORT("just unregistered this dead agent: " << IDSIGNHIM(*ag));
+report::debugMessage(fmt::format("just unregistered this dead agent: {}" , ag->getSignature()));
 }
 
 
@@ -359,7 +353,7 @@ void FrontOfficer::closeMotherStartDaughters(
           AbstractAgent* daughterB)
 {
 		if (mother == NULL || daughterA == NULL || daughterB == NULL)
-			throw ERROR_REPORT("refuse to deal with (some) NULL agent.");
+throw report::rtError("refuse to deal with (some) NULL agent.");
 
 		closeAgent(mother);
 		startNewDaughterAgent(daughterA, mother->ID);
@@ -396,9 +390,7 @@ void FrontOfficer::registerThatThisAgentIsAtThisFO(const int agentID, const int 
 {
 #ifdef DEBUG
 	if (agentsToFOsMap.find(agentID) != agentsToFOsMap.end())
-		throw ERROR_REPORT("Agent ID " << agentID
-			<< " already registered with FO #" << agentsToFOsMap.find(agentID)->second
-			<< " but was (again) broadcast by FO #" << FOsID);
+throw report::rtError(fmt::format("Agent ID {} already registered with FO #{} but was (again) broadcast by FO #{}", agentID, agentsToFOsMap.find(agentID)->second, FOsID));
 #endif
 	agentsToFOsMap[agentID] = FOsID;
 }
@@ -463,9 +455,9 @@ const ShadowAgent* FrontOfficer::getNearbyAgent(const int fetchThisID)
 #ifdef DEBUG
 	//btw: must have been broadcasted and we must therefore see the agent in our data structures
 	if (agentsToFOsMap.find(fetchThisID) == agentsToFOsMap.end())
-		throw ERROR_REPORT("Should not happen! I don't know which FO is the requested agent ID " << fetchThisID);
+throw report::rtError(fmt::format("Should not happen! I don't know which FO is the requested agent ID {}", fetchThisID));
 	if (agentsAndBroadcastGeomVersions.find(fetchThisID) == agentsAndBroadcastGeomVersions.end())
-		throw ERROR_REPORT("Should not happen! I don't know what is the recent geometry version of the requested agent ID " << fetchThisID);
+throw report::rtError(fmt::format("Should not happen! I don't know what is the recent geometry version of the requested agent ID {}" , fetchThisID));
 #endif
 
 	//now, check we have a copy at all and if it is an updated/fresh one
@@ -477,7 +469,7 @@ const ShadowAgent* FrontOfficer::getNearbyAgent(const int fetchThisID)
 
 	//else, we have to obtain the most recent copy...
 	const int contactThisFO = agentsToFOsMap[fetchThisID];
-	DEBUG_REPORT("Requesting agent ID " << fetchThisID << " from FO #" << contactThisFO);
+report::debugMessage(fmt::format("Requesting agent ID {} from FO #{}" , fetchThisID, contactThisFO));
 	ShadowAgent* const saCopy = request_ShadowAgentCopy(fetchThisID, contactThisFO);
 
 	//delete the now-old content first (if there was some)
@@ -489,9 +481,7 @@ const ShadowAgent* FrontOfficer::getNearbyAgent(const int fetchThisID)
 #ifdef DEBUG
 	//now the broadcast version must match the one we actually have got
 	if (agentsAndBroadcastGeomVersions[fetchThisID] != shadowAgents[fetchThisID]->getGeometry().version)
-		throw ERROR_REPORT("Should not happen! Agent ID " << fetchThisID
-		          << " promised geometry at version " << agentsAndBroadcastGeomVersions[fetchThisID]
-		          << " but provided version " << shadowAgents[fetchThisID]->getGeometry().version);
+throw report::rtError(fmt::format("Should not happen! Agent ID {} promised geometry at version {} but provided version {}", fetchThisID, agentsAndBroadcastGeomVersions[fetchThisID], shadowAgents[fetchThisID]->getGeometry().version));
 #endif
 
 	return saCopy;
@@ -500,7 +490,7 @@ const ShadowAgent* FrontOfficer::getNearbyAgent(const int fetchThisID)
 
 void FrontOfficer::renderNextFrame()
 {
-	REPORT("Rendering time point " << frameCnt);
+report::message(fmt::format("Rendering time point {}" , frameCnt));
 	SceneControls& sc = scenario.params;
 
 	// ----------- OUTPUT EVENTS -----------
@@ -555,7 +545,7 @@ void FrontOfficer::renderNextFrame()
 	}
 
 	sc.displayUnit.Flush(); //make sure all drawings are sent before the "tick"
-	sc.displayUnit.Tick(buildStringFromStream("Frame: " << frameCnt << " (sent by FO #" << ID << ")").c_str());
+	sc.displayUnit.Tick(fmt::format("Frame: {} (sent by FO # {})", frameCnt, ID));
 	sc.displayUnit.Flush(); //make sure the "tick" is sent right away too
 
 	++frameCnt;
@@ -567,10 +557,7 @@ void FrontOfficer::renderNextFrame()
 
 void FrontOfficer::reportAABBs()
 {
-	REPORT("I now recognize these AABBs:");
+report::message(fmt::format("I now recognize these AABBs:" ));
 	for (const auto& naabb : AABBs)
-		REPORT("agent ID " << naabb.ID << " \"" << agentsTypesDictionary.translateIdToString(naabb.nameID)
-		       << "\" spanning from "
-		       << naabb.minCorner << " to " << naabb.maxCorner
-		       << " and living at FO #" << agentsToFOsMap[naabb.ID]);
+report::message(fmt::format("agent ID {} \"{}\" spanning from {} to {} and living at FO #{}" , naabb.ID, agentsTypesDictionary.translateIdToString(naabb.nameID), toString(naabb.minCorner), toString(naabb.maxCorner), agentsToFOsMap[naabb.ID]));
 }

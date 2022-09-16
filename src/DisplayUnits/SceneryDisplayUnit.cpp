@@ -110,9 +110,9 @@ void SceneryDisplayUnit::DrawTriangle(const int ID,
 }
 
 
-void SceneryDisplayUnit::Tick(const char* msg)
+void SceneryDisplayUnit::Tick(const std::string& msg)
 {
-	std::string msgString = std::string("v1 tick ") + (msg != NULL ? msg : "");
+	std::string msgString = std::string("v1 tick ") + msg;
 	//socket->send( zmq::const_buffer(msgString.c_str(),msgString.size()) );
 }
 
@@ -122,7 +122,7 @@ void SceneryDisplayUnit::ConnectToHost(void)
 	/*
 	context  = new zmq::context_t(1);
 	socket   = new zmq::socket_t(*context, ZMQ_PAIR);
-	DEBUG_REPORT("Connecting Scenery DU to: " << (std::string("tcp://")+std::string(hostUrl)));
+report::debugMessage(fmt::format("Connecting Scenery DU to: {}" , (std::string("tcp://")+std::string(hostUrl))));
 	socket->connect(std::string("tcp://")+std::string(hostUrl));
 	*/
 }
@@ -132,7 +132,7 @@ void SceneryDisplayUnit::DisconnectFromHost(void)
 	/*
 	if (socket != NULL)
 	{
-		DEBUG_REPORT("Disconnecting Scenery DU from: " << (std::string("tcp://")+std::string(hostUrl)));
+report::debugMessage(fmt::format("Disconnecting Scenery DU from: {}" , (std::string("tcp://")+std::string(hostUrl))));
 		socket->disconnect(std::string("tcp://")+std::string(hostUrl));
 		socket->close();
 		delete socket;

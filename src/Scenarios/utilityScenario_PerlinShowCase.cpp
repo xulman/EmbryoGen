@@ -6,7 +6,7 @@ void Scenario_PerlinShowCase::initializeAgents(FrontOfficer*,int p,int)
 {
 	if (p != 1)
 	{
-		REPORT("Doing something only on the first FO (which is not this one).");
+report::message(fmt::format("Doing something only on the first FO (which is not this one)." ));
 		return;
 	}
 
@@ -20,9 +20,9 @@ void Scenario_PerlinShowCase::initializeAgents(FrontOfficer*,int p,int)
 	const float ySize = 20.0f;
 	const float zSize = 20.0f;
 
-	REPORT("Note the optional usage patterns:");
-	REPORT(argv[0] << " PerlinShowCase anySingleParameter  - produce also finalPreviews");
-	REPORT(argv[0] << " PerlinShowCase var alpha beta n    - produce given single sample");
+report::message(fmt::format("Note the optional usage patterns:" ));
+report::message(fmt::format("{} PerlinShowCase anySingleParameter  - produce also finalPreviews" , argv[0]));
+report::message(fmt::format("{} PerlinShowCase var alpha beta n    - produce given single sample" , argv[0]));
 
 	params.imgPhantom.SetResolution( i3d::Resolution(xRes,yRes,zRes) );
 	params.imgPhantom.MakeRoom( (size_t)std::ceil(xSize * xRes),
@@ -30,8 +30,7 @@ void Scenario_PerlinShowCase::initializeAgents(FrontOfficer*,int p,int)
 	                            (size_t)std::ceil(zSize * zRes) );
 	if (argc == 3) params.imgFinal.CopyMetaData(params.imgPhantom);
 
-	REPORT("Perlin image size: " << params.imgPhantom.GetSizeX() << " x "
-	       << params.imgPhantom.GetSizeY() << " x " << params.imgPhantom.GetSizeZ() << " pixels");
+report::message(fmt::format("Perlin image size: {} x {} x {} pixels" , params.imgPhantom.GetSizeX(), params.imgPhantom.GetSizeY(), params.imgPhantom.GetSizeZ()));
 
 	char fn[1024];
 
@@ -46,7 +45,7 @@ void Scenario_PerlinShowCase::initializeAgents(FrontOfficer*,int p,int)
 		DoPerlin3D(params.imgPhantom, var,alpha,beta,n);
 
 		sprintf(fn,"Perlin_%02.2f_%02.2f_%02.2f_%d.ics",var,alpha,beta,n);
-		REPORT("Saving Perlin phantom image: " << fn);
+report::message(fmt::format("Saving Perlin phantom image: {}" , fn));
 		params.imgPhantom.SaveImage(fn);
 	}
 	else
@@ -60,14 +59,14 @@ void Scenario_PerlinShowCase::initializeAgents(FrontOfficer*,int p,int)
 			DoPerlin3D(params.imgPhantom, var,alpha,beta,n);
 
 			sprintf(fn,"Perlin_%02.2f_%02.2f_%02.2f_%d.ics",var,alpha,beta,n);
-			REPORT("Saving Perlin phantom image: " << fn);
+report::message(fmt::format("Saving Perlin phantom image: {}" , fn));
 			params.imgPhantom.SaveImage(fn);
 
 			if (argc == 3)
 			{
 				doPhaseIIandIII();
 				sprintf(fn,"PerlinFinalPreview_%02.2f_%02.2f_%02.2f_%d.ics",var,alpha,beta,n);
-				REPORT("Saving Perlin final image: " << fn);
+report::message(fmt::format("Saving Perlin final image: {}" , fn));
 				params.imgFinal.SaveImage(fn);
 			}
 		}

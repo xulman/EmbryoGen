@@ -25,7 +25,7 @@ class provideSceneControls_withOwnUpdater: public SceneControls
 public:
 	void updateControls(const float currTime) override
 	{
-		REPORT("my own special updater at time " << currTime);
+		report::message(fmt::format("my own special updater at time {}", currTime));
 	}
 };
 
@@ -36,7 +36,7 @@ public:
 
 	void updateControls(const float currTime) override
 	{
-		REPORT("my own special updater at time " << currTime);
+		report::message(fmt::format("my own special updater at time {}", currTime));
 	}
 };
 
@@ -46,7 +46,7 @@ SCENARIO_DECLARATION_withDefOptSynthoscopy( testCreatingAndSettingScenario )
 
 SceneControls& testCreatingAndSettingScenario::provideSceneControls()
 {
-	REPORT("providing some SceneControls");
+	report::message("providing some SceneControls");
 
 	//default SceneControls incl. default constants
 	//return DefaultSceneControls;
@@ -65,26 +65,26 @@ SceneControls& testCreatingAndSettingScenario::provideSceneControls()
 
 void testCreatingAndSettingScenario::initializeScene()
 {
-	REPORT("argc=" << argc);
+	report::message("argc=" << argc);
 	if (argc > 1)
-		REPORT("argv[1]=" << argv[1]);
+		report::message("argv[1]=" << argv[1]);
 }
 
 void testCreatingAndSettingScenario::initializeAgents(FrontOfficer* fo, int fractionNumber,int noOfAllFractions)
 {
-	REPORT("preparing " << fractionNumber << "/" << noOfAllFractions);
+	report::message("preparing " << fractionNumber << "/" << noOfAllFractions);
 }
 
 /*
 //enable this if SCENARIO_DECLARATION_withItsOwnSynthoscopy is used
 void testCreatingAndSettingScenario::initializePhaseIIandIII()
 {
-	REPORT("what to say here?");
+	report::message("what to say here?");
 }
 
 void testCreatingAndSettingScenario::doPhaseIIandIII()
 {
-	REPORT("what to say here?");
+	report::message("what to say here?");
 }
 */
 
@@ -96,19 +96,19 @@ SceneControls& testBasicScenario::provideSceneControls()
 { return DefaultSceneControls; }
 
 void testBasicScenario::initializeScene()
-{ REPORT("init Scene"); }
+{ report::message("init Scene"); }
 
 void testBasicScenario::initializeAgents(FrontOfficer* fo, int fractionNumber,int noOfAllFractions)
-{ REPORT("add agents " << fractionNumber << "/" << noOfAllFractions); }
+{ report::message(fmt::format("add agents {}/{}",fractionNumber, noOfAllFractions)); }
 
 class testExtendedScenario: public testBasicScenario
 {
 public:
 	void testWork()
 	{
-		REPORT("constants.incrTime = " << params.constants.incrTime);
-		REPORT("producingMasks? = " << params.isProducingOutput(params.imgMask));
-		REPORT("producingMasks? = " << params.imagesSaving_isEnabledForImgMask());
+		report::message(fmt::format("constants.incrTime = {}", params.constants.incrTime));
+		report::message(fmt::format("producingMasks? = {}", params.isProducingOutput(params.imgMask)));
+		report::message(fmt::format("producingMasks? = {}", params.imagesSaving_isEnabledForImgMask()));
 		//params.constants.expoTime = 10.0f; FAILS which is OKay
 		params.enableProducingOutput(params.imgFinal);
 	}
@@ -130,10 +130,10 @@ int main(int argc, char** argv)
 	std::cout << "postInit: expoTime = " << s.seeCurrentControls().constants.expoTime << "\n";
 
 
-	REPORT_NOHEADER("---------------------------------------");
+	report::message("---------------------------------------", {false});
 	testExtendedScenario es;
 	es.testWork();
 
 	const SceneControls& es_sc = es.seeCurrentControls();
-	REPORT("producingMasks? = " << es_sc.isProducingOutput(es_sc.imgMask));
+	report::message(fmt::format("producingMasks? = " << es_sc.isProducingOutput(es_sc.imgMask)));
 }

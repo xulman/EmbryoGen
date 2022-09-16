@@ -2,6 +2,7 @@
 #include <gsl/gsl_randist.h>
 #include <time.h>
 #include <unistd.h>
+#include <fmt/core.h>
 
 #include "report.hpp"
 #include "rnd_generators.hpp"
@@ -38,7 +39,7 @@ void inline PossiblyReSeed(rndGeneratorHandle& rngHandle)
 
 		const unsigned long s = (unsigned)(-1 * time(NULL) * getpid()) + ++seedExtraDiversity;
 		gsl_rng_set(rngHandle.rngState,s);
-		DEBUG_REPORT("randomness started with seed " << s);
+report::debugMessage(fmt::format("randomness started with seed {}" , s));
 
 		rngHandle.usageCnt = 0;
 	}

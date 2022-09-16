@@ -35,7 +35,7 @@ void Scenario_withTexture::initializeAgents(FrontOfficer* fo,int p,int)
 {
 	if (p != 1)
 	{
-		REPORT("Populating only the first FO (which is not this one).");
+report::message(fmt::format("Populating only the first FO (which is not this one)." ));
 		return;
 	}
 
@@ -90,12 +90,12 @@ SceneControls& Scenario_withTexture::provideSceneControls()
 
 void Scenario_withTexture::initializePhaseIIandIII(void)
 {
-	REPORT("hello, preparing my own code for synthoscopy");
+report::message(fmt::format("hello, preparing my own code for synthoscopy" ));
 }
 
 void Scenario_withTexture::doPhaseIIandIII(void)
 {
-	REPORT("hello, doing my own code for synthoscopy");
+report::message(fmt::format("hello, doing my own code for synthoscopy" ));
 
 	//we've shown we can be in own code for synthoscopy,
 	//but this time we will fallback using the default code...

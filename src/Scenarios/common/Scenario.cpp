@@ -13,14 +13,14 @@ SceneControls DefaultSceneControls;
 
 void Scenario::initializePhaseIIandIII()
 {
-	DEBUG_REPORT("This scenario is using the default initialization routine.");
+	report::debugMessage("This scenario is using the default initialization routine.");
 
 #ifdef ENABLE_FILOGEN_PHASEIIandIII
 	//search the cmd line params for "-psf filePath"
 	static const std::string psfSwitch("-psf");
 
-	REPORT("You can request to use own PSF image via command line switch.");
-	REPORT("e.g.:  " << psfSwitch << " ../2013-07-25_1_1_9_0_2_0_0_1_0_0_0_0_9_12.ics");
+	report::message("You can request to use own PSF image via command line switch.");
+	report::message(fmt::format("e.g.:  {} ../2013-07-25_1_1_9_0_2_0_0_1_0_0_0_0_9_12.ics", psfSwitch));
 
 	//locate the switch string
 	int argPos = 1;
@@ -36,7 +36,7 @@ void Scenario::initializePhaseIIandIII()
 	//if there is non-empty path, try to load the file
 	if (!imgPSFuserPath.empty())
 	{
-		REPORT("reading this PSF image " << imgPSFuserPath);
+		report::message(fmt::format("reading this PSF image {}", imgPSFuserPath));
 		imgPSF.ReadImage(imgPSFuserPath.c_str());
 	}
 #endif
@@ -46,11 +46,11 @@ void Scenario::initializePhaseIIandIII()
 void Scenario::doPhaseIIandIII()
 {
 #if defined ENABLE_MITOGEN_FINALPREVIEW
-	REPORT("using default MitoGen synthoscopy");
+	report::message("using default MitoGen synthoscopy");
 	mitogen::PrepareFinalPreviewImage(params.imgPhantom,params.imgFinal);
 
 #elif defined ENABLE_FILOGEN_PHASEIIandIII
-	REPORT("using default FiloGen synthoscopy");
+	report::message("using default FiloGen synthoscopy");
 	//
 	// phase II
 	if (!imgPSFuserPath.empty())
@@ -61,10 +61,10 @@ void Scenario::doPhaseIIandIII()
 	{
 		const float xySigma = 0.6f; //can also be 0.9
 		const float  zSigma = 1.8f; //can also be 2.7
-		DEBUG_REPORT("fake PSF is used for PhaseII, with sigmas: "
-			<< xySigma * params.imgPhantom.GetResolution().GetX() << " x "
-			<< xySigma * params.imgPhantom.GetResolution().GetY() << " x "
-			<<  zSigma * params.imgPhantom.GetResolution().GetZ() << " pixels");
+		report::debugMessage(fmt::format("fake PSF is used for PhaseII, with sigmas: {} x {} x {} pixels",
+			xySigma * params.imgPhantom.GetResolution().GetX(),
+			xySigma * params.imgPhantom.GetResolution().GetY(),
+			zSigma * params.imgPhantom.GetResolution().GetZ()));
 		i3d::GaussIIR<float>(params.imgPhantom,
 			xySigma * params.imgPhantom.GetResolution().GetX(),
 			xySigma * params.imgPhantom.GetResolution().GetY(),
@@ -75,7 +75,7 @@ void Scenario::doPhaseIIandIII()
 	filogen::PhaseIII(params.imgPhantom, params.imgFinal);
 
 #else
-	REPORT("WARNING: Empty function, no synthoscopy is going on.");
+	report::message("WARNING: Empty function, no synthoscopy is going on.");
 #endif
 }
 
@@ -125,7 +125,7 @@ void transferImg(const i3d::Image3d<T>& img, const std::string& URL)
 	}
 	catch (std::exception* e)
 	{
-		REPORT("Transmission problem: " << e->what());
+report::message(fmt::format("Transmission problem: {}" , e->what()));
 	}
 }
 
@@ -154,7 +154,7 @@ void transferImgs(const i3d::Image3d<T>& img, DAIS::ImagesAsEventsSender& channe
 	}
 	catch (std::exception* e)
 	{
-		REPORT("Transmission problem: " << e->what());
+report::message(fmt::format("Transmission problem: {}" , e->what()));
 	}
 }
 

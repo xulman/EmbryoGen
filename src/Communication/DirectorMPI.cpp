@@ -39,7 +39,7 @@ void Director::notify_publishAgentsAABBs(const int FOsID)
 void Director::waitFor_publishAgentsAABBs()
 {
 	//This method needs to be executed so that the broadcasted messages do not stay in the queue
-	DEBUG_REPORT("Director is running AABB reporting cycle");
+report::debugMessage(fmt::format("Director is running AABB reporting cycle" ));
 	t_aabb * sentAABBs;
 	int total_AABBs = 0;
 	for (int i = 1 ; i <= FOsCount ; i++) {
@@ -54,7 +54,7 @@ void Director::waitFor_publishAgentsAABBs()
 		//End of dummy code
 	}
 	communicator->waitFor_publishAgentsAABBs();
-	DEBUG_REPORT("Director has finished AABB reporting cycle with global size " << total_AABBs);
+report::debugMessage(fmt::format("Director has finished AABB reporting cycle with global size {}" , total_AABBs));
 	respond_newAgentsTypes(0);
 }
 
@@ -77,13 +77,13 @@ void Director::respond_newAgentsTypes(int /*new_dict_count*/)
 	t_hashed_str * receivedTypes;
 //	char * receivedTypes;
 	int partial_dict_count;
-	DEBUG_REPORT("Director is running New Agent Type reporting cycle with global size " << total_cnt);
+report::debugMessage(fmt::format("Director is running New Agent Type reporting cycle with global size {}" , total_cnt));
 	for (int i = 1 ; i <= FOsCount ; i++) {
 		int cnt=1;
 		//In reality, following is dummy code needed to correctly distribute broadcasts through all nodes
 		communicator->receiveBroadcast(&partial_dict_count, cnt, i, e_comm_tags::count_new_type);
 		total_cnt += partial_dict_count;
-		DEBUG_REPORT("New dictionary count received on Director from FO#" << i << " (out of " << FOsCount << "): " << partial_dict_count << " (out of " << total_cnt << ")");
+report::debugMessage(fmt::format("New dictionary count received on Director from FO#{} (out of {}): {} (out of {})" , i, FOsCount, partial_dict_count, total_cnt));
 		receivedTypes = (t_hashed_str*)calloc(sizeof(t_hashed_str),partial_dict_count+1);
 		/*partial_dict_count *= StringsImprintSize;
 		receivedTypes = new char[partial_dict_count];*/
@@ -92,7 +92,7 @@ void Director::respond_newAgentsTypes(int /*new_dict_count*/)
 		//End of dummy code
 	}
 	communicator->waitFor_publishAgentsAABBs();
-	DEBUG_REPORT("Director has finished New Agent Type reporting cycle with global size " << total_cnt);
+report::debugMessage(fmt::format("Director has finished New Agent Type reporting cycle with global size {}" , total_cnt));
 }
 
 
@@ -130,7 +130,7 @@ void Director::respond_Loop()
 		tag=communicator->detectFOMessage(false);
 		if (communicator->isFinished()) { break; }
 		if (tag == e_comm_tags::ACK) {
-			REPORT("ACK on Director Communicator on Director");
+report::message(fmt::format("ACK on Director Communicator on Director" ));
 			std::this_thread::sleep_for((std::chrono::milliseconds)10);
 			continue;
 		}
@@ -174,17 +174,17 @@ void Director::respond_Loop()
 				break;
 			case e_comm_tags::finished:
 				finished++;
-				REPORT("Finished FOs total: " << finished << " out of " << FOsCount << " on Director");
+report::message(fmt::format("Finished FOs total: {} out of {} on Director" , finished, FOsCount));
 				break;
 			default:
-				REPORT("Unprocessed communication tag " << communicator->tagName(tag) << " on Director");
+report::message(fmt::format("Unprocessed communication tag {} on Director" , communicator->tagName(tag)));
 				communicator->receiveFOMessage(buffer, items, instance, tag);
 				//PM: Mark client as done and if all are done leave the cycle
 				break;
 		}
 
 	} while(finished != FOsCount && ! communicator->isFinished());
-	REPORT("Ending detection loop in Director");
+report::message(fmt::format("Ending detection loop in Director" ));
 	/*for (int i=1; i <= FOsCount; i++) {
 		communicator->sendFO(buffer,0,i, e_comm_tags::unblock_FO);
 	}*/
@@ -192,14 +192,14 @@ void Director::respond_Loop()
 
 void Director::waitHereUntilEveryoneIsHereToo(/*int stage?*/) //Will this work without specification of stage as an argument?
 {
-	DEBUG_REPORT("Wait Here Until Everyone Is Here Too Director");
+report::debugMessage(fmt::format("Wait Here Until Everyone Is Here Too Director" ));
 	communicator->waitSync();
 }
 
 
 void Director::request_renderNextFrame(const int FOsID)
 {
-	REPORT("Request render next frame on Director");
+report::message(fmt::format("Request render next frame on Director" ));
 	communicator->renderNextFrame(FOsID);
 	communicator->waitFor_renderNextFrame();
 }
@@ -233,13 +233,10 @@ void Director::waitFor_renderNextFrame(const int FOsID)
 	if (sc.imagesSaving_isEnabledForImgPhantom()) { phantomBuffer = sc.imgPhantom.GetFirstVoxelAddr();}
 	if (sc.imagesSaving_isEnabledForImgOptics()) { opticsBuffer = sc.imgOptics.GetFirstVoxelAddr();}
 
-	DEBUG_REPORT("Request image merging from Director to FO #" << FOsID);
-	DEBUG_REPORT("Mask enabled: " << sc.imagesSaving_isEnabledForImgMask()
-	               << ", phantom enabled: " << sc.imagesSaving_isEnabledForImgPhantom()
-	               << ", optics enabled: " << sc.imagesSaving_isEnabledForImgOptics()
-	);
+report::debugMessage(fmt::format("Request image merging from Director to FO #{}" , FOsID));
+report::debugMessage(fmt::format("Mask enabled: {}, phantom enabled: {}, optics enabled: {}" , sc.imagesSaving_isEnabledForImgMask(), sc.imagesSaving_isEnabledForImgPhantom(), sc.imagesSaving_isEnabledForImgOptics()));
 	communicator->mergeImages(FOsID, maskXYSize, maskZSize, maskPixelBuffer, phantomBuffer, opticsBuffer);
-	DEBUG_REPORT("Image merging done on Director");
+report::debugMessage(fmt::format("Image merging done on Director" ));
 }
 
 
@@ -250,9 +247,9 @@ void Director::broadcast_setRenderingDebug(const bool setFlagToThis)
 }
 
 
-void Director::broadcast_throwException(const char* exceptionMessage)
+void Director::broadcast_throwException(const std::string& exceptionMessage)
 {
-	REPORT(exceptionMessage);
+report::message(exceptionMessage);
 	exit(-1);
 }
 

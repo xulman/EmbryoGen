@@ -34,7 +34,7 @@ public:
 		if (testingFile.is_open())
 		{
 			testingFile.close();
-			throw ERROR_REPORT("Refusing to create 101st flight record, please clean up your disk.");
+throw report::rtError("Refusing to create 101st flight record, please clean up your disk.");
 		}
 
 		if (tryCnt == 0)
@@ -86,9 +86,9 @@ public:
 		       << posA << ", " << posB << ", " << posC << ", color=" << color << "\n";
 	}
 
-	void Tick(const char* msg) override
+	void Tick(const std::string& msg) override
 	{
-		logger << "Tick " << (msg != NULL ? msg : "(no message given)") << "\n";
+		logger << "Tick " << msg << "\n";
 	}
 
 	void Flush(void) override

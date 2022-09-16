@@ -165,15 +165,15 @@ public:
 
 	void printKnownDictionary() const
 	{
-		REPORT("Known (already synced) fraction:");
+report::message(fmt::format("Known (already synced) fraction:" ));
 		for (const auto& i : knownDictionary)
-			REPORT_NOHEADER(i.first << "\t" << i.second);
+report::message(fmt::format("{}\t{}" , i.first, i.second), {false});
 	}
 	void printNewDictionary() const
 	{
-		REPORT("New (to be synced) fraction:");
+report::message(fmt::format("New (to be synced) fraction:" ));
 		for (const auto& i : newDictionary)
-			REPORT_NOHEADER(i.first << "\t" << i.second);
+report::message(fmt::format("{}\t{}" , i.first, i.second), {false});
 	}
 
 	void printCompleteDictionary() const

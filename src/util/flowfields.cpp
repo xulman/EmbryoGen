@@ -32,6 +32,7 @@
 #endif
 #include <i3d/filters.h>
 #include "flowfields.hpp"
+#include <sstream>
 
 template <class VT, class FT>
 void ImageForwardTransformation(i3d::Image3d<VT> const &srcImg,
@@ -40,13 +41,13 @@ void ImageForwardTransformation(i3d::Image3d<VT> const &srcImg,
 {
 	//sanitary checks...
 	if (!FF.isConsistent())
-		throw ERROR_REPORT("Flow field is not consistent.");
+throw report::rtError("Flow field is not consistent.");
 	if (srcImg.GetSize() != FF.x->GetSize())
-		throw ERROR_REPORT("Sizes of input image and flow field do not match!");
+throw report::rtError("Sizes of input image and flow field do not match!");
 	if (srcImg.GetResolution().GetRes() != FF.x->GetResolution().GetRes())
-		throw ERROR_REPORT("Resolutions of input image and flow field do not match!");
+throw report::rtError("Resolutions of input image and flow field do not match!");
 	if (srcImg.GetOffset() != FF.x->GetOffset())
-		throw ERROR_REPORT("Offsets of input image and flow field do not match!");
+throw report::rtError("Offsets of input image and flow field do not match!");
 
 	//format output image
 	dstImg.CopyMetaData(srcImg);
@@ -66,7 +67,7 @@ void ImageForwardTransformation(i3d::Image3d<VT> const &srcImg,
 
 	if (!zFF) {
 		//no z-elements in the flow fields, 2D transformation
-		DEBUG_REPORT("2D transformation");
+report::debugMessage(fmt::format("2D transformation" ));
 
 		//iterate over the input image and move voxels...
 		for (size_t z=0; z < srcImg.GetSizeZ(); ++z)
@@ -82,7 +83,7 @@ void ImageForwardTransformation(i3d::Image3d<VT> const &srcImg,
 		    }
 	} else {
 		//full 3D case...
-		DEBUG_REPORT("3D transformation");
+report::debugMessage(fmt::format("3D transformation" ));
 
 		//iterate over the input image and move voxels...
 		for (size_t z=0; z < srcImg.GetSizeZ(); ++z)
@@ -116,15 +117,15 @@ void ConcatenateFlowFields(FlowField<FT> const &srcFF,
 
 	//but first, sanitary checks
 	if (!srcFF.isConsistent())
-		throw ERROR_REPORT("First motion flow field is not consistent.");
+throw report::rtError("First motion flow field is not consistent.");
 	if (!appFF.isConsistent())
-		throw ERROR_REPORT("Appended motion flow field is not consistent.");
+throw report::rtError("Appended motion flow field is not consistent.");
 	if (srcFF.x->GetSize() != appFF.x->GetSize())
-		throw ERROR_REPORT("Sizes of input flow fields do not match!");
+throw report::rtError("Sizes of input flow fields do not match!" );
 	if (srcFF.x->GetResolution().GetRes() != appFF.x->GetResolution().GetRes())
-		throw ERROR_REPORT("Resolutions of input flow fields do not match!");
+throw report::rtError("Resolutions of input flow fields do not match!");
 	if (srcFF.x->GetOffset() != appFF.x->GetOffset())
-		throw ERROR_REPORT("Offsets of input flow fields do not match!");
+throw report::rtError("{Offsets of input flow fields do not match!");
 
 	//creates brand new FF or just copies the content from srcFF
 	//note: owing to the consistency checks, the *srcFF.x and *srcFF.y exists now
@@ -150,18 +151,17 @@ void ConcatenateFlowFields(FlowField<FT> &srcFF,
 			   FlowField<FT> const &appFF)
 {
 	if (!srcFF.isConsistent())
-		throw ERROR_REPORT("First motion flow field is not consistent.");
+throw report::rtError("First motion flow field is not consistent.");
 	if (!appFF.isConsistent())
-		throw ERROR_REPORT("Appended motion flow field is not consistent.");
+throw report::rtError("Appended motion flow field is not consistent.");
 	if (srcFF.x->GetSize() != appFF.x->GetSize())
-		throw ERROR_REPORT("Sizes of input flow fields do not match!");
+throw report::rtError("Sizes of input flow fields do not match!");
 	if (srcFF.x->GetResolution().GetRes() != appFF.x->GetResolution().GetRes())
-		throw ERROR_REPORT("Resolutions of input flow fields do not match!");
+throw report::rtError("Resolutions of input flow fields do not match!");
 	if (srcFF.x->GetOffset() != appFF.x->GetOffset())
-		throw ERROR_REPORT("Offsets of input flow fields do not match!");
+throw report::rtError("Offsets of input flow fields do not match!");
 
-	DEBUG_REPORT("concatenating flow fields at " << srcFF.x->GetOffset() << " of size " \
-	       << i3d::PixelsToMicrons(srcFF.x->GetSize(),srcFF.x->GetResolution())  << " in microns");
+report::debugMessage(fmt::format("concatenating flow fields at {} of size {} in microns" , toString(srcFF.x->GetOffset()), toString(i3d::PixelsToMicrons(srcFF.x->GetSize(),srcFF.x->GetResolution()))));
 	
 	//short-cuts to the data
 	FT *vx=srcFF.x->GetFirstVoxelAddr();
@@ -183,7 +183,7 @@ void ConcatenateFlowFields(FlowField<FT> &srcFF,
 	if (!vz) {
 		//no z-elements in the flow fields, 2D transformation
 		//owing to the consistency checks, the flow fields are 2D images
-		DEBUG_REPORT("2D concatenation");
+report::debugMessage(fmt::format("2D concatenation" ));
 
 		//iterate over the input flow field and change vectors...
 		  for (size_t y=0; y < srcFF.x->GetSizeY(); ++y)
@@ -202,7 +202,7 @@ void ConcatenateFlowFields(FlowField<FT> &srcFF,
 		    }
 	} else {
 		//full 3D case...
-		DEBUG_REPORT("3D concatenation");
+report::debugMessage(fmt::format("3D concatenation" ));
 
 		//iterate over the input flow field and change vectors...
 		for (size_t z=0; z < srcFF.x->GetSizeZ(); ++z)
@@ -228,7 +228,7 @@ void ConcatenateFlowFields(FlowField<FT> &srcFF,
 	t2.tv_sec-=t1.tv_sec;
 	T1=((float)t1.tv_usec / 1000000.0f);
 	T2=(float)t2.tv_sec + ((float)t2.tv_usec / 1000000.0f);
-	REPORT("concatenation of flow fields took " << T2-T1 << " seconds");
+report::message(fmt::format("concatenation of flow fields took {} seconds" , T2-T1));
 #endif
 }
 
@@ -243,15 +243,15 @@ void AddFlowFields(FlowField<FT> const &srcFF,
 
 	//but first, sanitary checks
 	if (!srcFF.isConsistent())
-		throw ERROR_REPORT("First motion flow field is not consistent.");
+throw report::rtError("First motion flow field is not consistent." );
 	if (!appFF.isConsistent())
-		throw ERROR_REPORT("Added motion flow field is not consistent.");
+throw report::rtError("Added motion flow field is not consistent.");
 	if (srcFF.x->GetSize() != appFF.x->GetSize())
-		throw ERROR_REPORT("Sizes of input flow fields do not match!");
+throw report::rtError("Sizes of input flow fields do not match!");
 	if (srcFF.x->GetResolution().GetRes() != appFF.x->GetResolution().GetRes())
-		throw ERROR_REPORT("Resolutions of input flow fields do not match!");
+throw report::rtError("Resolutions of input flow fields do not match!");
 	if (srcFF.x->GetOffset() != appFF.x->GetOffset())
-		throw ERROR_REPORT("Offsets of input flow fields do not match!");
+throw report::rtError("Offsets of input flow fields do not match!");
 
 	//creates brand new FF or just copies the content from srcFF
 	//note: owing to the consistency checks, the *srcFF.x and *srcFF.y exists now
@@ -277,15 +277,15 @@ void AddFlowFields(FlowField<FT> &srcFF,
 		   FlowField<FT> const &appFF)
 {
 	if (!srcFF.isConsistent())
-		throw ERROR_REPORT("First motion flow field is not consistent.");
+throw report::rtError("First motion flow field is not consistent.");
 	if (!appFF.isConsistent())
-		throw ERROR_REPORT("Added motion flow field is not consistent.");
+throw report::rtError("Added motion flow field is not consistent.");
 	if (srcFF.x->GetSize() != appFF.x->GetSize())
-		throw ERROR_REPORT("Sizes of input flow fields do not match!");
+throw report::rtError("Sizes of input flow fields do not match!");
 	if (srcFF.x->GetResolution().GetRes() != appFF.x->GetResolution().GetRes())
-		throw ERROR_REPORT("Resolutions of input flow fields do not match!");
+throw report::rtError("Resolutions of input flow fields do not match!");
 	if (srcFF.x->GetOffset() != appFF.x->GetOffset())
-		throw ERROR_REPORT("Offsets of input flow fields do not match!");
+throw report::rtError("Offsets of input flow fields do not match!");
 
 	//short-cuts to the data, the x-axis
 	FT *v=srcFF.x->GetFirstVoxelAddr();
@@ -351,17 +351,17 @@ void SaveFlowField(const FlowField<FT>* FF,
 
 	//otherwise, first do some checks prior exporting
 	if (!FF->isConsistent())
-		throw ERROR_REPORT("Flow field is not consistent.");
+throw report::rtError("Flow field is not consistent.");
 
 	if ((namePrefix == NULL) && (name == NULL))
-		throw ERROR_REPORT("No file name is provided.");
+throw report::rtError("No file name is provided.");
 	
 	//get rid of NULL pointers
 	char empty_string='_';
 	if (namePrefix == NULL) namePrefix=&empty_string;
 	if (name == NULL) name=&empty_string;
 
-	DEBUG_REPORT("Saving 4 files with the prefix " << namePrefix << "_" << name << "_");
+report::debugMessage(fmt::format("Saving 4 files with the prefix {}_{}_" , namePrefix, name));
 
 	//exports flow field element-wise
 	char fn[50];
@@ -392,17 +392,17 @@ void DescribeTranslation(FlowField<FT> &FF,
 {
 	//sanitary checks...
 	if (!FF.isConsistent())
-		throw ERROR_REPORT("Flow field is not consistent.");
+throw report::rtError("Flow field is not consistent.");
 
 	if (eFF) {
 		if (!eFF->isConsistent())
-			throw ERROR_REPORT("Exporting flow field is not consistent.");
+throw report::rtError("Exporting flow field is not consistent.");
 
 		if (!eFF->isAligned(FF))
-			throw ERROR_REPORT("Grid of the exporting flow field is not aligned.");
+throw report::rtError("Grid of the exporting flow field is not aligned.");
 	}
 
-	REPORT("adding vector " << shift << " to the flow field");
+report::message(fmt::format("adding vector {} to the flow field" , toString(shift)));
 
 	//time-saver
 	const size_t size=FF.x->GetImageSize();
@@ -440,18 +440,17 @@ void DescribeRotation(FlowField<FT> &FF,
 {
 	//sanitary checks...
 	if (!FF.isConsistent())
-		throw ERROR_REPORT("Flow field is not consistent.");
+throw report::rtError("Flow field is not consistent.");
 
 	if (eFF) {
 		if (!eFF->isConsistent())
-			throw ERROR_REPORT("Exporting flow field is not consistent.");
+throw report::rtError("Exporting flow field is not consistent.");
 
 		if (!eFF->isAligned(FF))
-			throw ERROR_REPORT("Grid of the exporting flow field is not aligned.");
+throw report::rtError("Grid of the exporting flow field is not aligned.");
 	}
 
-	REPORT("adding rotation by " << angle*180.0/3.14159 << "deg clockwise around " \
-		<< centre << " in microns");
+report::message(fmt::format("adding rotation by {}deg clockwise around {} in microns" , angle*180.0/3.14159, toString(centre)));
 
 	//time-savers :-)
 	//note: the rotation is "flat" - only in xy
@@ -568,26 +567,26 @@ void DescribeRadialFlow(FlowField<FT> &FF,
 {
 	//consistency checks
 	if (!FF.isConsistent())
-		throw ERROR_REPORT("Flow field is not consistent.");
+throw report::rtError("Flow field is not consistent.");
 	if (!FF.z)
-		throw ERROR_REPORT("The input flow field is not 3D.");
+throw report::rtError("The input flow field is not 3D.");
 
 	if (eFF) {
 		if (!eFF->isConsistent())
-			throw ERROR_REPORT("Exporting flow field is not consistent.");
+throw report::rtError("Exporting flow field is not consistent.");
 
 		if (!eFF->isAligned(FF))
-			throw ERROR_REPORT("Grid of the exporting flow field is not aligned.");
+throw report::rtError("Grid of the exporting flow field is not aligned.");
 	}
 
 	if (BPOuterCnt > BPList.size())
-		throw ERROR_REPORT("There are more outer boundary points than is the length of the list.");
+throw report::rtError("There are more outer boundary points than is the length of the list.");
 	if (hintArray == NULL)
-		throw ERROR_REPORT("The hintArray points to NULL.");
+throw report::rtError("The hintArray points to NULL.");
 
 	if (hintInc < 0)
 	{
-		REPORT("Warning: The hintInc is negative, is it Okay?");
+report::message(fmt::format("Warning: The hintInc is negative, is it Okay?" ));
 	}
 
 	//draw the flow field first here, the values here may be accumulated
@@ -604,10 +603,9 @@ void DescribeRadialFlow(FlowField<FT> &FF,
 	//note: myFFcounts looks like a local variable but it is actually
 	//allocated on the heap, hence its content persists after this function ends
 
-	REPORT("adding grow/shrink");
+report::message(fmt::format("adding grow/shrink" ));
 	/*
-	DEBUG_REPORT("going to add to a flow field at " << FF.x->GetOffset() << " of size " \
-	       << i3d::PixelsToMicrons(FF.x->GetSize(),FF.x->GetResolution())  << " in microns");
+report::debugMessage(fmt::format("going to add to a flow field at {} of size {} in microns" , FF.x->GetOffset(), i3d::PixelsToMicrons(FF.x->GetSize(),FF.x->GetResolution())));
 	*/
 
 	//time-savers ;-)
@@ -700,8 +698,7 @@ void DescribeRadialFlow(FlowField<FT> &FF,
 		const float newHintVal=(compensation)? r3-vsz : *myHintPtr;
 		/*
 		if (compensation)
-			DEBUG_REPORT(*myHintPtr << "um at radius " << vsz
-				<< " is compensated to " << newHintVal << "um");
+report::debugMessage(fmt::format("{}um at radius {} is compensated to {}um" , *myHintPtr, vsz, newHintVal));
 		*/
 
 		//enforces that given radial line is shifted by 1px in all directions,
@@ -743,12 +740,12 @@ void DescribeRadialFlow(FlowField<FT> &FF,
 #ifdef MITOGEN_DEBUG
 					  if (!NoMoreDbgReports)
 					  {
-						REPORT("Warning: Should prepare vectors outside of the flow field.");
+report::message(fmt::format("Warning: Should prepare vectors outside of the flow field." ));
 					  }
 					  NoMoreDbgReports=true;
 #endif
 					  //delete tmpFFz;
-					  //throw ERROR_REPORT("Can't prepare vectors outside of the flow field.");
+					  //throw report::rtError("Can't prepare vectors outside of the flow field.");
 					} else {
 						//weight
 						//the commented out code is better, but this one
@@ -794,10 +791,9 @@ void DescribeRadialFlow(FlowField<FT> &FF,
 #ifdef MITOGEN_DEBUG
 	/*
 	double var=( sum2 - sum*sum/(double)BPOuterCnt ) / (double)BPOuterCnt;
-	REPORT("mean from used hint values is " << meanHintVal/(double)BPOuterCnt
-		<< " +- " << sqrt(var));
-	REPORT("min, max from used hint values are " << min << ", " << max);
-	REPORT("mean from compensated hint values is " << meanCompensatedHintVal/(double)BPOuterCnt);
+report::message(fmt::format("mean from used hint values is {} +- {}" , meanHintVal/(double)BPOuterCnt, sqrt(var)));
+report::message(fmt::format("min, max from used hint values are {}, {}" , min, max));
+report::message(fmt::format("mean from compensated hint values is {}" , meanCompensatedHintVal/(double)BPOuterCnt));
 	//for (signed int i=0; i < 1001; ++i) std::cout << (float)(i-500)/100.f << " " << histo[i] << "\n"; //TEST
 	*/
 
@@ -805,7 +801,7 @@ void DescribeRadialFlow(FlowField<FT> &FF,
 	t2.tv_sec-=t1.tv_sec;
 	T1=((float)t1.tv_usec / 1000000.0f);
 	T2=(float)t2.tv_sec + ((float)t2.tv_usec / 1000000.0f);
-	REPORT("initial filling took " << T2-T1 << " seconds");
+report::message(fmt::format("initial filling took {} seconds" , T2-T1));
 #endif
 
 	//the myFF holds now accumulated vectors, make them average
@@ -831,7 +827,7 @@ void DescribeRadialFlow(FlowField<FT> &FF,
 	gettimeofday(&t3,NULL);
 	t3.tv_sec-=t1.tv_sec;
 	T1=(float)t3.tv_sec + ((float)t3.tv_usec / 1000000.0f);
-	REPORT("averaging took " << T1-T2 << " seconds");
+report::message(fmt::format("averaging took {} seconds" , T1-T2));
 	T2=T1;
 #endif
 
@@ -863,8 +859,7 @@ void DescribeRadialFlow(FlowField<FT> &FF,
 	gettimeofday(&t2,NULL);
 	t2.tv_sec-=t1.tv_sec;
 	T2=(float)t2.tv_sec + ((float)t2.tv_usec / 1000000.0f);
-	REPORT("post-smoothing with (1,1," << FF.x->GetResolution().GetZ()/FF.x->GetResolution().GetX()
-		<< ") took " << T2-T1 << " seconds");
+report::message(fmt::format("post-smoothing with (1,1,{}) took {} seconds" , FF.x->GetResolution().GetZ()/FF.x->GetResolution().GetX(), T2-T1));
 #endif
 #else //for the #ifdef GTGEN_WITH_SMOOTH_RADIAL_FLOW_FIELD
 	//clean up the temporal image
@@ -916,7 +911,7 @@ void DescribeRadialFlow(FlowField<FT> &FF,
 	gettimeofday(&t3,NULL);
 	t3.tv_sec-=t1.tv_sec;
 	T1=(float)t3.tv_sec + ((float)t3.tv_usec / 1000000.0f);
-	REPORT("adding flow fields took " << T1-T2 << " seconds");
+report::message(fmt::format("adding flow fields took {} seconds" , T1-T2));
 #endif
 
 	//is exporting flow field requested?
@@ -1248,9 +1243,7 @@ void IMCopyFromVOI_GetHints(i3d::Image3d<VOXEL> const &gImg,
 	//how much left to work...
 	hints.work -= hints.skipA;
 
-	DEBUG_REPORT("computed this IMCopyFromVOI_t:  offset=" << hints.offset
-		<< ", skipA=" << hints.skipA << ", work=" << hints.work
-		<< ", skipB=" << hints.skipB);
+report::debugMessage(fmt::format("computed this IMCopyFromVOI_t:  offset={}, skipA={}, work={}, skipB={}" , toString(hints.offset), toString(hints.skipA), toString(hints.work), toString(hints.skipB)));
 }
 
 

@@ -36,7 +36,7 @@ void FrontOfficer::request_updateParentalLink(const int childID, const int paren
 
 void FrontOfficer::waitFor_publishAgentsAABBs()
 {
-	DEBUG_REPORT("FO #" << this->ID << " is running AABB reporting cycle with local size " << agents.size());
+report::debugMessage(fmt::format("FO #{} is running AABB reporting cycle with local size {}" , this->ID, agents.size()));
 	t_aabb * sentAABBs;
 	for (int i = 1 ; i <= FOsCount ; i++) {
 		if (i == ID)
@@ -50,7 +50,7 @@ void FrontOfficer::waitFor_publishAgentsAABBs()
 			for (auto ag : agents)
 			{
 				const AxisAlignedBoundingBox & aabb = ag.second->getAABB();
-				//REPORT("Agent #" << j << " is running AABB reporting cycle with local size " << agents.size());
+// report::message(fmt::format("Agent #{} is running AABB reporting cycle with local size {}" , j, agents.size()));
 				sentAABBs[j].minCorner = aabb.minCorner;
 				sentAABBs[j].maxCorner = aabb.maxCorner;
 				sentAABBs[j].version = ag.second->getGeometry().version;
@@ -66,7 +66,7 @@ void FrontOfficer::waitFor_publishAgentsAABBs()
 		{
 			int aabb_count = (int)communicator->cntOfAABBs(i, true);
 			//sentAABBs = new t_aabb[aabb_count];
-			DEBUG_REPORT("Receive " << aabb_count << " AABBs at FO#" << ID << " from FO #" << i);
+report::debugMessage(fmt::format("Receive {} AABBs at FO#{} from FO #{}" , aabb_count, ID, i));
 			sentAABBs = (t_aabb*) malloc(sizeof(t_aabb)*(aabb_count+1));
 			communicator->receiveBroadcast(sentAABBs, aabb_count, i, e_comm_tags::send_AABB);
 			for (int j=0; j < aabb_count; j++) {
@@ -90,7 +90,7 @@ void FrontOfficer::waitFor_publishAgentsAABBs()
 		}
 	}
 	communicator->waitFor_publishAgentsAABBs();
-	DEBUG_REPORT("FO #" << this->ID << " has finished AABB reporting cycle with global size " << (AABBs.size() + agents.size()) );
+report::debugMessage(fmt::format("FO #{} has finished AABB reporting cycle with global size {}" , this->ID, (AABBs.size() + agents.size())));
 	broadcast_newAgentsTypes(); //Force-call it here?
 }
 
@@ -104,7 +104,7 @@ void FrontOfficer::broadcast_AABBofAgent(const ShadowAgent& ag)
 {
 	//Since we already do a global broadcast of all AABBs at once, we will use this method to update the AABB list, which is not done in main code (WHY?)
 
-	DEBUG_REPORT("FO #" << this->ID << " is adding AABB of shadow agent ID " << ag.ID);
+report::debugMessage(fmt::format("FO #{} is adding AABB of shadow agent ID {}" , this->ID, ag.ID));
 	int aid = ag.getID();
 
 	const AxisAlignedBoundingBox & aabb = ag.getAABB();
@@ -128,7 +128,7 @@ void FrontOfficer::respond_CntOfAABBs()
 {
 #ifdef DEBUG
 	size_t sendBackMyCount = getSizeOfAABBsList();
-	REPORT("FO #" << ID << " Count: " << sendBackMyCount);
+report::message(fmt::format("FO #{} Count: {}" , ID, sendBackMyCount));
 	//communicator->sendCntOfAABBs(sendBackMyCount);
 #endif
 }
@@ -137,7 +137,7 @@ void FrontOfficer::respond_CntOfAABBs()
 void FrontOfficer::broadcast_newAgentsTypes()
 {
 	int new_dict_count = (int)agentsTypesDictionary.howManyShouldBeBroadcast()/*Integer limit !!!*/, total_cnt=0;
-	DEBUG_REPORT("FO #" << this->ID << " is running New Agent Type reporting cycle with local size " << new_dict_count);
+report::debugMessage(fmt::format("FO #{} is running New Agent Type reporting cycle with local size {}" , this->ID, new_dict_count));
 	t_hashed_str * sentTypes;
 /*	char * sentTypes;*/
 	for (int i = 1 ; i <= FOsCount ; i++) {
@@ -145,7 +145,7 @@ void FrontOfficer::broadcast_newAgentsTypes()
 		{
 			total_cnt += new_dict_count = (int)agentsTypesDictionary.howManyShouldBeBroadcast();
 			int j = 0;
-			DEBUG_REPORT("New dictionary count From FO#" << i << ": " << new_dict_count);
+report::debugMessage(fmt::format("New dictionary count From FO#{}: {}" , i, new_dict_count));
 			communicator->sendBroadcast(&new_dict_count, 1, i, e_comm_tags::count_new_type);
 			//sentTypes = new t_hashed_str[new_dict_count];
 			sentTypes = (t_hashed_str*)calloc(sizeof(t_hashed_str),new_dict_count+1);
@@ -179,7 +179,7 @@ void FrontOfficer::broadcast_newAgentsTypes()
 				/*hashedString * hs = new hashedString(sentTypes+j*StringsImprintSize);
 				agentsTypesDictionary.enlistTheIncomingItem(hs->getHash(), hs->getString());*/
 				agentsTypesDictionary.enlistTheIncomingItem(sentTypes[j].hash, sentTypes[j].value);
-				DEBUG_REPORT("Receiving Type " <<  sentTypes[j].value << " with hash " << sentTypes[j].hash << " at FO#" << ID);
+report::debugMessage(fmt::format("Receiving Type {} with hash {} at FO#{}" , sentTypes[j].value, sentTypes[j].hash, ID));
 			}
 			free(sentTypes);
 //			delete [] sentTypes;
@@ -191,7 +191,7 @@ void FrontOfficer::broadcast_newAgentsTypes()
 	agentsTypesDictionary.printKnownDictionary();
 #endif /*DISTRIBUTED_DEBUG*/
 	communicator->waitFor_publishAgentsAABBs();
-	DEBUG_REPORT("FO #" << this->ID << " has finished New Agent Type reporting cycle with global size " << total_cnt);
+report::debugMessage(fmt::format("FO #{} has finished New Agent Type reporting cycle with global size {}" , this->ID, total_cnt));
 }
 
 
@@ -211,7 +211,7 @@ ShadowAgent* FrontOfficer::request_ShadowAgentCopy(const int agentID, const int 
 
 	communicator->sendFO(param_buff, 1, FOsID, e_comm_tags::get_shadow_copy);
 	communicator->receiveFOMessage(param_buff, cnt, fo_back, tag);
-	DEBUG_REPORT("Received shadow copy info at FO #"  << ID << ": ID=" << param_buff[0] << ", Type=" << param_buff[2] << ", Geom Type=" << param_buff[3]);
+report::debugMessage(fmt::format("Received shadow copy info at FO #{}: ID={}, Type={}, Geom Type={}" , ID, param_buff[0], param_buff[2], param_buff[3]));
 	items= (int)param_buff[1];
 	char * data_buff = (char *) malloc(items);
 
@@ -231,7 +231,7 @@ void FrontOfficer::respond_ShadowAgentCopy(const int agentID)
 {
 #ifdef DEBUG
 	if (agents.find(agentID) == agents.end())
-		throw ERROR_REPORT("Cannot provide ShadowAgent for agent ID " << agentID);
+throw report::rtError(fmt::format("Cannot provide ShadowAgent for agent ID {}" , agentID));
 #endif
 
 	int foID = communicator->getLastFOID();
@@ -246,7 +246,7 @@ void FrontOfficer::respond_ShadowAgentCopy(const int agentID)
 	size_t param_buff[4] =  {(size_t)sendBackAgentID, (size_t)geom_size, sendBackAgentType, (size_t)geom_type};
 	int cnt = 4; //sizeof(param_buff) / sizeof(long*);
 
-	DEBUG_REPORT("Sent shadow copy info at FO #"  << ID << ": ID=" << param_buff[0] << ", Type=" << param_buff[2] << ", Geom Type=" << param_buff[3]);
+report::debugMessage(fmt::format("Sent shadow copy info at FO #{}: ID={}, Type={}, Geom Type={}" , ID, param_buff[0], param_buff[2], param_buff[3]));
 	communicator->sendFO(param_buff, cnt, foID, e_comm_tags::shadow_copy);
 
 	std::unique_ptr<char[]> buffer_to_send( new char[geom_size] );
@@ -279,16 +279,16 @@ void FrontOfficer::respond_Loop()
 	/*static int unblock_lvl=0;*/
 	//communicator->unblockNextIfSent();
 	/*communicator->sendDirector(buffer,0, e_comm_tags::next_stage); //Start the director -> FO sending
-	REPORT("Unblock level " << unblock_lvl << " in FO " << ID);
+report::message(fmt::format("Unblock level {} in FO {}" , unblock_lvl, ID));
 	if (unblock_lvl <= 0) {
-		REPORT("Waiting for sync in FO " << ID);
+report::message(fmt::format("Waiting for sync in FO {}" , ID));
 		tag=e_comm_tags::unblock_FO;
 		communicator->receiveDirectorMessage(buffer, items, tag);
 		unblock_lvl=0;
 	} else {
 		unblock_lvl--;
 	}*/
-	REPORT("Running detection loop in FO " << ID);
+report::message(fmt::format("Running detection loop in FO {}" , ID));
 	do {
 		items = DIRECTOR_RECV_MAX;
 		int instance = FO_INSTANCE_ANY;
@@ -300,7 +300,7 @@ void FrontOfficer::respond_Loop()
 		//tag=communicator->detectFOMessage(false);
 		if (communicator->isFinished()) { break; }
 		if (tag == e_comm_tags::ACK || tag == e_comm_tags::unblock_FO) {
-			REPORT("ACK/Unblock on Director Communicator on FO #" << ID);
+report::message(fmt::format("ACK/Unblock on Director Communicator on FO #{}" , ID));
 			std::this_thread::sleep_for((std::chrono::milliseconds)10);
 			continue;
 		}
@@ -352,19 +352,19 @@ void FrontOfficer::respond_Loop()
 				unblock_lvl++;
 				break;*/
 			default:
-				REPORT("Unprocessed communication tag " << communicator->tagName(tag) << " on FO " << ID);
+report::message(fmt::format("Unprocessed communication tag {} on FO {}" , communicator->tagName(tag), ID));
 				communicator->receiveFOMessage(buffer, items, instance, tag);
 				break;
 		}
 
 	} while (!this->finished && !communicator->isFinished()); //(tag != e_comm_tags::next_stage);
-	REPORT("Ending detection loop in FO " << ID << " and waiting for sync");
+report::message(fmt::format("Ending detection loop in FO {} and waiting for sync" , ID));
 	//communicator->waitSync(); //waitFor_publishAgentsAABBs();
 }
 
 void FrontOfficer::waitHereUntilEveryoneIsHereToo() //Will this work without specification of stage as an argument?
 {
-	DEBUG_REPORT("Wait Here Until Everyone Is Here Too FO #" << ID);
+report::debugMessage(fmt::format("Wait Here Until Everyone Is Here Too FO #{}" , ID));
 	communicator->waitSync();
 }
 
@@ -402,13 +402,10 @@ void FrontOfficer::waitFor_renderNextFrame(const int FOsID)
 	if (sc.imagesSaving_isEnabledForImgPhantom()) { phantomBuffer = sc.imgPhantom.GetFirstVoxelAddr();}
 	if (sc.imagesSaving_isEnabledForImgOptics()) { opticsBuffer = sc.imgOptics.GetFirstVoxelAddr();}
 
-	DEBUG_REPORT("Request image merging from FO #" << ID << " to FO #" << FOsID);
-	DEBUG_REPORT("Mask enabled: " << sc.imagesSaving_isEnabledForImgMask()
-	               << ", phantom enabled: " << sc.imagesSaving_isEnabledForImgPhantom()
-	               << ", optics enabled: " << sc.imagesSaving_isEnabledForImgOptics()
-	);
+report::debugMessage(fmt::format("Request image merging from FO #{} to FO #{}" , ID, FOsID));
+report::debugMessage(fmt::format("Mask enabled: {}, phantom enabled: {}, optics enabled: {}" , sc.imagesSaving_isEnabledForImgMask(), sc.imagesSaving_isEnabledForImgPhantom(), sc.imagesSaving_isEnabledForImgOptics()));
 	communicator->mergeImages(FOsID, maskXYSize, maskZSize, maskPixelBuffer, phantomBuffer, opticsBuffer);
-	DEBUG_REPORT("Image merging done on FO #" << ID);
+report::debugMessage(fmt::format("Image merging done on FO #{}" , ID));
 }
 
 
@@ -421,7 +418,7 @@ void FrontOfficer::request_renderNextFrame(const int FOsID)
 void FrontOfficer::respond_setRenderingDebug()
 {
    //Dummy method as there is no way to pass the parameter with rendering debug flag
-	DEBUG_REPORT("FO #" << this->ID << " setRendering debug to " << renderingDebug);
+report::debugMessage(fmt::format("FO #{} setRendering debug to {}" , this->ID, renderingDebug));
 	char buffer[1] = { renderingDebug };
 	communicator->sendNextFO(buffer, 1, e_comm_tags::set_debug);
 }
@@ -434,7 +431,7 @@ void FrontOfficer::close_communication()
 void FrontOfficer::broadcast_throwException(const char* exceptionMessage)
 {
 	// Exceptions are be sent to stdout/stderr via REPORT_EXCEPTION and once process dies the rest of MPI does as well
-	REPORT(exceptionMessage);
+report::message(fmt::format("{}" , exceptionMessage));
 	exit(-1);
 }
 

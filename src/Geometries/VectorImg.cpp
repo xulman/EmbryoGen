@@ -12,7 +12,7 @@ void VectorImg::getDistance(const Geometry& otherGeometry,
 		break;
 	case ListOfShapeForms::Mesh:
 		//TODO: attempt to project mesh vertices into the mask image and look for collision
-		REPORT("this.VectorImg vs Mesh is not implemented yet!");
+report::message(fmt::format("this.VectorImg vs Mesh is not implemented yet!" ));
 		break;
 	case ListOfShapeForms::ScalarImg:
 		//find collision "from the other side"
@@ -20,15 +20,15 @@ void VectorImg::getDistance(const Geometry& otherGeometry,
 		break;
 	case ListOfShapeForms::VectorImg:
 		//TODO identity case
-		REPORT("this.VectorImg vs VectorImg is not implemented yet!");
+report::message(fmt::format("this.VectorImg vs VectorImg is not implemented yet!" ));
 		//getDistanceToVectorImg((VectorImg*)&otherGeometry,l);
 		break;
 
 	case ListOfShapeForms::undefGeometry:
-		REPORT("Ignoring other geometry of type 'undefGeometry'.");
+report::message(fmt::format("Ignoring other geometry of type 'undefGeometry'." ));
 		break;
 	default:
-		throw ERROR_REPORT("Not supported combination of shape representations.");
+throw report::rtError("Not supported combination of shape representations.");
 	}
 }
 
@@ -271,9 +271,7 @@ void VectorImg::deserializeFrom(char* buffer)
 	long off = Deserialization::fromBuffer(buffer,ppolicy);
 
 	if (ppolicy != (int)this->policy)
-		throw ERROR_REPORT( "Deserialization mismatch: filling image of choosing policy model "
-			<< this->policy << " with model " << (ChoosingPolicy)ppolicy
-			<< " from the buffer" );
+throw report::rtError(fmt::format("Deserialization mismatch: filling image of choosing policy model {} with model {} from the buffer" , this->policy, (ChoosingPolicy)ppolicy));
 
 	off += Deserialization::fromBuffer(buffer+off,X);
 	off += Deserialization::fromBuffer(buffer+off,Y);
@@ -301,5 +299,5 @@ VectorImg* VectorImg::createAndDeserializeFrom(char* buffer)
 
 void VectorImg::renderIntoMask(i3d::Image3d<i3d::GRAY16>&, const i3d::GRAY16) const
 {
-	REPORT("NOT IMPLEMENTED YED!");
+report::message(fmt::format("NOT IMPLEMENTED YED!" ));
 }

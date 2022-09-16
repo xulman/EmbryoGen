@@ -90,7 +90,7 @@ public:
 		responder.join();
 		close_communication();
 #endif
-		DEBUG_REPORT("FrontOfficer #" << ID << " already closed? " << (isProperlyClosedFlag ? "yes":"no"));
+report::debugMessage(fmt::format("FrontOfficer #{} already closed? {}" , ID, (isProperlyClosedFlag ? "yes":"no")));
 		if (!isProperlyClosedFlag) this->close();
 	}
 
@@ -375,7 +375,7 @@ public:
 public:
 	void connectWithDirektor(Director* d)
 	{
-		if (d == NULL) throw ERROR_REPORT("Provided Director is actually NULL.");
+		if (d == NULL) throw report::rtError("Provided Director is actually NULL.");
 		Direktor = d;
 	}
 

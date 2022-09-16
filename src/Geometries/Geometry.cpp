@@ -20,9 +20,8 @@ void AxisAlignedBoundingBox::adaptImage(i3d::Image3d<T>& img,
 	tmp.elemMult(res).elemCeil();
 	img.MakeRoom( tmp.to<size_t>().toI3dVector3d() );
 
-	DEBUG_REPORT("from AABB: minCorner=" << minCorner << " um --> maxCorner=" << maxCorner << " um");
-	DEBUG_REPORT(" to image: imgOffset=" << img.GetOffset() << " um, imgSize="
-	             << img.GetSize() << " px, imgRes=" << res << " px/um");
+report::debugMessage(fmt::format("from AABB: minCorner={} um --> maxCorner={} um" , toString(minCorner), toString(maxCorner)));
+report::debugMessage(fmt::format(" to image: imgOffset={} um, imgSize={} px, imgRes={} px/um" , toString(img.GetOffset()), toString(img.GetSize()), toString(res)));
 }
 
 

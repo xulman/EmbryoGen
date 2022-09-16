@@ -4,6 +4,7 @@
 #include "../util/report.hpp"
 #include "AbstractAgent.hpp"
 #include "../Geometries/ScalarImg.hpp"
+#include <fmt/core.h>
 
 class ShapeHinter: public AbstractAgent
 {
@@ -18,13 +19,13 @@ public:
 		//update AABBs
 		geometryAlias.Geometry::updateOwnAABB();
 
-		DEBUG_REPORT("EmbryoShell with ID=" << ID << " was just created");
-		DEBUG_REPORT("AABB: " << geometryAlias.AABB.minCorner << " -> " << geometryAlias.AABB.maxCorner);
+		report::debugMessage(fmt::format("EmbryoShell with ID={} was just created", ID));
+		report::debugMessage(fmt::format("AABB: {} -> {}", toString(geometryAlias.AABB.minCorner), toString(geometryAlias.AABB.maxCorner)));
 	}
 
 	~ShapeHinter(void)
 	{
-		DEBUG_REPORT("EmbryoShell with ID=" << ID << " was just deleted");
+		report::debugMessage(fmt::format("EmbryoShell with ID= {} was just deleted", ID));
 	}
 
 

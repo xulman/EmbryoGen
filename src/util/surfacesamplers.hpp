@@ -131,7 +131,7 @@ public:
 		this->pxPredicate = &pxPredicate;
 		this->micronStep.from(pixelStep).elemDivBy(res);
 
-		DEBUG_REPORT("imgSize=" << img.GetSize() << " px, micronStep=" << this->micronStep << " um");
+report::debugMessage(fmt::format("imgSize={} px, micronStep={} um" , img.GetSize(), this->micronStep));
 	}
 
 	void resetByMicronStep(const i3d::Image3d<VT>& img,
@@ -143,7 +143,7 @@ public:
 		this->pxPredicate = &pxPredicate;
 		this->micronStep = micronStep;
 
-		DEBUG_REPORT("imgSize=" << img.GetSize() << " px, micronStep=" << this->micronStep << " um");
+report::debugMessage(fmt::format("imgSize={} px, micronStep={} um" , toString(img.GetSize()), toString(micronStep)));
 	}
 
 	/** gives another point on the sphere's surface, returns false if

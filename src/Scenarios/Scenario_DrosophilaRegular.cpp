@@ -52,7 +52,7 @@ void Scenario_DrosophilaRegular::initializeAgents(FrontOfficer* fo,int p,int)
 {
 	if (p != 1)
 	{
-		REPORT("Populating only the first FO (which is not this one).");
+report::message(fmt::format("Populating only the first FO (which is not this one)." ));
 		return;
 	}
 
@@ -126,8 +126,7 @@ void Scenario_DrosophilaRegular::initializeAgents(FrontOfficer* fo,int p,int)
 
 	//the trajectories hinter:
 	at->talkToHinter().readFromFile("../DrosophilaYolk_movement.txt", Vector3d<float>(2.f), 10.0f, 10.0f);
-	REPORT("Timepoints: " << at->talkToHinter().size()
-	    << ", Tracks: " << at->talkToHinter().knownTracks.size());
+report::message(fmt::format("Timepoints: {}, Tracks: {}" , at->talkToHinter().size(), at->talkToHinter().knownTracks.size()));
 }
 
 

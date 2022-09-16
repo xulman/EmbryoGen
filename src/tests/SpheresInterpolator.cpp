@@ -143,7 +143,7 @@ void mainForLinkedSpheres(DisplayUnit& du)
 
 	//builder.addToPlan(0,1,3); //content of Interpolator is forbidden in LinkedSpheres
 	builder.printPlan();
-	REPORT("necessary cnt: " << builder.getNoOfNecessarySpheres());
+report::message(fmt::format("necessary cnt: {}" , builder.getNoOfNecessarySpheres()));
 
 	//finally, commit the case and draw it
 	Spheres manyS(builder.getNoOfNecessarySpheres());

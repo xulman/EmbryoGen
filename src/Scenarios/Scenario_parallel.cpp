@@ -10,6 +10,7 @@
 #include "../util/Vector3d.hpp"
 #include "../Geometries/Spheres.hpp"
 #include "../Agents/AbstractAgent.hpp"
+#include <fmt/core.h>
 
 // ------------------ grid placement and related stuff ------------------
 //
@@ -44,7 +45,7 @@ public:
 	{
 		geometry.Geometry::updateOwnAABB();
 #ifndef DEBUG
-		REPORT(IDSIGN << "created: \"" << _type << "\"");
+		report::message(fmt::format("{} created: \"{}\"", getSignature(), _type));
 #endif
 	}
 
@@ -72,7 +73,7 @@ public:
 	{
 		//random duration (in full 2-10 seconds) pause here to pretend "some work"
 		const int waitingTime = (int)GetRandomUniform(0,20);
-		REPORT(IDSIGN << "pretends work that would last for " << waitingTime << " milisecond(s)");
+		report::message(fmt::format("{} pretends work that would last for {} milisecond(s)", getSignature(), waitingTime));
 		std::this_thread::sleep_for(std::chrono::milliseconds( (long long)waitingTime ));
 
 		//ask to have the geometry updated as a result of the "some work"
@@ -105,7 +106,7 @@ public:
 		//some agents fail to update their geometry for some time
 		if (shouldUpdateGeometry && x%18 == 17 && y%18 == 17 && currTime > 0.2 && currTime < 1.9)
 		{
-			DEBUG_REPORT(SIGN << "failed to provide updated geometry");
+			report::debugMessage(fmt::format("\"{}\" failed to provide updated geometry", this->agentType.getString()));
 			shouldUpdateGeometry = false;
 			return;
 		}
@@ -159,7 +160,8 @@ public:
 			std::string ignore;
 			int ID;
 			iss >> ignore >> ID;
-			if (nearbyAgents.size() > 4) REPORT(SIGN << "sees around agent ID " << ID);
+			if (nearbyAgents.size() > 4) 
+				report::message(fmt::format("{} sees around agent ID {}", agentType.getString(), ID));
 			hash += std::hash<int>()(ID);
 		}
 		indices.SetVoxel((size_t)x,(size_t)y,0, (float)hash);
@@ -196,7 +198,7 @@ SceneControls& Scenario_Parallel::provideSceneControls()
 		{
 			if (currTime == 0.1f)
 			{
-				DEBUG_REPORT("stopping the production of the maskXXX.tif files");
+				report::debugMessage("stopping the production of the maskXXX.tif files");
 				ctx().disks.disableImgMaskTIFFs();
 				//ctx().displays.unregisterImagingUnit("localFiji");
 			}
@@ -204,7 +206,7 @@ SceneControls& Scenario_Parallel::provideSceneControls()
 			//DisplayUnits handling: variant A
 			if (currTime == 0.3f)
 			{
-				DEBUG_REPORT("stopping the console reports");
+				report::debugMessage("stopping the console reports");
 				displayUnit.UnregisterUnit( myDU );
 			}
 		}
@@ -229,7 +231,7 @@ SceneControls& Scenario_Parallel::provideSceneControls()
 
 void Scenario_Parallel::initializeScene()
 {
-	DEBUG_REPORT("enabling some image outputs...");
+	report::debugMessage("enabling some image outputs...");
 
 	//scenario has two optional params: how many agents along x and y axes
 	const int howManyAlongX = argc > 2? atoi(argv[2]) : 5;
@@ -256,10 +258,10 @@ void Scenario_Parallel::initializeAgents(FrontOfficer* fo,int p,int P)
 	static char url[32];
 	sprintf(url,"192.168.3.105:%d",8764+p);
 	//sprintf(url,"127.0.0.1:%d",8764+p);
-	REPORT("Parallel Scenario: going to connect to scenery/SimViewer at " << url);
+	report::message(fmt::format("Parallel Scenario: going to connect to scenery/SimViewer at {}", url));
 	displays.registerDisplayUnit( [](){ return new SceneryBufferedDisplayUnit(url); } );
 
-	REPORT("Parallel Scenario p=" <<  p << " P=" << P<< " initializing now...");
+	report::message(fmt::format("Parallel Scenario p={} P={} initializing now...", p, P));
 	//scenario has two optional params: how many agents along x and y axes
 	const int howManyAlongX = argc > 2? atoi(argv[2]) : 5;
 	const int howManyAlongY = argc > 3? atoi(argv[3]) : 4;
@@ -275,7 +277,7 @@ void Scenario_Parallel::initializeAgents(FrontOfficer* fo,int p,int P)
 	char agentName[512];
 
 	const int batchSize = (int)std::ceil( howManyAlongX * howManyAlongY / P );
-	REPORT("Parallel Scenario batchSize=" << batchSize);
+	report::message(fmt::format("Parallel Scenario batchSize={}", batchSize));
 	int createdAgents = 0;
 
 	for (int y = 0; y < howManyAlongY; ++y)
@@ -284,7 +286,7 @@ void Scenario_Parallel::initializeAgents(FrontOfficer* fo,int p,int P)
 		++createdAgents; // Bug který to udělal.
 		/*
 		//skip this agent if it does not belong to our batch
-		//REPORT("Parallel Scenario created agents/batch size = " << (createdAgents/batchSize)+1 << " p=" << p << " howManyAlongX=" << howManyAlongX << " howManyAlongY=" << howManyAlongY);
+		//report::message(fmt::format("Parallel Scenario created agents/batch size = {} p={} howManyAlongX={} howManyAlongY={}", createdAgents/batchSize+1, p, howManyAlongX, howManyAlongY));
 		if ((createdAgents-1)/batchSize +1 < p) continue;
 
 		//stop creating agents if we are over with our batch

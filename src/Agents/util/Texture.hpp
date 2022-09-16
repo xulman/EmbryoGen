@@ -39,7 +39,7 @@ public:
 		if (dots.capacity() - dots.size() < expectedNoOfNewDots)
 		{
 			dots.reserve(dots.capacity() + expectedNoOfNewDots);
-			DEBUG_REPORT("increased capacity to " << dots.capacity() << " dots");
+report::debugMessage(fmt::format("increased capacity to {} dots" , dots.capacity()));
 		}
 
 		return dots.capacity();
@@ -159,7 +159,7 @@ public:
 		boxSize(1.0f/imgRes.x, 1.0f/imgRes.y, 1.0f/imgRes.z),
 		qCounts( getCountsPerAxis(imgRes,quantumGainPerVoxel) )
 	{
-		DEBUG_REPORT("Converting inputs to: boxSize=" << boxSize <<" um, qCounts=" << qCounts << " sub-dots");
+report::debugMessage(fmt::format("Converting inputs to: boxSize={} um, qCounts={} sub-dots" , toString(boxSize), toString(qCounts)));
 		checkCountsPerAxis();
 	}
 
@@ -188,7 +188,7 @@ public:
 	void checkCountsPerAxis() const
 	{
 		if (! qCounts.elemIsGreaterThan( Vector3d<short>(0) ) )
-			throw ERROR_REPORT("Quantum cube must have at least one dot along every axis");
+throw report::rtError("Quantum cube must have at least one dot along every axis");
 	}
 
 	/** defines (axis-aligned) box to represent a volume of the one quantum box */
@@ -241,7 +241,7 @@ private:
 	bool testNoOfSpheres(const Spheres& geom)
 	{
 		if (geom.noOfSpheres != 4)
-			throw ERROR_REPORT("Cannot init updating of coordinates for non-four sphere geometry.");
+throw report::rtError("Cannot init updating of coordinates for non-four sphere geometry.");
 		return true;
 	}
 
@@ -301,9 +301,9 @@ private:
 	int testAndReturnSphereIdx(const Spheres& geom, const int idx)
 	{
 		if (geom.noOfSpheres < 2)
-			throw ERROR_REPORT("Cannot init updating of coordinates, needs geometry of two or more spheres.");
+throw report::rtError("Cannot init updating of coordinates, needs geometry of two or more spheres.");
 		if (idx < 0 || idx >= geom.noOfSpheres)
-			throw ERROR_REPORT("Invalid sphere idx (" << idx << ") when " << geom.noOfSpheres << " spheres avail.");
+throw report::rtError(fmt::format("Invalid sphere idx ({}) when {} spheres avail.", idx, geom.noOfSpheres));
 		return idx;
 	}
 
@@ -384,7 +384,7 @@ private:
 	int testAndGetNoOfSpheres(const Spheres& geom)
 	{
 		if (geom.noOfSpheres < 2)
-			throw ERROR_REPORT("Cannot init updating of coordinates, needs geometry of two or more spheres.");
+throw report::rtError("Cannot init updating of coordinates, needs geometry of two or more spheres.");
 		return geom.noOfSpheres;
 	}
 

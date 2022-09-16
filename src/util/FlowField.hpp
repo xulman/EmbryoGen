@@ -144,9 +144,7 @@ public:
 		//is the shift of offsets a multiple of grid spacing?
 		//(to some extent... bounded by the precision2)
 		//DEBUG TODO VLADO remove this report, and #include"macros.h" above top
-		DEBUG_REPORT("Sq. difference of grid offsets is "
-			<< i3d::Norm2(offDiff) << " in pixels, allowed sq. precision is "
-			<< precision2 << " in pixels");
+report::debugMessage(fmt::format("Sq. difference of grid offsets is {} in pixels, allowed sq. precision is {} in pixels" , i3d::Norm2(offDiff), precision2));
 		if (i3d::Norm2(offDiff) > precision2)
 			return false;
 

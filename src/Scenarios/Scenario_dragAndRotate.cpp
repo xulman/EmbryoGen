@@ -47,7 +47,7 @@ void Scenario_dragAndRotate::initializeAgents(FrontOfficer* fo,int p,int)
 {
 	if (p != 1)
 	{
-		REPORT("Populating only the first FO (which is not this one).");
+report::message(fmt::format("Populating only the first FO (which is not this one)." ));
 		return;
 	}
 
@@ -55,7 +55,7 @@ void Scenario_dragAndRotate::initializeAgents(FrontOfficer* fo,int p,int)
 	int ID=1;
 
 	const int howManyToPlace = argc > 2? atoi(argv[2]) : 12;
-	DEBUG_REPORT("will rotate " << howManyToPlace << " nuclei...");
+report::debugMessage(fmt::format("will rotate {} nuclei..." , howManyToPlace));
 
 	for (int i=0; i < howManyToPlace; ++i)
 	{

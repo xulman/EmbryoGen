@@ -49,7 +49,7 @@ class FrontOfficer;
 	if (argc > 1 && scenario == NULL &&                                        \
 	    availableScenarios.back().find(argv[1]) != std::string::npos)          \
 	{                                                                          \
-		REPORT("Going to use the scenario: " << availableScenarios.back());     \
+		report::message(fmt::format("Going to use the scenario: {}", availableScenarios.back()));     \
 		scenario = new c();                                                     \
 	}
 
@@ -105,18 +105,18 @@ public:
 		{
 			if (argc == 1)
 			{
-				REPORT("Please run again and choose some of the available scenarios, e.g. as");
-				REPORT(argv[0] << " regularDrosophila");
+report::message(fmt::format("Please run again and choose some of the available scenarios, e.g. as" ));
+report::message(fmt::format("{} regularDrosophila" , argv[0]));
 			}
 			else
-				REPORT("Couldn't match command-line scenario '" << argv[1] << "' to any known scenario.");
+report::message(fmt::format("Couldn't match command-line scenario '{}' to any known scenario." , argv[1]));
 
 			std::cout << "Currently known scenarios are: ";
 			for (auto rs : availableScenarios)
 				std::cout << rs << ", ";
 			std::cout << "\n";
 
-			throw ERROR_REPORT("Unmatched scenario.");
+throw report::rtError("Unmatched scenario.");
 		}
 
 		//pass the CLI params inside, to be

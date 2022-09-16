@@ -15,23 +15,23 @@ void ScalarImg::getDistance(const Geometry& otherGeometry,
 		break;
 	case ListOfShapeForms::Mesh:
 		//TODO: attempt to project mesh vertices into the mask image and look for collision
-		REPORT("this.ScalarImg vs Mesh is not implemented yet!");
+report::message(fmt::format("this.ScalarImg vs Mesh is not implemented yet!" ));
 		break;
 	case ListOfShapeForms::ScalarImg:
 		//TODO identity case
-		REPORT("this.ScalarImg vs ScalarImg is not implemented yet!");
+report::message(fmt::format("this.ScalarImg vs ScalarImg is not implemented yet!" ));
 		//getDistanceToScalarImg((ScalarImg*)&otherGeometry,l);
 		break;
 	case ListOfShapeForms::VectorImg:
-		REPORT("this.ScalarImg vs VectorImg is not implemented yet!");
+report::message(fmt::format("this.ScalarImg vs VectorImg is not implemented yet!" ));
 		//getDistanceToVectorImg((VectorImg*)&otherGeometry,l);
 		break;
 
 	case ListOfShapeForms::undefGeometry:
-		REPORT("Ignoring other geometry of type 'undefGeometry'.");
+report::message(fmt::format("Ignoring other geometry of type 'undefGeometry'." ));
 		break;
 	default:
-		throw ERROR_REPORT("Not supported combination of shape representations.");
+throw report::rtError("Not supported combination of shape representations.");
 	}
 }
 
@@ -333,9 +333,7 @@ void ScalarImg::deserializeFrom(char* buffer)
 	long off = Deserialization::fromBuffer(buffer,mmodel);
 
 	if (mmodel != (int)this->model)
-		throw ERROR_REPORT( "Deserialization mismatch: filling image of dist. model "
-			<< this->model << " with model " << (DistanceModel)mmodel
-			<< " from the buffer" );
+throw report::rtError(fmt::format("Deserialization mismatch: filling image of dist. model {} with model {} from the buffer", this->model, (DistanceModel)mmodel));
 
 	off += Deserialization::fromBuffer(buffer+off,distImg);
 	updateDistImgResOffFarEnd();
@@ -375,5 +373,5 @@ void ScalarImg::updateWithNewMask(const i3d::Image3d<double>& _mask);
 
 void ScalarImg::renderIntoMask(i3d::Image3d<i3d::GRAY16>&, const i3d::GRAY16) const
 {
-	REPORT("NOT IMPLEMENTED YED!");
+report::message(fmt::format("NOT IMPLEMENTED YED!" ));
 }

@@ -170,7 +170,7 @@ void Director::broadcast_setRenderingDebug(const bool setFlagToThis)
 }
 
 
-void Director::broadcast_throwException(const char* /* exceptionMessage */)
+void Director::broadcast_throwException(const std::string& /* exceptionMessage */)
 {
 	//this never happens (as Direktor and FO live in the same try block)
 	//MPI world:

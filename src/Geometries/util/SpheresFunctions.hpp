@@ -14,7 +14,7 @@ public:
 	void grow4SpheresBy(Spheres& s, const FT dR, const FT dD)
 	{
 		if (s.noOfSpheres != 4)
-			throw ERROR_REPORT("Cannot grow non-four sphere geometry.");
+throw report::rtError("Cannot grow non-four sphere geometry.");
 
 		//make the nuclei fatter by 'dD' um in diameter
 		for (int i=0; i < 4; ++i) s.radii[i] += dR;
@@ -85,7 +85,7 @@ public:
 		{
 #ifdef DEBUG
 			if (index < 0 || index >= s.noOfSpheres)
-				throw ERROR_REPORT("Incorrect index of a sphere provided.");
+throw report::rtError("Incorrect index of a sphere provided.");
 #endif
 			prevCentre = s.centres[index];
 			prevRadius = s.radii[index];
@@ -110,13 +110,13 @@ public:
 #ifdef DEBUG
 			//some sanity checks (and warnings)
 			if (prevRadius <= 0)
-				REPORT("WARNING: updating coords from negative previous radius (" << prevRadius << ")");
+report::message(fmt::format("WARNING: updating coords from negative previous radius ({})" , prevRadius));
 			if (newRadius <= 0)
-				REPORT("WARNING: updating coords into negative (current) radius (" << newRadius << ")");
+report::message(fmt::format("WARNING: updating coords into negative (current) radius ({})" , newRadius));
 			if (prevOrientation.len2() == 0)
-				REPORT("WARNING: updating coords and there is no previous orientation, the vec is (0,0,0)");
+report::message(fmt::format("WARNING: updating coords and there is no previous orientation, the vec is (0,0,0)" ));
 			if (newOrientation.len2() == 0)
-				REPORT("WARNING: updating coords and there is no current orientation, the vec is (0,0,0)");
+report::message(fmt::format("WARNING: updating coords and there is no current orientation, the vec is (0,0,0)" ));
 #endif
 			coordBase = prevCentre;
 			radiusStretch = newRadius / prevRadius;
@@ -181,7 +181,7 @@ public:
 		{
 #ifdef DEBUG
 			if (index < 0 || index >= s.noOfSpheres)
-				throw ERROR_REPORT("Incorrect index of a sphere provided.");
+throw report::rtError("Incorrect index of a sphere provided.");
 #endif
 			prepareUpdating(s.centres[index],s.radii[index],newOrientation);
 		}
@@ -208,20 +208,20 @@ public:
 
 		void showPrevState(void) const
 		{
-			REPORT("object's addr  @ " << (long)this);
-			REPORT("prevCentre     : " << prevCentre);
-			REPORT("prevRadius     : " << prevRadius);
-			REPORT("prevOrientation: " << prevOrientation);
+report::message(fmt::format("object's addr  @ {}" , (long)this));
+report::message(fmt::format("prevCentre     : {}" , prevCentre));
+report::message(fmt::format("prevRadius     : {}" , prevRadius));
+report::message(fmt::format("prevOrientation: {}" , prevOrientation));
 		}
 
 		void showRecipe(void) const
 		{
-			REPORT("object's addr @ " << (long)this);
-			REPORT("centre shift  : " << coordBase << " -> " << prevCentre);
-			REPORT("radius stretch: " << radiusStretch);
-			REPORT("rotMatrix row1: " << rotMatrix[0] << "\t" << rotMatrix[1] << "\t" << rotMatrix[2]);
-			REPORT("rotMatrix row2: " << rotMatrix[3] << "\t" << rotMatrix[4] << "\t" << rotMatrix[5]);
-			REPORT("rotMatrix row3: " << rotMatrix[6] << "\t" << rotMatrix[7] << "\t" << rotMatrix[8]);
+report::message(fmt::format("object's addr @ {}" , (long)this));
+report::message(fmt::format("centre shift  : {} -> {}" , coordBase, prevCentre));
+report::message(fmt::format("radius stretch: {}" , radiusStretch));
+report::message(fmt::format("rotMatrix row1: {}\t{}\t{}" , rotMatrix[0], rotMatrix[1], rotMatrix[2]));
+report::message(fmt::format("rotMatrix row2: {}\t{}\t{}" , rotMatrix[3], rotMatrix[4], rotMatrix[5]));
+report::message(fmt::format("rotMatrix row3: {}\t{}\t{}" , rotMatrix[6], rotMatrix[7], rotMatrix[8]));
 		}
 	};
 
@@ -243,8 +243,8 @@ public:
 			for (int row=0; row < side; ++row)
 			{
 				for (int col=0; col < side; ++col)
-					REPORT_NOHEADER_NOENDL("\t" << get(row,col));
-				REPORT_NOHEADER_JUSTENDL();
+report::message(fmt::format("\t{}" , get(row,col)), {false, false});
+report::message("", {false, true});
 			}
 		}
 	};
@@ -301,8 +301,7 @@ public:
 #ifdef DEBUG
 			//test appropriate size of the target geom
 			if (targetGeom.noOfSpheres != optimalTargetSpheresNo)
-				throw ERROR_REPORT("Target geom is made of " << targetGeom.noOfSpheres
-				  << " spheres but " << optimalTargetSpheresNo << " is expected.");
+throw report::rtError(fmt::format("Target geom is made of {} spheres but {} is expected.", targetGeom.noOfSpheres, optimalTargetSpheresNo));
 #endif
 			//create a single purpose receipt of constant content
 			std::list<posShakerPtr> positionShakers;
@@ -322,16 +321,13 @@ public:
 		{
 #ifdef DEBUG
 			if (positionShakers.size() != radiusShakers.size())
-				throw ERROR_REPORT("position shakers length (" << positionShakers.size()
-				        << " differs from radii shakers length (" << radiusShakers.size() << ")");
+throw report::rtError("position shakers length ({} differs from radii shakers length ({})", positionShakers.size(), radiusShakers.size()));
 			if (positionShakers.size() != expansionPlan.size())
-				throw ERROR_REPORT("shakers length (" << positionShakers.size()
-				        << " differs from the expected length (" << expansionPlan.size() << ")");
+throw report::rtError("shakers length ({} differs from the expected length ({})" , positionShakers.size(), expansionPlan.size()));
 
 			//test appropriate size of the target geom
 			if (targetGeom.noOfSpheres != optimalTargetSpheresNo)
-				throw ERROR_REPORT("Target geom is made of " << targetGeom.noOfSpheres
-				  << " spheres but " << optimalTargetSpheresNo << " is expected.");
+throw report::rtError("Target geom is made of {} spheres but {} is expected." , targetGeom.noOfSpheres, optimalTargetSpheresNo));
 #endif
 			//copy the source as is
 			for (int i = 0; i < sourceGeom.noOfSpheres; ++i)
@@ -386,11 +382,11 @@ public:
 		{
 #ifdef DEBUG
 			if (fromSrcIdx < 0 || fromSrcIdx >= sourceGeom.noOfSpheres)
-				throw ERROR_REPORT("src index is invalid, should be within [0," << sourceGeom.noOfSpheres-1 << "]");
+throw report::rtError(fmt::format("src index is invalid, should be within [0,{}]", sourceGeom.noOfSpheres-1));
 			if (toSrcIdx < 0 || toSrcIdx >= sourceGeom.noOfSpheres)
-				throw ERROR_REPORT("to index is invalid, should be within [0," << sourceGeom.noOfSpheres-1 << "]");
+throw report::rtError(fmt::format("to index is invalid, should be within [0,{}]" , sourceGeom.noOfSpheres-1));
 			if (noOfSpheresInBetween <= 0)
-				throw ERROR_REPORT("illegal number of requested spheres: " << noOfSpheresInBetween);
+throw report::rtError(fmt::format("illegal number of requested spheres: {}", noOfSpheresInBetween));
 #endif
 			expansionPlan.emplace_back(fromSrcIdx, toSrcIdx, noOfSpheresInBetween);
 			optimalTargetSpheresNo += noOfSpheresInBetween;
@@ -417,11 +413,10 @@ public:
 
 		void printPlan() const
 		{
-			REPORT("Exact copy of the src geometry (" << sourceGeom.noOfSpheres << ")");
+report::message(fmt::format("Exact copy of the src geometry ({})" , sourceGeom.noOfSpheres));
 			for (const auto& plan : expansionPlan)
-				REPORT("Between " << plan.fromSrcIdx << " and " << plan.toSrcIdx
-				  << " (" << plan.noOfSpheresInBetween << ")");
-			REPORT("Total no. of spheres: " << optimalTargetSpheresNo);
+report::message(fmt::format("Between {} and {} ({})" , plan.fromSrcIdx, plan.toSrcIdx, plan.noOfSpheresInBetween));
+report::message(fmt::format("Total no. of spheres: {}" , optimalTargetSpheresNo));
 		}
 
 	protected:
@@ -463,7 +458,7 @@ public:
 		  : Interpolator<FT>(referenceGeom), basalSideDir(1,0,0)
 		{
 			if (referenceGeom.noOfSpheres < 2)
-				throw ERROR_REPORT("reference geometry must include at least two spheres");
+throw report::rtError("reference geometry must include at least two spheres");
 
 			resetFromAssociatedGeom();
 			setBasalSideDir(basalSideDir);
@@ -670,7 +665,7 @@ public:
 		{
 #ifdef DEBUG
 			if (newGeom.noOfSpheres != getNoOfNecessarySpheres())
-				throw ERROR_REPORT("Given geometry cannot host the one defined here.");
+throw report::rtError("Given geometry cannot host the one defined here.");
 #endif
 			//iterate over all azimuths, set up and apply the up-stream Interpolator
 			this->expansionPlan.clear();
@@ -684,12 +679,12 @@ public:
 				this->addToPlan(0,1, map.second);
 
 				posShakerPtr pSP = &azimuthToPosShaker[map.first];
-				DEBUG_REPORT(map.first << ": posShaker @ " << pSP);
+report::debugMessage(fmt::format("{}: posShaker @ {}" , map.first, toString(pSP)));
 				if (pSP != NULL) positionShakers.push_back(pSP);
 				else             positionShakers.push_back(&defaultPosNoAdjustmentRef);
 
 				radiusShakerPtr rSP = &azimuthToRadiusShaker[map.first];
-				DEBUG_REPORT(map.first << ": radiusShaker @ " << rSP);
+report::debugMessage(fmt::format("{}: radiusShaker @ {}" , map.first, toString(rSP)));
 				if (rSP != NULL) radiusShakers.push_back(rSP);
 				else             radiusShakers.push_back(&defaultRadiusNoChgRef);
 			}
@@ -700,7 +695,7 @@ public:
 		{
 #ifdef DEBUG
 			if (newGeom.noOfSpheres != getNoOfNecessarySpheres())
-				throw ERROR_REPORT("Given geometry cannot host the one defined here.");
+throw report::rtError("Given geometry cannot host the one defined here.");
 #endif
 			this->expandSrcIntoThis(newGeom, positionShakers,radiusShakers);
 		}
@@ -720,7 +715,7 @@ public:
 		{
 #ifdef DEBUG
 			if (geom.noOfSpheres != getNoOfNecessarySpheres())
-				throw ERROR_REPORT("Given geometry is not compatible with the one defined here.");
+throw report::rtError("Given geometry is not compatible with the one defined here.");
 #endif
 			const float deltaRadius0 = this->sourceGeom.getRadii()[0] - geom.getRadii()[0];
 			const float deltaRadius1 = this->sourceGeom.getRadii()[1] - geom.getRadii()[1];
@@ -735,8 +730,7 @@ public:
 			posDeltaDir.changeToUnitOrZero();
 
 			/*
-			DEBUG_REPORT("deltaRad0=" << deltaRadius0 << ", deltaRad1=" << deltaRadius1
-				<< ", deltaDist=" << deltaMainAxisDist);
+report::debugMessage(fmt::format("deltaRad0={}, deltaRad1={}, deltaDist={}" , deltaRadius0, deltaRadius1, deltaMainAxisDist));
 			*/
 
 			geom.updateRadius(0, this->sourceGeom.getRadii()[0]);

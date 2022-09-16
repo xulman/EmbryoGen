@@ -29,7 +29,7 @@ class RandomWalk
 		rnd_StateZ=gsl_rng_alloc(gsl_rng_default);
 		rnd_StateDisp=gsl_rng_alloc(gsl_rng_default);
 		if (!rnd_StateAng || !rnd_StateZ || !rnd_StateDisp)
-			throw ERROR_REPORT("Couldn't initialize random number generators.");
+throw report::rtError("Couldn't initialize random number generators.");
 
 		unsigned long seed=(unsigned long)(-1 * time(NULL) * getpid());
 		gsl_rng_set(rnd_StateAng,seed);
@@ -390,7 +390,7 @@ class RandomWalk
 	{
 		//see the RandomWalk::PrepareRandomTurningField() for some more comments...
 		if (stepSampling <= 0.)
-			throw ERROR_REPORT("The stepSampling parameter must be strictly positive.");
+throw report::rtError("The stepSampling parameter must be strictly positive.");
 
 		randomStepSizeField.clear();
 
@@ -497,9 +497,7 @@ class RandomWalk
 	void SetBiasVector(const FT x,const FT y,const FT z=0.)
 	{
 		wlk_displacementBias_x=x; wlk_displacementBias_y=y; wlk_displacementBias_z=z;
-		DEBUG_REPORT("new Bias vector: (" << wlk_displacementBias_x << ","
-		             << wlk_displacementBias_y << ","
-						 << wlk_displacementBias_z << ") in microns");
+report::debugMessage(fmt::format("new Bias vector: ({},{},{}) in microns" , wlk_displacementBias_x, wlk_displacementBias_y, wlk_displacementBias_z));
 	}
 
 	///Get currently used bias 2D vector.
@@ -524,7 +522,7 @@ class RandomWalk
 		while (newHeading > 6.28318) newHeading-=6.28318;
 
 		wlk_xy_heading=newHeading;
-		DEBUG_REPORT("new XY heading angle: " << wlk_xy_heading << " radians");
+report::debugMessage(fmt::format("new XY heading angle: {} radians" , wlk_xy_heading));
 	}
 
 
@@ -542,7 +540,7 @@ class RandomWalk
 
 		//set it then
 		wlk_z_limit=zLimit;
-		DEBUG_REPORT("new Z anisotropy value: " << wlk_z_limit << " [no units]");
+report::debugMessage(fmt::format("new Z anisotropy value: {} [no units]" , wlk_z_limit));
 	}
 
 	///Returns the current 3D walk z-axis anisotropy.

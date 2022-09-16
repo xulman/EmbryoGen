@@ -77,7 +77,7 @@ void PrepareFinalPreviewImage(i3d::Image3d<PV> &phantom,
 	i3d::Resolution finalRes; //TODO define some!
 
 	//REPORT("Resampling from resolution: " << mask.GetResolution().GetRes());
-	REPORT("Resampling to resolution: " << finalRes.GetRes());
+report::message(fmt::format("Resampling to resolution: {}" , finalRes.GetRes()));
 
 	i3d::ResampleToDesiredResolution(phantom, finalRes, i3d::NEAREST_NEIGHBOUR);
 	//i3d::ResampleToDesiredResolution(mask,    finalRes, i3d::NEAREST_NEIGHBOUR);

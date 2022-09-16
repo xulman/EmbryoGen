@@ -39,37 +39,37 @@ public:
 	}
 
 	//cycle debug reports -- proofs of being called
-	void startG1Phase(void) override { REPORT("do some work"); }
-	void runG1Phase(const float time) override { REPORT("time=" << time); }
-	void closeG1Phase(void) override { REPORT("do some work"); }
+	void startG1Phase(void) override { report::debugMessage("do some work"); }
+	void runG1Phase(const float time) override { report::debugMessage(fmt::format("time={}", time)); }
+	void closeG1Phase(void) override { report::debugMessage("do some work"); }
 
-	void startSPhase(void) override { REPORT("do some work"); }
-	void runSPhase(const float time) override { REPORT("time=" << time); }
-	void closeSPhase(void) override { REPORT("do some work"); }
+	void startSPhase(void) override { report::debugMessage("do some work"); }
+	void runSPhase(const float time) override { report::debugMessage(fmt::format("time={}", time)); }
+	void closeSPhase(void) override { report::debugMessage("do some work"); }
 
-	void startG2Phase(void) override { REPORT("do some work"); }
-	void runG2Phase(const float time) override { REPORT("time=" << time); }
-	void closeG2Phase(void) override { REPORT("do some work"); }
+	void startG2Phase(void) override { report::debugMessage("do some work"); }
+	void runG2Phase(const float time) override { report::debugMessage(fmt::format("time={}", time)); }
+	void closeG2Phase(void) override { report::debugMessage("do some work"); }
 
-	void startProphase(void) override { REPORT("do some work"); }
-	void runProphase(const float time) override { REPORT("time=" << time); }
-	void closeProphase(void) override { REPORT("do some work"); }
+	void startProphase(void) override { report::debugMessage("do some work"); }
+	void runProphase(const float time) override { report::debugMessage(fmt::format("time={}", time)); }
+	void closeProphase(void) override { report::debugMessage("do some work"); }
 
-	void startMetaphase(void) override { REPORT("do some work"); }
-	void runMetaphase(const float time) override { REPORT("time=" << time); }
-	void closeMetaphase(void) override { REPORT("do some work"); }
+	void startMetaphase(void) override { report::debugMessage("do some work"); }
+	void runMetaphase(const float time) override { report::debugMessage(fmt::format("time={}", time)); }
+	void closeMetaphase(void) override { report::debugMessage("do some work"); }
 
-	void startAnaphase(void) override { REPORT("do some work"); }
-	void runAnaphase(const float time) override { REPORT("time=" << time); }
-	void closeAnaphase(void) override { REPORT("do some work"); }
+	void startAnaphase(void) override { report::debugMessage("do some work"); }
+	void runAnaphase(const float time) override { report::debugMessage(fmt::format("time={}", time)); }
+	void closeAnaphase(void) override { report::debugMessage("do some work"); }
 
-	void startTelophase(void) override { REPORT("do some work"); }
-	void runTelophase(const float time) override { REPORT("time=" << time); }
-	void closeTelophase(void) override { REPORT("do some work"); }
+	void startTelophase(void) override { report::debugMessage("do some work"); }
+	void runTelophase(const float time) override { report::debugMessage(fmt::format("time={}", time)); }
+	void closeTelophase(void) override { report::debugMessage("do some work"); }
 
-	void startCytokinesis(void) override { REPORT("do some work"); }
-	void runCytokinesis(const float time) override { REPORT("time=" << time); }
-	void closeCytokinesis(void) override { REPORT("do some work"); }
+	void startCytokinesis(void) override { report::debugMessage("do some work"); }
+	void runCytokinesis(const float time) override { report::debugMessage(fmt::format("time={}", time)); }
+	void closeCytokinesis(void) override { report::debugMessage("do some work"); }
 };
 
 
@@ -78,7 +78,7 @@ void Scenario_withCellCycle::initializeAgents(FrontOfficer* fo,int p,int)
 {
 	if (p != 1)
 	{
-		REPORT("Populating only the first FO (which is not this one).");
+		report::message("Populating only the first FO (which is not this one).");
 		return;
 	}
 

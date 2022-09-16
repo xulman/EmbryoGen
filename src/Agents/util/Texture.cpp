@@ -53,9 +53,8 @@ void Texture::sampleDotsFromImage(const i3d::Image3d<VT>& img,
 	}
 
 #ifdef DEBUG
-	REPORT("there are " << missedDots << " (" << (float)(100*missedDots)/(float)dots.size()
-	       << " %) dots placed outside its original voxel");
-	REPORT("there are currently " << dots.size() << " registered dots");
+report::message(fmt::format("there are {} ({} %) dots placed outside its original voxel" , missedDots, (float)(100*missedDots)/(float)dots.size()));
+report::message(fmt::format("there are currently {} registered dots" , dots.size()));
 #endif
 }
 
@@ -78,7 +77,7 @@ void Texture::createPerlinTexture(const Spheres& geom,
 	//we do no creation of the texture then...
 	if (img.GetImageSize() == 0)
 	{
-		DEBUG_REPORT("WARNING: Wrapping texture image is of zero size... stopping here.");
+report::debugMessage(fmt::format("WARNING: Wrapping texture image is of zero size... stopping here." ));
 		return;
 	}
 
@@ -108,8 +107,7 @@ void Texture::createPerlinTexture(const Spheres& geom,
 		collectOutlyingDots(geom);
 #else
 		const int dotOutliers = collectOutlyingDots(geom);
-		DEBUG_REPORT(dotOutliers << " (" << (float)(100*dotOutliers)/(float)dots.size()
-		             << " %) dots had to be moved inside the initial geometry");
+report::debugMessage(fmt::format("{} ({} %) dots had to be moved inside the initial geometry" , dotOutliers, (float)(100*dotOutliers)/(float)dots.size()));
 #endif
 	}
 }
@@ -182,14 +180,13 @@ int Texture::collectOutlyingDots(const Spheres& geom)
 #ifdef DEBUG
 	if (count > 0)
 	{
-		REPORT("average outside-to-surface distance " << outDist/(double)count << " um (in " << toc(stopWatch) << ")");
-		REPORT("average new-pos-to-centre  distance " <<  inDist/(double)count << " um");
-		REPORT("secondary corrections of " << postCorrectionsCnt << "/" << count
-		       << " (" << (float)(100*postCorrectionsCnt)/(float)count << " %) dots");
+report::message(fmt::format("average outside-to-surface distance {} um (in {})" , outDist/(double)count, toc(stopWatch)));
+report::message(fmt::format("average new-pos-to-centre  distance {} um" , inDist/(double)count));
+report::message(fmt::format("secondary corrections of {}/{} ({} %) dots" , postCorrectionsCnt, count, (float)(100*postCorrectionsCnt)/(float)count));
 	}
 	else
 	{
-		REPORT("no corrections were necessary (in " << toc(stopWatch) << ")");
+report::message(fmt::format("no corrections were necessary (in {})" , toc(stopWatch)));
 	}
 #endif
 	return count;
@@ -214,7 +211,7 @@ inline float getBleachFactor(const short)
 
 void Texture::renderIntoPhantom(i3d::Image3d<float> &phantoms, const float quantization)
 {
-	DEBUG_REPORT("going to render " << dots.size() << " dots");
+report::debugMessage(fmt::format("going to render {} dots" , dots.size()));
 
 	//cache some output image params
 	const Vector3d<float>  res(phantoms.GetResolution().GetRes());
@@ -259,21 +256,20 @@ void Texture::renderIntoPhantom(i3d::Image3d<float> &phantoms, const float quant
 		}
 		else
 		{
-			DEBUG_REPORT("ups, dot " << dot.pos << " is outside the phantom image");
+report::debugMessage(fmt::format("ups, dot {} is outside the phantom image" , toString(dot.pos)));
 		}
 	}
 
 #ifdef DEBUG
-	REPORT("added total cell intensity: " << meanIntContribution <<
-	       " with mean dot intensity: " << meanIntContribution/(double)meanIntContCounter);
-	REPORT("rendering dots took " << toc(stopWatch));
+report::message(fmt::format("added total cell intensity: {} with mean dot intensity: {}" , meanIntContribution, meanIntContribution/(double)meanIntContCounter));
+report::message(fmt::format("rendering dots took {}" , toc(stopWatch)));
 #endif
 }
 
 
 void TextureQuantized::renderIntoPhantom(i3d::Image3d<float> &phantoms)
 {
-	DEBUG_REPORT("going to render " << dots.size() << " quantum dots");
+report::debugMessage(fmt::format("going to render {} quantum dots" , dots.size()));
 
 	//cache some output image params
 	const Vector3d<float> res(phantoms.GetResolution().GetRes());      //in px/um
@@ -353,14 +349,13 @@ void TextureQuantized::renderIntoPhantom(i3d::Image3d<float> &phantoms)
 		}
 		else
 		{
-			DEBUG_REPORT("ups, dot " << dot.pos << " is outside the phantom image");
+report::debugMessage(fmt::format("ups, dot {} is outside the phantom image" , toString(dot.pos)));
 		}
 	}
 
 #ifdef DEBUG
-	REPORT("added total cell intensity: " << meanIntContribution <<
-	       " with mean dot intensity: " << meanIntContribution/(double)meanIntContCounter);
-	REPORT("rendering quantum dots took " << toc(stopWatch));
+report::message(fmt::format("added total cell intensity: {} with mean dot intensity: {}" , meanIntContribution, meanIntContribution/(double)meanIntContCounter));
+report::message(fmt::format("rendering quantum dots took {}" , toc(stopWatch)));
 #endif
 }
 
@@ -389,7 +384,7 @@ void TextureUpdater4S::updateTextureCoords(std::vector<Dot>& dots, const Spheres
 {
 #ifdef DEBUG
 	if (newGeom.noOfSpheres != 4)
-		throw ERROR_REPORT("Cannot update coordinates for non-four sphere geometry.");
+throw report::rtError("Cannot update coordinates for non-four sphere geometry.");
 #endif
 	// backup: last geometry for which user coordinates were valid
 	for (unsigned int i=0; i < 4; ++i)
@@ -455,7 +450,7 @@ void TextureUpdater4S::updateTextureCoords(std::vector<Dot>& dots, const Spheres
 
 #ifdef DEBUG
 	if (outsideDots > 0)
-		REPORT(outsideDots << " dots could not be updated (no matching sphere found, weird...)");
+report::message(fmt::format("{} dots could not be updated (no matching sphere found, weird...)" , outsideDots));
 #endif
 }
 
@@ -464,8 +459,7 @@ void TextureUpdater2pNS::updateTextureCoords(std::vector<Dot>& dots, const Spher
 {
 #ifdef DEBUG
 	if (newGeom.noOfSpheres != noOfSpheres)
-		throw ERROR_REPORT("Cannot update coordinates for " << newGeom.noOfSpheres
-		                << " sphere geometry, expected " << noOfSpheres << " spheres.");
+throw report::rtError(fmt::format("Cannot update coordinates for {} sphere geometry, expected {} spheres." , newGeom.noOfSpheres, noOfSpheres));
 #endif
 	// backup: last geometry for which texture coordinates were valid
 	// and prepare the updating routines where "orientation is global"
@@ -522,7 +516,7 @@ void TextureUpdater2pNS::updateTextureCoords(std::vector<Dot>& dots, const Spher
 
 #ifdef DEBUG
 	if (outsideDots > 0)
-		REPORT(outsideDots << " dots could not be updated (no matching sphere found, weird...)");
+report::message(fmt::format("{} dots could not be updated (no matching sphere found, weird...)" , outsideDots));
 #endif
 }
 
@@ -531,12 +525,10 @@ void TextureUpdaterNS::resetNeigWeightMatrix(const Spheres& spheres, int maxNoOf
 {
 #ifdef DEBUG
 	if (spheres.noOfSpheres != noOfSpheres)
-		throw ERROR_REPORT("Cannot update coordinates for " << spheres.noOfSpheres
-		                << " sphere geometry, expected " << noOfSpheres << " spheres.");
+throw report::rtError(fmt::format("Cannot update coordinates for {} sphere geometry, expected {} spheres.", spheres.noOfSpheres, noOfSpheres));
 
 	if (maxNoOfNeighs < 1 || maxNoOfNeighs >= noOfSpheres)
-		throw ERROR_REPORT("requesting maxNoOfNeighs=" << maxNoOfNeighs
-		                << " when only " << noOfSpheres << "-1 neighbors are available");
+throw report::rtError(fmt::format("requesting maxNoOfNeighs={} when only {}-1 neighbors are available", maxNoOfNeighs, noOfSpheres));
 #endif
 
 	struct myGreaterThan_t {
@@ -588,7 +580,7 @@ void TextureUpdaterNS::resetNeigWeightMatrix(const Spheres& spheres, int maxNoOf
 		std::sort(sortedIndices.begin(),sortedIndices.end(), myGreaterThan);
 
 		//list indices of spheres in the order optimal for "mating"
-		DEBUG_REPORT_NOENDL("sphere #" << row << ":");
+report::debugMessage(fmt::format("sphere #{}:" , row), {true, false});
 
 		int foundNeighs = 0;
 		for (int sortedIdx=0; sortedIdx < noOfSpheres-1; ++sortedIdx)
@@ -601,7 +593,7 @@ void TextureUpdaterNS::resetNeigWeightMatrix(const Spheres& spheres, int maxNoOf
 			{
 				//this makes sure the complete matrix row was touched
 				*neigWeightMatrix(row,col) = 0;
-				DEBUG_REPORT_NOHEADER_NOENDL("  " << col << "(n)");
+report::debugMessage(fmt::format("  {}(n)" , col), {false, false});
 				continue;
 			}
 
@@ -614,19 +606,19 @@ void TextureUpdaterNS::resetNeigWeightMatrix(const Spheres& spheres, int maxNoOf
 			{
 				*neigWeightMatrix(row,col) = 1;
 				++foundNeighs;
-				DEBUG_REPORT_NOHEADER_NOENDL("  " << col << "(y)");
+report::debugMessage(fmt::format("  {}(y)" , col), {false, false});
 			}
 			else
 			{
 				*neigWeightMatrix(row,col) = 0;
-				DEBUG_REPORT_NOHEADER_NOENDL("  " << col << "(n)");
+report::debugMessage(fmt::format("  {}(n)" , col), {false, false});
 			}
 		}
 		*neigWeightMatrix(row,row) = (float)foundNeighs;
-		DEBUG_REPORT_NOHEADER(" = " << foundNeighs << " links");
+report::debugMessage(fmt::format(" = {} links" , foundNeighs), {false});
 
 		if (foundNeighs == 0)
-			throw ERROR_REPORT("Unsupported sphere configuration. Every sphere must overlap with at least one another.");
+throw report::rtError("Unsupported sphere configuration. Every sphere must overlap with at least one another.");
 	}
 }
 
@@ -635,7 +627,7 @@ void TextureUpdaterNS::setNeigWeightMatrix(const SpheresFunctions::SquareMatrix<
 {
 #ifdef DEBUG
 	if (neigWeightMatrix.side != newWeightMatrix.side)
-		throw ERROR_REPORT("Attempting to set matrix of different size.");
+throw report::rtError("Attempting to set matrix of different size.");
 #endif
 
 	const int totalLength = neigWeightMatrix.side * neigWeightMatrix.side;
@@ -646,7 +638,7 @@ void TextureUpdaterNS::setNeigWeightMatrix(const SpheresFunctions::SquareMatrix<
 
 void TextureUpdaterNS::printNeigWeightMatrix()
 {
-	REPORT("weights among neighboring spheres:");
+report::message(fmt::format("weights among neighboring spheres:" ));
 	neigWeightMatrix.print();
 }
 
@@ -677,8 +669,7 @@ void TextureUpdaterNS::updateTextureCoords(std::vector<Dot>& dots, const Spheres
 {
 #ifdef DEBUG
 	if (newGeom.noOfSpheres != noOfSpheres)
-		throw ERROR_REPORT("Cannot update coordinates for " << newGeom.noOfSpheres
-		                << " sphere geometry, expected " << noOfSpheres << " spheres.");
+throw report::rtError(fmt::format("Cannot update coordinates for {} sphere geometry, expected {} spheres." , newGeom.noOfSpheres, noOfSpheres));
 #endif
 	// backup: last geometry for which user coordinates were valid
 	// and prepare the updating routines...
@@ -735,6 +726,6 @@ void TextureUpdaterNS::updateTextureCoords(std::vector<Dot>& dots, const Spheres
 
 #ifdef DEBUG
 	if (outsideDots > 0)
-		REPORT(outsideDots << " dots could not be updated (no matching sphere found, weird...)");
+report::message(fmt::format("{} dots could not be updated (no matching sphere found, weird...)" , outsideDots));
 #endif
 }

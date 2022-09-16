@@ -135,7 +135,7 @@ void FrontOfficer::respond_ShadowAgentCopy(const int)
 
 #ifdef DEBUG
 	if (agents.find(requestedAgentID) == agents.end())
-		throw ERROR_REPORT("Cannot provide ShadowAgent for agent ID " << requestedAgentID);
+throw std::runtime_error(fmt::format("{} Cannot provide ShadowAgent for agent ID {}", report::getIdent() , requestedAgentID));
 #endif
 
 	const AbstractAgent& aaRef = *(agents[requestedAgentID]);
@@ -240,6 +240,5 @@ void FrontOfficer::respond_throwException()
 	//gives: nothing
 
 	//read the exceptionMessage, then throw it
-	char msg[] = "received this fake exception message";
-	throw new std::runtime_error( msg );
+	throw report::rtError("received this fake exception message");
 }

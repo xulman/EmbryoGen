@@ -337,7 +337,7 @@ protected:
 			bzero(cname,rlen);
 
 			MPI_Comm_get_name(comm, cname, &rlen);
-			REPORT(what << " MPI message at: " << instance_ID << " Via: " << cname <<  " Peer: " << peer <<  " Items in message: " << items << " Tag: " << tagName(tag));
+report::message(fmt::format("{} MPI message at: {} Via: {} Peer: {} Items in message: {} Tag: {}" , what, instance_ID, cname, peer, items, tagName(tag)));
 		}
 #else
 		inline void debugMPIComm(const char*, MPI_Comm, int, int, e_comm_tags) {}

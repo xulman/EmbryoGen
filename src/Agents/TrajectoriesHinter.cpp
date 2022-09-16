@@ -61,12 +61,11 @@ void TrajectoriesHinter::drawForDebug(DisplayUnit& du)
 			  pos.toPixels(centrePx, res,off), Vector3d<size_t>(3));
 #endif
 		}
-		DEBUG_REPORT(IDSIGN << "trajectories: " << createdLines
-		             << " lines and " << createdBalls << " balls");
+		report::debugMessage(fmt::format("{} trajectories: {} lines and {} balls", getSignature(), createdLines, createdBalls));
 
 		//render the current flow field
 		createdVecs += ff.drawFF(du, DBG+createdVecs, 6, Vector3d<size_t>(2));
-		DEBUG_REPORT(IDSIGN << "trajectories: " << createdVecs << " vectors making up tracks-induced-FF");
+report::debugMessage(fmt::format("{}trajectories: {} vectors making up tracks-induced-FF" , getSignature(), createdVecs));
 	}
 }
 

@@ -195,7 +195,7 @@ public:
 	void proxifyFF(FlowField<G_FLOAT>& FF)
 	{
 		FF.proxify(&X,&Y,&Z);
-		DEBUG_REPORT("The FF.isConsistent() gives " << (FF.isConsistent() ? "true" : "false"));
+report::debugMessage(fmt::format("The FF.isConsistent() gives {}" , (FF.isConsistent() ? "true" : "false")));
 	}
 
 	const i3d::Image3d<G_FLOAT>& getImgX(void) const

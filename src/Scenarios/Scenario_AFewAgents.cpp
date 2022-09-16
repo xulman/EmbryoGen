@@ -14,7 +14,7 @@ void Scenario_AFewAgents::initializeAgents(FrontOfficer* fo,int p,int)
 {
 	if (p != 1)
 	{
-		REPORT("Populating only the first FO (which is not this one).");
+report::message(fmt::format("Populating only the first FO (which is not this one)." ));
 		return;
 	}
 
@@ -58,7 +58,7 @@ void Scenario_AFewAgents::initializeAgents(FrontOfficer* fo,int p,int)
 	const float xRes = 0.8f; //px/um
 	const float yRes = 0.8f;
 	const float zRes = 0.8f;
-	DEBUG_REPORT("Shape hinter image size   [um]: " << size);
+report::debugMessage(fmt::format("Shape hinter image size   [um]: {}" , toString(size)));
 
 	//allocate and init memory for the hinter representation
 	i3d::Image3d<i3d::GRAY8> Img;
@@ -70,7 +70,7 @@ void Scenario_AFewAgents::initializeAgents(FrontOfficer* fo,int p,int)
 	size += sceneCentre;
 	Img.SetOffset(     i3d::Offset(size.x,size.y,size.z) );
 	Img.SetResolution( i3d::Resolution(xRes,yRes,zRes) );
-	DEBUG_REPORT("Shape hinter image offset [um]: " << size);
+report::debugMessage(fmt::format("Shape hinter image offset [um]: {}" , toString(size)));
 
 	//fill the actual shape (except for a dX x dY x dZ frame at the border)
 	const size_t dZ = (size_t)(0.1*(double)Img.GetSizeZ());

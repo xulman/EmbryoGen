@@ -4,21 +4,18 @@
 #include "util/synthoscopy/SNR.hpp"
 #include "FrontOfficer.hpp"
 #include "Director.hpp"
+#include <fmt/core.h>
 
 void Director::init1_SMP(void)
 {
-	REPORT("Direktor initializing now...");
+report::message(fmt::format("Direktor initializing now..." ));
 	currTime = scenario.params.constants.initTime;
 
 	//a bit of stats before we start...
 	const auto& sSum = scenario.params.constants.sceneSize;
 	Vector3d<float> sSpx(sSum);
 	sSpx.elemMult(scenario.params.constants.imgRes);
-	std::string sMsg = buildStringFromStream(
-	     "scenario suggests this scene size: "
-	  << sSum.x << " x " << sSum.y << " x " << sSum.z
-	  << " um -> "
-	  << sSpx.x << " x " << sSpx.y << " x " << sSpx.z << " px");
+	std::string sMsg = fmt::format("scenario suggests this scene size: {} x {} x {} um -> {} x {} x {} px", sSum.x, sSum.y, sSum.z, sSpx.x ,sSpx.y, sSpx.z);
 
 	double sSpxTotal = sSpx.x * sSpx.y * sSpx.z;
 	if (sSpxTotal > 1024.0*1024.0*1024.0)
@@ -26,7 +23,7 @@ void Director::init1_SMP(void)
 		sSpxTotal /= 1024.0*1024.0*1024.0;
 		int sSpxTotal_int  = (int)sSpxTotal;
 		int sSpxTotal_frac = (int)(sSpxTotal*10.0) %10;
-		REPORT(sMsg << " (" << sSpxTotal_int << "." << sSpxTotal_frac << " " << "Gvoxels)");
+report::message(fmt::format("{} ({}.{} Gvoxels)" , sMsg, sSpxTotal_int, sSpxTotal_frac));
 	}
 	else
 	if (sSpxTotal > 1024.0*1024.0)
@@ -34,7 +31,7 @@ void Director::init1_SMP(void)
 		sSpxTotal /= 1024.0*1024.0;
 		int sSpxTotal_int  = (int)sSpxTotal;
 		int sSpxTotal_frac = (int)(sSpxTotal*10.0) %10;
-		REPORT(sMsg << " (" << sSpxTotal_int << "." << sSpxTotal_frac << " " << "Mvoxels)");
+report::message(fmt::format("{} ({}.{} Mvoxels)" , sMsg, sSpxTotal_int, sSpxTotal_frac));
 	}
 	else
 	if (sSpxTotal > 1024.0)
@@ -42,11 +39,11 @@ void Director::init1_SMP(void)
 		sSpxTotal /= 1024.0;
 		int sSpxTotal_int  = (int)sSpxTotal;
 		int sSpxTotal_frac = (int)(sSpxTotal*10.0) %10;
-		REPORT(sMsg << " (" << sSpxTotal_int << "." << sSpxTotal_frac << " " << "Kvoxels)");
+report::message(fmt::format("{} ({}.{} Kvoxels)" , sMsg, sSpxTotal_int, sSpxTotal_frac));
 	}
 	else
 	{
-		REPORT(sMsg << " (" << sSpxTotal << " voxels)");
+report::message(fmt::format("{} ({} voxels)" , sMsg, sSpxTotal));
 	}
 
 	scenario.initializeScene();
@@ -58,13 +55,13 @@ void Director::init1_SMP(void)
 	{
 		if (! scenario.params.imagesSaving_isEnabledForImgOptics())
 		{
-			REPORT("===> Found enabled phantom images, but disabled optics images.");
-			REPORT("===> Will actually not render agents until both is enabled.");
+report::message(fmt::format("===> Found enabled phantom images, but disabled optics images." ));
+report::message(fmt::format("===> Will actually not render agents until both is enabled." ));
 		}
 		if (! scenario.params.imagesSaving_isEnabledForImgPhantom())
 		{
-			REPORT("===> Found enabled optics images, but disabled phantom images.");
-			REPORT("===> Will actually not render agents until both is enabled.");
+report::message(fmt::format("===> Found enabled optics images, but disabled phantom images." ));
+report::message(fmt::format("===> Will actually not render agents until both is enabled." ));
 		}
 	}
 }
@@ -79,7 +76,7 @@ void Director::init2_SMP(void)
 	postprocessAfterUpdateAndPublishAgents();
 
 	reportSituation();
-	REPORT("Direktor initialized");
+report::message(fmt::format("Direktor initialized" ));
 }
 
 void Director::init3_SMP(void)
@@ -97,8 +94,7 @@ void Director::init3_SMP(void)
 
 void Director::reportSituation()
 {
-	REPORT("--------------- " << currTime << " min ("
-	  << agents.size() << " in the entire world) ---------------");
+report::message(fmt::format("--------------- {} min ({} in the entire world) ---------------" , currTime, agents.size()));
 }
 
 
@@ -106,7 +102,7 @@ void Director::close(void)
 {
 	//mark before closing is attempted...
 	isProperlyClosedFlag = true;
-	DEBUG_REPORT("running the closing sequence");
+report::debugMessage(fmt::format("running the closing sequence" ));
 
 	//TODO: should close/kill the service thread too
 
@@ -120,13 +116,13 @@ void Director::close(void)
 	}
 
 	tracks.exportAllToFile("tracks.txt");
-	DEBUG_REPORT("tracks.txt was saved...");
+report::debugMessage(fmt::format("tracks.txt was saved..." ));
 }
 
 
 void Director::execute(void)
 {
-	REPORT("Direktor has just started the simulation");
+report::message(fmt::format("Direktor has just started the simulation" ));
 
 	const float stopTime = scenario.params.constants.stopTime;
 	const float incrTime = scenario.params.constants.incrTime;
@@ -244,7 +240,7 @@ void Director::updateAndPublishAgents()
 	//but the messages sent by the last FO might still being processed
 	//by some FOs and so wait here a bit and then ask FO, one by one,
 	//to tell us how many AABBs it currently has
-	DEBUG_REPORT("Waiting 1 second before checking all FOs...");
+report::debugMessage(fmt::format("Waiting 1 second before checking all FOs..." ));
 	std::this_thread::sleep_for((std::chrono::milliseconds)1000);
 #endif
 
@@ -253,7 +249,7 @@ void Director::updateAndPublishAgents()
 	for (int i = 1; i <= FOsCount; ++i)
 	{
 		if (request_CntOfAABBs(i) != agents.size())
-			throw ERROR_REPORT("FO #" << i << " does not have a complete list of AABBs");
+throw report::rtError(fmt::format("FO #{} does not have a complete list of AABBs", i));
 	}
 #endif
 }
@@ -315,7 +311,7 @@ int Director::getFOsIDofAgent(const int agentID)
 		++ag;
 	}
 
-	throw ERROR_REPORT("Couldn't find a record about agent " << agentID);
+throw report::rtError(fmt::format("Couldn't find a record about agent {}", agentID));
 }
 
 void Director::setAgentsDetailedDrawingMode(const int agentID, const bool state)
@@ -339,7 +335,7 @@ void Director::setSimulationDebugRendering(const bool state)
 
 void Director::renderNextFrame()
 {
-	REPORT("Rendering time point " << frameCnt);
+report::message(fmt::format("Rendering time point {}" , frameCnt));
 	SceneControls& sc = scenario.params;
 
 	// ----------- OUTPUT EVENTS -----------
@@ -371,7 +367,7 @@ void Director::renderNextFrame()
 	if (sc.isProducingOutput(sc.imgMask))
 	{
 		sprintf(fn,sc.constants.imgMask_filenameTemplate,frameCnt);
-		REPORT("Saving " << fn << ", hold on...");
+report::message(fmt::format("Saving {}, hold on..." , fn));
 		sc.imgMask.SaveImage(fn);
 
 		sc.displayChannel_transferImgMask();
@@ -380,7 +376,7 @@ void Director::renderNextFrame()
 	if (sc.isProducingOutput(sc.imgPhantom))
 	{
 		sprintf(fn,sc.constants.imgPhantom_filenameTemplate,frameCnt);
-		REPORT("Saving " << fn << ", hold on...");
+report::message(fmt::format("Saving {}, hold on..." , fn));
 		sc.imgPhantom.SaveImage(fn);
 
 		sc.displayChannel_transferImgPhantom();
@@ -389,7 +385,7 @@ void Director::renderNextFrame()
 	if (sc.isProducingOutput(sc.imgOptics))
 	{
 		sprintf(fn,sc.constants.imgOptics_filenameTemplate,frameCnt);
-		REPORT("Saving " << fn << ", hold on...");
+report::message(fmt::format("Saving {}, hold on..." , fn));
 		sc.imgOptics.SaveImage(fn);
 
 		sc.displayChannel_transferImgOptics();
@@ -398,9 +394,9 @@ void Director::renderNextFrame()
 	if (sc.isProducingOutput(sc.imgFinal))
 	{
 		sprintf(fn,sc.constants.imgFinal_filenameTemplate,frameCnt);
-		REPORT("Creating " << fn << ", hold on...");
+report::message(fmt::format("Creating {}, hold on..." , fn));
 		scenario.doPhaseIIandIII();
-		REPORT("Saving " << fn << ", hold on...");
+report::message(fmt::format("Saving {}, hold on..." , fn));
 		sc.imgFinal.SaveImage(fn);
 
 		sc.displayChannel_transferImgFinal();
@@ -415,7 +411,7 @@ void Director::renderNextFrame()
 	//to prevent zeroMQ from flooding the Scenery
 	if (std::cin.eof())
 	{
-		REPORT("waiting " << shallWaitForSimViewer_millis << " msec to give SimViewer some time to breath...")
+report::message(fmt::format("waiting {} msec to give SimViewer some time to breath..." , shallWaitForSimViewer_millis));
 		std::this_thread::sleep_for((std::chrono::milliseconds)shallWaitForSimViewer_millis);
 		return;
 	}
@@ -427,7 +423,7 @@ void Director::renderNextFrame()
 	char key;
 	do {
 		//read the key
-		REPORT_NOENDL("Waiting for a key [and press Enter], try 'H' 'Enter': ");
+report::message(fmt::format("Waiting for a key [and press Enter], try 'H' 'Enter': " ), {true, false});
 		std::cin >> key;
 
 		//memorize original key for the inspections handling
@@ -436,40 +432,40 @@ void Director::renderNextFrame()
 		//some known action?
 		switch (key) {
 		case 'Q':
-			throw ERROR_REPORT("User requested exit.");
+throw report::rtError("User requested exit.");
 
 		case 'H':
 			//print summary of commands (and their keys)
-			REPORT("key summary:");
-			REPORT("Q - quits the program");
-			REPORT("H - prints this summary");
-			REPORT("E - no operation, just an empty command");
-			REPORT("D - toggles whether agents' drawForDebug() is called");
-			REPORT("I - toggles console (reporting) inspection of selected agents");
-			REPORT("V - toggles visual inspection (in SimViewer) of selected agents");
-			REPORT("W - toggles console and visual inspection of selected agents");
-			REPORT("P - define a breath-in-breath-out delay before another rendering");
-			REPORT("Ctrl+D - closes this input leaving the program without any breaks...");
+report::message(fmt::format("key summary:" ));
+report::message(fmt::format("Q - quits the program" ));
+report::message(fmt::format("H - prints this summary" ));
+report::message(fmt::format("E - no operation, just an empty command" ));
+report::message(fmt::format("D - toggles whether agents' drawForDebug() is called" ));
+report::message(fmt::format("I - toggles console (reporting) inspection of selected agents" ));
+report::message(fmt::format("V - toggles visual inspection (in SimViewer) of selected agents" ));
+report::message(fmt::format("W - toggles console and visual inspection of selected agents" ));
+report::message(fmt::format("P - define a breath-in-breath-out delay before another rendering" ));
+report::message(fmt::format("Ctrl+D - closes this input leaving the program without any breaks..." ));
 			break;
 
 		case 'E':
 			//empty action... just a key press eater when user gets lots in the commanding scheme
-			REPORT("No action taken");
+report::message(fmt::format("No action taken" ));
 			break;
 
 		case 'D':
 			renderingDebug ^= true;
 			setSimulationDebugRendering(renderingDebug);
-			REPORT("Debug rendering toggled to: " << (renderingDebug? "enabled" : "disabled"));
+report::message(fmt::format("Debug rendering toggled to: {}" , (renderingDebug? "enabled" : "disabled")));
 			break;
 
 		case 'I':
 		case 'V':
 		case 'W':
 			//inspection command(s) is followed by cell sub-command and agent ID(s)
-			REPORT("Entering Inspection toggle mode: press 'e' or 'o' or '1' and agent ID to  enable its inspection");
-			REPORT("Entering Inspection toggle mode: press      any key      and agent ID to disable its inspection");
-			REPORT("Entering Inspection toggle mode: press  any key and 'E'     to leave the Inspection toggle mode");
+report::message(fmt::format("Entering Inspection toggle mode: press 'e' or 'o' or '1' and agent ID to  enable its inspection" ));
+report::message(fmt::format("Entering Inspection toggle mode: press      any key      and agent ID to disable its inspection" ));
+report::message(fmt::format("Entering Inspection toggle mode: press  any key and 'E'     to leave the Inspection toggle mode" ));
 			while (key != 'X')
 			{
 				std::cin >> key;
@@ -486,15 +482,12 @@ void Director::renderNextFrame()
 					{
 						if (ivwKey != 'I') setAgentsDetailedDrawingMode(c.first,state);
 						if (ivwKey != 'V') setAgentsDetailedReportingMode(c.first,state);
-						REPORT((ivwKey != 'I' ? "vizu " : "")
-						    << (ivwKey != 'V' ? "console " : "")
-						    << "inspection" << (ivwKey == 'W'? "s " : " ")
-						    << (state ? "enabled" : "disabled") << " for ID = " << id);
+report::message(fmt::format("{}{}inspection{}{} for ID = {}" , (ivwKey != 'I' ? "vizu " : ""), (ivwKey != 'V' ? "console " : ""), (ivwKey == 'W'? "s " : " "), (state ? "enabled" : "disabled"), id));
 						key = 'Y'; //signal we got here
 					}
 
 					if (key == 'y')
-						REPORT("no agent ID = " << id << " found");
+report::message(fmt::format("no agent ID = {} found" , id));
 				}
 				else
 				{
@@ -503,20 +496,20 @@ void Director::renderNextFrame()
 				}
 				//NB: key is now either 'y' or 'Y', or 'X'
 			}
-			REPORT("Leaving Inspection toggle mode");
+report::message(fmt::format("Leaving Inspection toggle mode" ));
 			break;
 
 		case 'P':
-			REPORT("Enter now the delay period in miliseconds and then press Enter");
+report::message(fmt::format("Enter now the delay period in miliseconds and then press Enter" ));
 			float time; //better to read as float (and convert to int)
 			std::cin >> time;
 			if (time < 0)
 			{
-				REPORT("Expected positive value...");
+report::message(fmt::format("Expected positive value..." ));
 				time = 0;
 			}
 			shallWaitForSimViewer_millis = (size_t)time;
-			REPORT("Setting the delay to " << shallWaitForSimViewer_millis << " msec");
+report::message(fmt::format("Setting the delay to {} msec" , shallWaitForSimViewer_millis));
 			key = 1;            //forces the prompt to come back
 			break;
 
@@ -531,7 +524,7 @@ void Director::renderNextFrame()
 
 void Director::reportAgentsAllocation()
 {
-	REPORT("I now recognize these agents:");
+report::message(fmt::format("I now recognize these agents:" ));
 	for (const auto& AgFO : agents)
-		REPORT("agent ID " << AgFO.first << " at FO #" << AgFO.second);
+report::message(fmt::format("agent ID {} at FO #{}" , AgFO.first, AgFO.second));
 }

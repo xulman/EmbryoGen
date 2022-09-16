@@ -5,17 +5,17 @@ void Scenario_phaseIIandIII::initializeAgents(FrontOfficer*,int p,int)
 {
 	if (p != 1)
 	{
-		REPORT("Doing something only on the first FO (which is not this one).");
+report::message(fmt::format("Doing something only on the first FO (which is not this one)." ));
 		return;
 	}
 
 	char fn[1024];
 	bool useCannonicalName = true;
 
-	REPORT("Note the optional usage patterns:");
-	REPORT(argv[0] << " synthoscopy ownFilepattern%05d.tif");
-	REPORT(argv[0] << " synthoscopy ownFilepattern%05d.tif fromTimePoint tillTimePoint");
-	REPORT(argv[0] << " synthoscopy fromTimePoint tillTimePoint");
+report::message(fmt::format("Note the optional usage patterns:" ));
+report::message(fmt::format("{} synthoscopy ownFilepattern%05d.tif" , argv[0]));
+report::message(fmt::format("{} synthoscopy ownFilepattern%05d.tif fromTimePoint tillTimePoint" , argv[0]));
+report::message(fmt::format("{} synthoscopy fromTimePoint tillTimePoint" , argv[0]));
 
 	int firstTP = 0;
 	int  lastTP = 999;
@@ -46,7 +46,7 @@ void Scenario_phaseIIandIII::initializeAgents(FrontOfficer*,int p,int)
 				sprintf(fn,params.constants.imgPhantom_filenameTemplate,frameCnt); //default filename
 			else
 				sprintf(fn,argv[2],frameCnt);           //user-given filename
-			REPORT("READING: " << fn);
+report::message(fmt::format("READING: {}" , fn));
 
 			params.imgPhantom.ReadImage(fn);
 		}

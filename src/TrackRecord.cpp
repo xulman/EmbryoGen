@@ -3,13 +3,14 @@
 #include "util/FlowField.hpp"
 #include "DisplayUnits/DisplayUnit.hpp"
 #include "TrackRecord.hpp"
+#include "util/report.hpp"
 
 void TrackRecords::readFromFile(const char* filename, const Vector3d<float>& spaceScale,
                                 const float timeScale, const float timeShift)
 {
 	std::ifstream f(filename);
-	if (! f.is_open())
-		throw new std::runtime_error(EREPORT("Cannot read from ").append(filename));
+	if (!f.is_open())
+		throw report::rtError(fmt::format("Cannot read from {}", filename));
 
 	float time,x,y,z;
 	int id,parent,ignore;
@@ -49,7 +50,7 @@ void TrackRecords::writeToFile(const char* filename) const
 {
 	std::ofstream f(filename);
 	if (! f.is_open())
-		throw new std::runtime_error(EREPORT("Cannot write to ").append(filename));
+		throw report::rtError(fmt::format("Cannot write to {}", filename));
 
 	auto t = this->begin();
 	for (; t != this->end(); ++t)
@@ -146,7 +147,7 @@ void TrackRecords::injectToFF(const float timeFrom, const float timeTo,
 {
 #ifdef DEBUG
 	if (!FF.isConsistent())
-		throw ERROR_REPORT("inconsistent FF given!");
+throw report::rtError("inconsistent FF given!"));
 #endif
 	i3d::Image3d<int> FFcnts;
 	if (doReset)
@@ -183,7 +184,7 @@ void TrackRecords::injectToFF(const float timeFrom, const float timeTo,
 	if (halfBoxSize.y == 0) sigmaSq.y = 10000;
 	if (halfBoxSize.z == 0) sigmaSq.z = 10000;
 	//
-	DEBUG_REPORT("halfBoxSize = " << halfBoxSize << ", sigmaSq = " << sigmaSq);
+report::debugMessage(fmt::format("halfBoxSize = {}, sigmaSq = {}" , toString(halfBoxSize), toString(sigmaSq)));
 
 	//positions in microns (in real world coords) at a track at the given two times
 	Coord3d<float> A,B;

@@ -35,18 +35,18 @@ public:
 		if (testingFile.is_open())
 		{
 			testingFile.close();
-			throw ERROR_REPORT("Refusing to create 101st flight record, please clean up your disk.");
+throw report::rtError("Refusing to create 101st flight record, please clean up your disk.");
 		}
 
 		if (tryCnt == 0)
 		{
 			logger.open(filename);  //the original filename
-			DEBUG_REPORT("Recording into: " << filename);
+report::debugMessage(fmt::format("Recording into: {}" , filename));
 		}
 		else
 		{
 			logger.open(fn);        //the last "versioned" filename
-			DEBUG_REPORT("Recording into: " << fn);
+report::debugMessage(fmt::format("Recording into: {}" , fn));
 		}
 	}
 
@@ -141,9 +141,9 @@ public:
 		       << color << "\n";
 	}
 
-	void Tick(const char* msg) override
+	void Tick(const std::string& msg) override
 	{
-		logger << "v1 tick " << (msg != NULL ? msg : "") << "\n";
+		logger << "v1 tick " << msg << "\n";
 	}
 
 	void Flush(void) override

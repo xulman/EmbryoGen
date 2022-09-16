@@ -18,7 +18,7 @@ void NucleusNSAgent::resetDistanceMatrix()
 
 void NucleusNSAgent::printDistanceMatrix()
 {
-	REPORT(IDSIGN << " reference distances among spheres:");
+	report::message(fmt::format("{} reference distances among spheres:", getSignature()));
 	distanceMatrix.print();
 }
 
@@ -31,8 +31,7 @@ void NucleusNSAgent::advanceAndBuildIntForces(const float futureGlobalTime)
 
 #ifdef DEBUG
 	if (futureGeometry.noOfSpheres != distanceMatrix.side)
-		throw ERROR_REPORT("distanceMatrix stores " << distanceMatrix.side
-		  << " spheres but futureGeometry contains " << futureGeometry.noOfSpheres);
+throw report::rtError("distanceMatrix stores {} spheres but futureGeometry contains {}" , distanceMatrix.side, futureGeometry.noOfSpheres));
 
 	forces_s2sInducers.clear();
 #endif

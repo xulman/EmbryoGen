@@ -3,6 +3,7 @@
 
 #include <map>
 #include <fstream>
+#include <fmt/core.h>
 
 /** A datatype for keeping records of tracks according
     to the Cell Tracking Challenge (CTC) format */
@@ -78,7 +79,7 @@ public:
 		std::map<int,TrackRecord_CTC>::const_iterator itTr;
 		std::ofstream of(filename);
 		if (! of.is_open())
-			throw new std::runtime_error(EREPORT("Cannot write to ").append(filename));
+			throw report::rtError(fmt::format("Cannot write to {}",filename));
 
 		for (itTr = (*this).begin(); itTr != (*this).end(); itTr++)
 		{

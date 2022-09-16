@@ -26,7 +26,7 @@ void ShapeHinter::drawForDebug(DisplayUnit& du)
 			du.DrawPoint(dID++, periPoint, 0.3f, 4);
 			++periPointCnt;
 		}
-		DEBUG_REPORT(IDSIGN << "surface consists of " << periPointCnt << " spheres");
+		report::debugMessage(fmt::format("{} surface consists of {} spheres", getSignature(), periPointCnt));
 	}
 }
 
@@ -68,21 +68,20 @@ void ShapeHinter::drawForDebug(i3d::Image3d<i3d::GRAY16>& img)
 		//project the voxel's 'centre' to the geometryAlias.distImg
 		centre.fromMicronsTo(centrePX, distImgRes,distImgOff);
 
-#ifdef DEBUG
+
 		if (centrePX.x >= distImg.GetSizeX() || centrePX.y >= distImg.GetSizeY() || centrePX.z >= distImg.GetSizeZ())
-			REPORT(IDSIGN << " gives counter-voxel " << centrePX << " (to voxel " << curPos << ") outside of the distImg");
-#endif
+			report::debugMessage(fmt::format("{} gives counter-voxel {} (to voxel {}) outside of the distImg", getSignature(), toString(centrePX), toString(curPos)));
+
 
 		//extract the value from the distImg
 		const float dist = distImg.GetVoxel(centrePX.x,centrePX.y,centrePX.z);
 
 		if (dist < 0 || (dist == 0 && model == ScalarImg::DistanceModel::ZeroIN_GradOUT))
 		{
-#ifdef DEBUG
 			i3d::GRAY16 val = img.GetVoxel(curPos.x,curPos.y,curPos.z);
 			if (val > 0 && val != (i3d::GRAY16)ID)
-				REPORT(IDSIGN << " overwrites mask of " << val << " at " << curPos);
-#endif
+				report::debugMessage(fmt::format("{} overwrites mask of {} at {}", getSignature(), val, toString(curPos)));
+
 			img.SetVoxel(curPos.x,curPos.y,curPos.z, (i3d::GRAY16)ID);
 			//NB: should dilate by 1px for model == GradIN_ZeroOUT
 		}

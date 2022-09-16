@@ -22,13 +22,13 @@ public:
 		geometryAlias.proxifyFF(ff);
 		lastUpdatedTime = currTime-1;
 
-		DEBUG_REPORT("EmbryoTracks with ID=" << ID << " was just created");
-		DEBUG_REPORT("AABB: " << geometryAlias.AABB.minCorner << " -> " << geometryAlias.AABB.maxCorner);
+report::debugMessage(fmt::format("EmbryoTracks with ID={} was just created" , ID));
+report::debugMessage(fmt::format("AABB: {} -> {}" , toString(geometryAlias.AABB.minCorner), toString(geometryAlias.AABB.maxCorner)));
 	}
 
 	~TrajectoriesHinter(void)
 	{
-		DEBUG_REPORT("EmbryoTraces with ID=" << ID << " was just deleted");
+report::debugMessage(fmt::format("EmbryoTraces with ID={} was just deleted" , ID));
 	}
 
 	TrackRecords& talkToHinter()
@@ -83,7 +83,7 @@ private:
 	{
 		if (currTime > lastUpdatedTime)
 		{
-			DEBUG_REPORT(IDSIGN << "updating FF from " << currTime-incrTime << " to " << currTime);
+report::debugMessage(fmt::format("{}updating FF from {} to {}" , getSignature(), currTime-incrTime, currTime));
 
 			//update the geometryAlias according to the currTime
 			traHinter.resetToFF(currTime-incrTime,currTime, ff, Vector3d<float>(5.0f));
@@ -91,7 +91,7 @@ private:
 		}
 		else
 		{
-			DEBUG_REPORT(IDSIGN << "skipping update now");
+report::debugMessage(fmt::format("{} skipping update now" , getSignature()));
 		}
 	}
 

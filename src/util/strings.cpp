@@ -35,8 +35,7 @@ const std::string& StringsDictionary::translateIdToString(const size_t ID) const
 		{
 			//we have to return a string but here we have none at hand,
 			//so we sadly have to throw an exception
-			throw ERROR_REPORT("String with ID/hash "
-			  << ID << " is not existing in the dictionary.");
+throw report::rtError(fmt::format("String with ID/hash {} is not existing in the dictionary.", ID));
 		}
 	}
 }
@@ -68,7 +67,7 @@ void StringsDictionary::markAllWasBroadcast()
 	{
 #ifdef DEBUG
 		if (knownDictionary.find(nItem.first) != knownDictionary.end())
-			REPORT("new to already known >>" << nItem.second << "<<");
+report::message(fmt::format("new to already known >>{}" , nItem.second));
 #endif
 		knownDictionary[nItem.first] = nItem.second;
 	}
@@ -85,12 +84,11 @@ void StringsDictionary::enlistTheIncomingItem(const size_t hash, const std::stri
 	}
 	else
 	{
-		DEBUG_REPORT("received already known >>" << string << "<<");
+report::debugMessage(fmt::format("received already known >>{}" , string));
 
 		//known item (IDs/hashes are matching), check that strings are matching too
 		if (string.compare(knownDictionary[hash]) != 0)
-			throw ERROR_REPORT("Hashing malfunction: Have >>" << knownDictionary[hash] << "<< and got >>"
-			  << string << "<<, both of the same hash = " << hash);
+throw report::rtError(fmt::format("Hashing malfunction: Have >>{}<< and got >>{}<<, both of the same hash = {}", knownDictionary[hash], string, hash));
 	}
 }
 

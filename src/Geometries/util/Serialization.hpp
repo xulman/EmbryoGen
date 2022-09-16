@@ -191,9 +191,7 @@ public:
 
 		//test that voxel of the given image matches the one in the buffer
 		if (Serialization::encodeVoxelType(image.GetFirstVoxelAddr()) != vxType)
-			throw ERROR_REPORT( "Deserialization mismatch: got image of type "
-				<< Serialization::encodeVoxelType(image.GetFirstVoxelAddr())
-				<< " but buffer provides type " << vxType );
+throw report::rtError(fmt::format("Deserialization mismatch: got image of type {} but buffer provides type {}", Serialization::encodeVoxelType(image.GetFirstVoxelAddr()), vxType));
 
 		//voxel type         1x int
 		//offset,resolution  6x float

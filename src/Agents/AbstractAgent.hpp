@@ -90,6 +90,12 @@ public:
 		return agentType.getString();
 	}
 
+	/** return agent signature composed from ID and designation */
+	std::string getSignature() const
+	{
+		return fmt::format("\"{}:{}\"", ID, agentType.getString());
+	}
+
 	/** returns ID of agent's designation */
 	size_t getAgentTypeID(void) const
 	{
@@ -146,7 +152,7 @@ public:
 	void setOfficer(FrontOfficer* _officer)
 	{
 		if (_officer == NULL)
-			throw ERROR_REPORT("got NULL reference on my associated Officer.");
+throw report::rtError("got NULL reference on my associated Officer.");
 
 		Officer = _officer;
 	}

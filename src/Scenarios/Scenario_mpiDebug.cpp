@@ -20,7 +20,7 @@ SceneControls& Scenario_mpiDebug::provideSceneControls()
 
 			if (currTime == 0.1f)
 			{
-				DEBUG_REPORT("empty example one-time adjustment...");
+report::debugMessage(fmt::format("empty example one-time adjustment..." ));
 			}
 		}
 	};
@@ -32,14 +32,14 @@ SceneControls& Scenario_mpiDebug::provideSceneControls()
 
 void Scenario_mpiDebug::initializeScene()
 {
-	DEBUG_REPORT("disabling wait for key");
+report::debugMessage(fmt::format("disabling wait for key" ));
 	params.disableWaitForUserPrompt();
 }
 
 
 void Scenario_mpiDebug::initializeAgents(FrontOfficer*,int p,int P)
 {
-	DEBUG_REPORT("FOs slice=" << p << "/" << P);
+report::debugMessage(fmt::format("FOs slice={}/{}" , p, P));
 
 #ifdef DISTRIBUTED
 	//code that gets compiled only in MPI (DISTRIBUTED) version
@@ -52,7 +52,6 @@ void Scenario_mpiDebug::initializeAgents(FrontOfficer*,int p,int P)
 	MPI_Comm_size(MPI_COMM_WORLD,&size);
 	MPI_Get_processor_name(node,&len);
 
-	REPORT("Hello world! from MPI true rank " << rank << " of " << size
-	    << " on host " << node);
+report::message(fmt::format("Hello world! from MPI true rank {} of {} on host {}" , rank, size, node));
 #endif
 }

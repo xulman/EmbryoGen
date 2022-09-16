@@ -17,7 +17,7 @@ public:
 		distanceMatrix(shape.noOfSpheres)
 	{
 		if (shape.noOfSpheres < 2)
-			throw ERROR_REPORT("Cannot construct NucleusNSAgent with less than two spheres geometry.");
+throw report::rtError("Cannot construct NucleusNSAgent with less than two spheres geometry." );
 		resetDistanceMatrix();
 	}
 

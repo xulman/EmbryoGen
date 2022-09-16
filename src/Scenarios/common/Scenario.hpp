@@ -64,7 +64,7 @@ public:
 	/** the callback method that is regularly executed by the
 	    Direktor and all FOs after every full simulation round is over */
 	virtual void updateControls(const float)
-	{ DEBUG_REPORT_NOHEADER("This scenario is not updating its controls."); }
+	{ report::debugMessage("This scenario is not updating its controls.", {false}); }
 
 
 	/** a subset of controls that are treated immutable in the scenario,
@@ -165,7 +165,7 @@ public:
 		auto existingChannel = transferChannels.find(channelName);
 		if (existingChannel != transferChannels.end())
 		{
-			REPORT("Removing transfer channel \"" << channelName << "\", it might hang here if the send buffers are not empty...");
+report::message(fmt::format("Removing transfer channel \"{}\", it might hang here if the send buffers are not empty..." , channelName));
 			delete existingChannel->second;
 			transferChannels.erase(existingChannel);
 		}
@@ -235,7 +235,7 @@ protected:
 			else
 			{
 				//no, delete the route from this image's broadcast set
-				DEBUG_REPORT("Deleting incorrect \"" << *route << "\" from channels for " << imgName << " image");
+report::debugMessage(fmt::format("Deleting incorrect \"{}\" from channels for {} image" , *route, imgName));
 				route = routes.erase(route);
 			}
 		}
@@ -259,9 +259,9 @@ public:
 	{
 		//sanity checks:
 		if (!imgSizeInMicrons.elemIsGreaterThan(Vector3d<float>(0)))
-			throw ERROR_REPORT("image dimensions (size) cannot be zero or negative along any axis");
+throw report::rtError("image dimensions (size) cannot be zero or negative along any axis");
 		if (!imgResolutionInPixelsPerMicron.elemIsGreaterThan(Vector3d<float>(0)))
-			throw ERROR_REPORT("image resolution cannot be zero or negative along any axis");
+throw report::rtError("image resolution cannot be zero or negative along any axis");
 
 		//metadata...
 		imgMask.SetResolution(i3d::Resolution( imgResolutionInPixelsPerMicron.toI3dVector3d() ));
@@ -287,11 +287,9 @@ protected:
 	void enableProducingOutput(i3d::Image3d<T>& img)
 	{
 		if ((long)&img == (long)&imgFinal && !isProducingOutput(imgPhantom))
-			REPORT("WARNING: Requested synthoscopy but phantoms may not be produced.");
+report::message(fmt::format("WARNING: Requested synthoscopy but phantoms may not be produced." ));
 
-		DEBUG_REPORT("allocating "
-		  << (lastUsedImgSize.x*lastUsedImgSize.y*lastUsedImgSize.z/(1 << 20))*sizeof(*img.GetFirstVoxelAddr())
-		  << " MB of memory for image of size " << lastUsedImgSize << " px");
+report::debugMessage(fmt::format("allocating {} MB of memory for image of size {} px" , (lastUsedImgSize.x*lastUsedImgSize.y*lastUsedImgSize.z/(1, 20))*sizeof(*img.GetFirstVoxelAddr()), toString(lastUsedImgSize)));
 		img.MakeRoom( lastUsedImgSize.toI3dVector3d() );
 	}
 
@@ -332,7 +330,7 @@ public:
 	{
 #ifdef DEBUG
 		if (scenario == NULL)
-			throw ERROR_REPORT("back reference on containing Scenario is not initiated!");
+throw report::rtError("back reference on containing Scenario is not initiated!");
 #endif
 		return *scenario;
 	}
@@ -446,11 +444,11 @@ public:
 	{
 		if (amIinDirektorContext())
 		{
-			DEBUG_REPORT_NOENDL("by Direktor: ");
+report::debugMessage(fmt::format("by Direktor: " ), {true, false});
 		}
 		else
 		{
-			DEBUG_REPORT_NOENDL("by FO #" << contextID << ": ");
+report::debugMessage(fmt::format("by FO #{}: " , contextID), {true, false});
 		}
 		params.updateControls(currTime);
 	}
@@ -502,7 +500,7 @@ private:
 	{
 		contextID = myPortion;
 #ifndef DISTRIBUTED
-		REPORT("Not distributed: Down-sizing local images because they are (normally) not used from FO.");
+report::message(fmt::format("Not distributed: Down-sizing local images because they are (normally) not used from FO." ));
 		params.setOutputImgSpecs(params.constants.sceneOffset,Vector3d<float>(0.000001f));
 #endif
 	}
@@ -512,7 +510,7 @@ private:
 	{
 		contextID = -1;
 #ifndef DISTRIBUTED
-		REPORT("Not distributed: Keeping local images because they are used directly from FO.");
+report::message(fmt::format("Not distributed: Keeping local images because they are used directly from FO." ));
 #endif
 	}
 protected:
