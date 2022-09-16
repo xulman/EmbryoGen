@@ -24,7 +24,7 @@ build*
 # Log file, some documentation material #
 *.log
 doc/Mito*
-src/git_hash.h
+src/git_hash.hpp
 
 # Apple #
 .DS_Store
