@@ -25,31 +25,30 @@ Description: Rounding routines.
 
 -------------------------------------------------------------------------*/
 
-#include <i3d/basic.h>
 #include "myround.hpp"
+#include <i3d/basic.h>
 
 /****************************************************************************/
 
-template <class T> void RoundFloat(float value, T &result)
-{
+template <class T>
+void RoundFloat(float value, T& result) {
 	result = static_cast<T>(value + 0.5f);
 }
 
-template <> void RoundFloat(float value, float &result)
-{
+template <>
+void RoundFloat(float value, float& result) {
 	result = value;
 }
 
-template <> void RoundFloat(float value, double &result)
-{
+template <>
+void RoundFloat(float value, double& result) {
 	result = static_cast<double>(value);
 }
 
 /****************************************************************************/
 /** Explicit instantiations */
-template void RoundFloat(float value, i3d::GRAY8 &result);
-template void RoundFloat(float value, i3d::GRAY16 &result);
-template void RoundFloat(float value, int &result);
+template void RoundFloat(float value, i3d::GRAY8& result);
+template void RoundFloat(float value, i3d::GRAY16& result);
+template void RoundFloat(float value, int& result);
 
 /****************************************************************************/
-

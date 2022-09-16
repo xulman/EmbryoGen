@@ -1,5 +1,4 @@
-#ifndef VOIDDISPLAYUNIT_H
-#define VOIDDISPLAYUNIT_H
+#pragma once
 
 #include "DisplayUnit.hpp"
 
@@ -10,32 +9,26 @@
  *
  * Author: Vladimir Ulman, 2018
  */
-class VoidDisplayUnit : public DisplayUnit
-{
-public:
+class VoidDisplayUnit : public DisplayUnit {
+  public:
 	void DrawPoint(const int,
 	               const Vector3d<float>&,
 	               const float,
-	               const int) override
-	{ }
+	               const int) override {}
 
 	void DrawLine(const int,
 	              const Vector3d<float>&,
 	              const Vector3d<float>&,
-	              const int) override
-	{ }
+	              const int) override {}
 
 	void DrawVector(const int,
 	                const Vector3d<float>&,
 	                const Vector3d<float>&,
-	                const int) override
-	{ }
+	                const int) override {}
 
 	void DrawTriangle(const int,
 	                  const Vector3d<float>&,
 	                  const Vector3d<float>&,
 	                  const Vector3d<float>&,
-	                  const int) override
-	{ }
+	                  const int) override {}
 };
-#endif

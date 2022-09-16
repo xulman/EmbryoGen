@@ -25,13 +25,11 @@ Description: Rounding routines.
 
 -------------------------------------------------------------------------*/
 
-#ifndef _MYROUND_
-#define _MYROUND_
+#pragma once
 
 /****************************************************************************/
 
-template <class T> void RoundFloat(float value, T &result);
+template <class T>
+void RoundFloat(float value, T& result);
 
 /****************************************************************************/
-
-#endif

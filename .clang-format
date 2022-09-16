@@ -9,3 +9,4 @@ AllowShortLoopsOnASingleLine: false
 AllowShortIfStatementsOnASingleLine: false
 AlwaysBreakTemplateDeclarations: Yes
 PointerAlignment: Left
+BinPackParameters: false

@@ -1,34 +1,36 @@
-#ifndef AGENTS_SHAPEHINTER_H
-#define AGENTS_SHAPEHINTER_H
+#pragma once
 
+#include "../Geometries/ScalarImg.hpp"
 #include "../util/report.hpp"
 #include "AbstractAgent.hpp"
-#include "../Geometries/ScalarImg.hpp"
+#include <fmt/core.h>
 
-class ShapeHinter: public AbstractAgent
-{
-public:
+class ShapeHinter : public AbstractAgent {
+  public:
 	/** the same (given) shape is kept during the simulation */
-	ShapeHinter(const int ID, const std::string& type,
+	ShapeHinter(const int ID,
+	            const std::string& type,
 	            const ScalarImg& shape,
-	            const float currTime, const float incrTime)
-		: AbstractAgent(ID,type, geometryAlias, currTime,incrTime),
-		  geometryAlias(shape)
-	{
-		//update AABBs
+	            const float currTime,
+	            const float incrTime)
+	    : AbstractAgent(ID, type, geometryAlias, currTime, incrTime),
+	      geometryAlias(shape) {
+		// update AABBs
 		geometryAlias.Geometry::updateOwnAABB();
 
-		DEBUG_REPORT("EmbryoShell with ID=" << ID << " was just created");
-		DEBUG_REPORT("AABB: " << geometryAlias.AABB.minCorner << " -> " << geometryAlias.AABB.maxCorner);
+		report::debugMessage(
+		    fmt::format("EmbryoShell with ID={} was just created", ID));
+		report::debugMessage(fmt::format(
+		    "AABB: {} -> {}", toString(geometryAlias.AABB.minCorner),
+		    toString(geometryAlias.AABB.maxCorner)));
 	}
 
-	~ShapeHinter(void)
-	{
-		DEBUG_REPORT("EmbryoShell with ID=" << ID << " was just deleted");
+	~ShapeHinter(void) {
+		report::debugMessage(
+		    fmt::format("EmbryoShell with ID= {} was just deleted", ID));
 	}
 
-
-private:
+  private:
 	// ------------- internals state -------------
 
 	// ------------- internals geometry -------------
@@ -37,42 +39,36 @@ private:
 
 	/** my internal representation of my geometry, which is exactly
 	    of the same form as my ShadowAgent::geometry */
-	//ScalarImg futureGeometry;
+	// ScalarImg futureGeometry;
 
 	// ------------- externals geometry -------------
 
 	// ------------- to implement one round of simulation -------------
-	void advanceAndBuildIntForces(const float) override
-	{
+	void advanceAndBuildIntForces(const float) override {
 
-		//increase the local time of the agent
+		// increase the local time of the agent
 		currTime += incrTime;
 	}
 
-	void adjustGeometryByIntForces(void) override
-	{
-		//would update my futureGeometry
+	void adjustGeometryByIntForces(void) override {
+		// would update my futureGeometry
 	}
 
-	void collectExtForces(void) override
-	{
-		//hinter is not responding to its surrounding
+	void collectExtForces(void) override {
+		// hinter is not responding to its surrounding
 	}
 
-	void adjustGeometryByExtForces(void) override
-	{
-		//would update my futureGeometry
+	void adjustGeometryByExtForces(void) override {
+		// would update my futureGeometry
 	}
 
-	//futureGeometry -> geometryAlias
-	void publishGeometry(void) override
-	{
-		//since we're not changing ShadowAgent::geometry (and consequently
-		//not this.geometryAlias), we don't need to update this.futureGeometry
+	// futureGeometry -> geometryAlias
+	void publishGeometry(void) override {
+		// since we're not changing ShadowAgent::geometry (and consequently
+		// not this.geometryAlias), we don't need to update this.futureGeometry
 	}
 
 	// ------------- rendering -------------
 	void drawForDebug(DisplayUnit& du) override;
 	void drawForDebug(i3d::Image3d<i3d::GRAY16>& img) override;
 };
-#endif

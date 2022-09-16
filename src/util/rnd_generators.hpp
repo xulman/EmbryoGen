@@ -1,25 +1,21 @@
-#ifndef RNDGENERATORS_H
-#define RNDGENERATORS_H
+#pragma once
 
 #include <gsl/gsl_rng.h>
 
-typedef struct rndGeneratorHandle_t
-{
-	//constructor to create uninitialized yet valid handle
-	rndGeneratorHandle_t(void)
-	{
+typedef struct rndGeneratorHandle_t {
+	// constructor to create uninitialized yet valid handle
+	rndGeneratorHandle_t(void) {
 		reseedPeriod = 1000000;
 
-		usageCnt = reseedPeriod; //will trigger seeding immediately
+		usageCnt = reseedPeriod; // will trigger seeding immediately
 		rngState = NULL;
 	}
 
-	//constructor to create uninitialized yet valid handle
-	rndGeneratorHandle_t(const int _reseedPeriod)
-	{
+	// constructor to create uninitialized yet valid handle
+	rndGeneratorHandle_t(const int _reseedPeriod) {
 		reseedPeriod = _reseedPeriod;
 
-		usageCnt = reseedPeriod; //will trigger seeding immediately
+		usageCnt = reseedPeriod; // will trigger seeding immediately
 		rngState = NULL;
 	}
 
@@ -44,7 +40,9 @@ typedef struct rndGeneratorHandle_t
  * The function uses GSL random number generator:
  * http://www.gnu.org/software/gsl/manual/html_node/The-Gaussian-Distribution.html
  */
-float GetRandomGauss(const float mean, const float sigma, rndGeneratorHandle& rngHandle);
+float GetRandomGauss(const float mean,
+                     const float sigma,
+                     rndGeneratorHandle& rngHandle);
 
 /** The same as GetRandomGauss(...,rngHandle) but default handle is used.
     This may be used in non-critical applications. */
@@ -67,7 +65,9 @@ float GetRandomGauss(const float mean, const float sigma);
  * The function uses GSL random number generator:
  * http://www.gnu.org/software/gsl/manual/html_node/The-Flat-_0028Uniform_0029-Distribution.html
  */
-float GetRandomUniform(const float A, const float B, rndGeneratorHandle& rngHandle);
+float GetRandomUniform(const float A,
+                       const float B,
+                       rndGeneratorHandle& rngHandle);
 
 /** The same as GetRandomUniform(...,rngHandle) but default handle is used.
     This may be used in non-critical applications. */
@@ -94,4 +94,3 @@ unsigned int GetRandomPoisson(const float mean, rndGeneratorHandle& rngHandle);
 /** The same as GetRandomPoisson(...,rngHandle) but default handle is used.
     This may be used in non-critical applications. */
 unsigned int GetRandomPoisson(const float mean);
-#endif

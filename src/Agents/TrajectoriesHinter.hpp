@@ -1,43 +1,41 @@
-#ifndef AGENTS_TRAJECTORIESHINTER_H
-#define AGENTS_TRAJECTORIESHINTER_H
+#pragma once
 
-#include "../util/report.hpp"
-#include "AbstractAgent.hpp"
 #include "../Geometries/VectorImg.hpp"
 #include "../TrackRecord.hpp"
+#include "../util/report.hpp"
+#include "AbstractAgent.hpp"
 
-class TrajectoriesHinter: public AbstractAgent
-{
-public:
+class TrajectoriesHinter : public AbstractAgent {
+  public:
 	template <class T>
-	TrajectoriesHinter(const int ID, const std::string& type,
+	TrajectoriesHinter(const int ID,
+	                   const std::string& type,
 	                   const i3d::Image3d<T>& templateImg,
 	                   const VectorImg::ChoosingPolicy policy,
-	                   const float currTime, const float incrTime)
-		: AbstractAgent(ID,type, geometryAlias, currTime,incrTime),
-		  geometryAlias(templateImg,policy)
-	{
-		//update AABBs
+	                   const float currTime,
+	                   const float incrTime)
+	    : AbstractAgent(ID, type, geometryAlias, currTime, incrTime),
+	      geometryAlias(templateImg, policy) {
+		// update AABBs
 		geometryAlias.Geometry::updateOwnAABB();
 		geometryAlias.proxifyFF(ff);
-		lastUpdatedTime = currTime-1;
+		lastUpdatedTime = currTime - 1;
 
-		DEBUG_REPORT("EmbryoTracks with ID=" << ID << " was just created");
-		DEBUG_REPORT("AABB: " << geometryAlias.AABB.minCorner << " -> " << geometryAlias.AABB.maxCorner);
+		report::debugMessage(
+		    fmt::format("EmbryoTracks with ID={} was just created", ID));
+		report::debugMessage(fmt::format(
+		    "AABB: {} -> {}", toString(geometryAlias.AABB.minCorner),
+		    toString(geometryAlias.AABB.maxCorner)));
 	}
 
-	~TrajectoriesHinter(void)
-	{
-		DEBUG_REPORT("EmbryoTraces with ID=" << ID << " was just deleted");
+	~TrajectoriesHinter(void) {
+		report::debugMessage(
+		    fmt::format("EmbryoTraces with ID={} was just deleted", ID));
 	}
 
-	TrackRecords& talkToHinter()
-	{
-		return traHinter;
-	}
+	TrackRecords& talkToHinter() { return traHinter; }
 
-
-private:
+  private:
 	// ------------- internals state -------------
 	/** manager of the trajectories of all tracks */
 	TrackRecords traHinter;
@@ -52,51 +50,46 @@ private:
 
 	/** my internal representation of my geometry, which is exactly
 	    of the same form as my ShadowAgent::geometry */
-	//VectorImg futureGeometry;
+	// VectorImg futureGeometry;
 
 	// ------------- externals geometry -------------
 
 	// ------------- to implement one round of simulation -------------
-	void advanceAndBuildIntForces(const float) override
-	{
-		//increase the local time of the agent
+	void advanceAndBuildIntForces(const float) override {
+		// increase the local time of the agent
 		currTime += incrTime;
 	}
 
-	void adjustGeometryByIntForces(void) override
-	{
-		//would update my futureGeometry
+	void adjustGeometryByIntForces(void) override {
+		// would update my futureGeometry
 	}
 
-	void collectExtForces(void) override
-	{
-		//hinter is not responding to its surrounding
+	void collectExtForces(void) override {
+		// hinter is not responding to its surrounding
 	}
 
-	void adjustGeometryByExtForces(void) override
-	{
-		//would update my futureGeometry
+	void adjustGeometryByExtForces(void) override {
+		// would update my futureGeometry
 	}
 
-	//futureGeometry -> geometryAlias
-	void publishGeometry(void) override
-	{
-		if (currTime > lastUpdatedTime)
-		{
-			DEBUG_REPORT(IDSIGN << "updating FF from " << currTime-incrTime << " to " << currTime);
+	// futureGeometry -> geometryAlias
+	void publishGeometry(void) override {
+		if (currTime > lastUpdatedTime) {
+			report::debugMessage(fmt::format("{}updating FF from {} to {}",
+			                                 getSignature(),
+			                                 currTime - incrTime, currTime));
 
-			//update the geometryAlias according to the currTime
-			traHinter.resetToFF(currTime-incrTime,currTime, ff, Vector3d<float>(5.0f));
+			// update the geometryAlias according to the currTime
+			traHinter.resetToFF(currTime - incrTime, currTime, ff,
+			                    Vector3d<float>(5.0f));
 			lastUpdatedTime = currTime;
-		}
-		else
-		{
-			DEBUG_REPORT(IDSIGN << "skipping update now");
+		} else {
+			report::debugMessage(
+			    fmt::format("{} skipping update now", getSignature()));
 		}
 	}
 
 	// ------------- rendering -------------
 	void drawForDebug(DisplayUnit& du) override;
-	//void drawForDebug(i3d::Image3d<i3d::GRAY16>& img) override;
+	// void drawForDebug(i3d::Image3d<i3d::GRAY16>& img) override;
 };
-#endif

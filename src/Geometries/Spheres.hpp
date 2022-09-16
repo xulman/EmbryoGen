@@ -1,5 +1,4 @@
-#ifndef GEOMETRY_SPHERES_H
-#define GEOMETRY_SPHERES_H
+#pragma once
 
 #include "../util/report.hpp"
 #include "Geometry.hpp"
@@ -10,9 +9,8 @@
  *
  * Author: Vladimir Ulman, 2018
  */
-class Spheres: public Geometry
-{
-protected:
+class Spheres : public Geometry {
+  protected:
 	/** length of the this.centres and this.radii arrays */
 	const int noOfSpheres;
 
@@ -28,78 +26,73 @@ protected:
 	    shared) into another object; note both attribs are immutable... */
 	bool dataMovedAwayDontDelete = false;
 
-public:
+  public:
 	/** empty shape constructor */
 	Spheres(const int _noOfSpheres)
-		: Geometry(ListOfShapeForms::Spheres),
-		  noOfSpheres(_noOfSpheres),
-		  centres(new Vector3d<G_FLOAT>[noOfSpheres]),
-		  radii(new G_FLOAT[noOfSpheres])
-	{
-		//sanity check...
+	    : Geometry(ListOfShapeForms::Spheres), noOfSpheres(_noOfSpheres),
+	      centres(new Vector3d<G_FLOAT>[noOfSpheres]),
+	      radii(new G_FLOAT[noOfSpheres]) {
+		// sanity check...
 		if (_noOfSpheres < 0)
-			throw ERROR_REPORT("Cannot construct geometry with negative number of spheres.");
+			throw report::rtError(
+			    "Cannot construct geometry with negative number of spheres.");
 
-		for (int i=0; i < noOfSpheres; ++i) radii[i] = 0.0;
-		//REPORT("Constructing spheres @ " << this);
-		//REPORT("Obtaining new arrays in spheres @ " << this);
+		for (int i = 0; i < noOfSpheres; ++i)
+			radii[i] = 0.0;
+		// report::message(fmt::format("Constructing spheres @ {}" , this));
+		// report::message(fmt::format("Obtaining new arrays in spheres @ {}" ,
+		// this));
 	}
 
 	/** move constructor */
 	Spheres(Spheres&& s)
-		: Geometry(ListOfShapeForms::Spheres),
-		  noOfSpheres(s.noOfSpheres),
-		  centres(s.centres),
-		  radii(s.radii)
-	{
+	    : Geometry(ListOfShapeForms::Spheres), noOfSpheres(s.noOfSpheres),
+	      centres(s.centres), radii(s.radii) {
 		s.dataMovedAwayDontDelete = true;
-		//REPORT( "/ Moving spheres from " << &s);
-		//REPORT("\\ Moving spheres into " << this);
-		//REPORT("Stealing arrays into spheres @ " << this);
+		// report::message(fmt::format("/ Moving spheres from {}" , &s));
+		// report::message(fmt::format("\\ Moving spheres into {}" , this));
+		// report::message(fmt::format("Stealing arrays into spheres @ {}" ,
+		// this));
 	}
 
 	/** copy constructor */
 	Spheres(const Spheres& s)
-		: Geometry(ListOfShapeForms::Spheres),
-		  noOfSpheres(s.getNoOfSpheres()),
-		  centres(new Vector3d<G_FLOAT>[noOfSpheres]),
-		  radii(new G_FLOAT[noOfSpheres])
-	{
+	    : Geometry(ListOfShapeForms::Spheres), noOfSpheres(s.getNoOfSpheres()),
+	      centres(new Vector3d<G_FLOAT>[noOfSpheres]),
+	      radii(new G_FLOAT[noOfSpheres]) {
 		const Vector3d<G_FLOAT>* sCentres = s.getCentres();
-		const G_FLOAT*           sRadii   = s.getRadii();
+		const G_FLOAT* sRadii = s.getRadii();
 
-		for (int i=0; i < noOfSpheres; ++i)
-		{
+		for (int i = 0; i < noOfSpheres; ++i) {
 			centres[i] = sCentres[i];
-			radii[i]   = sRadii[i];
+			radii[i] = sRadii[i];
 		}
-		//REPORT( "/ Copying spheres from " << &s);
-		//REPORT("\\ Copying spheres into " << this);
-		//REPORT("Duplicating arrays into spheres @ " << this);
+		// report::message(fmt::format("/ Copying spheres from {}" , &s));
+		// report::message(fmt::format("\\ Copying spheres into {}" , this));
+		// report::message(fmt::format("Duplicating arrays into spheres @ {}" ,
+		// this));
 	}
 
-	~Spheres(void)
-	{
-		//free only if we still "own" both arrays
-		if (dataMovedAwayDontDelete == false)
-		{
+	~Spheres(void) {
+		// free only if we still "own" both arrays
+		if (dataMovedAwayDontDelete == false) {
 			delete[] centres;
 			delete[] radii;
-			//REPORT("Freeing arrays in spheres @ " << this);
+			// report::message(fmt::format("Freeing arrays in spheres @ {}" ,
+			// this));
 		}
-		//REPORT("Destructing spheres @ " << this);
+		// report::message(fmt::format("Destructing spheres @ {}" , this));
 	}
-
 
 	// ------------- distances -------------
 	/** calculate min surface distance between myself and some foreign agent */
 	void getDistance(const Geometry& otherGeometry,
 	                 std::list<ProximityPair>& l) const override;
 
-	/** Specialized implementation of getDistance() for Spheres-Spheres geometries.
-	    For every non-zero-radius 'local' sphere, there is an 'other' sphere found
-	    that has the nearest surface distance and corresponding ProximityPair is
-	    added to the output list l.
+	/** Specialized implementation of getDistance() for Spheres-Spheres
+	   geometries. For every non-zero-radius 'local' sphere, there is an 'other'
+	   sphere found that has the nearest surface distance and corresponding
+	   ProximityPair is added to the output list l.
 
 	    Note that this may produce multiple 'local' spheres sharing the same
 	    'other' sphere in their ProximityPairs. This can happen, for example,
@@ -107,7 +100,6 @@ public:
 	    is nearby. The 'local' agent should take this into account. */
 	void getDistanceToSpheres(const Spheres* otherSpheres,
 	                          std::list<ProximityPair>& l) const;
-
 
 	/** tests position of the point w.r.t. this geometry, which is
 	    the union of these spheres, and returns index of the first
@@ -118,38 +110,21 @@ public:
 	int collideWithPoint(const Vector3d<G_FLOAT>& point,
 	                     const int ignoreIdx = -1) const;
 
-
 	// ------------- AABB -------------
 	void updateThisAABB(AxisAlignedBoundingBox& AABB) const override;
 
-
 	// ------------- get/set methods -------------
-	int getNoOfSpheres(void) const
-	{
-		return noOfSpheres;
-	}
+	int getNoOfSpheres(void) const { return noOfSpheres; }
 
-	const Vector3d<G_FLOAT>* getCentres(void) const
-	{
-		return centres;
-	}
+	const Vector3d<G_FLOAT>* getCentres(void) const { return centres; }
 
-	const G_FLOAT* getRadii(void) const
-	{
-		return radii;
-	}
+	const G_FLOAT* getRadii(void) const { return radii; }
 
-
-	void updateCentre(const int i, const Vector3d<G_FLOAT>& centre)
-	{
+	void updateCentre(const int i, const Vector3d<G_FLOAT>& centre) {
 		centres[i] = centre;
 	}
 
-	void updateRadius(const int i, const G_FLOAT radius)
-	{
-		radii[i] = radius;
-	}
-
+	void updateRadius(const int i, const G_FLOAT radius) { radii[i] = radius; }
 
 	friend class SpheresFunctions;
 	friend class NucleusAgent;
@@ -161,8 +136,9 @@ public:
 	friend class TextureUpdaterNS;
 	friend class TextureUpdater2pNS;
 
-	// ----------------- support for serialization and deserealization -----------------
-public:
+	// ----------------- support for serialization and deserealization
+	// -----------------
+  public:
 	long getSizeInBytes() const override;
 
 	void serializeTo(char* buffer) const override;
@@ -171,7 +147,6 @@ public:
 	static Spheres* createAndDeserializeFrom(char* buffer);
 
 	// ----------------- support for rasterization -----------------
-	void renderIntoMask(i3d::Image3d<i3d::GRAY16>& mask, const i3d::GRAY16 drawID) const override;
+	void renderIntoMask(i3d::Image3d<i3d::GRAY16>& mask,
+	                    const i3d::GRAY16 drawID) const override;
 };
-
-#endif

@@ -1,5 +1,6 @@
-#include <gsl/gsl_rng.h>
+#include <fmt/core.h>
 #include <gsl/gsl_randist.h>
+#include <gsl/gsl_rng.h>
 #include <time.h>
 #include <unistd.h>
 
@@ -25,64 +26,58 @@
  */
 
 /// re-seed if necessary (and init at all if necessary too)
-void inline PossiblyReSeed(rndGeneratorHandle& rngHandle)
-{
+void inline PossiblyReSeed(rndGeneratorHandle& rngHandle) {
 	static unsigned long seedExtraDiversity = 0;
 
-	if (rngHandle.usageCnt == rngHandle.reseedPeriod)
-	{
-		//this is a bit dangerous in general to hide this test inside here,
-		//but if world around is consistent... we are saving one 'if-test' per call
+	if (rngHandle.usageCnt == rngHandle.reseedPeriod) {
+		// this is a bit dangerous in general to hide this test inside here,
+		// but if world around is consistent... we are saving one 'if-test' per
+		// call
 		if (rngHandle.rngState == NULL)
 			rngHandle.rngState = gsl_rng_alloc(gsl_rng_default);
 
-		const unsigned long s = (unsigned)(-1 * time(NULL) * getpid()) + ++seedExtraDiversity;
-		gsl_rng_set(rngHandle.rngState,s);
-		DEBUG_REPORT("randomness started with seed " << s);
+		const unsigned long s =
+		    (unsigned)(-1 * time(NULL) * getpid()) + ++seedExtraDiversity;
+		gsl_rng_set(rngHandle.rngState, s);
+		report::debugMessage(fmt::format("randomness started with seed {}", s));
 
 		rngHandle.usageCnt = 0;
-	}
-	else
+	} else
 		++rngHandle.usageCnt;
 }
 
-
 // -------------- rnd generator WITH explicit rndGeneratorHandle --------------
-float GetRandomGauss(const float mean, const float sigma, rndGeneratorHandle& rngHandle)
-{
+float GetRandomGauss(const float mean,
+                     const float sigma,
+                     rndGeneratorHandle& rngHandle) {
 	PossiblyReSeed(rngHandle);
-	return ( (float)gsl_ran_gaussian(rngHandle.rngState, sigma) + mean );
+	return ((float)gsl_ran_gaussian(rngHandle.rngState, sigma) + mean);
 }
 
-
-float GetRandomUniform(const float A, const float B, rndGeneratorHandle& rngHandle)
-{
+float GetRandomUniform(const float A,
+                       const float B,
+                       rndGeneratorHandle& rngHandle) {
 	PossiblyReSeed(rngHandle);
-	return ( (float)gsl_ran_flat(rngHandle.rngState, A,B) );
+	return ((float)gsl_ran_flat(rngHandle.rngState, A, B));
 }
 
-
-unsigned int GetRandomPoisson(const float mean, rndGeneratorHandle& rngHandle)
-{
+unsigned int GetRandomPoisson(const float mean, rndGeneratorHandle& rngHandle) {
 	PossiblyReSeed(rngHandle);
-	return ( gsl_ran_poisson(rngHandle.rngState, mean) );
+	return (gsl_ran_poisson(rngHandle.rngState, mean));
 }
 
-
-// -------------- rnd generator WITHOUT explicit rndGeneratorHandle --------------
+// -------------- rnd generator WITHOUT explicit rndGeneratorHandle
+// --------------
 rndGeneratorHandle lostSoulRngHandle;
 
-float GetRandomGauss(const float mean, const float sigma)
-{
-	return GetRandomUniform(mean,sigma, lostSoulRngHandle);
+float GetRandomGauss(const float mean, const float sigma) {
+	return GetRandomUniform(mean, sigma, lostSoulRngHandle);
 }
 
-float GetRandomUniform(const float A, const float B)
-{
-	return GetRandomUniform(A,B, lostSoulRngHandle);
+float GetRandomUniform(const float A, const float B) {
+	return GetRandomUniform(A, B, lostSoulRngHandle);
 }
 
-unsigned int GetRandomPoisson(const float mean)
-{
+unsigned int GetRandomPoisson(const float mean) {
 	return GetRandomPoisson(mean, lostSoulRngHandle);
 }

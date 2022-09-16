@@ -25,8 +25,7 @@ Description: Manipulation with procedural texture (Perlin noise).
 
 -------------------------------------------------------------------------*/
 
-#ifndef _TEXTURE_
-#define _TEXTURE_
+#pragma once
 
 #include <i3d/image3d.h>
 
@@ -34,54 +33,54 @@ Description: Manipulation with procedural texture (Perlin noise).
  * Generate Perlin noise and put the results into image3d<float> image:
  *
  * var ... variability of the output: larger -> larger blobs
- * alpha ... smoothness:              larger -> secondary frequencies less strong
- *                                    larger -> smoother edges
- * beta ... flickering                larger -> secondary frequencies less similar (more distant)
- *                                    larger -> more of the "speckle noise"
- * n ... fineness                     larger -> more of the secondary frequencies
+ * alpha ... smoothness:              larger -> secondary frequencies less
+ * strong larger -> smoother edges beta ... flickering                larger ->
+ * secondary frequencies less similar (more distant) larger -> more of the
+ * "speckle noise" n ... fineness                     larger -> more of the
+ * secondary frequencies
  */
 
 //------------------------------------------------------------------------
 
-void DoPerlin3D(i3d::Image3d<float> &fimg,
-						double var,
-						double alpha = 8,
-						double beta = 4,
-						int n = 6);
+void DoPerlin3D(i3d::Image3d<float>& fimg,
+                double var,
+                double alpha = 8,
+                double beta = 4,
+                int n = 6);
 
 //------------------------------------------------------------------------
 /*template <class VOXEL> void GenPerlin(
-		i3d::Image3d<VOXEL> &img, // empty already allocated image
-		float variance, 
-		float alpha = 8,
-		float beta = 4,
-		float influence = 1.0f);*/
+        i3d::Image3d<VOXEL> &img, // empty already allocated image
+        float variance,
+        float alpha = 8,
+        float beta = 4,
+        float influence = 1.0f);*/
 
 //------------------------------------------------------------------------
 
-template <class VOXEL> void AddPerlin(
-		i3d::Image3d<VOXEL> &img, // image with data
-		float variance, 
-		float alpha = 8,
-		float beta = 4,
-		float influence = 1.0f);
+template <class VOXEL>
+void AddPerlin(i3d::Image3d<VOXEL>& img, // image with data
+               float variance,
+               float alpha = 8,
+               float beta = 4,
+               float influence = 1.0f);
 
 //------------------------------------------------------------------------
 
-template <class VOXEL> void Stretch(i3d::Image3d<VOXEL> &img, // image with data
-									VOXEL min_value,
-									VOXEL max_value,
-									float skewness = 1.0f);
+template <class VOXEL>
+void Stretch(i3d::Image3d<VOXEL>& img, // image with data
+             VOXEL min_value,
+             VOXEL max_value,
+             float skewness = 1.0f);
 
 //------------------------------------------------------------------------
 
-void IncreaseContrast(i3d::Image3d<float> &img, float factor = 1.0f);
+void IncreaseContrast(i3d::Image3d<float>& img, float factor = 1.0f);
 
 //------------------------------------------------------------------------
 
-template <class VOXEL> VOXEL ComputeQuantileIntensity(const i3d::Image3d<VOXEL> &img, 
-													  float quantile);
+template <class VOXEL>
+VOXEL ComputeQuantileIntensity(const i3d::Image3d<VOXEL>& img, float quantile);
 
 //------------------------------------------------------------------------
 //
-#endif

@@ -1,5 +1,4 @@
-#ifndef SCENERYBUFFEREDDISPLAYUNIT_H
-#define SCENERYBUFFEREDDISPLAYUNIT_H
+#pragma once
 
 #include "SceneryDisplayUnit.hpp"
 
@@ -13,19 +12,16 @@
  *
  * Author: Vladimir Ulman, 2018
  */
-class SceneryBufferedDisplayUnit : public SceneryDisplayUnit
-{
-public:
+class SceneryBufferedDisplayUnit : public SceneryDisplayUnit {
+  public:
 	SceneryBufferedDisplayUnit(const std::string& _hostUrl)
-		: SceneryDisplayUnit(_hostUrl)
-	{ }
-	//NB: relying on the fact that Buffered* are initiated below
+	    : SceneryDisplayUnit(_hostUrl) {}
+	// NB: relying on the fact that Buffered* are initiated below
 
 	SceneryBufferedDisplayUnit(const char* _hostUrl)
-		: SceneryDisplayUnit(_hostUrl)
-	{ }
+	    : SceneryDisplayUnit(_hostUrl) {}
 
-	//destructor is used from the parent
+	// destructor is used from the parent
 
 	void DrawPoint(const int ID,
 	               const Vector3d<float>& pos,
@@ -50,8 +46,7 @@ public:
 
 	void Flush(void) override;
 
-	void InitBuffers(void)
-	{
+	void InitBuffers(void) {
 		BufferedPointMsgs.str("");
 		BufferedPointMsgs_count = 0;
 
@@ -65,8 +60,8 @@ public:
 		BufferedTriangleMsgs_count = 0;
 	}
 
-private:
-	//buffers for the four drawing primitives...
+  private:
+	// buffers for the four drawing primitives...
 	std::ostringstream BufferedPointMsgs;
 	std::ostringstream BufferedLineMsgs;
 	std::ostringstream BufferedVectorMsgs;
@@ -78,4 +73,3 @@ private:
 	int BufferedVectorMsgs_count;
 	int BufferedTriangleMsgs_count;
 };
-#endif
