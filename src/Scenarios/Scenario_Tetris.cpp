@@ -44,16 +44,16 @@ class TetrisNucleus : public NucleusNSAgent, TextureUpdaterNS {
 
 		// spheres all green, except: 0th is white, "active" is red
 		du.DrawPoint(dID++, futureGeometry.getCentres()[0],
-		             futureGeometry.getRadii()[0], 0);
-		for (int i = 1; i < futureGeometry.getNoOfSpheres(); ++i)
+		             float(futureGeometry.getRadii()[0]), 0);
+		for (std::size_t i = 1; i < futureGeometry.getNoOfSpheres(); ++i)
 			du.DrawPoint(dID++, futureGeometry.getCentres()[i],
-			             futureGeometry.getRadii()[i],
-			             i == activeSphereIdx ? 1 : 2);
+			             float(futureGeometry.getRadii()[i]),
+			             int(i) == activeSphereIdx ? 1 : 2);
 
 		// sphere orientations as local debug, white vectors
-		Vector3d<G_FLOAT> orientVec;
-		for (int i = 0; i < futureGeometry.getNoOfSpheres(); ++i) {
-			getLocalOrientation(futureGeometry, i, orientVec);
+		Vector3d<float> orientVec;
+		for (std::size_t i = 0; i < futureGeometry.getNoOfSpheres(); ++i) {
+			getLocalOrientation(futureGeometry, int(i), orientVec);
 			du.DrawVector(ldID++, futureGeometry.getCentres()[i], orientVec, 0);
 		}
 		/*
@@ -64,8 +64,8 @@ class TetrisNucleus : public NucleusNSAgent, TextureUpdaterNS {
 	}
 
 	void advanceAgent(float time) override {
-		const G_FLOAT velocity = (G_FLOAT)1.0f;
-		const Vector3d<G_FLOAT> travellingVelocity(0, velocity, 0);
+		const float velocity = 1.0f;
+		const Vector3d<float> travellingVelocity(0, velocity, 0);
 		if (((int)time % 18) < 8) {
 			exertForceOnSphere(
 			    activeSphereIdx,
@@ -104,7 +104,7 @@ void Scenario_Tetris::initializeAgents(FrontOfficer* fo, int p, int) {
 
 	for (int x = 0; x < 4; ++x)
 		for (int y = 0; y < 4; ++y) {
-			currGridPos.fromScalars(x, y, 2).elemMult(gridStep);
+			currGridPos.from(x, y, 2).elemMult(gridStep);
 			currGridPos += gridStart;
 
 			switch (x) {
@@ -164,9 +164,9 @@ void Scenario_Tetris::initializeAgents(FrontOfficer* fo, int p, int) {
 				break;
 			case 2:
 				agentName = fmt::format("{} __Bulk", y);
-				for (int i = 0; i < spheres.getNoOfSpheres(); ++i) {
+				for (std::size_t i = 0; i < spheres.getNoOfSpheres(); ++i) {
 					spheres.updateCentre(
-					    i,
+					    int(i),
 					    currGridPos +
 					        Vector3d<float>(
 					            GetRandomUniform(-0.8f * sDist, +0.8f * sDist),
@@ -180,20 +180,20 @@ void Scenario_Tetris::initializeAgents(FrontOfficer* fo, int p, int) {
 				    fmt::format("WARNING: no agents at grid pos {},{}", y, x));
 			}
 
-			for (int i = 0; i < spheres.getNoOfSpheres(); ++i)
-				spheres.updateRadius(i,
+			for (std::size_t i = 0; i < spheres.getNoOfSpheres(); ++i)
+				spheres.updateRadius(int(i),
 				                     sRadius + GetRandomUniform(-0.8f, +0.8f));
 
 			fo->startNewAgent(new TetrisNucleus(
 			    fo->getNextAvailAgentID(), agentName, spheres,
-			    y < 2 ? y + 1 : spheres.getNoOfSpheres() + y - 4,
+			    y < 2 ? y + 1 : int(spheres.getNoOfSpheres()) + y - 4,
 			    params.constants.initTime, params.constants.incrTime));
 		}
 
 	// right-most column with 2S
 	int x = 3;
 	for (int y = 0; y < 4; ++y) {
-		currGridPos.fromScalars(x, y, 2).elemMult(gridStep);
+		currGridPos.from(x, y, 2).elemMult(gridStep);
 		currGridPos += gridStart;
 		agentName = fmt::format("{} __2SModel", y);
 
@@ -201,9 +201,9 @@ void Scenario_Tetris::initializeAgents(FrontOfficer* fo, int p, int) {
 		const int inbetweeners = 5;
 		Spheres twoS(2); // + connLines*inbetweeners);
 
-		std::vector<Vector3d<G_FLOAT>*> lineUps;
+		std::vector<Vector3d<float>*> lineUps;
 		for (int i = 0; i < inbetweeners; ++i)
-			lineUps.push_back(new Vector3d<G_FLOAT>());
+			lineUps.push_back(new Vector3d<float>());
 
 		const float maxAxisDev = 1.4f;
 		twoS.updateCentre(
@@ -224,7 +224,7 @@ void Scenario_Tetris::initializeAgents(FrontOfficer* fo, int p, int) {
 		twoS.updateRadius(1, 4.5);
 
 		report::message(fmt::format("-------------------------------------"));
-		SpheresFunctions::LinkedSpheres<float> builder(
+		SpheresFunctions::LinkedSpheres<Geometry::precision_t> builder(
 		    twoS, Vector3d<float>(0, 1, 0));
 		float minAngle = (float)-M_PI_2;
 		float maxAngle = (float)+M_PI_2;
@@ -245,7 +245,7 @@ void Scenario_Tetris::initializeAgents(FrontOfficer* fo, int p, int) {
 		builder.printPlan();
 		report::message(fmt::format("necessary cnt: {}",
 		                            builder.getNoOfNecessarySpheres()));
-		Spheres manyS(builder.getNoOfNecessarySpheres());
+		Spheres manyS(int(builder.getNoOfNecessarySpheres()));
 		builder.buildInto(manyS);
 		builder.printPlan();
 
@@ -284,8 +284,8 @@ SceneControls& Scenario_Tetris::provideSceneControls() {
 
 	// override the default stop time
 	myConstants.stopTime = 40.2f;
-	myConstants.sceneSize.fromScalars(250, 250,
-	                                  50); // microns, offset is at [0,0,0]
+	myConstants.sceneSize.from(250, 250,
+	                           50); // microns, offset is at [0,0,0]
 	// image res 2px/1um
 
 	return *(new SceneControls(myConstants));

@@ -2,31 +2,10 @@
 #include "../util/surfacesamplers.hpp"
 #include <fmt/core.h>
 
-const ForceName ftype_s2s = "sphere-sphere"; // internal forces
-const ForceName ftype_drive = "desired movement";
-const ForceName ftype_friction = "friction";
-
-const ForceName ftype_repulsive =
-    "repulsive"; // due to external events with nuclei
-const ForceName ftype_body = "no overlap (body)";
-const ForceName ftype_slide = "no sliding";
-
-const ForceName ftype_hinter =
-    "sphere-hinter"; // due to external events with shape hinters
-
-const G_FLOAT fstrength_body_scale = (G_FLOAT)0.4;    // [N/um]      TRAgen: N/A
-const G_FLOAT fstrength_overlap_scale = (G_FLOAT)0.2; // [N/um]      TRAgen: k
-const G_FLOAT fstrength_overlap_level = (G_FLOAT)0.1; // [N]         TRAgen: A
-const G_FLOAT fstrength_overlap_depth =
-    (G_FLOAT)0.5; // [um]        TRAgen: delta_o (do)
-const G_FLOAT fstrength_rep_scale = (G_FLOAT)0.6;     // [1/um]      TRAgen: B
-const G_FLOAT fstrength_slide_scale = (G_FLOAT)1.0;   // unitless
-const G_FLOAT fstrength_hinter_scale = (G_FLOAT)0.25; // [1/um^2]
-
 void NucleusAgent::adjustGeometryByForces(void) {
 	// TRAgen paper, eq (1):
 	// reset the array with final forces (which will become accelerations soon)
-	for (int i = 0; i < futureGeometry.noOfSpheres; ++i)
+	for (std::size_t i = 0; i < futureGeometry.getNoOfSpheres(); ++i)
 		accels[i] = 0;
 
 	// collect all forces acting on every sphere to have one overall force per
@@ -42,22 +21,22 @@ void NucleusAgent::adjustGeometryByForces(void) {
 
 		std::ostringstream forcesReport;
 		forcesReport << ID << ": final forces";
-		for (int i = 0; i < futureGeometry.noOfSpheres; ++i)
+		for (std::size_t i = 0; i < futureGeometry.getNoOfSpheres(); ++i)
 			forcesReport << ", |" << i << "|=" << accels[i].len();
 		report::message(forcesReport.str());
 	}
 #endif
 	// now, translation is a result of forces:
-	for (int i = 0; i < futureGeometry.noOfSpheres; ++i) {
+	for (std::size_t i = 0; i < futureGeometry.getNoOfSpheres(); ++i) {
 		// calculate accelerations: F=ma -> a=F/m
 		// TODO: volume of a sphere should be taken into account
 		accels[i] /= weights[i];
 
 		// velocities: v=at
-		velocities[i] += (G_FLOAT)incrTime * accels[i];
+		velocities[i] += incrTime * accels[i];
 
 		// displacement: |trajectory|=vt
-		futureGeometry.centres[i] += (G_FLOAT)incrTime * velocities[i];
+		futureGeometry.centres[i] += incrTime * velocities[i];
 	}
 
 	// update AABB to the new geometry
@@ -74,7 +53,7 @@ void NucleusAgent::advanceAndBuildIntForces(const float futureGlobalTime) {
 	// add forces on the list that represent how and where the nucleus would
 	// like to move TRAgen paper, eq (2): Fdesired = weight *
 	// drivingForceMagnitude NB: the forces will act rigidly on the full nucleus
-	for (int i = 0; i < futureGeometry.noOfSpheres; ++i) {
+	for (std::size_t i = 0; i < futureGeometry.getNoOfSpheres(); ++i) {
 		forces.emplace_back((weights[i] / velocity_PersistenceTime) *
 		                        velocity_CurrentlyDesired,
 		                    futureGeometry.centres[i], i, ftype_drive);
@@ -92,7 +71,7 @@ void NucleusAgent::collectExtForces(void) {
 	// damping force (aka friction due to the environment,
 	// an ext. force that is independent of other agents)
 	// TRAgen paper, eq. (3)
-	for (int i = 0; i < futureGeometry.noOfSpheres; ++i) {
+	for (std::size_t i = 0; i < futureGeometry.getNoOfSpheres(); ++i) {
 		forces.emplace_back((-weights[i] / velocity_PersistenceTime) *
 		                        velocities[i],
 		                    futureGeometry.centres[i], i, ftype_friction);
@@ -148,7 +127,7 @@ void NucleusAgent::collectExtForces(void) {
 
 	// now, postprocess the proximityPairs, that is, to
 	// convert proximityPairs_toNuclei to forces according to TRAgen rules
-	Vector3d<G_FLOAT> f, g; // tmp vectors
+	Vector3d<float> f, g; // tmp vectors
 	for (const auto& pp : proximityPairs_toNuclei) {
 		if (pp.distance > 0) {
 			if (detailedReportingMode)
@@ -189,12 +168,12 @@ void NucleusAgent::collectExtForces(void) {
 			f -= pp.localPos;
 			f.changeToUnitOrZero();
 
-			G_FLOAT fScale = fstrength_overlap_level;
+			float fScale = fstrength_overlap_level;
 			if (-pp.distance > fstrength_overlap_depth) {
 				// in the non-calm response zone (where force increases with the
 				// penetration depth)
 				fScale += fstrength_overlap_scale *
-				          (-pp.distance - fstrength_overlap_depth);
+				          float(-pp.distance - fstrength_overlap_depth);
 			}
 
 			// TRAgen paper, eq. (5)
@@ -233,7 +212,7 @@ void NucleusAgent::collectExtForces(void) {
 			forces.emplace_back(g, futureGeometry.centres[pp.localHint],
 			                    pp.localHint, ftype_slide);
 #ifndef NDEBUG
-			Officer->reportOverlap(-pp.distance);
+			Officer->reportOverlap(-float(pp.distance));
 #endif
 		}
 	}
@@ -256,10 +235,10 @@ void NucleusAgent::collectExtForces(void) {
 			// the get-back-to-hinter force
 			f *= 2 * fstrength_overlap_level *
 			     std::min(pp.distance * pp.distance * fstrength_hinter_scale,
-			              (G_FLOAT)1);
+			              ProximityPair::precision_t(1.0));
 
 			// apply the same force to all spheres
-			for (int i = 0; i < futureGeometry.noOfSpheres; ++i)
+			for (std::size_t i = 0; i < futureGeometry.getNoOfSpheres(); ++i)
 				forces.emplace_back(f, futureGeometry.centres[i], i,
 				                    ftype_hinter);
 		}
@@ -282,9 +261,10 @@ void NucleusAgent::drawMask(DisplayUnit& du) {
 	// NB: 'd'ID = is for 'd'rawing, not for 'd'ebug !
 
 	// draw spheres
-	for (int i = 0; i < futureGeometry.noOfSpheres; ++i) {
+	for (std::size_t i = 0; i < futureGeometry.getNoOfSpheres(); ++i) {
 		du.DrawPoint(detailedDrawingMode ? gdID : dID,
-		             futureGeometry.centres[i], futureGeometry.radii[i], color);
+		             futureGeometry.centres[i], float(futureGeometry.radii[i]),
+		             color);
 		++dID;
 		++gdID; // just update both counters
 	}
@@ -314,7 +294,7 @@ void NucleusAgent::drawForDebug(DisplayUnit& du) {
 		int dID = DisplayUnit::firstIdForAgentDebugObjects(ID);
 
 		// cell centres connection "line" (green):
-		for (int i = 1; i < futureGeometry.noOfSpheres; ++i)
+		for (std::size_t i = 1; i < futureGeometry.getNoOfSpheres(); ++i)
 			du.DrawLine(dID++, futureGeometry.centres[i - 1],
 			            futureGeometry.centres[i], color);
 
@@ -325,14 +305,14 @@ void NucleusAgent::drawForDebug(DisplayUnit& du) {
 		Vector3d<float> periPoint;
 		int periPointCnt = 0;
 
-		for (int S = 0; S < geometryAlias.noOfSpheres; ++S) {
-			ss.resetByStepSize(geometryAlias.radii[S], 2.6f);
+		for (std::size_t S = 0; S < geometryAlias.getNoOfSpheres(); ++S) {
+			ss.resetByStepSize(float(geometryAlias.radii[S]), 2.6f);
 			while (ss.next(periPoint)) {
 				periPoint += geometryAlias.centres[S];
 
 				// draw the periPoint only if it collides with no (and excluding
 				// this) sphere
-				if (geometryAlias.collideWithPoint(periPoint, S) == -1) {
+				if (geometryAlias.collideWithPoint(periPoint, int(S)) == -1) {
 					++periPointCnt;
 					du.DrawPoint(dID++, periPoint, 0.3f, 3);
 				}
@@ -386,14 +366,14 @@ void NucleusAgent::drawForDebug(DisplayUnit& du) {
 		// choose 2nd sphere if avail, else 1st sphere if avail, else none
 		// (then: Idx == -1)
 		const int velocityReportIdx =
-		    std::min(2, futureGeometry.noOfSpheres) - 1;
+		    std::min(2, int(futureGeometry.getNoOfSpheres())) - 1;
 		if (velocityReportIdx == -1)
 			velocitiesReport << ID << ": no spheres -> no velocities";
 		else
 			velocitiesReport << ID << ": velocity[" << velocityReportIdx
 			                 << "]=" << velocities[velocityReportIdx];
 		//
-		for (int i = 0; i < futureGeometry.noOfSpheres; ++i)
+		for (std::size_t i = 0; i < futureGeometry.getNoOfSpheres(); ++i)
 			velocitiesReport << ", |" << i << "|=" << velocities[i].len();
 		report::message(velocitiesReport.str());
 	}

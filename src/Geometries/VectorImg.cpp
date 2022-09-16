@@ -65,18 +65,19 @@ void VectorImg::getDistanceToSpheres(const class Spheres* otherSpheres,
 
 	//(squared) voxel's volume half-diagonal vector and its length
 	//(for detection of voxels that coincide with sphere's surface)
-	Vector3d<G_FLOAT> vecPXhd2(0.5f / imgRes.x, 0.5f / imgRes.y,
-	                           0.5f / imgRes.z);
-	const G_FLOAT lenPXhd = vecPXhd2.len();
+	Vector3d<precision_t> vecPXhd2(0.5f / imgRes.x, 0.5f / imgRes.y,
+	                               0.5f / imgRes.z);
+	const precision_t lenPXhd = vecPXhd2.len();
 	vecPXhd2.elemMult(vecPXhd2); // make it squared
 
 	// shortcuts to the otherGeometry's spheres
-	const Vector3d<G_FLOAT>* const centresO = otherSpheres->getCentres();
-	const G_FLOAT* const radiiO = otherSpheres->getRadii();
-	const int io = otherSpheres->getNoOfSpheres();
+	const std::vector<Vector3d<precision_t>>& centresO =
+	    otherSpheres->getCentres();
+	const std::vector<precision_t>& radiiO = otherSpheres->getRadii();
+	const int io = int(otherSpheres->getNoOfSpheres());
 
 	// remember the squared lengths observed so far for every foreign sphere...
-	G_FLOAT* lengths2 = new G_FLOAT[io];
+	precision_t* lengths2 = new precision_t[io];
 	switch (policy) { // initialize the array
 	case minVec:
 		for (int i = 0; i < io; ++i)
@@ -92,17 +93,17 @@ void VectorImg::getDistanceToSpheres(const class Spheres* otherSpheres,
 		// no init required
 	}
 	//...what was observed...
-	Vector3d<G_FLOAT>* vecs =
-	    new Vector3d<G_FLOAT>[io]; // inits to zero vector by default
+	Vector3d<precision_t>* vecs =
+	    new Vector3d<precision_t>[io]; // inits to zero vector by default
 	//...and where it was observed
 	Vector3d<size_t>* hints = new Vector3d<size_t>[io];
 
 	// holder for the currently examined vectors in the FF
-	Vector3d<G_FLOAT> vec;
+	Vector3d<precision_t> vec;
 
 	// aux position vectors: current voxel's centre and somewhat sphere's
 	// surface point
-	Vector3d<G_FLOAT> centre, surfPoint;
+	Vector3d<precision_t> centre, surfPoint;
 
 	// finally, sweep and check intersection with spheres' surfaces
 	for (curPos.z = minSweepPX.z; curPos.z < maxSweepPX.z; curPos.z++)

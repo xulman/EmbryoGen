@@ -1,5 +1,4 @@
-#ifndef FRONTOFFICER_H
-#define FRONTOFFICER_H
+#pragma once
 
 #include "Geometries/Geometry.hpp"
 #include "Scenarios/common/Scenario.hpp"
@@ -415,4 +414,3 @@ class FrontOfficer //: public Simulation
 	void respond_Loop();
 #endif
 };
-#endif

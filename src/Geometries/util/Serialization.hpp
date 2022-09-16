@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../../util/Vector3d.hpp"
+#include "../../util/report.hpp"
 #include <i3d/image3d.h>
 
 /**
@@ -90,9 +91,9 @@ class Serialization {
 		off +=
 		    toBuffer(vecFloat.fromI3dVector3d(image.GetResolution().GetRes()),
 		             buffer + off);
-		off += toBuffer(vecSizet.fromScalars(image.GetSizeX(), image.GetSizeY(),
-		                                     image.GetSizeZ()),
-		                buffer + off);
+		off += toBuffer(
+		    vecSizet.from(image.GetSizeX(), image.GetSizeY(), image.GetSizeZ()),
+		    buffer + off);
 
 		VT* bufferView = (VT*)(buffer + off);
 		const VT* voxel = image.GetFirstVoxelAddr();
@@ -119,6 +120,7 @@ class Serialization {
 	static int encodeVoxelType(const i3d::GRAY8*) { return 1; }
 	static int encodeVoxelType(const i3d::GRAY16*) { return 2; }
 	static int encodeVoxelType(const float*) { return 3; }
+	static int encodeVoxelType(const double*) { return 4; }
 };
 
 /** see documentation of the Serialization class */

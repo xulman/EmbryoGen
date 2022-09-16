@@ -19,7 +19,7 @@ class myNucleus : public Nucleus4SAgent {
 	void advanceAndBuildIntForces(const float) override {
 		// add own forces (mutually opposite) to "head&tail" spheres (to spin
 		// it)
-		Vector3d<G_FLOAT> rotationVelocity;
+		Vector3d<float> rotationVelocity;
 		rotationVelocity.y = 1.5f * std::cos(currTime / 30.f * 6.28f);
 		rotationVelocity.z = 1.5f * std::sin(currTime / 30.f * 6.28f);
 

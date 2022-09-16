@@ -6,6 +6,7 @@ void AxisAlignedBoundingBox::adaptImage(
     i3d::Image3d<T>& img,
     const Vector3d<float>& res,
     const Vector3d<short>& pxFrameWidth) const {
+
 	const Vector3d<float> umFrameWidth(
 	    Vector3d<float>().from(pxFrameWidth).elemDivBy(res));
 
@@ -34,12 +35,12 @@ void AxisAlignedBoundingBox::exportInPixelCoords(
     Vector3d<size_t>& minSweep,
     Vector3d<size_t>& maxSweep) const {
 	// p is minCorner in img's px coordinates
-	Vector3d<G_FLOAT> p(minCorner);
+	Vector3d<precision_t> p(minCorner);
 	p.toPixels(img.GetResolution().GetRes(), img.GetOffset());
 
 	// make sure minCorner is within the image
-	p.elemMax(Vector3d<G_FLOAT>(0));
-	p.elemMin(Vector3d<G_FLOAT>(img.GetSize()));
+	p.elemMax(Vector3d<precision_t>(0));
+	p.elemMin(Vector3d<precision_t>(img.GetSize()));
 
 	// obtain integer px coordinate that is already intersected with image
 	// dimensions
@@ -50,8 +51,8 @@ void AxisAlignedBoundingBox::exportInPixelCoords(
 	p.toPixels(img.GetResolution().GetRes(), img.GetOffset());
 
 	// make sure minCorner is within the image
-	p.elemMax(Vector3d<G_FLOAT>(0));
-	p.elemMin(Vector3d<G_FLOAT>(img.GetSize()));
+	p.elemMax(Vector3d<precision_t>(0));
+	p.elemMin(Vector3d<precision_t>(img.GetSize()));
 
 	// obtain integer px coordinate that is already intersected with image
 	// dimensions
@@ -60,19 +61,19 @@ void AxisAlignedBoundingBox::exportInPixelCoords(
 
 /** returns SQUARED shortest distance along any axis between this and
     the given AABB, or 0.0 if they intersect */
-G_FLOAT
+AxisAlignedBoundingBox::precision_t
 AxisAlignedBoundingBox::minDistance(const AxisAlignedBoundingBox& AABB) const {
-	G_FLOAT M = std::max(minCorner.x, AABB.minCorner.x);
-	G_FLOAT m = std::min(maxCorner.x, AABB.maxCorner.x);
-	G_FLOAT dx = M > m ? M - m : 0; // min dist along x-axis
+	precision_t M = std::max(minCorner.x, AABB.minCorner.x);
+	precision_t m = std::min(maxCorner.x, AABB.maxCorner.x);
+	precision_t dx = M > m ? M - m : 0; // min dist along x-axis
 
 	M = std::max(minCorner.y, AABB.minCorner.y);
 	m = std::min(maxCorner.y, AABB.maxCorner.y);
-	G_FLOAT dy = M > m ? M - m : 0; // min dist along y-axis
+	precision_t dy = M > m ? M - m : 0; // min dist along y-axis
 
 	M = std::max(minCorner.z, AABB.minCorner.z);
 	m = std::min(maxCorner.z, AABB.maxCorner.z);
-	G_FLOAT dz = M > m ? M - m : 0; // min dist along z-axis
+	precision_t dz = M > m ? M - m : 0; // min dist along z-axis
 
 	return (dx * dx + dy * dy + dz * dz);
 }

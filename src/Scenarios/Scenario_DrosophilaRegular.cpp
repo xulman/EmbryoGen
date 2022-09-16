@@ -28,8 +28,8 @@ class GrowableNucleusReg : public Nucleus4SAgent {
 		if (currTime >= startGrowTime && currTime <= stopGrowTime &&
 		    incrCnt < 30) {
 			//"grow factor"
-			const G_FLOAT dR = 0.05f;     // radius
-			const G_FLOAT dD = 1.8f * dR; // diameter
+			const float dR = 0.05f;     // radius
+			const float dD = 1.8f * dR; // diameter
 
 			// grow the current geometry
 			SpheresFunctions::grow4SpheresBy(futureGeometry, dR, dD);

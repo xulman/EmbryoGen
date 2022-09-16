@@ -61,7 +61,7 @@ void Texture::sampleDotsFromImage(const i3d::Image3d<VT>& img,
 }
 
 void Texture::createPerlinTexture(const Spheres& geom,
-                                  const Vector3d<G_FLOAT>& textureResolution,
+                                  const Vector3d<float>& textureResolution,
                                   const double var,
                                   const double alpha,
                                   const double beta,
@@ -123,38 +123,39 @@ int Texture::collectOutlyingDots(const Spheres& geom) {
 	auto stopWatch = tic();
 #endif
 
-	Vector3d<G_FLOAT> tmp;
-	G_FLOAT tmpLen;
+	Vector3d<float> tmp;
+	float tmpLen;
 
 	for (auto& dot : dots) {
 		bool foundInside = false;
-		G_FLOAT nearestDist = TOOFAR;
+		float nearestDist = TOOFAR;
 		int nearestIdx = -1;
 
-		for (int i = 0; i < geom.noOfSpheres && !foundInside; ++i) {
+		for (std::size_t i = 0; i < geom.getNoOfSpheres() && !foundInside;
+		     ++i) {
 			// test against the i-th sphere
 			tmp = geom.centres[i];
 			tmp -= dot.pos;
-			tmpLen = tmp.len() - geom.radii[i];
+			tmpLen = tmp.len() - float(geom.radii[i]);
 
 			foundInside = tmpLen <= 0;
 
 			if (!foundInside && tmpLen < nearestDist) {
 				// update nearest distance
 				nearestDist = tmpLen;
-				nearestIdx = i;
+				nearestIdx = int(i);
 			}
 		}
 
 		if (!foundInside) {
 			// correct dot's position according to the nearestIdx:
 			// random position inside the (zero-centered) sphere
-			dot.pos.x =
-			    GetRandomGauss(0.f, geom.radii[nearestIdx] / 2.f, rngState);
-			dot.pos.y =
-			    GetRandomGauss(0.f, geom.radii[nearestIdx] / 2.f, rngState);
-			dot.pos.z =
-			    GetRandomGauss(0.f, geom.radii[nearestIdx] / 2.f, rngState);
+			dot.pos.x = GetRandomGauss(0.f, float(geom.radii[nearestIdx] / 2.f),
+			                           rngState);
+			dot.pos.y = GetRandomGauss(0.f, float(geom.radii[nearestIdx] / 2.f),
+			                           rngState);
+			dot.pos.z = GetRandomGauss(0.f, float(geom.radii[nearestIdx] / 2.f),
+			                           rngState);
 
 			// make sure we're inside this sphere
 			if (dot.pos.len() > geom.radii[nearestIdx]) {
@@ -374,14 +375,14 @@ template void Texture::sampleDotsFromImage(const i3d::Image3d<double>& img,
 void TextureUpdater4S::updateTextureCoords(std::vector<Dot>& dots,
                                            const Spheres& newGeom) {
 #ifndef NDEBUG
-	if (newGeom.noOfSpheres != 4)
+	if (newGeom.getNoOfSpheres() != 4)
 		throw report::rtError(
 		    "Cannot update coordinates for non-four sphere geometry.");
 #endif
 	// backup: last geometry for which user coordinates were valid
 	for (unsigned int i = 0; i < 4; ++i) {
 		prevCentre[i] = cu[i].prevCentre;
-		prevRadius[i] = cu[i].prevRadius;
+		prevRadius[i] = float(cu[i].prevRadius);
 	}
 
 	// prepare the updating routines...
@@ -398,9 +399,9 @@ void TextureUpdater4S::updateTextureCoords(std::vector<Dot>& dots,
 	                      newGeom.centres[2] - newGeom.centres[3]);
 
 	// aux variables
-	float weights[4];
-	float sum;
-	Vector3d<float> tmp, newPos;
+	Geometry::precision_t weights[4];
+	Geometry::precision_t sum;
+	Geometry::point_t tmp, newPos;
 #ifndef NDEBUG
 	int outsideDots = 0;
 #endif
@@ -410,7 +411,8 @@ void TextureUpdater4S::updateTextureCoords(std::vector<Dot>& dots,
 		for (unsigned int i = 0; i < 4; ++i) {
 			tmp = dot.pos;
 			tmp -= prevCentre[i];
-			weights[i] = std::max(prevRadius[i] - tmp.len(), (G_FLOAT)0);
+			weights[i] =
+			    std::max(prevRadius[i] - tmp.len(), Geometry::precision_t(0));
 		}
 
 		// normalization factor
@@ -425,7 +427,7 @@ void TextureUpdater4S::updateTextureCoords(std::vector<Dot>& dots,
 					cu[i].updateCoord(tmp);
 					newPos += (weights[i] / sum) * tmp;
 				}
-			dot.pos = newPos;
+			dot.pos = newPos.to<float>();
 		} else {
 #ifndef NDEBUG
 			++outsideDots;
@@ -444,25 +446,25 @@ void TextureUpdater4S::updateTextureCoords(std::vector<Dot>& dots,
 void TextureUpdater2pNS::updateTextureCoords(std::vector<Dot>& dots,
                                              const Spheres& newGeom) {
 #ifndef NDEBUG
-	if (newGeom.noOfSpheres != noOfSpheres)
+	if (int(newGeom.getNoOfSpheres()) != noOfSpheres)
 		throw report::rtError(
 		    fmt::format("Cannot update coordinates for {} sphere geometry, "
 		                "expected {} spheres.",
-		                newGeom.noOfSpheres, noOfSpheres));
+		                newGeom.getNoOfSpheres(), noOfSpheres));
 #endif
 	// backup: last geometry for which texture coordinates were valid
 	// and prepare the updating routines where "orientation is global"
-	Vector3d<G_FLOAT> tmp(newGeom.centres[sphereOnMainAxis]);
+	Geometry::point_t tmp(newGeom.centres[sphereOnMainAxis]);
 	tmp -= newGeom.centres[sphereAtCentre];
 	for (int i = 0; i < noOfSpheres; ++i) {
 		prevCentre[i] = cu[i].prevCentre;
-		prevRadius[i] = cu[i].prevRadius;
+		prevRadius[i] = float(cu[i].prevRadius);
 		cu[i].prepareUpdating(newGeom.centres[i], newGeom.radii[i], tmp);
 	}
 
 	// aux variables
-	float sum;
-	Vector3d<G_FLOAT> newPos;
+	Geometry::precision_t sum;
+	Vector3d<float> newPos;
 #ifndef NDEBUG
 	int outsideDots = 0;
 #endif
@@ -474,7 +476,8 @@ void TextureUpdater2pNS::updateTextureCoords(std::vector<Dot>& dots,
 		for (int i = 0; i < noOfSpheres; ++i) {
 			tmp = dot.pos;
 			tmp -= prevCentre[i];
-			__weights[i] = std::max(prevRadius[i] - tmp.len(), (G_FLOAT)0);
+			__weights[i] = float(
+			    std::max(prevRadius[i] - tmp.len(), Geometry::precision_t(0)));
 			sum += __weights[i];
 		}
 
@@ -507,11 +510,11 @@ void TextureUpdater2pNS::updateTextureCoords(std::vector<Dot>& dots,
 void TextureUpdaterNS::resetNeigWeightMatrix(const Spheres& spheres,
                                              int maxNoOfNeighs) {
 #ifndef NDEBUG
-	if (spheres.noOfSpheres != noOfSpheres)
+	if (int(spheres.getNoOfSpheres()) != noOfSpheres)
 		throw report::rtError(
 		    fmt::format("Cannot update coordinates for {} sphere geometry, "
 		                "expected {} spheres.",
-		                spheres.noOfSpheres, noOfSpheres));
+		                spheres.getNoOfSpheres(), noOfSpheres));
 
 	if (maxNoOfNeighs < 1 || maxNoOfNeighs >= noOfSpheres)
 		throw report::rtError(fmt::format("requesting maxNoOfNeighs={} when "
@@ -535,17 +538,17 @@ void TextureUpdaterNS::resetNeigWeightMatrix(const Spheres& spheres,
 			// need second test?
 			if (spheres.radii[l] == spheres.radii[r]) {
 				// secondary test: need to calculate overlaps
-				const G_FLOAT refRadius = spheres.radii[refIdx];
+				const Geometry::precision_t refRadius = spheres.radii[refIdx];
 
-				G_FLOAT otherRadius = spheres.radii[l];
-				G_FLOAT lOverlapSize = refRadius + otherRadius;
+				Geometry::precision_t otherRadius = spheres.radii[l];
+				Geometry::precision_t lOverlapSize = refRadius + otherRadius;
 				lOverlapSize -=
 				    (spheres.centres[refIdx] - spheres.centres[l]).len();
 				lOverlapSize = std::min(
 				    lOverlapSize, std::min(2 * refRadius, 2 * otherRadius));
 
 				otherRadius = spheres.radii[r];
-				G_FLOAT rOverlapSize = refRadius + otherRadius;
+				Geometry::precision_t rOverlapSize = refRadius + otherRadius;
 				rOverlapSize -=
 				    (spheres.centres[refIdx] - spheres.centres[r]).len();
 				rOverlapSize = std::min(
@@ -591,10 +594,10 @@ void TextureUpdaterNS::resetNeigWeightMatrix(const Spheres& spheres,
 
 			// only when not enough of neighs has been discovered so far,
 			// but consider only overlapping neighs!
-			const G_FLOAT overlap = std::max<G_FLOAT>(
-			    -(spheres.centres[row] - spheres.centres[col]).len() +
-			        spheres.radii[row] + spheres.radii[col],
-			    0);
+			const float overlap = std::max(
+			    float(-(spheres.centres[row] - spheres.centres[col]).len() +
+			          spheres.radii[row] + spheres.radii[col]),
+			    0.0f);
 			if (overlap > 0) {
 				*neigWeightMatrix(row, col) = 1;
 				++foundNeighs;
@@ -617,7 +620,7 @@ void TextureUpdaterNS::resetNeigWeightMatrix(const Spheres& spheres,
 }
 
 void TextureUpdaterNS::setNeigWeightMatrix(
-    const SpheresFunctions::SquareMatrix<G_FLOAT>& newWeightMatrix) {
+    const SpheresFunctions::SquareMatrix<float>& newWeightMatrix) {
 #ifndef NDEBUG
 	if (neigWeightMatrix.side != newWeightMatrix.side)
 		throw report::rtError("Attempting to set matrix of different size.");
@@ -635,19 +638,20 @@ void TextureUpdaterNS::printNeigWeightMatrix() {
 
 void TextureUpdaterNS::getLocalOrientation(const Spheres& spheres,
                                            const int idx,
-                                           Vector3d<G_FLOAT>& orientVec) {
-	Vector3d<G_FLOAT> tmpVec;
+                                           Vector3d<float>& orientVec) {
+	Vector3d<float> tmpVec;
 
 	orientVec = 0;
-	for (int i = 0; i < spheres.noOfSpheres; ++i)
-		if (i != idx && *neigWeightMatrix(idx, i) > 0) {
+	for (std::size_t i = 0; i < spheres.getNoOfSpheres(); ++i)
+		if (int(i) != idx && *neigWeightMatrix(idx, int(i)) > 0) {
 			// vec from 'idx' to 'i'
 			tmpVec = spheres.centres[i];
 			tmpVec -= spheres.centres[idx];
 
 			// weight this contribution
 			tmpVec.changeToUnitOrZero();
-			tmpVec *= *neigWeightMatrix(idx, i) / *neigWeightMatrix(idx, idx);
+			tmpVec *=
+			    *neigWeightMatrix(idx, int(i)) / *neigWeightMatrix(idx, idx);
 
 			orientVec += tmpVec;
 		}
@@ -657,25 +661,26 @@ void TextureUpdaterNS::getLocalOrientation(const Spheres& spheres,
 void TextureUpdaterNS::updateTextureCoords(std::vector<Dot>& dots,
                                            const Spheres& newGeom) {
 #ifndef NDEBUG
-	if (newGeom.noOfSpheres != noOfSpheres)
+	if (int(newGeom.getNoOfSpheres()) != noOfSpheres)
 		throw report::rtError(
 		    fmt::format("Cannot update coordinates for {} sphere geometry, "
 		                "expected {} spheres.",
-		                newGeom.noOfSpheres, noOfSpheres));
+		                newGeom.getNoOfSpheres(), noOfSpheres));
 #endif
 	// backup: last geometry for which user coordinates were valid
 	// and prepare the updating routines...
-	Vector3d<G_FLOAT> tmp;
+	Vector3d<float> tmp;
 	for (int i = 0; i < noOfSpheres; ++i) {
 		prevCentre[i] = cu[i].prevCentre;
-		prevRadius[i] = cu[i].prevRadius;
+		prevRadius[i] = float(cu[i].prevRadius);
 		getLocalOrientation(newGeom, i, tmp);
 		cu[i].prepareUpdating(newGeom.centres[i], newGeom.radii[i], tmp);
 	}
 
 	// aux variables
-	float sum;
-	Vector3d<G_FLOAT> newPos;
+	Geometry::precision_t sum;
+	Geometry::point_t tmp2;
+	Vector3d<float> newPos;
 #ifndef NDEBUG
 	int outsideDots = 0;
 #endif
@@ -685,9 +690,9 @@ void TextureUpdaterNS::updateTextureCoords(std::vector<Dot>& dots,
 		// determine the weights
 		sum = 0;
 		for (int i = 0; i < noOfSpheres; ++i) {
-			tmp = dot.pos;
-			tmp -= prevCentre[i];
-			__weights[i] = std::max(prevRadius[i] - tmp.len(), (G_FLOAT)0);
+			tmp2 = dot.pos;
+			tmp2 -= prevCentre[i];
+			__weights[i] = std::max(float(prevRadius[i] - tmp2.len()), 0.0f);
 			sum += __weights[i];
 		}
 
@@ -696,10 +701,10 @@ void TextureUpdaterNS::updateTextureCoords(std::vector<Dot>& dots,
 			newPos = 0;
 			for (int i = 0; i < noOfSpheres; ++i)
 				if (__weights[i] > 0) {
-					tmp = dot.pos;
-					cu[i].updateCoord(tmp);
-					tmp *= __weights[i] / sum;
-					newPos += tmp;
+					tmp2 = dot.pos;
+					cu[i].updateCoord(tmp2);
+					tmp2 *= __weights[i] / sum;
+					newPos += tmp2;
 				}
 			dot.pos = newPos;
 		} else {

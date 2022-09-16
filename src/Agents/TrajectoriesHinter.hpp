@@ -41,7 +41,7 @@ class TrajectoriesHinter : public AbstractAgent {
 	TrackRecords traHinter;
 
 	/** binding FF between traHinter and geometryAlias */
-	FlowField<float> ff;
+	FlowField<Geometry::precision_t> ff;
 
 	// ------------- internals geometry -------------
 	/** reference to my exposed geometry ShadowAgents::geometry */

@@ -81,21 +81,4 @@ void StringsDictionary::enlistTheIncomingItem(const size_t hash,
 	}
 }
 
-void StringsDictionary::cleanUp(
-    const std::list<NamedAxisAlignedBoundingBox>& AABBs) {
-	auto dict = knownDictionary.begin();
-	while (dict != knownDictionary.end()) {
-		// is there a box with the same nameID?
-		bool found = false;
-		for (auto naabb : AABBs)
-			if (dict->first == naabb.nameID) {
-				found = true;
-				break;
-			}
 
-		if (!found)
-			dict = knownDictionary.erase(dict);
-		else
-			++dict;
-	}
-}

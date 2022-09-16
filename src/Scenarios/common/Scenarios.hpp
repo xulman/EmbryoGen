@@ -2,6 +2,7 @@
 
 #include "Scenario.hpp"
 #include <list>
+#include <vector>
 
 // instead of the #include statement, the FrontOfficer type is only declared to
 // exists, FrontOfficer's definition depends on Scenario and so we'd end up in a
@@ -49,7 +50,7 @@ class FrontOfficer;
 /** a boilerplate code to handle pairing of scenarios with their
     command line names, and to instantiate the appropriate scenario */
 #define SCENARIO_MATCHING(n, c)                                                \
-	availableScenarios.emplace_back(std::string((n)));                         \
+	availableScenarios.emplace_back(n);                                        \
 	if (argc > 1 && scenario == NULL &&                                        \
 	    availableScenarios.back().find(argv[1]) != std::string::npos) {        \
 		report::message(fmt::format("Going to use the scenario: {}",           \
@@ -58,36 +59,26 @@ class FrontOfficer;
 	}
 
 //                                          regular class name
-SCENARIO_DECLARATION_withDefOptSynthoscopy(Scenario_AFewAgents)
-    SCENARIO_DECLARATION_withDefOptSynthoscopy(Scenario_DrosophilaRegular)
-        SCENARIO_DECLARATION_withDefOptSynthoscopy(Scenario_DrosophilaRandom)
-            SCENARIO_DECLARATION_withDefOptSynthoscopy(Scenario_pseudoDivision)
-                SCENARIO_DECLARATION_withDefOptSynthoscopy(
-                    Scenario_modelledDivision)
-                    SCENARIO_DECLARATION_withDefOptSynthoscopy(
-                        Scenario_dragAndRotate)
-                        SCENARIO_DECLARATION_withDefOptSynthoscopy(
-                            Scenario_withCellCycle)
-                            SCENARIO_DECLARATION_withItsOwnSynthoscopy(
-                                Scenario_withTexture)
-                                SCENARIO_DECLARATION_withDefOptSynthoscopy(
-                                    Scenario_dragRotateAndTexture)
-                                    SCENARIO_DECLARATION_withDefOptSynthoscopy(
-                                        Scenario_phaseIIandIII)
-                                        SCENARIO_DECLARATION_withDefOptSynthoscopy(
-                                            Scenario_PerlinShowCase)
-                                            SCENARIO_DECLARATION_withDefOptSynthoscopy(
-                                                Scenario_Parallel)
-                                                SCENARIO_DECLARATION_withDefOptSynthoscopy(
-                                                    Scenario_mpiDebug)
-                                                    SCENARIO_DECLARATION_withDefOptSynthoscopy(
-                                                        Scenario_Tetris)
-    //  ---> ADD NEW SCENARIO HERE AND ALSO BELOW <---
+SCENARIO_DECLARATION_withDefOptSynthoscopy(Scenario_AFewAgents);
+SCENARIO_DECLARATION_withDefOptSynthoscopy(Scenario_DrosophilaRegular);
+SCENARIO_DECLARATION_withDefOptSynthoscopy(Scenario_DrosophilaRandom);
+SCENARIO_DECLARATION_withDefOptSynthoscopy(Scenario_pseudoDivision);
+SCENARIO_DECLARATION_withDefOptSynthoscopy(Scenario_modelledDivision);
+SCENARIO_DECLARATION_withDefOptSynthoscopy(Scenario_dragAndRotate);
+SCENARIO_DECLARATION_withDefOptSynthoscopy(Scenario_withCellCycle);
+SCENARIO_DECLARATION_withItsOwnSynthoscopy(Scenario_withTexture);
+SCENARIO_DECLARATION_withDefOptSynthoscopy(Scenario_dragRotateAndTexture);
+SCENARIO_DECLARATION_withDefOptSynthoscopy(Scenario_phaseIIandIII);
+SCENARIO_DECLARATION_withDefOptSynthoscopy(Scenario_PerlinShowCase);
+SCENARIO_DECLARATION_withDefOptSynthoscopy(Scenario_Parallel);
+SCENARIO_DECLARATION_withDefOptSynthoscopy(Scenario_mpiDebug);
+SCENARIO_DECLARATION_withDefOptSynthoscopy(Scenario_Tetris);
+//  ---> ADD NEW SCENARIO HERE AND ALSO BELOW <---
 
-    class Scenarios {
+class Scenarios {
   private:
 	/** list of system-recognized scenarios, actually simulations */
-	std::list<std::string> availableScenarios;
+	std::vector<std::string> availableScenarios;
 
 	/** the scenario/simulation that is going to be used */
 	Scenario* scenario = NULL;

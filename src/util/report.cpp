@@ -16,7 +16,7 @@ namespace report {
 std::string getIdent(const std::source_location&
                          location /* = std::source_location::current() */) {
 	std::filesystem::path path = location.file_name();
-	return fmt::format("{0}::{1}(...) at {2}: ", path.filename().string(),
+	return fmt::format("{0}::{1} at {2}: ", path.filename().string(),
 	                   location.function_name(), location.line());
 }
 

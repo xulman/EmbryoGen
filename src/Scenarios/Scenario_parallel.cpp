@@ -130,7 +130,7 @@ class ParallelNucleus : public AbstractAgent {
 		// draw sphere at its current position, with the color of the
 		// responsible Officer
 		du.DrawPoint(DisplayUnit::firstIdForAgentObjects(ID),
-		             geometry.getCentres()[0], geometry.getRadii()[0],
+		             geometry.getCentres()[0], float(geometry.getRadii()[0]),
 		             Officer->getID());
 	}
 

@@ -1,8 +1,8 @@
 #pragma once
 
 #include "Geometry.hpp"
+#include "Spheres.hpp"
 #include <i3d/image3d.h>
-class Spheres;
 
 /**
  * Shape form based on image (given its size [px], offset [micrometers] and
@@ -64,11 +64,11 @@ class ScalarImg : public Geometry {
 	i3d::Image3d<float> distImg;
 
 	/** (cached) resolution of the distImg [pixels per micrometer] */
-	Vector3d<G_FLOAT> distImgRes;
+	Vector3d<precision_t> distImgRes;
 	/** (cached) offset of the distImg's "minCorner" [micrometer] */
-	Vector3d<G_FLOAT> distImgOff;
+	Vector3d<precision_t> distImgOff;
 	/** (cached) offset of the distImg's "maxCorner" [micrometer] */
-	Vector3d<G_FLOAT> distImgFarEnd;
+	Vector3d<precision_t> distImgFarEnd;
 
 	/** This is just a reminder of how the ScalarImg::distImg was created, since
 	   we don't have reference or copy to the original source image and we
@@ -143,11 +143,15 @@ class ScalarImg : public Geometry {
 	// ------------- get/set methods -------------
 	const i3d::Image3d<float>& getDistImg(void) const { return distImg; }
 
-	const Vector3d<G_FLOAT>& getDistImgRes(void) const { return distImgRes; }
+	const Vector3d<precision_t>& getDistImgRes(void) const {
+		return distImgRes;
+	}
 
-	const Vector3d<G_FLOAT>& getDistImgOff(void) const { return distImgOff; }
+	const Vector3d<precision_t>& getDistImgOff(void) const {
+		return distImgOff;
+	}
 
-	const Vector3d<G_FLOAT>& getDistImgFarEnd(void) const {
+	const Vector3d<precision_t>& getDistImgFarEnd(void) const {
 		return distImgFarEnd;
 	}
 

@@ -2,14 +2,15 @@
 #include <cmath>
 
 void NucleusNSAgent::resetDistanceMatrix() {
-	for (int row = 0; row < futureGeometry.noOfSpheres; ++row) {
-		*distanceMatrix(row, row) = -1;
-		for (int col = row + 1; col < futureGeometry.noOfSpheres; ++col) {
-			const float dist =
+	for (std::size_t row = 0; row < futureGeometry.getNoOfSpheres(); ++row) {
+		*distanceMatrix(int(row), int(row)) = -1;
+		for (std::size_t col = row + 1; col < futureGeometry.getNoOfSpheres();
+		     ++col) {
+			const float dist = float(
 			    (futureGeometry.centres[row] - futureGeometry.centres[col])
-			        .len();
-			*distanceMatrix(row, col) = dist;
-			*distanceMatrix(col, row) = dist;
+			        .len());
+			*distanceMatrix(int(row), int(col)) = dist;
+			*distanceMatrix(int(col), int(row)) = dist;
 		}
 	}
 }
@@ -23,37 +24,39 @@ void NucleusNSAgent::printDistanceMatrix() {
 void NucleusNSAgent::advanceAndBuildIntForces(const float futureGlobalTime) {
 	// tolerated mis-position (no "adjustment" s2s forces are created within
 	// this radius)
-	const G_FLOAT keepCalmDistance = (G_FLOAT)0.1;
-	// const G_FLOAT keepCalmDistanceSq = keepCalmDistance*keepCalmDistance;
+	const float keepCalmDistance = 0.1f;
+	// const float keepCalmDistanceSq = keepCalmDistance*keepCalmDistance;
 
 #ifndef NDEBUG
-	if (futureGeometry.noOfSpheres != distanceMatrix.side)
+	if (int(futureGeometry.getNoOfSpheres()) != distanceMatrix.side)
 		throw report::rtError(fmt::format(
 		    "distanceMatrix stores {} spheres but futureGeometry contains {}",
-		    distanceMatrix.side, futureGeometry.noOfSpheres));
+		    distanceMatrix.side, futureGeometry.getNoOfSpheres()));
 
 	forces_s2sInducers.clear();
 #endif
 
-	Vector3d<G_FLOAT> forceVec;
-	for (int row = 0; row < futureGeometry.noOfSpheres; ++row) {
-		for (int col = row + 1; col < futureGeometry.noOfSpheres; ++col) {
+	Vector3d<float> forceVec;
+	for (std::size_t row = 0; row < futureGeometry.getNoOfSpheres(); ++row) {
+		for (std::size_t col = row + 1; col < futureGeometry.getNoOfSpheres();
+		     ++col) {
 			forceVec = futureGeometry.centres[col];
 			forceVec -= futureGeometry.centres[row];
-			G_FLOAT diffDist = forceVec.len() - distanceMatrix.get(row, col);
+			float diffDist =
+			    forceVec.len() - distanceMatrix.get(int(row), int(col));
 			if (diffDist > keepCalmDistance || diffDist < -keepCalmDistance) {
 				forceVec.changeToUnitOrZero();
 				forceVec *= diffDist * fstrength_body_scale;
 				forces.emplace_back(forceVec, futureGeometry.centres[row], row,
 				                    ftype_s2s);
 #ifndef NDEBUG
-				forces_s2sInducers.push_back(col);
+				forces_s2sInducers.push_back(int(col));
 #endif
 				forceVec *= -1;
 				forces.emplace_back(forceVec, futureGeometry.centres[col], col,
 				                    ftype_s2s);
 #ifndef NDEBUG
-				forces_s2sInducers.push_back(row);
+				forces_s2sInducers.push_back(int(row));
 #endif
 			}
 		}
@@ -70,12 +73,12 @@ void NucleusNSAgent::drawMask(DisplayUnit& du) {
 	int gdID = DisplayUnit::firstIdForSceneDebugObjects() + ID * 40 + 5000;
 
 	// draw spheres, each at different color
-	for (int i = 0; i < futureGeometry.noOfSpheres; ++i)
-		du.DrawPoint(dID++, futureGeometry.centres[i], futureGeometry.radii[i],
-		             i);
+	for (std::size_t i = 0; i < futureGeometry.getNoOfSpheres(); ++i)
+		du.DrawPoint(dID++, futureGeometry.centres[i],
+		             float(futureGeometry.radii[i]), int(i));
 
 	// cell centres connection "line" (green)
-	for (int i = 1; i < futureGeometry.noOfSpheres; ++i)
+	for (std::size_t i = 1; i < futureGeometry.getNoOfSpheres(); ++i)
 		du.DrawLine(gdID++, futureGeometry.centres[i - 1],
 		            futureGeometry.centres[i], 2);
 

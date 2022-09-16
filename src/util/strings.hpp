@@ -1,10 +1,13 @@
 #pragma once
 
 #include "../Geometries/Geometry.hpp"
+#include "../tools/concepts.hpp"
 #include "report.hpp"
 #include <list>
 #include <map>
 #include <string>
+#include <type_traits>
+#include <unordered_set>
 class FrontOfficer;
 
 /** The buffer length into which any MPI-communicated string must be imprint,
@@ -137,7 +140,7 @@ class StringsDictionary {
 
 	/** sending: lists the items added recently since the last
 	 * markAllWasBroadcast() */
-	const std::map<size_t, std::string>& theseShouldBeBroadcast() const {
+	const std::map<std::size_t, std::string>& theseShouldBeBroadcast() const {
 		return newDictionary;
 	}
 
@@ -162,9 +165,23 @@ class StringsDictionary {
 	/** after sending&receiving, and only after markAllWasBroadcast():
 	    it manipulates only this->knownDictionary and removes every dictionary
 	   item from it that has no counterpart in the given list -- this has nasty
-	   complexity consequence (as list can do only O(n) search), but it prevents
-	   from Dictionary growing excessively -> use, but sparsely */
-	void cleanUp(const std::list<NamedAxisAlignedBoundingBox>& AABBs);
+	   complexity consequence (as basic_container can do only O(n) search), but
+	   it prevents from Dictionary growing excessively -> use, but sparsely */
+	template <typename T>
+	requires tools::concepts::basic_container_v<T, NamedAxisAlignedBoundingBox>
+	void cleanUp(const T& AABBs) {
+		std::unordered_set<std::size_t> knownNames;
+		for (auto naabb : AABBs)
+			knownNames.insert(naabb.nameID);
+
+		auto dict = knownDictionary.begin();
+		while (dict != knownDictionary.end()) {
+			if (!knownNames.contains(dict->first))
+				dict = knownDictionary.erase(dict);
+			else
+				++dict;
+		}
+	}
 
 	/** ugly hack to allow FrontOfficer to reach the protected methods without
 	    making them public -- so agents cannot break things because they can

@@ -1,13 +1,13 @@
 #include "Nucleus4SAgent.hpp"
 
-void Nucleus4SAgent::getCurrentOffVectorsForCentres(Vector3d<G_FLOAT> offs[4]) {
+void Nucleus4SAgent::getCurrentOffVectorsForCentres(Vector3d<float> offs[4]) {
 	// the centre point
-	Vector3d<G_FLOAT> refCentre(futureGeometry.centres[1]);
+	Vector3d<float> refCentre(futureGeometry.centres[1]);
 	refCentre += futureGeometry.centres[2];
 	refCentre *= 0.5;
 
 	// the axis/orientation between 2nd and 3rd sphere
-	Vector3d<G_FLOAT> refAxis(futureGeometry.centres[2]);
+	Vector3d<float> refAxis(futureGeometry.centres[2]);
 	refAxis -= futureGeometry.centres[1];
 
 	// make it half-of-the-expected-distance long
@@ -40,12 +40,12 @@ void Nucleus4SAgent::advanceAndBuildIntForces(const float futureGlobalTime) {
 	// check bending of the spheres (how much their position deviates from a
 	// line, includes also checking the distance), and add, if necessary,
 	// another forces to the list
-	Vector3d<G_FLOAT> sOff[4];
+	Vector3d<float> sOff[4];
 	getCurrentOffVectorsForCentres(sOff);
 
 	// tolerated mis-position (no "adjustment" s2s forces are created within
 	// this radius)
-	const G_FLOAT keepCalmDistanceSq = (G_FLOAT)0.01; // 0.01 = 0.1^2
+	const float keepCalmDistanceSq = 0.01f; // 0.01 = 0.1^2
 
 	if (sOff[0].len2() > keepCalmDistanceSq) {
 		// properly scaled force acting on the 1st sphere: body_scale * len()
@@ -101,7 +101,7 @@ void Nucleus4SAgent::drawForDebug(DisplayUnit& du) {
 
 		// shape deviations:
 		// blue lines to show deviations from the expected geometry
-		Vector3d<G_FLOAT> sOff[4];
+		Vector3d<float> sOff[4];
 		getCurrentOffVectorsForCentres(sOff);
 		du.DrawLine(dID++, futureGeometry.centres[0],
 		            futureGeometry.centres[0] + sOff[0], 3);

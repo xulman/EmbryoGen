@@ -20,8 +20,8 @@ class Spheres;
  * inherit from this class overriding getDistance() with no-code-function) and
  * can directly inspect the stored vectors.
  *
- * This class is, in fact, an alternative to the FlowField<G_FLOAT>, they both
- * represent x,y,z elements of a spatial distribution of 3D real vectors.
+ * This class is, in fact, an alternative to the FlowField<precision_t>, they
+ * both represent x,y,z elements of a spatial distribution of 3D real vectors.
  *
  * Author: Vladimir Ulman, 2018
  */
@@ -40,14 +40,14 @@ class VectorImg : public Geometry {
 	/** Images that together represent the 3D vector field, aka FF.
 	    They are of the same offset, size, resolution as the sample
 	    one given during construction of this object. */
-	i3d::Image3d<G_FLOAT> X, Y, Z;
+	i3d::Image3d<precision_t> X, Y, Z;
 
 	/** (cached) resolution of the FF [pixels per micrometer] */
-	Vector3d<G_FLOAT> imgRes;
+	point_t imgRes;
 	/** (cached) offset of the FF's "minCorner" [micrometer] */
-	Vector3d<G_FLOAT> imgOff;
+	point_t imgOff;
 	/** (cached) offset of the FF's "maxCorner" [micrometer] */
-	Vector3d<G_FLOAT> imgFarEnd;
+	point_t imgFarEnd;
 
 	/** This is the chosen policy for VectorImg::getDistance() */
 	const ChoosingPolicy policy;
@@ -107,15 +107,15 @@ class VectorImg : public Geometry {
 	 * to a filename */
 	void saveFFmagnitudes(const char* fullFilename) {
 		// create a new image of the same dimension
-		i3d::Image3d<float> mImg;
+		i3d::Image3d<precision_t> mImg;
 		mImg.CopyMetaData(X);
 
 		// running pointers...
-		const G_FLOAT* x = X.GetFirstVoxelAddr(); // input vector elements
-		const G_FLOAT* y = Y.GetFirstVoxelAddr();
-		const G_FLOAT* z = Z.GetFirstVoxelAddr();
-		float* m = mImg.GetFirstVoxelAddr(); // for vector magnitude
-		float* const mE = m + mImg.GetImageSize();
+		const precision_t* x = X.GetFirstVoxelAddr(); // input vector elements
+		const precision_t* y = Y.GetFirstVoxelAddr();
+		const precision_t* z = Z.GetFirstVoxelAddr();
+		precision_t* m = mImg.GetFirstVoxelAddr(); // for vector magnitude
+		precision_t* const mE = m + mImg.GetImageSize();
 
 		// sweep the output image
 		while (m != mE) {
@@ -172,17 +172,17 @@ class VectorImg : public Geometry {
 	void updateThisAABB(AxisAlignedBoundingBox& AABB) const override;
 
 	// ------------- get/set methods -------------
-	Vector3d<G_FLOAT>
+	Vector3d<precision_t>
 	getVector(const size_t x, const size_t y, const size_t z) const {
 		const size_t index = X.GetIndex(x, y, z);
-		return Vector3d<G_FLOAT>(X.GetVoxel(index), Y.GetVoxel(index),
-		                         Z.GetVoxel(index));
+		return Vector3d<precision_t>(X.GetVoxel(index), Y.GetVoxel(index),
+		                             Z.GetVoxel(index));
 	}
 
 	void getVector(const size_t x,
 	               const size_t y,
-	               const size_t z,             // input
-	               Vector3d<G_FLOAT>& v) const // output
+	               const size_t z,                 // input
+	               Vector3d<precision_t>& v) const // output
 	{
 		const size_t index = X.GetIndex(x, y, z);
 		v.x = X.GetVoxel(index);
@@ -192,8 +192,8 @@ class VectorImg : public Geometry {
 
 	void setVector(const size_t x,
 	               const size_t y,
-	               const size_t z,             // input
-	               const Vector3d<G_FLOAT>& v) // input
+	               const size_t z,                 // input
+	               const Vector3d<precision_t>& v) // input
 	{
 		const size_t index = X.GetIndex(x, y, z);
 		X.SetVoxel(index, v.x);
@@ -201,22 +201,22 @@ class VectorImg : public Geometry {
 		Z.SetVoxel(index, v.z);
 	}
 
-	void proxifyFF(FlowField<G_FLOAT>& FF) {
+	void proxifyFF(FlowField<precision_t>& FF) {
 		FF.proxify(&X, &Y, &Z);
 		report::debugMessage(
 		    fmt::format("The FF.isConsistent() gives {}",
 		                (FF.isConsistent() ? "true" : "false")));
 	}
 
-	const i3d::Image3d<G_FLOAT>& getImgX(void) const { return X; }
-	const i3d::Image3d<G_FLOAT>& getImgY(void) const { return Y; }
-	const i3d::Image3d<G_FLOAT>& getImgZ(void) const { return Z; }
+	const i3d::Image3d<precision_t>& getImgX(void) const { return X; }
+	const i3d::Image3d<precision_t>& getImgY(void) const { return Y; }
+	const i3d::Image3d<precision_t>& getImgZ(void) const { return Z; }
 
-	const Vector3d<G_FLOAT>& getImgRes(void) const { return imgRes; }
+	const Vector3d<precision_t>& getImgRes(void) const { return imgRes; }
 
-	const Vector3d<G_FLOAT>& getImgOff(void) const { return imgOff; }
+	const Vector3d<precision_t>& getImgOff(void) const { return imgOff; }
 
-	const Vector3d<G_FLOAT>& getImgFarEnd(void) const { return imgFarEnd; }
+	const Vector3d<precision_t>& getImgFarEnd(void) const { return imgFarEnd; }
 
 	ChoosingPolicy getChoosingPolicy(void) const { return policy; }
 
@@ -230,7 +230,8 @@ class VectorImg : public Geometry {
 		imgOff.fromI3dVector3d(X.GetOffset());
 
 		// this mask image's "max" corner in micrometers
-		imgFarEnd.from(Vector3d<size_t>(X.GetSize())).toMicrons(imgRes, imgOff);
+		imgFarEnd.from(Vector3d<std::size_t>(X.GetSize()))
+		    .toMicrons(imgRes, imgOff);
 	}
 
 	// ----------------- support for serialization and deserealization

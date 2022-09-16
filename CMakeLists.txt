@@ -96,61 +96,59 @@ add_custom_target(std_modules
 foreach(module IN LISTS STD_MODULES)
     add_custom_command(TARGET std_modules PRE_BUILD 
         COMMAND ${CMAKE_COMMAND} -E echo "${module}"
-        COMMAND g++ -fmodules-ts -std=c++20 -c -x c++-system-header ${module}
+        COMMAND g++ -fmodules-ts -O3 -std=c++20 -c -x c++-system-header ${module}
         )
 endforeach()
 
 set(SOURCES ${SOURCES} 
-src/Agents/Nucleus4SAgent.cpp
-src/Agents/NucleusAgent.cpp
-src/Agents/NucleusNSAgent.cpp
-src/Agents/ShapeHinter.cpp
-src/Agents/TrajectoriesHinter.cpp
-src/Agents/util/CellCycle.cpp
-src/Agents/util/Texture.cpp
-src/Agents/util/TextureFunctions.cpp
-src/Communication/DirectorMPI.cpp
-src/Communication/DirectorSMP.cpp
-src/Communication/DistributedCommunicator.cpp
-src/Communication/FrontOfficerMPI.cpp
-src/Communication/FrontOfficerSMP.cpp
-src/Director.cpp
+src/TrackRecord.cpp
+src/Scenarios/Scenario_pseudoDivision.cpp
+src/Scenarios/common/Scenario.cpp
+src/Scenarios/Scenario_dragAndRotate.cpp
+src/Scenarios/Scenario_parallel.cpp
+src/Scenarios/Scenario_DrosophilaRegular.cpp
+src/Scenarios/utilityScenario_PerlinShowCase.cpp
+src/Scenarios/Scenario_AFewAgents.cpp
+src/Scenarios/Scenario_withCellCycle.cpp
+src/Scenarios/Scenario_Texture.cpp
+src/Scenarios/Scenario_mpiDebug.cpp
+src/Scenarios/Scenario_modelledDivision.cpp
+src/Scenarios/utilityScenario_doPhaseIIandIII.cpp
+src/Scenarios/Scenario_Tetris.cpp
+src/Scenarios/Scenario_DrosophilaRandom.cpp
+src/Scenarios/Scenario_dragAndRotateWithTexture.cpp
 src/DisplayUnits/SceneryBufferedDisplayUnit.cpp
 src/DisplayUnits/SceneryDisplayUnit.cpp
-src/FrontOfficer.cpp
-src/Geometries/Geometry.cpp
-src/Geometries/Mesh.cpp
-src/Geometries/ScalarImg.cpp
-src/Geometries/Spheres.cpp
-src/Geometries/VectorImg.cpp
 src/main.cpp
-src/Scenarios/common/Scenario.cpp
-src/Scenarios/Scenario_AFewAgents.cpp
-src/Scenarios/Scenario_dragAndRotate.cpp
-src/Scenarios/Scenario_dragAndRotateWithTexture.cpp
-src/Scenarios/Scenario_DrosophilaRandom.cpp
-src/Scenarios/Scenario_DrosophilaRegular.cpp
-src/Scenarios/Scenario_modelledDivision.cpp
-src/Scenarios/Scenario_mpiDebug.cpp
-src/Scenarios/Scenario_parallel.cpp
-src/Scenarios/Scenario_pseudoDivision.cpp
-src/Scenarios/Scenario_Tetris.cpp
-src/Scenarios/Scenario_Texture.cpp
-src/Scenarios/Scenario_withCellCycle.cpp
-src/Scenarios/utilityScenario_doPhaseIIandIII.cpp
-src/Scenarios/utilityScenario_PerlinShowCase.cpp
-src/TrackRecord.cpp
-src/util/flowfields.cpp
 src/util/report.cpp
 src/util/rnd_generators.cpp
-src/util/strings.cpp
-src/util/synthoscopy/FiloGen_VM.cpp
 src/util/synthoscopy/finalpreview.cpp
+src/util/synthoscopy/FiloGen_VM.cpp
 src/util/synthoscopy/SNR.cpp
-src/util/texture/myround.cpp
-src/util/texture/perlin.cpp
 src/util/texture/texture.cpp
-src/util/Vector3d.cpp
+src/util/texture/perlin.cpp
+src/util/texture/myround.cpp
+src/util/strings.cpp
+src/util/flowfields.cpp
+src/FrontOfficer.cpp
+src/Communication/DirectorSMP.cpp
+src/Communication/DirectorMPI.cpp
+src/Communication/FrontOfficerMPI.cpp
+src/Communication/DistributedCommunicator.cpp
+src/Communication/FrontOfficerSMP.cpp
+src/Agents/NucleusNSAgent.cpp
+src/Agents/ShapeHinter.cpp
+src/Agents/util/Texture.cpp
+src/Agents/util/CellCycle.cpp
+src/Agents/Nucleus4SAgent.cpp
+src/Agents/TrajectoriesHinter.cpp
+src/Agents/NucleusAgent.cpp
+src/Geometries/VectorImg.cpp
+src/Geometries/ScalarImg.cpp
+src/Geometries/Spheres.cpp
+src/Geometries/Geometry.cpp
+src/Geometries/Mesh.cpp
+src/Director.cpp
 )
 
 set(DEPS 
@@ -281,12 +279,17 @@ add_library(i3dalgo STATIC IMPORTED)
 set_target_properties(i3dalgo PROPERTIES
     IMPORTED_LOCATION /usr/local/lib/libi3dalgo.a)
 
-set(LIBS i3dcore i3dalgo ${LIBS})
 else(BUILD_STATIC)
-find_library(LIB_I3DCORE "i3dcore")
-find_library(LIB_I3DALGO "i3dalgo")
-set(LIBS ${LIBS} ${LIB_I3DALGO} ${LIB_I3DCORE})
+add_library(i3dcore SHARED IMPORTED)
+set_target_properties(i3dcore PROPERTIES
+    IMPORTED_LOCATION /usr/local/lib/libi3dcore.so)
+
+add_library(i3dalgo SHARED IMPORTED)
+set_target_properties(i3dalgo PROPERTIES
+    IMPORTED_LOCATION /usr/local/lib/libi3dalgo.so)
+
 endif(BUILD_STATIC)
+set(LIBS i3dcore i3dalgo ${LIBS})
 
 # GSL library
 find_package(GSL REQUIRED)

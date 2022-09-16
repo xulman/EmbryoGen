@@ -32,8 +32,8 @@ class GrowableNucleusRand : public NucleusNSAgent {
 		if (currTime >= startGrowTime && currTime <= stopGrowTime &&
 		    incrCnt < 30) {
 			//"grow factor"
-			const G_FLOAT dR = 0.05f;     // radius
-			const G_FLOAT dD = 1.8f * dR; // diameter
+			const float dR = 0.05f;     // radius
+			const float dD = 1.8f * dR; // diameter
 
 			// grow the current geometry
 			SpheresFunctions::grow4SpheresBy(futureGeometry, dR, dD);
@@ -41,8 +41,8 @@ class GrowableNucleusRand : public NucleusNSAgent {
 			// also update the expected distances
 			for (int j = 1; j <= 3; ++j) // (neighbors-1) in between
 				for (int i = j; i < 4; ++i) {
-					*distanceMatrix(i - j, i) += (G_FLOAT)j * dD;
-					*distanceMatrix(i, i - j) += (G_FLOAT)j * dD;
+					*distanceMatrix(i - j, i) += float(j) * dD;
+					*distanceMatrix(i, i - j) += float(j) * dD;
 				}
 
 			// emergency break...
@@ -54,7 +54,7 @@ class GrowableNucleusRand : public NucleusNSAgent {
 	}
 
 	// expanded masks
-	SpheresFunctions::Interpolator<G_FLOAT> si;
+	SpheresFunctions::Interpolator<Geometry::precision_t> si;
 	int setupSpheresInterpolationAndReturnNoOfSpheres() {
 		si.addToPlan(0, 1, 2);
 		si.addToPlan(1, 2, 2);
@@ -76,10 +76,10 @@ class GrowableNucleusRand : public NucleusNSAgent {
 	void drawMask(DisplayUnit& du) override {
 		NucleusAgent::drawMask(du);
 		int dID = DisplayUnit::firstIdForAgentObjects(ID);
-		for (int i = futureGeometry.getNoOfSpheres();
+		for (std::size_t i = futureGeometry.getNoOfSpheres();
 		     i < presentationGeom.getNoOfSpheres(); ++i)
-			du.DrawPoint(dID + i + 5, presentationGeom.getCentres()[i],
-			             presentationGeom.getRadii()[i], 3);
+			du.DrawPoint(dID + int(i) + 5, presentationGeom.getCentres()[i],
+			             float(presentationGeom.getRadii()[i]), 3);
 	}
 };
 
@@ -178,6 +178,10 @@ void Scenario_DrosophilaRandom::initializeScene() {
 }
 
 class mySceneControls : public SceneControls {
+  public:
+	mySceneControls(Constants& callersOwnConstants)
+	    : SceneControls(callersOwnConstants) {}
+
 	int doMasks = 0;
 
 	void updateControls(const float currTime) override {
@@ -195,5 +199,11 @@ class mySceneControls : public SceneControls {
 };
 
 SceneControls& Scenario_DrosophilaRandom::provideSceneControls() {
-	return *(new mySceneControls());
+	SceneControls::Constants c;
+	c.stopTime = 12.0f;
+
+	auto mSC = new mySceneControls(c);
+	mSC->disableWaitForUserPrompt();
+
+	return *mSC;
 }

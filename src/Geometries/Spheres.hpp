@@ -2,6 +2,8 @@
 
 #include "../util/report.hpp"
 #include "Geometry.hpp"
+#include <cassert>
+#include <vector>
 
 /**
  * Collection of Spheres::noOfSpheres spheres, the represented shape/geometry
@@ -11,77 +13,27 @@
  */
 class Spheres : public Geometry {
   protected:
-	/** length of the this.centres and this.radii arrays */
-	const int noOfSpheres;
+	/** centers and radii sizes are always the same */
 
 	/** list of centres of the spheres */
-	Vector3d<G_FLOAT>* const centres;
+	std::vector<Vector3d<precision_t>> centres;
 
 	/** list of radii of the spheres */
-	G_FLOAT* const radii;
-
-	/** a flag to prevent this object from freeing both 'centres' and 'radii'
-	    attributes in its (*this) destructor; this flag is set only in its
-	    (*this) moving constructor to signal arrays are "stolen" (technically,
-	    shared) into another object; note both attribs are immutable... */
-	bool dataMovedAwayDontDelete = false;
+	std::vector<precision_t> radii;
 
   public:
 	/** empty shape constructor */
-	Spheres(const int _noOfSpheres)
-	    : Geometry(ListOfShapeForms::Spheres), noOfSpheres(_noOfSpheres),
-	      centres(new Vector3d<G_FLOAT>[noOfSpheres]),
-	      radii(new G_FLOAT[noOfSpheres]) {
+	Spheres(const int noOfSpheres)
+	    : Geometry(ListOfShapeForms::Spheres), centres(noOfSpheres),
+	      radii(noOfSpheres) {
 		// sanity check...
-		if (_noOfSpheres < 0)
+		if (noOfSpheres < 0)
 			throw report::rtError(
 			    "Cannot construct geometry with negative number of spheres.");
 
-		for (int i = 0; i < noOfSpheres; ++i)
-			radii[i] = 0.0;
 		// report::message(fmt::format("Constructing spheres @ {}" , this));
 		// report::message(fmt::format("Obtaining new arrays in spheres @ {}" ,
 		// this));
-	}
-
-	/** move constructor */
-	Spheres(Spheres&& s)
-	    : Geometry(ListOfShapeForms::Spheres), noOfSpheres(s.noOfSpheres),
-	      centres(s.centres), radii(s.radii) {
-		s.dataMovedAwayDontDelete = true;
-		// report::message(fmt::format("/ Moving spheres from {}" , &s));
-		// report::message(fmt::format("\\ Moving spheres into {}" , this));
-		// report::message(fmt::format("Stealing arrays into spheres @ {}" ,
-		// this));
-	}
-
-	/** copy constructor */
-	Spheres(const Spheres& s)
-	    : Geometry(ListOfShapeForms::Spheres), noOfSpheres(s.getNoOfSpheres()),
-	      centres(new Vector3d<G_FLOAT>[noOfSpheres]),
-	      radii(new G_FLOAT[noOfSpheres]) {
-		const Vector3d<G_FLOAT>* sCentres = s.getCentres();
-		const G_FLOAT* sRadii = s.getRadii();
-
-		for (int i = 0; i < noOfSpheres; ++i) {
-			centres[i] = sCentres[i];
-			radii[i] = sRadii[i];
-		}
-		// report::message(fmt::format("/ Copying spheres from {}" , &s));
-		// report::message(fmt::format("\\ Copying spheres into {}" , this));
-		// report::message(fmt::format("Duplicating arrays into spheres @ {}" ,
-		// this));
-	}
-
-	~Spheres(void) {
-		// free only if we still "own" both arrays
-		if (dataMovedAwayDontDelete == false) {
-			delete[] centres;
-			delete[] radii;
-			// report::message(fmt::format("Freeing arrays in spheres @ {}" ,
-			// this));
-		}
-		// report::message(fmt::format("Destructing spheres @ {}" , this));
 	}
 
 	// ------------- distances -------------
@@ -107,24 +59,31 @@ class Spheres : public Geometry {
 	    there is no collision at all (with no sphere); the sphere at
 	    the 'ignore' index is omitted from the tests (note the default
 	    ignoreIdx is -1, which means to consider all spheres for the test) */
-	int collideWithPoint(const Vector3d<G_FLOAT>& point,
+	int collideWithPoint(const Vector3d<precision_t>& point,
 	                     const int ignoreIdx = -1) const;
 
 	// ------------- AABB -------------
 	void updateThisAABB(AxisAlignedBoundingBox& AABB) const override;
 
 	// ------------- get/set methods -------------
-	int getNoOfSpheres(void) const { return noOfSpheres; }
+	std::size_t getNoOfSpheres(void) const {
+		assert(centres.size() == radii.size());
+		return centres.size();
+	}
 
-	const Vector3d<G_FLOAT>* getCentres(void) const { return centres; }
+	const std::vector<Vector3d<precision_t>>& getCentres(void) const {
+		return centres;
+	}
 
-	const G_FLOAT* getRadii(void) const { return radii; }
+	const std::vector<precision_t>& getRadii(void) const { return radii; }
 
-	void updateCentre(const int i, const Vector3d<G_FLOAT>& centre) {
+	void updateCentre(const int i, const Vector3d<precision_t>& centre) {
 		centres[i] = centre;
 	}
 
-	void updateRadius(const int i, const G_FLOAT radius) { radii[i] = radius; }
+	void updateRadius(const int i, const precision_t radius) {
+		radii[i] = radius;
+	}
 
 	friend class SpheresFunctions;
 	friend class NucleusAgent;

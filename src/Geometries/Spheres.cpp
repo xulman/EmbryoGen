@@ -27,32 +27,33 @@ void Spheres::getDistance(const Geometry& otherGeometry,
 void Spheres::getDistanceToSpheres(const Spheres* otherSpheres,
                                    std::list<ProximityPair>& l) const {
 	// shortcuts to the otherGeometry's spheres
-	const Vector3d<G_FLOAT>* const centresO = otherSpheres->getCentres();
-	const G_FLOAT* const radiiO = otherSpheres->getRadii();
+	const std::vector<Vector3d<precision_t>>& centresO =
+	    otherSpheres->getCentres();
+	const std::vector<precision_t>& radiiO = otherSpheres->getRadii();
 
 	// for every my sphere: find nearest other sphere
-	for (int im = 0; im < noOfSpheres; ++im) {
+	for (std::size_t im = 0; im < getNoOfSpheres(); ++im) {
 		// skip calculation for this sphere if it has no radius...
 		if (radii[im] == 0)
 			continue;
 
 		// nearest other sphere discovered so far
 		int bestIo = -1;
-		G_FLOAT bestDist = TOOFAR;
+		precision_t bestDist = TOOFAR;
 
-		for (int io = 0; io < otherSpheres->getNoOfSpheres(); ++io) {
+		for (std::size_t io = 0; io < otherSpheres->getNoOfSpheres(); ++io) {
 			// skip calculation for this sphere if it has no radius...
 			if (radiiO[io] == 0)
 				continue;
 
 			// dist between surfaces of the two spheres
-			G_FLOAT dist = (centres[im] - centresO[io]).len();
+			precision_t dist = (centres[im] - centresO[io]).len();
 			dist -= radii[im] + radiiO[io];
 
 			// is nearer?
 			if (dist < bestDist) {
 				bestDist = dist;
-				bestIo = io;
+				bestIo = int(io);
 			}
 		}
 
@@ -64,7 +65,7 @@ void Spheres::getDistanceToSpheres(const Spheres* otherSpheres,
 
 			// vector between the two centres (will be made
 			//'radius' longer, and offsets the 'centre' point)
-			Vector3d<G_FLOAT> dp = centresO[bestIo] - centres[im];
+			Vector3d<precision_t> dp = centresO[bestIo] - centres[im];
 			dp.changeToUnitOrZero();
 
 			l.emplace_back(centres[im] + (radii[im] * dp),
@@ -74,23 +75,23 @@ void Spheres::getDistanceToSpheres(const Spheres* otherSpheres,
 	}
 }
 
-int Spheres::collideWithPoint(const Vector3d<G_FLOAT>& point,
+int Spheres::collideWithPoint(const Vector3d<precision_t>& point,
                               const int ignoreIdx) const {
 	bool collision = false;
 
-	Vector3d<G_FLOAT> tmp;
-	int testingIndex = ignoreIdx == 0 ? 1 : 0;
-	while (!collision && testingIndex < noOfSpheres) {
+	Vector3d<precision_t> tmp;
+	std::size_t testingIndex = ignoreIdx == 0 ? 1 : 0;
+	while (!collision && testingIndex < radii.size()) {
 		tmp = centres[testingIndex];
 		tmp -= point;
 		collision = tmp.len() <= radii[testingIndex];
 
 		++testingIndex;
-		if (testingIndex == ignoreIdx)
+		if (int(testingIndex) == ignoreIdx)
 			++testingIndex;
 	}
 
-	return collision == false ? -1 : testingIndex - 1;
+	return !collision ? -1 : int(testingIndex) - 1;
 }
 
 void Spheres::updateThisAABB(AxisAlignedBoundingBox& AABB) const {
@@ -98,7 +99,7 @@ void Spheres::updateThisAABB(AxisAlignedBoundingBox& AABB) const {
 
 	// check centre plus/minus radius in every axis and record extremal
 	// coordinates
-	for (int i = 0; i < noOfSpheres; ++i)
+	for (std::size_t i = 0; i < getNoOfSpheres(); ++i)
 		if (radii[i] > 0.f) {
 			AABB.minCorner.x =
 			    std::min(AABB.minCorner.x, centres[i].x - radii[i]);
@@ -120,15 +121,17 @@ void Spheres::updateThisAABB(AxisAlignedBoundingBox& AABB) const {
 // ----------------- support for serialization and deserealization
 // -----------------
 long Spheres::getSizeInBytes() const {
-	return 2 * sizeof(int) + noOfSpheres * 4 * sizeof(G_FLOAT);
+	return sizeof(int) + +sizeof(decltype(version)) +
+	       centres.size() * sizeof(precision_t) * 3 +
+	       radii.size() * sizeof(precision_t);
 }
 
 void Spheres::serializeTo(char* buffer) const {
 	// store noOfSpheres
-	long off = Serialization::toBuffer(noOfSpheres, buffer);
+	long off = Serialization::toBuffer(int(getNoOfSpheres()), buffer);
 
 	// store individual spheres
-	for (int i = 0; i < noOfSpheres; ++i) {
+	for (std::size_t i = 0; i < getNoOfSpheres(); ++i) {
 		off += Serialization::toBuffer(centres[i], buffer + off);
 		off += Serialization::toBuffer(radii[i], buffer + off);
 	}
@@ -139,15 +142,16 @@ void Spheres::serializeTo(char* buffer) const {
 void Spheres::deserializeFrom(char* buffer) {
 	int recv_noOfSpheres;
 	long off = Deserialization::fromBuffer(buffer, recv_noOfSpheres);
+	std::size_t noOfSpheres = getNoOfSpheres();
 
-	if (noOfSpheres != recv_noOfSpheres)
+	if (int(noOfSpheres) != recv_noOfSpheres)
 		throw report::rtError(
 		    fmt::format("Deserialization mismatch: cannot fill geometry of {} "
 		                "spheres from the buffer with {} spheres",
 		                noOfSpheres, recv_noOfSpheres));
 
 	// read and setup individual spheres
-	for (int i = 0; i < noOfSpheres; ++i) {
+	for (std::size_t i = 0; i < noOfSpheres; ++i) {
 		off += Deserialization::fromBuffer(buffer + off, centres[i]);
 		off += Deserialization::fromBuffer(buffer + off, radii[i]);
 	}
@@ -167,8 +171,8 @@ Spheres* Spheres::createAndDeserializeFrom(char* buffer) {
 void Spheres::renderIntoMask(i3d::Image3d<i3d::GRAY16>& mask,
                              const i3d::GRAY16 drawID) const {
 	// shortcuts to the mask image parameters
-	const Vector3d<G_FLOAT> res(mask.GetResolution().GetRes());
-	const Vector3d<G_FLOAT> off(mask.GetOffset());
+	const Vector3d<precision_t> res(mask.GetResolution().GetRes());
+	const Vector3d<precision_t> off(mask.GetOffset());
 
 	// project and "clip" this AABB into the img frame
 	// so that voxels to sweep can be narrowed down...
@@ -178,7 +182,7 @@ void Spheres::renderIntoMask(i3d::Image3d<i3d::GRAY16>& mask,
 	AABB.exportInPixelCoords(mask, minSweepPX, maxSweepPX);
 	//
 	// micron coordinate of the running voxel 'curPos'
-	Vector3d<G_FLOAT> centre;
+	Vector3d<precision_t> centre;
 
 	// sweep and check intersection with spheres' volumes
 	for (curPos.z = minSweepPX.z; curPos.z < maxSweepPX.z; curPos.z++)
@@ -188,7 +192,7 @@ void Spheres::renderIntoMask(i3d::Image3d<i3d::GRAY16>& mask,
 				centre.toMicronsFrom(curPos, res, off);
 
 				// check the current voxel against all spheres
-				for (int i = 0; i < noOfSpheres; ++i) {
+				for (std::size_t i = 0; i < getNoOfSpheres(); ++i) {
 					if ((centre - centres[i]).len() <= radii[i]) {
 #ifndef NDEBUG
 						i3d::GRAY16 val =
