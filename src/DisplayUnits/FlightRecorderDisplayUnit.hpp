@@ -1,5 +1,4 @@
-#ifndef FLIGHTRECORDERDISPLAYUNIT_H
-#define FLIGHTRECORDERDISPLAYUNIT_H
+#pragma once
 
 #include <fstream>
 #include "DisplayUnit.hpp"
@@ -154,4 +153,3 @@ report::debugMessage(fmt::format("Recording into: {}" , fn));
 protected:
 	std::ofstream logger;
 };
-#endif

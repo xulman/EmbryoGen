@@ -34,8 +34,7 @@
 *
 ***********************************************************************/
 
-#ifndef MITOGEN_DOTS_H
-#define MITOGEN_DOTS_H
+#pragma once
 
 #include "Vector3d.hpp"
 
@@ -76,4 +75,3 @@ public:
 	/** refractive index of this dot */
 	float refractiveIdx = 1;
 };
-#endif

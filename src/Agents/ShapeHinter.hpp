@@ -1,5 +1,4 @@
-#ifndef AGENTS_SHAPEHINTER_H
-#define AGENTS_SHAPEHINTER_H
+#pragma once
 
 #include "../util/report.hpp"
 #include "AbstractAgent.hpp"
@@ -76,4 +75,3 @@ private:
 	void drawForDebug(DisplayUnit& du) override;
 	void drawForDebug(i3d::Image3d<i3d::GRAY16>& img) override;
 };
-#endif

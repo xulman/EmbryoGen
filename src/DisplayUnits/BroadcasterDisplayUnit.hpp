@@ -1,5 +1,4 @@
-#ifndef BROADCASTERDISPLAYUNIT_H
-#define BROADCASTERDISPLAYUNIT_H
+#pragma once
 
 #include "DisplayUnit.hpp"
 #include <forward_list>
@@ -88,4 +87,3 @@ private:
 	/** local list of who/where to send the drawing requests */
 	std::forward_list<DisplayUnit*> displayUnits;
 };
-#endif

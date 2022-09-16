@@ -1,5 +1,4 @@
-#ifndef CELLCYCLE_H
-#define CELLCYCLE_H
+#pragma once
 
 #include "../../util/report.hpp"
 #include <fmt/core.h>
@@ -172,4 +171,3 @@ public:
 	virtual void runCytokinesis(const float) {}
 	virtual void closeCytokinesis(void) {}
 };
-#endif

@@ -1,5 +1,4 @@
-#ifndef SCENERYDISPLAYUNIT_H
-#define SCENERYDISPLAYUNIT_H
+#pragma once
 
 #include "DisplayUnit.hpp"
 #include <string>
@@ -67,4 +66,3 @@ protected:
 	void ConnectToHost(void);
 	void DisconnectFromHost(void);
 };
-#endif

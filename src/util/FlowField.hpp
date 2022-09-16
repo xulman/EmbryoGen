@@ -26,9 +26,7 @@
 *
 ***********************************************************************/
 
-
-#ifndef MITOGEN_TYPES_H
-#define MITOGEN_TYPES_H
+#pragma once
 
 #include <i3d/image3d.h>
 #include <i3d/vector3d.h>
@@ -199,4 +197,3 @@ report::debugMessage(fmt::format("Sq. difference of grid offsets is {} in pixels
 		return drawFF(du,ID,color, Vector3d<size_t>(1));
 	}
 };
-#endif

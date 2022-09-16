@@ -1,5 +1,4 @@
-#ifndef SURFACESAMPLERS_H
-#define SURFACESAMPLERS_H
+#pragma once
 
 #include <math.h>
 #include <i3d/image3d.h>
@@ -218,4 +217,3 @@ private:
 		lastSurfacePoint = -TOOFAR;
 	}
 };
-#endif

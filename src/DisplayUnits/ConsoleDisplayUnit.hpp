@@ -1,5 +1,4 @@
-#ifndef CONSOLEDISPLAYUNIT_H
-#define CONSOLEDISPLAYUNIT_H
+#pragma once
 
 #include "../util/report.hpp"
 #include "DisplayUnit.hpp"
@@ -51,4 +50,3 @@ report::message(fmt::format("ID {}: {}, {}, {}, color={}" , ID, toString(posA), 
 		report::message(msg);
 	}
 };
-#endif

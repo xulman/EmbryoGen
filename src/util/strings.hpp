@@ -1,5 +1,4 @@
-#ifndef STRINGS_H
-#define STRINGS_H
+#pragma once
 
 #include <string>
 #include <list>
@@ -182,4 +181,3 @@ report::message(fmt::format("{}\t{}" , i.first, i.second), {false});
 		printNewDictionary();
 	}
 };
-#endif

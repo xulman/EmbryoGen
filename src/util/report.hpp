@@ -1,5 +1,4 @@
-#ifndef REPORT_H
-#define REPORT_H
+#pragma once
 
 #include <source_location>
 #include <string>

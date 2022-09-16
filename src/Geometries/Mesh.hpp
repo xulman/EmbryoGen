@@ -1,5 +1,4 @@
-#ifndef GEOMETRY_MESH_H
-#define GEOMETRY_MESH_H
+#pragma once
 
 #include "Geometry.hpp"
 
@@ -55,4 +54,3 @@ public:
 	void renderIntoMask(i3d::Image3d<i3d::GRAY16>& mask, const i3d::GRAY16 drawID) const override;
 };
 
-#endif

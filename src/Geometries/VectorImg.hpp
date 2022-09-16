@@ -1,5 +1,4 @@
-#ifndef GEOMETRY_VECTORIMG_H
-#define GEOMETRY_VECTORIMG_H
+#pragma once
 
 #include <i3d/image3d.h>
 #include "../util/report.hpp"
@@ -254,5 +253,3 @@ public:
 	// ----------------- support for rasterization -----------------
 	void renderIntoMask(i3d::Image3d<i3d::GRAY16>& mask, const i3d::GRAY16 drawID) const override;
 };
-
-#endif

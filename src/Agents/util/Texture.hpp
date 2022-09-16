@@ -1,5 +1,4 @@
-#ifndef TEXTURE_H
-#define TEXTURE_H
+#pragma once
 
 #include <memory>
 #include <vector>
@@ -405,4 +404,3 @@ throw report::rtError("Cannot init updating of coordinates, needs geometry of tw
 	    with NucleusAgent::weights which is why the attribute's name got crippled... */
 	std::unique_ptr<float[]> __weights;
 };
-#endif

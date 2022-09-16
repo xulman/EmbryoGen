@@ -1,5 +1,4 @@
-#ifndef VECTOR3D_H
-#define VECTOR3D_H
+#pragma once
 
 #include <iostream>
 #include <cmath>
@@ -638,4 +637,3 @@ std::ostream& operator<<(std::ostream& s,const ForceVector3d<T>& f)
 	  << ") @ [" << f.base.x << "," << f.base.y << "," << f.base.z << "]";
 	return s;
 }
-#endif

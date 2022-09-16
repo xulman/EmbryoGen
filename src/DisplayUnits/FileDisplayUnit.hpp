@@ -1,5 +1,4 @@
-#ifndef FILEDISPLAYUNIT_H
-#define FILEDISPLAYUNIT_H
+#pragma once
 
 #include <fstream>
 #include "DisplayUnit.hpp"
@@ -99,4 +98,3 @@ throw report::rtError("Refusing to create 101st flight record, please clean up y
 protected:
 	std::ofstream logger;
 };
-#endif

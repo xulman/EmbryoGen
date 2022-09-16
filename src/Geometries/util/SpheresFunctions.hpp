@@ -1,5 +1,4 @@
-#ifndef GEOMETRY_UTIL_SPHERESFUNCTIONS_H
-#define GEOMETRY_UTIL_SPHERESFUNCTIONS_H
+#pragma once
 
 #include <cmath>
 #include <functional>
@@ -758,4 +757,3 @@ report::debugMessage(fmt::format("deltaRad0={}, deltaRad1={}, deltaDist={}" , de
 		}
 	};
 };
-#endif

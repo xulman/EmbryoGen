@@ -1,5 +1,4 @@
-#ifndef UTIL_SYNTHOSCOPY_FINALPREVIEW_H
-#define UTIL_SYNTHOSCOPY_FINALPREVIEW_H
+#pragma once
 
 /**********************************************************************
 *
@@ -56,4 +55,3 @@ void PrepareFinalPreviewImage(i3d::Image3d<PV> &phantom,
 										i3d::Image3d<FV> &final);
 
 }
-#endif

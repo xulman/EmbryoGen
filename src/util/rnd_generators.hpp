@@ -1,5 +1,4 @@
-#ifndef RNDGENERATORS_H
-#define RNDGENERATORS_H
+#pragma once
 
 #include <gsl/gsl_rng.h>
 
@@ -94,4 +93,3 @@ unsigned int GetRandomPoisson(const float mean, rndGeneratorHandle& rngHandle);
 /** The same as GetRandomPoisson(...,rngHandle) but default handle is used.
     This may be used in non-critical applications. */
 unsigned int GetRandomPoisson(const float mean);
-#endif

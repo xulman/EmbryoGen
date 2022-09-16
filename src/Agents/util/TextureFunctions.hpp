@@ -1,5 +1,4 @@
-#ifndef AGENTS_UTIL_TEXTUREFUNCTIONS_H
-#define AGENTS_UTIL_TEXTUREFUNCTIONS_H
+#pragma once
 
 #include "../../util/Dots.hpp"
 #include "../../Geometries/Spheres.hpp"
@@ -30,4 +29,3 @@ public:
 	                         const Vector3d<G_FLOAT>& vxSize,
 	                         const size_t noOfParticlesPerVoxel = 10);
 };
-#endif

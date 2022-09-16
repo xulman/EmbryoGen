@@ -1,5 +1,4 @@
-#ifndef AGENTS_NUCLEUS4SAGENT_H
-#define AGENTS_NUCLEUS4SAGENT_H
+#pragma once
 
 #include "NucleusAgent.hpp"
 
@@ -45,4 +44,3 @@ protected:
 	// ------------- rendering -------------
 	void drawForDebug(DisplayUnit& du) override;
 };
-#endif

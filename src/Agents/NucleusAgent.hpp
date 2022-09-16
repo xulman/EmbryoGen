@@ -1,5 +1,4 @@
-#ifndef AGENTS_NUCLEUSAGENT_H
-#define AGENTS_NUCLEUSAGENT_H
+#pragma once
 
 #include "../Geometries/Spheres.hpp"
 #include "../util/report.hpp"
@@ -199,4 +198,3 @@ throw report::rtError("requested sphere index out of bound.");
 	std::vector<ForceVector3d<G_FLOAT>> forcesForDisplay;
 #endif
 };
-#endif

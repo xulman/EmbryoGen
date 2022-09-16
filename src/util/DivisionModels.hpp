@@ -1,5 +1,4 @@
-#ifndef DIVISIONMODELS_H
-#define DIVISIONMODELS_H
+#pragma once
 
 #include <iostream>
 #include <fstream>
@@ -574,4 +573,3 @@ public:
 	  DivisionModels<N,TB,TA,2>(filename,_timeStep)
 	{}
 };
-#endif

@@ -1,5 +1,4 @@
-#ifndef DISPLAYUNITS_UTIL_RENDERINGFUNCTIONS_H
-#define DISPLAYUNITS_UTIL_RENDERINGFUNCTIONS_H
+#pragma once
 
 #include <i3d/image3d.h>
 #include "../../util/Vector3d.hpp"
@@ -174,4 +173,3 @@ public:
 		return elemCnt;
 	}
 };
-#endif

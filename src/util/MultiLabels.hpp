@@ -1,5 +1,4 @@
-#ifndef TM_MULTILABELS_H
-#define TM_MULTILABELS_H
+#pragma once
 
 #include <iostream>
 #include <vector>
@@ -242,4 +241,3 @@ private:
 	}
 };
 
-#endif // TM_MULTILABELS_H

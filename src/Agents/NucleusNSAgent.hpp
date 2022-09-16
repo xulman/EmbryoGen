@@ -1,5 +1,4 @@
-#ifndef AGENTS_NUCLEUSNSAGENT_H
-#define AGENTS_NUCLEUSNSAGENT_H
+#pragma once
 
 #include "NucleusAgent.hpp"
 #include "../Geometries/util/SpheresFunctions.hpp"
@@ -46,4 +45,3 @@ protected:
 	void drawMask(DisplayUnit& du) override;
 	void drawForDebug(DisplayUnit& du) override;
 };
-#endif

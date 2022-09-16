@@ -1,5 +1,4 @@
-#ifndef GEOMETRY_UTIL_SERIALIZATION_H
-#define GEOMETRY_UTIL_SERIALIZATION_H
+#pragma once
 
 #include "../../util/Vector3d.hpp"
 #include <i3d/image3d.h>
@@ -226,4 +225,3 @@ throw report::rtError(fmt::format("Deserialization mismatch: got image of type {
 	static i3d::Image3d<i3d::GRAY16>* createImageOfType2() { return new i3d::Image3d<i3d::GRAY16>; }
 	static i3d::Image3d<float>*       createImageOfType3() { return new i3d::Image3d<float>; }
 };
-#endif

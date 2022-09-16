@@ -1,5 +1,4 @@
-#ifndef UTIL_SYNTHOSCOPY_SNR_H
-#define UTIL_SYNTHOSCOPY_SNR_H
+#pragma once
 
 /**********************************************************************
 *
@@ -90,4 +89,3 @@ double ComputeSNR(i3d::Image3d<PV> const &img,
                   i3d::Image3d<MV> const &mask);
 
 }
-#endif

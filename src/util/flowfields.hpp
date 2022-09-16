@@ -27,8 +27,7 @@
 ***********************************************************************/
 
 
-#ifndef MITOGEN_TOOLBOX_FLOWFIELDS_H
-#define MITOGEN_TOOLBOX_FLOWFIELDS_H
+#pragma once
 
 #include "FlowField.hpp"
 
@@ -500,5 +499,3 @@ void IMCopyFromVOI_Set(i3d::Image3d<VOXEL> &fImg,
 		       IMCopyFromVOI_t const &hints,
 		       const VOXEL setValue,
 		       const VOXEL *skipValue=NULL);
-
-#endif

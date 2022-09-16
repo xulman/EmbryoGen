@@ -1,5 +1,4 @@
-#ifndef GEOMETRY_UTIL_INNERAXES_H
-#define GEOMETRY_UTIL_INNERAXES_H
+#pragma once
 
 #include <cmath>
 #include "../../util/Vector3d.hpp"
@@ -164,4 +163,3 @@ public:
 		rotMatrix[2*3 +2] = q0*q0 - q1*q1 - q2*q2 + q3*q3;
 	}
 };
-#endif

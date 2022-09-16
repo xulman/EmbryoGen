@@ -1,5 +1,4 @@
-#ifndef UTIL_SYNTHOSCOPY_FILOGEN_H
-#define UTIL_SYNTHOSCOPY_FILOGEN_H
+#pragma once
 
 /*
  * Virtual Microscope - simulation engine
@@ -47,4 +46,3 @@ void PhaseIII(i3d::Image3d<float>& blurred,
               i3d::Image3d<i3d::GRAY16>& texture);
 
 }
-#endif

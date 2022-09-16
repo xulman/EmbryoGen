@@ -1,5 +1,4 @@
-#ifndef SCENERYBUFFEREDDISPLAYUNIT_H
-#define SCENERYBUFFEREDDISPLAYUNIT_H
+#pragma once
 
 #include "SceneryDisplayUnit.hpp"
 
@@ -78,4 +77,3 @@ private:
 	int BufferedVectorMsgs_count;
 	int BufferedTriangleMsgs_count;
 };
-#endif

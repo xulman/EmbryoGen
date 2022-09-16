@@ -1,5 +1,4 @@
-#ifndef AGENTS_TRAJECTORIESHINTER_H
-#define AGENTS_TRAJECTORIESHINTER_H
+#pragma once
 
 #include "../util/report.hpp"
 #include "AbstractAgent.hpp"
@@ -99,4 +98,3 @@ report::debugMessage(fmt::format("{} skipping update now" , getSignature()));
 	void drawForDebug(DisplayUnit& du) override;
 	//void drawForDebug(i3d::Image3d<i3d::GRAY16>& img) override;
 };
-#endif

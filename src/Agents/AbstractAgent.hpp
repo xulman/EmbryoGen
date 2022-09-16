@@ -1,5 +1,4 @@
-#ifndef AGENTS_ABSTRACTAGENT_H
-#define AGENTS_ABSTRACTAGENT_H
+#pragma once
 
 #include <i3d/image3d.h>
 #include "../util/report.hpp"
@@ -336,4 +335,3 @@ public:
 	//template <class T> //T = just some Type
 	void drawForDebug(i3d::Image3d<i3d::GRAY16>&) {};
 };
-#endif

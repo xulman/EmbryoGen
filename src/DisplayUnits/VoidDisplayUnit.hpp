@@ -1,5 +1,4 @@
-#ifndef VOIDDISPLAYUNIT_H
-#define VOIDDISPLAYUNIT_H
+#pragma once
 
 #include "DisplayUnit.hpp"
 
@@ -38,4 +37,3 @@ public:
 	                  const int) override
 	{ }
 };
-#endif

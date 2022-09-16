@@ -1,5 +1,4 @@
-#ifndef GEOMETRY_H
-#define GEOMETRY_H
+#pragma once
 
 #include <list>
 #include <i3d/image3d.h>
@@ -311,4 +310,3 @@ public:
 	// ----------------- support for rasterization -----------------
 	virtual void renderIntoMask(i3d::Image3d<i3d::GRAY16>& mask, const i3d::GRAY16 drawID) const =0;
 };
-#endif

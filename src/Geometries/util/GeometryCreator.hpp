@@ -1,5 +1,4 @@
-#ifndef GEOMETRY_UTIL_CREATOR_H
-#define GEOMETRY_UTIL_CREATOR_H
+#pragma once
 
 #include "../VectorImg.hpp"
 #include "../Geomtery.hpp"
@@ -24,5 +23,3 @@ Geometry * geometryCreateAndDeserializeFrom(ListOfShapeForms g_type, char * buff
 				return NULL;
 		}
 }
-
-#endif

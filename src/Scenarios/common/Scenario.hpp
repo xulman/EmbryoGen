@@ -1,5 +1,4 @@
-#ifndef SCENARIO_H
-#define SCENARIO_H
+#pragma once
 
 #include <map>
 #include <set>
@@ -652,4 +651,3 @@ private:
 	i3d::Image3d<float> imgPSF;
 #endif
 };
-#endif

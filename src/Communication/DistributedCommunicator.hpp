@@ -1,5 +1,4 @@
-#ifndef DISTRIBUTEDCOMMUNICATOR_H
-#define DISTRIBUTEDCOMMUNICATOR_H
+#pragma once
 
 #include "../Agents/AbstractAgent.hpp"
 #include "../util/report.hpp"
@@ -454,5 +453,3 @@ report::message(fmt::format("{} MPI message at: {} Via: {} Peer: {} Items in mes
 
 };
 #endif /*DISTRIBUTED*/
-
-#endif

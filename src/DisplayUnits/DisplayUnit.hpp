@@ -1,5 +1,4 @@
-#ifndef DISPLAYUNIT_H
-#define DISPLAYUNIT_H
+#pragma once
 
 #include "../util/Vector3d.hpp"
 
@@ -85,4 +84,3 @@ public:
 	int firstIdForSceneDebugObjects()
 	{ return 0; }
 };
-#endif

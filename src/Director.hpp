@@ -1,5 +1,4 @@
-#ifndef DIREKTOR_H
-#define DIREKTOR_H
+#pragma once
 
 #include <list>
 #include <utility>
@@ -262,4 +261,3 @@ public:
 	void respond_Loop();
 #endif
 };
-#endif

@@ -25,8 +25,7 @@ Description: Manipulation with procedural texture (Perlin noise).
 
 -------------------------------------------------------------------------*/
 
-#ifndef _TEXTURE_
-#define _TEXTURE_
+#pragma once
 
 #include <i3d/image3d.h>
 
@@ -84,4 +83,3 @@ template <class VOXEL> VOXEL ComputeQuantileIntensity(const i3d::Image3d<VOXEL> 
 
 //------------------------------------------------------------------------
 //
-#endif

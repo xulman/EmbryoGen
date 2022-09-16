@@ -1,5 +1,4 @@
-#ifndef SCENARIOS_H
-#define SCENARIOS_H
+#pragma once
 
 #include <list>
 #include "Scenario.hpp"
@@ -129,4 +128,3 @@ throw report::rtError("Unmatched scenario.");
 		return *scenario;
 	}
 };
-#endif
