@@ -1,4 +1,5 @@
 #include "common/Scenarios.hpp"
+#include <fmt/core.h>
 #include <string>
 
 void Scenario_phaseIIandIII::initializeAgents(FrontOfficer*, int p, int) {
@@ -8,7 +9,6 @@ void Scenario_phaseIIandIII::initializeAgents(FrontOfficer*, int p, int) {
 		return;
 	}
 
-	char fn[1024];
 	bool useCannonicalName = true;
 
 	report::message(fmt::format("Note the optional usage patterns:"));
@@ -38,14 +38,17 @@ void Scenario_phaseIIandIII::initializeAgents(FrontOfficer*, int p, int) {
 	int frameCnt = firstTP;
 	while (shouldTryOneMore && frameCnt <= lastTP) {
 		try {
+			std::string fn;
 			if (useCannonicalName)
-				sprintf(fn, params->constants.imgPhantom_filenameTemplate,
-				        frameCnt); // default filename
+				fn = fmt::format(params->constants.imgPhantom_filenameTemplate,
+				                 frameCnt);
 			else
-				sprintf(fn, argv[2], frameCnt); // user-given filename
+				fn = fmt::vformat(
+				    argv[2],
+				    fmt::make_format_args(frameCnt)); // user-given filename
 			report::message(fmt::format("READING: {}", fn));
 
-			params->imgPhantom.ReadImage(fn);
+			params->imgPhantom.ReadImage(fn.c_str());
 		} catch (...) {
 			shouldTryOneMore = false;
 		}
@@ -59,8 +62,9 @@ void Scenario_phaseIIandIII::initializeAgents(FrontOfficer*, int p, int) {
 
 			// populate and save it...
 			doPhaseIIandIII();
-			sprintf(fn, params->constants.imgFinal_filenameTemplate, frameCnt);
-			params->imgFinal.SaveImage(fn);
+			auto fn = fmt::format(params->constants.imgFinal_filenameTemplate,
+			                      frameCnt);
+			params->imgFinal.SaveImage(fn.c_str());
 
 			++frameCnt;
 		}
@@ -76,7 +80,8 @@ void Scenario_phaseIIandIII::initializeScene() {
 	params->disableWaitForUserPrompt();
 }
 
-std::unique_ptr<SceneControls> Scenario_phaseIIandIII::provideSceneControls() const {
+std::unique_ptr<SceneControls>
+Scenario_phaseIIandIII::provideSceneControls() const {
 	config::scenario::ControlConstants myConstants;
 	myConstants.stopTime = 0;
 	return std::make_unique<SceneControls>(myConstants);

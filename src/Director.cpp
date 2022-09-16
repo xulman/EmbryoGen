@@ -1,4 +1,5 @@
 #include "Director.hpp"
+#include "../extern/hpc_datastore_cpp/src/hpc_ds_api.hpp"
 #include "FrontOfficer.hpp"
 #include "util/Vector3d.hpp"
 #include "util/synthoscopy/SNR.hpp"
@@ -334,37 +335,84 @@ void Director::renderNextFrame() {
 	waitFor_renderNextFrame(firstFOsID);
 
 	// save the images
-	static char fn[1024];
+	ds::Connection ds_conn(sc.constants.ds_serverAddress, sc.constants.ds_port,
+	                       sc.constants.ds_datasetUUID);
 	if (sc.isProducingOutput(sc.imgMask)) {
-		sprintf(fn, sc.constants.imgMask_filenameTemplate, frameCnt);
-		report::message(fmt::format("Saving {}, hold on...", fn));
-		sc.imgMask.SaveImage(fn);
+		auto fn = fmt::format(sc.constants.imgMask_filenameTemplate, frameCnt);
+
+		if (sc.constants.outputToTiff) {
+			report::message(fmt::format("Saving {}, hold on...", fn));
+			sc.imgMask.SaveImage(fn.c_str());
+		}
+
+		if (sc.constants.outputToDatastore) {
+			report::message(
+			    fmt::format("Sending timepoint {} to datastore, hold on...", frameCnt));
+			ds_conn.write_with_pyramids(sc.imgMask, sc.constants.ds_maskChannel,
+			                            frameCnt, 0, "latest",
+			                            ds::SamplingMode::NEAREST_NEIGHBOUR);
+		}
 
 		sc.displayChannel_transferImgMask();
 	}
 
 	if (sc.isProducingOutput(sc.imgPhantom)) {
-		sprintf(fn, sc.constants.imgPhantom_filenameTemplate, frameCnt);
-		report::message(fmt::format("Saving {}, hold on...", fn));
-		sc.imgPhantom.SaveImage(fn);
+		auto fn =
+		    fmt::format(sc.constants.imgPhantom_filenameTemplate, frameCnt);
+
+		if (sc.constants.outputToTiff) {
+			report::message(fmt::format("Saving {}, hold on...", fn));
+			sc.imgPhantom.SaveImage(fn.c_str());
+		}
+
+		if (sc.constants.outputToDatastore) {
+			report::message(
+			    fmt::format("Sending timepoint {} to datastore, hold on...", frameCnt));
+			ds_conn.write_with_pyramids(
+			    sc.imgPhantom, sc.constants.ds_phantomChannel, frameCnt, 0,
+			    "latest", ds::SamplingMode::NEAREST_NEIGHBOUR);
+		}
 
 		sc.displayChannel_transferImgPhantom();
 	}
 
 	if (sc.isProducingOutput(sc.imgOptics)) {
-		sprintf(fn, sc.constants.imgOptics_filenameTemplate, frameCnt);
-		report::message(fmt::format("Saving {}, hold on...", fn));
-		sc.imgOptics.SaveImage(fn);
+		auto fn =
+		    fmt::format(sc.constants.imgOptics_filenameTemplate, frameCnt);
+
+		if (sc.constants.outputToTiff) {
+			report::message(fmt::format("Saving {}, hold on...", fn));
+			sc.imgOptics.SaveImage(fn.c_str());
+		}
+
+		if (sc.constants.outputToDatastore) {
+			report::message(
+			    fmt::format("Sending timepoint {} to datastore, hold on...", frameCnt));
+			ds_conn.write_with_pyramids(
+			    sc.imgOptics, sc.constants.ds_opticsChannel, frameCnt, 0,
+			    "latest", ds::SamplingMode::NEAREST_NEIGHBOUR);
+		}
 
 		sc.displayChannel_transferImgOptics();
 	}
 
 	if (sc.isProducingOutput(sc.imgFinal)) {
-		sprintf(fn, sc.constants.imgFinal_filenameTemplate, frameCnt);
+		auto fn = fmt::format(sc.constants.imgFinal_filenameTemplate, frameCnt);
 		report::message(fmt::format("Creating {}, hold on...", fn));
 		scenario.doPhaseIIandIII();
-		report::message(fmt::format("Saving {}, hold on...", fn));
-		sc.imgFinal.SaveImage(fn);
+
+		if (sc.constants.outputToTiff) {
+			report::message(fmt::format("Saving {}, hold on...", fn));
+			sc.imgFinal.SaveImage(fn.c_str());
+		}
+
+		if (sc.constants.outputToDatastore) {
+			report::message(
+			    fmt::format("Sending timepoint {} to datastore, hold on...", frameCnt));
+			ds_conn.write_with_pyramids(
+			    sc.imgFinal, sc.constants.ds_finalChannel, frameCnt, 0,
+			    "latest", ds::SamplingMode::NEAREST_NEIGHBOUR);
+		}
 
 		sc.displayChannel_transferImgFinal();
 

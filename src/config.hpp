@@ -1,5 +1,7 @@
 #pragma once
 #include "util/Vector3d.hpp"
+#include <fmt/core.h>
+#include <string>
 
 namespace config {
 namespace geometry {
@@ -45,21 +47,36 @@ class ControlConstants {
 	   [min] should be multiple of incrTime to obtain regular sampling */
 	float expoTime = 0.5f;
 
-	/** output filename pattern in the printf() notation
-	    that includes exactly one '%u' parameter: instance masks */
-	const char* imgMask_filenameTemplate = "mask%03u.tif";
+	bool outputToTiff = true;
+	bool outputToDatastore = true;
 
-	/** output filename pattern in the printf() notation
-	    that includes exactly one '%u' parameter: texture phantom images */
-	const char* imgPhantom_filenameTemplate = "phantom%03u.tif";
+	/** output filename pattern in the std::format notation
+	    that includes exactly one 'unsigned' parameter: instance masks */
+	fmt::format_string<int&> imgMask_filenameTemplate = "mask{:03}.tif";
 
-	/** output filename pattern in the printf() notation
-	    that includes exactly one '%u' parameter: optical indices images */
-	const char* imgOptics_filenameTemplate = "optics%03u.tif";
+	/** output filename pattern in the std::format notation
+	    that includes exactly one 'unsigned' parameter: texture phantom images
+	 */
+	fmt::format_string<int&> imgPhantom_filenameTemplate = "phantom{:03}.tif";
 
-	/** output filename pattern in the printf() notation
-	    that includes exactly one '%u' parameter: final output images */
-	const char* imgFinal_filenameTemplate = "finalPreview%03u.tif";
+	/** output filename pattern in the std::format notation
+	    that includes exactly one 'unsigned' parameter: optical indices images
+	 */
+	fmt::format_string<int&> imgOptics_filenameTemplate = "optics{:03}.tif";
+
+	/** output filename pattern in the std::format notation
+	    that includes exactly one 'unsigned' parameter: final output images */
+	fmt::format_string<int&> imgFinal_filenameTemplate =
+	    "finalPreview{:03}.tif";
+
+	std::string ds_serverAddress = "127.0.0.1";
+	int ds_port = 9080;
+	std::string ds_datasetUUID = "6316f28a-a56d-4bcd-8ab9-b30b2abfdeba";
+	int ds_maskChannel = 0;
+	int ds_phantomChannel = 1;
+	int ds_opticsChannel = 2;
+	int ds_finalChannel = 3;
 };
 } // namespace scenario
+
 } // namespace config
