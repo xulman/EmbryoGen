@@ -3,7 +3,7 @@
 
 #include "DisplayUnit.h"
 #include <string>
-#include <zmq.hpp>
+//#include <zmq.hpp>
 
 /**
  * This class implements drawing by sending the drawing commands
@@ -61,8 +61,8 @@ protected:
 	/** URL of the host (a Scenery renderer) to which we are connected */
 	std::string hostUrl;
 
-	zmq::context_t* context = NULL;
-	zmq::socket_t*  socket  = NULL;
+	//zmq::context_t* context = NULL;
+	//zmq::socket_t*  socket  = NULL;
 
 	void ConnectToHost(void);
 	void DisconnectFromHost(void);

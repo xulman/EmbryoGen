@@ -3,7 +3,7 @@
 
 #include <map>
 #include <set>
-#include <TransferImage.h>
+//#include <TransferImage.h>
 #include <i3d/image3d.h>
 #include "../../util/Vector3d.h"
 #include "../../util/report.h"
@@ -15,7 +15,7 @@
 class FrontOfficer;
 class Director;
 class Scenario;
-template <typename T> void transferImgs(const i3d::Image3d<T>& img, DAIS::ImagesAsEventsSender& channel);
+template <typename T> void transferImgs(const i3d::Image3d<T>& img /*,  DAIS::ImagesAsEventsSender& channel */);
 
 /**
  * Container of "external", declarative/descriptive parameters of
@@ -155,8 +155,8 @@ public:
 		//delete to avoid overriding
 		displayChannel_delete(channelName);
 
-		transferChannels[channelName]
-			= new DAIS::ImagesAsEventsSender(destinationURL,30,channelDisplayTitle);
+		//transferChannels[channelName]
+		//	= new DAIS::ImagesAsEventsSender(destinationURL,30,channelDisplayTitle);
 	}
 
 	void displayChannel_delete(const std::string& channelName)
@@ -208,7 +208,7 @@ protected:
 	/** internal (private) memory of the input of setOutputImgSpecs() for the enableProducingOutput() */
 	Vector3d<size_t> lastUsedImgSize;
 
-	std::map< std::string, DAIS::ImagesAsEventsSender* > transferChannels;
+	std::map< std::string, /*DAIS::ImagesAsEventsSender**/ void *> transferChannels;
 	std::set< std::string > imgMaskBroadcast;
 	std::set< std::string > imgPhantomBroadcast;
 	std::set< std::string > imgOpticsBroadcast;
@@ -226,9 +226,9 @@ protected:
 			if (channel != transferChannels.end())
 			{
 				//yes, transfer image over this route...
-				REPORT("Sending " << imgName << " image over the channel \""
-				      << channel->first << "\" (" << channel->second->getURL() << "), hold on...");
-				transferImgs(img,*(channel->second));
+				//REPORT("Sending " << imgName << " image over the channel \""
+				//     << channel->first << "\" (" << channel->second->getURL() << "), hold on...");
+				//transferImgs(img,*(channel->second));
 				//...and move on the next one
 				route++;
 			}
