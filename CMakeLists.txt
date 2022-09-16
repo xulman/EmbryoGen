@@ -7,9 +7,19 @@
 #          IT4Innovations National Supercomputing Center, VSB-TUO (c) 2020
 #
 #------------------------------------------------------------------------
+# OPTION FOR STATIC BUILD MUST BE SET BEFORE SPECIFYING PROJECT(...) 
+#-------------------------------------------------------------------
 
-project(EmbryoGen)
+option(BUILD_STATIC		"Insert dependencies directly to executable" OFF)
+# set paht to appropriate vcpkg manifest file
+if (BUILD_STATIC)
+set(VCPKG_MANIFEST_DIR ${CMAKE_SOURCE_DIR}/vcpkg/static)
+else(BUILD_STATIC)
+set(VCPKG_MANIFEST_DIR ${CMAKE_SOURCE_DIR}/vcpkg/dynamic)
+endif(BUILD_STATIC)
+
 cmake_minimum_required(VERSION 3.1)
+project(EmbryoGen)
 
 include(GNUInstallDirs)
 set(CMAKE_VERBOSE_MAKEFILE ON CACHE STRING "Tracing the compilation process" FORCE)
@@ -124,17 +134,86 @@ file(GLOB SCENARIOSOURCES src/Scenarios/*.cpp)
 
 add_executable(embryogen ${SOURCES} ${D_FO_SOURCES} ${SCENARIOSOURCES})
 add_custom_target(commitHash ALL "../imprintGitHash.sh")
-
+set_target_properties(embryogen PROPERTIES CXX_STANDARD 20)
 #--------------------------------------------
 # TARGET LINKING - FIRST-LEVEL REQUIRED LIBS
 #--------------------------------------------
 
 # i3dlibs library
+if (BUILD_STATIC)
+# static i3dlib dependencies
+find_package(FFTW3 CONFIG REQUIRED)
+set(LIBS ${LIBS} FFTW3::fftw3)
+
+find_package(FFTW3f CONFIG REQUIRED)
+set(LIBS ${LIBS} FFTW3::fftw3f)
+
+find_package(FFTW3l CONFIG REQUIRED)
+set(LIBS ${LIBS} FFTW3::fftw3l)
+
+find_package(clapack CONFIG REQUIRED)
+set(LIBS ${LIBS} lapack)
+
+if  (UNIX)
+if  (NOT APPLE)
+	set(LIBS ${LIBS} f2c)
+endif (NOT APPLE)
+endif (UNIX)
+
+find_package(OpenBLAS CONFIG REQUIRED)
+set(LIBS ${LIBS} OpenBLAS::OpenBLAS)
+
+find_package(TIFF REQUIRED)
+set(LIBS ${LIBS} ${TIFF_LIBRARIES})
+
+find_package(JPEG REQUIRED)
+set(LIBS ${LIBS} ${JPEG_LIBRARIES})
+
+find_package(libpng CONFIG REQUIRED)
+if(WIN32)
+	set(LIBS ${LIBS} png)
+else(WIN32)
+	set(LIBS ${LIBS} png_static)
+endif(WIN32)
+
+find_package(libics CONFIG REQUIRED)
+set(LIBS ${LIBS} libics)
+
+find_package(ZLIB REQUIRED)
+set(LIBS ${LIBS} ZLIB::ZLIB)
+
+find_package(hdf5 CONFIG REQUIRED)
+if (WIN32)
+	set(LIBS ${LIBS} hdf5::hdf5-shared hdf5::hdf5_hl-shared)
+else(WIN32)
+	set(LIBS ${LIBS} hdf5::hdf5-static hdf5::hdf5_hl-static)
+endif(WIN32)
+
+find_package(RXSpencer CONFIG REQUIRED)
+set(LIBS ${LIBS} rxspencer)
+
+add_library(i3dcore STATIC IMPORTED)
+set_target_properties(i3dcore PROPERTIES
+    IMPORTED_LOCATION /usr/local/lib/libi3dcore.a)
+
+add_library(i3dalgo STATIC IMPORTED)
+set_target_properties(i3dalgo PROPERTIES
+    IMPORTED_LOCATION /usr/local/lib/libi3dalgo.a)
+
+set(LIBS i3dcore i3dalgo ${LIBS})
+else(BUILD_STATIC)
 find_library(LIB_I3DCORE "i3dcore")
 find_library(LIB_I3DALGO "i3dalgo")
 set(LIBS ${LIBS} ${LIB_I3DALGO} ${LIB_I3DCORE})
+endif(BUILD_STATIC)
 
 # GSL library
+find_package(GSL REQUIRED)
+set(LIBS ${LIBS} GSL::gsl GSL::gslcblas)
+
+# Google rpc
+find_package(gRPC CONFIG REQUIRED)
+set(LIBS ${LIBS} gRPC::gpr gRPC::upb gRPC::grpc gRPC::grpc++)
 
 if (FEATURE_RUNDISTRIBUTED)
 	set(LIBS ${LIBS} MPI::MPI_CXX)

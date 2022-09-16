@@ -34,3 +34,6 @@ src/git_hash.h
 # CLION
 .idea
 cmake-build-*
+
+# VSCode
+.vscode
