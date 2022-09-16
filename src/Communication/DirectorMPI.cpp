@@ -1,6 +1,6 @@
-#include "DistributedCommunicator.h"
-#include "../Director.h"
-#include "../FrontOfficer.h"
+#include "DistributedCommunicator.hpp"
+#include "../Director.hpp"
+#include "../FrontOfficer.hpp"
 #include <chrono>
 #include <thread>
 

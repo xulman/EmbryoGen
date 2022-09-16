@@ -1,4 +1,4 @@
-#include "DistributedCommunicator.h"
+#include "DistributedCommunicator.hpp"
 #include <chrono>
 #include <thread>
 

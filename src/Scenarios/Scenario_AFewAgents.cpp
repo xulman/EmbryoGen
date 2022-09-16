@@ -1,10 +1,10 @@
-#include "../DisplayUnits/SceneryBufferedDisplayUnit.h"
-#include "../util/Vector3d.h"
-#include "../Geometries/Spheres.h"
-#include "../Geometries/ScalarImg.h"
-#include "../Agents/Nucleus4SAgent.h"
-#include "../Agents/ShapeHinter.h"
-#include "common/Scenarios.h"
+#include "../DisplayUnits/SceneryBufferedDisplayUnit.hpp"
+#include "../util/Vector3d.hpp"
+#include "../Geometries/Spheres.hpp"
+#include "../Geometries/ScalarImg.hpp"
+#include "../Agents/Nucleus4SAgent.hpp"
+#include "../Agents/ShapeHinter.hpp"
+#include "common/Scenarios.hpp"
 
 //no specific Nucleus (or other "prefilled" agent)
 

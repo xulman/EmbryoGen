@@ -1,9 +1,9 @@
-#include "../DisplayUnits/SceneryBufferedDisplayUnit.h"
-#include "../util/Vector3d.h"
-#include "../Geometries/Spheres.h"
-#include "../Agents/Nucleus4SAgent.h"
-#include "common/Scenarios.h"
-#include "../DisplayUnits/FlightRecorderDisplayUnit.h"
+#include "../DisplayUnits/SceneryBufferedDisplayUnit.hpp"
+#include "../util/Vector3d.hpp"
+#include "../Geometries/Spheres.hpp"
+#include "../Agents/Nucleus4SAgent.hpp"
+#include "common/Scenarios.hpp"
+#include "../DisplayUnits/FlightRecorderDisplayUnit.hpp"
 
 class myNucleus: public Nucleus4SAgent
 {

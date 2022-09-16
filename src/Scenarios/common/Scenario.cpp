@@ -1,12 +1,12 @@
-#include "Scenario.h"
+#include "Scenario.hpp"
 
 SceneControls DefaultSceneControls;
 
 
 #if defined ENABLE_MITOGEN_FINALPREVIEW
-  #include "../../util/synthoscopy/finalpreview.h"
+  #include "../../util/synthoscopy/finalpreview.hpp"
 #elif defined ENABLE_FILOGEN_PHASEIIandIII
-  #include "../../util/synthoscopy/FiloGen_VM.h"
+  #include "../../util/synthoscopy/FiloGen_VM.hpp"
 #endif
 #include <i3d/filters.h>
 
@@ -81,10 +81,10 @@ void Scenario::doPhaseIIandIII()
 
 
 // -----------------------------------------------------------------------------
-#include <TransferImage.h>
+//#include <TransferImage.h>
 
 /** util method to transfer image to the URL, no transfer occurs if the URL is not defined */
-template <typename T>
+/*template <typename T>
 void transferImg(const i3d::Image3d<T>& img, const std::string& URL)
 {
 	if (URL.empty()) return;
@@ -129,9 +129,9 @@ void transferImg(const i3d::Image3d<T>& img, const std::string& URL)
 	}
 }
 
-
+*/
 /** util method to transfer sequence of images over the same connection channel */
-template <typename T>
+/*template <typename T>
 void transferImgs(const i3d::Image3d<T>& img, DAIS::ImagesAsEventsSender& channel)
 {
 	try {
@@ -162,3 +162,4 @@ template void transferImgs(const i3d::Image3d<i3d::GRAY8>& img, DAIS::ImagesAsEv
 template void transferImgs(const i3d::Image3d<i3d::GRAY16>& img, DAIS::ImagesAsEventsSender& channel);
 template void transferImgs(const i3d::Image3d<float>& img, DAIS::ImagesAsEventsSender& channel);
 template void transferImgs(const i3d::Image3d<double>& img, DAIS::ImagesAsEventsSender& channel);
+*/

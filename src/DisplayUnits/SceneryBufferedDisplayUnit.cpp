@@ -1,6 +1,6 @@
-#include "SceneryBufferedDisplayUnit.h"
+#include "SceneryBufferedDisplayUnit.hpp"
 #include <string>
-#include <zmq.hpp>
+//#include <zmq.hpp>
 
 void SceneryBufferedDisplayUnit::DrawPoint(const int ID,
                                    const Vector3d<float>& pos,
@@ -102,7 +102,7 @@ void SceneryBufferedDisplayUnit::Flush(void)
 		msgString += " dim 3";
 		msgString += BufferedPointMsgs.str();
 
-		socket->send( zmq::const_buffer(msgString.c_str(),msgString.size()) );
+		//socket->send( zmq::const_buffer(msgString.c_str(),msgString.size()) );
 	}
 
 	if (BufferedLineMsgs_count > 0)
@@ -112,7 +112,7 @@ void SceneryBufferedDisplayUnit::Flush(void)
 		msgString += " dim 3";
 		msgString += BufferedLineMsgs.str();
 
-		socket->send( zmq::const_buffer(msgString.c_str(),msgString.size()) );
+		//socket->send( zmq::const_buffer(msgString.c_str(),msgString.size()) );
 	}
 
 	if (BufferedVectorMsgs_count > 0)
@@ -122,7 +122,7 @@ void SceneryBufferedDisplayUnit::Flush(void)
 		msgString += " dim 3";
 		msgString += BufferedVectorMsgs.str();
 
-		socket->send( zmq::const_buffer(msgString.c_str(),msgString.size()) );
+		//socket->send( zmq::const_buffer(msgString.c_str(),msgString.size()) );
 	}
 
 	if (BufferedTriangleMsgs_count > 0)
@@ -132,7 +132,7 @@ void SceneryBufferedDisplayUnit::Flush(void)
 		msgString += " dim 3 ";
 		msgString += BufferedTriangleMsgs.str();
 
-		socket->send( zmq::const_buffer(msgString.c_str(),msgString.size()) );
+		//socket->send( zmq::const_buffer(msgString.c_str(),msgString.size()) );
 	}
 
 	InitBuffers();

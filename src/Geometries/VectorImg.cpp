@@ -1,6 +1,6 @@
-#include "Spheres.h"
-#include "VectorImg.h"
-#include "util/Serialization.h"
+#include "Spheres.hpp"
+#include "VectorImg.hpp"
+#include "util/Serialization.hpp"
 
 void VectorImg::getDistance(const Geometry& otherGeometry,
                             std::list<ProximityPair>& l) const

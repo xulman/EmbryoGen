@@ -31,7 +31,7 @@
   #include <sys/time.h>
 #endif
 #include <i3d/filters.h>
-#include "flowfields.h"
+#include "flowfields.hpp"
 
 template <class VT, class FT>
 void ImageForwardTransformation(i3d::Image3d<VT> const &srcImg,

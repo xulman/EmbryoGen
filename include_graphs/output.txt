@@ -1,0 +1,330 @@
+ORIGINAL
+Visualisation saved in graph_dots/original.dot
+Counts ... nodes: 138, edges: 382
+has_cycle : False
+
+Layer decomposition:
+	Layer 0, files 35:
+		<mpi.h>  <i3d/image3d.h>  <cstring>  <i3d/transform.h>
+		  <i3d/morphology.h>  <memory>  <stdio.h>  <iostream>
+		  <fstream>  <list>  <i3d/DistanceTransform.h>  <vector>
+		  <i3d/filters.h>  <cmath>  <set>  <i3d/vector3d.h>
+		  <stdlib.h>  <math.h>  <forward_list>  <unistd.h>
+		  <i3d/histogram.h>  <string>  <i3d/convolution.h>  <stdexcept>
+		  <map>  <functional>  <sstream>  <sys/time.h>
+		  <utility>  <i3d/basic.h>  <gsl/gsl_rng.h>  <chrono>
+		  <gsl/gsl_randist.h>  <time.h>  <thread>
+	Layer 1, files 14:
+		util/report.h  util/synthoscopy/finalpreview.h  util/synthoscopy/SNR.h  git_hash.h
+		  util/rnd_generators.h  util/texture/perlin.h  util/texture/texture.h  util/synthoscopy/FiloGen_VM.h
+		  util/texture/myround.h  util/randWalk.h  TrackRecord_CTC.h  util/Vector3d.h
+		  Geometries/Geomtery.h  util/MultiLabels.h
+	Layer 2, files 15:
+		util/synthoscopy/finalpreview.cpp  util/Vector3d.cpp  util/rnd_generators.cpp  DisplayUnits/DisplayUnit.h
+		  util/Dots.h  Geometries/util/InnerAxes.h  util/report.cpp  util/texture/perlin.cpp
+		  util/synthoscopy/SNR.cpp  util/texture/texture.cpp  Geometries/util/Serialization.h  util/synthoscopy/FiloGen_VM.cpp
+		  util/DivisionModels.h  util/texture/myround.cpp  Agents/util/CellCycle.h
+	Layer 3, files 9:
+		DisplayUnits/FlightRecorderDisplayUnit.h  util/FlowField.h  Agents/util/CellCycle.cpp  DisplayUnits/ConsoleDisplayUnit.h
+		  DisplayUnits/VoidDisplayUnit.h  DisplayUnits/FileDisplayUnit.h  DisplayUnits/util/RenderingFunctions.h  DisplayUnits/SceneryDisplayUnit.h
+		  DisplayUnits/BroadcasterDisplayUnit.h
+	Layer 4, files 6:
+		Scenarios/common/Scenario.h  util/flowfields.h  DisplayUnits/SceneryBufferedDisplayUnit.h  Geometries/Geometry.h
+		  DisplayUnits/SceneryDisplayUnit.cpp  TrackRecord.h
+	Layer 5, files 13:
+		util/flowfields.cpp  util/strings.h  Geometries/Spheres.h  Director.h
+		  DisplayUnits/SceneryBufferedDisplayUnit.cpp  Scenarios/common/Scenario.cpp  TrackRecord.cpp  Geometries/Mesh.h
+		  Geometries/ScalarImg.h  Geometries/VectorImg.h  Geometries/Geometry.cpp  util/surfacesamplers.h
+		  Scenarios/common/Scenarios.h
+	Layer 6, files 12:
+		FrontOfficer.h  Geometries/ScalarImg.cpp  Geometries/util/GeometryCreator.h  Agents/util/TextureFunctions.h
+		  Geometries/VectorImg.cpp  Geometries/util/SpheresFunctions.h  Scenarios/utilityScenario_doPhaseIIandIII.cpp  Geometries/Spheres.cpp
+		  util/strings.cpp  Geometries/Mesh.cpp  Scenarios/utilityScenario_PerlinShowCase.cpp  Scenarios/Scenario_mpiDebug.cpp
+	Layer 7, files 5:
+		Agents/util/TextureFunctions.cpp  Director.cpp  Agents/util/Texture.h  Communication/DirectorSMP.cpp
+		  Agents/AbstractAgent.h
+	Layer 8, files 8:
+		Agents/ShapeHinter.h  Communication/DistributedCommunicator.h  Scenarios/Scenario_parallel.cpp  Agents/NucleusAgent.h
+		  Communication/FrontOfficerSMP.cpp  FrontOfficer.cpp  Agents/TrajectoriesHinter.h  Agents/util/Texture.cpp
+	Layer 9, files 12:
+		Agents/NucleusNSAgent.h  Agents/ShapeHinter.cpp  Communication/FrontOfficerMPI.cpp  Communication/DistributedCommunicator.cpp
+		  Agents/NucleusAgent.cpp  Scenarios/Scenario_withCellCycle.cpp  Scenarios/Scenario_Texture.cpp  main.cpp
+		  Scenarios/Scenario_pseudoDivision.cpp  Agents/Nucleus4SAgent.h  Communication/DirectorMPI.cpp  Agents/TrajectoriesHinter.cpp
+	Layer 10, files 9:
+		Scenarios/Scenario_modelledDivision.cpp  Scenarios/Scenario_dragAndRotateWithTexture.cpp  Scenarios/Scenario_DrosophilaRegular.cpp  Scenarios/Scenario_dragAndRotate.cpp
+		  Agents/NucleusNSAgent.cpp  Scenarios/Scenario_Tetris.cpp  Agents/Nucleus4SAgent.cpp  Scenarios/Scenario_AFewAgents.cpp
+		  Scenarios/Scenario_DrosophilaRandom.cpp
+	Not in layers:
+	Found 138 files in layers
+	0 files were not in layers
+
+
+ORIGINAL WITHOUT SYSLIBS
+Visualisation saved in graph_dots/original_without_syslibs.dot
+Counts ... nodes: 101, edges: 260
+has_cycle : False
+
+Layer decomposition:
+	Layer 0, files 12:
+		util/report.h  util/synthoscopy/finalpreview.h  util/synthoscopy/SNR.h  git_hash.h
+		  util/rnd_generators.h  util/texture/perlin.h  util/texture/texture.h  util/synthoscopy/FiloGen_VM.h
+		  util/texture/myround.h  TrackRecord_CTC.h  util/Vector3d.h  Geometries/Geomtery.h
+	Layer 1, files 15:
+		util/synthoscopy/finalpreview.cpp  util/Vector3d.cpp  util/rnd_generators.cpp  DisplayUnits/DisplayUnit.h
+		  util/Dots.h  Geometries/util/InnerAxes.h  util/report.cpp  util/texture/perlin.cpp
+		  util/synthoscopy/SNR.cpp  util/texture/texture.cpp  Geometries/util/Serialization.h  util/synthoscopy/FiloGen_VM.cpp
+		  util/DivisionModels.h  util/texture/myround.cpp  Agents/util/CellCycle.h
+	Layer 2, files 9:
+		DisplayUnits/FlightRecorderDisplayUnit.h  util/FlowField.h  Agents/util/CellCycle.cpp  DisplayUnits/ConsoleDisplayUnit.h
+		  DisplayUnits/VoidDisplayUnit.h  DisplayUnits/FileDisplayUnit.h  DisplayUnits/util/RenderingFunctions.h  DisplayUnits/SceneryDisplayUnit.h
+		  DisplayUnits/BroadcasterDisplayUnit.h
+	Layer 3, files 6:
+		Scenarios/common/Scenario.h  util/flowfields.h  DisplayUnits/SceneryBufferedDisplayUnit.h  Geometries/Geometry.h
+		  DisplayUnits/SceneryDisplayUnit.cpp  TrackRecord.h
+	Layer 4, files 13:
+		util/flowfields.cpp  util/strings.h  Geometries/Spheres.h  Director.h
+		  DisplayUnits/SceneryBufferedDisplayUnit.cpp  Scenarios/common/Scenario.cpp  TrackRecord.cpp  Geometries/Mesh.h
+		  Geometries/ScalarImg.h  Geometries/VectorImg.h  Geometries/Geometry.cpp  util/surfacesamplers.h
+		  Scenarios/common/Scenarios.h
+	Layer 5, files 12:
+		FrontOfficer.h  Geometries/ScalarImg.cpp  Geometries/util/GeometryCreator.h  Agents/util/TextureFunctions.h
+		  Geometries/VectorImg.cpp  Geometries/util/SpheresFunctions.h  Scenarios/utilityScenario_doPhaseIIandIII.cpp  Geometries/Spheres.cpp
+		  util/strings.cpp  Geometries/Mesh.cpp  Scenarios/utilityScenario_PerlinShowCase.cpp  Scenarios/Scenario_mpiDebug.cpp
+	Layer 6, files 5:
+		Agents/util/TextureFunctions.cpp  Director.cpp  Agents/util/Texture.h  Communication/DirectorSMP.cpp
+		  Agents/AbstractAgent.h
+	Layer 7, files 8:
+		Agents/ShapeHinter.h  Communication/DistributedCommunicator.h  Scenarios/Scenario_parallel.cpp  Agents/NucleusAgent.h
+		  Communication/FrontOfficerSMP.cpp  FrontOfficer.cpp  Agents/TrajectoriesHinter.h  Agents/util/Texture.cpp
+	Layer 8, files 12:
+		Agents/NucleusNSAgent.h  Agents/ShapeHinter.cpp  Communication/FrontOfficerMPI.cpp  Communication/DistributedCommunicator.cpp
+		  Agents/NucleusAgent.cpp  Scenarios/Scenario_withCellCycle.cpp  Scenarios/Scenario_Texture.cpp  main.cpp
+		  Scenarios/Scenario_pseudoDivision.cpp  Agents/Nucleus4SAgent.h  Communication/DirectorMPI.cpp  Agents/TrajectoriesHinter.cpp
+	Layer 9, files 9:
+		Scenarios/Scenario_modelledDivision.cpp  Scenarios/Scenario_dragAndRotateWithTexture.cpp  Scenarios/Scenario_DrosophilaRegular.cpp  Scenarios/Scenario_dragAndRotate.cpp
+		  Agents/NucleusNSAgent.cpp  Scenarios/Scenario_Tetris.cpp  Agents/Nucleus4SAgent.cpp  Scenarios/Scenario_AFewAgents.cpp
+		  Scenarios/Scenario_DrosophilaRandom.cpp
+	Not in layers:
+	Found 101 files in layers
+	0 files were not in layers
+
+
+TRANSPOSED
+Visualisation saved in graph_dots/transposed.dot
+Counts ... nodes: 138, edges: 382
+has_cycle : False
+
+Layer decomposition:
+	Layer 0, files 35:
+		<mpi.h>  <i3d/image3d.h>  <cstring>  <i3d/transform.h>
+		  <i3d/morphology.h>  <memory>  <stdio.h>  <iostream>
+		  <fstream>  <list>  <i3d/DistanceTransform.h>  <vector>
+		  <i3d/filters.h>  <cmath>  <set>  <i3d/vector3d.h>
+		  <stdlib.h>  <math.h>  <forward_list>  <unistd.h>
+		  <i3d/histogram.h>  <string>  <i3d/convolution.h>  <stdexcept>
+		  <map>  <functional>  <sstream>  <sys/time.h>
+		  <utility>  <i3d/basic.h>  <gsl/gsl_rng.h>  <chrono>
+		  <gsl/gsl_randist.h>  <time.h>  <thread>
+	Layer 1, files 54:
+		util/flowfields.cpp  Communication/DistributedCommunicator.cpp  Agents/NucleusAgent.cpp  Agents/util/CellCycle.cpp
+		  DisplayUnits/VoidDisplayUnit.h  Communication/FrontOfficerSMP.cpp  Geometries/VectorImg.cpp  DisplayUnits/SceneryBufferedDisplayUnit.cpp
+		  Agents/NucleusNSAgent.cpp  util/texture/myround.cpp  Agents/Nucleus4SAgent.cpp  Agents/TrajectoriesHinter.cpp
+		  Geometries/ScalarImg.cpp  Scenarios/Scenario_parallel.cpp  util/Vector3d.cpp  util/rnd_generators.cpp
+		  Scenarios/Scenario_Texture.cpp  Communication/DirectorSMP.cpp  Scenarios/Scenario_pseudoDivision.cpp  TrackRecord.cpp
+		  util/texture/perlin.cpp  Scenarios/utilityScenario_doPhaseIIandIII.cpp  util/synthoscopy/FiloGen_VM.cpp  Communication/DirectorMPI.cpp
+		  util/strings.cpp  Geometries/Geometry.cpp  Scenarios/Scenario_AFewAgents.cpp  Scenarios/Scenario_mpiDebug.cpp
+		  Communication/FrontOfficerMPI.cpp  Agents/util/TextureFunctions.cpp  Scenarios/Scenario_dragAndRotateWithTexture.cpp  Scenarios/Scenario_DrosophilaRegular.cpp
+		  FrontOfficer.cpp  Scenarios/common/Scenario.cpp  Scenarios/Scenario_Tetris.cpp  DisplayUnits/SceneryDisplayUnit.cpp
+		  main.cpp  util/randWalk.h  Scenarios/Scenario_DrosophilaRandom.cpp  Agents/ShapeHinter.cpp
+		  util/synthoscopy/finalpreview.cpp  Scenarios/Scenario_modelledDivision.cpp  Director.cpp  Scenarios/Scenario_withCellCycle.cpp
+		  Geometries/util/InnerAxes.h  Scenarios/Scenario_dragAndRotate.cpp  util/texture/texture.cpp  util/synthoscopy/SNR.cpp
+		  Geometries/Spheres.cpp  util/report.cpp  Geometries/Mesh.cpp  Scenarios/utilityScenario_PerlinShowCase.cpp
+		  Agents/util/Texture.cpp  util/MultiLabels.h
+	Layer 2, files 26:
+		git_hash.h  DisplayUnits/SceneryBufferedDisplayUnit.h  Director.h  util/texture/myround.h
+		  Agents/TrajectoriesHinter.h  DisplayUnits/FileDisplayUnit.h  util/surfacesamplers.h  util/synthoscopy/SNR.h
+		  util/texture/texture.h  util/synthoscopy/FiloGen_VM.h  Geometries/util/GeometryCreator.h  Geometries/util/Serialization.h
+		  Agents/ShapeHinter.h  util/texture/perlin.h  Agents/Nucleus4SAgent.h  Agents/NucleusNSAgent.h
+		  util/synthoscopy/finalpreview.h  DisplayUnits/FlightRecorderDisplayUnit.h  Communication/DistributedCommunicator.h  Agents/util/Texture.h
+		  util/flowfields.h  DisplayUnits/ConsoleDisplayUnit.h  Agents/util/TextureFunctions.h  util/DivisionModels.h
+		  Agents/util/CellCycle.h  Scenarios/common/Scenarios.h
+	Layer 3, files 11:
+		util/rnd_generators.h  Agents/NucleusAgent.h  util/Dots.h  DisplayUnits/SceneryDisplayUnit.h
+		  Geometries/util/SpheresFunctions.h  TrackRecord_CTC.h  Geometries/Mesh.h  Geometries/ScalarImg.h
+		  Geometries/VectorImg.h  Geometries/Geomtery.h  TrackRecord.h
+	Layer 4, files 3:
+		util/FlowField.h  Geometries/Spheres.h  Agents/AbstractAgent.h
+	Layer 5, files 1:
+		FrontOfficer.h
+	Layer 6, files 2:
+		Scenarios/common/Scenario.h  util/strings.h
+	Layer 7, files 3:
+		DisplayUnits/BroadcasterDisplayUnit.h  util/report.h  Geometries/Geometry.h
+	Layer 8, files 1:
+		DisplayUnits/util/RenderingFunctions.h
+	Layer 9, files 1:
+		DisplayUnits/DisplayUnit.h
+	Layer 10, files 1:
+		util/Vector3d.h
+	Not in layers:
+	Found 138 files in layers
+	0 files were not in layers
+
+
+TRANSPOSED WITHOUT SYSLIBS
+Visualisation saved in graph_dots/transposed_without_syslibs.dot
+Counts ... nodes: 101, edges: 260
+has_cycle : False
+
+Layer decomposition:
+	Layer 0, files 52:
+		util/flowfields.cpp  Communication/DistributedCommunicator.cpp  Agents/NucleusAgent.cpp  Agents/util/CellCycle.cpp
+		  DisplayUnits/VoidDisplayUnit.h  Communication/FrontOfficerSMP.cpp  Geometries/VectorImg.cpp  DisplayUnits/SceneryBufferedDisplayUnit.cpp
+		  Agents/NucleusNSAgent.cpp  util/texture/myround.cpp  Agents/Nucleus4SAgent.cpp  Agents/TrajectoriesHinter.cpp
+		  Geometries/ScalarImg.cpp  Scenarios/Scenario_parallel.cpp  util/Vector3d.cpp  util/rnd_generators.cpp
+		  Scenarios/Scenario_Texture.cpp  Communication/DirectorSMP.cpp  Scenarios/Scenario_pseudoDivision.cpp  TrackRecord.cpp
+		  util/texture/perlin.cpp  Scenarios/utilityScenario_doPhaseIIandIII.cpp  util/synthoscopy/FiloGen_VM.cpp  Communication/DirectorMPI.cpp
+		  util/strings.cpp  Geometries/Geometry.cpp  Scenarios/Scenario_AFewAgents.cpp  Scenarios/Scenario_mpiDebug.cpp
+		  Communication/FrontOfficerMPI.cpp  Agents/util/TextureFunctions.cpp  Scenarios/Scenario_dragAndRotateWithTexture.cpp  Scenarios/Scenario_DrosophilaRegular.cpp
+		  FrontOfficer.cpp  Scenarios/common/Scenario.cpp  Scenarios/Scenario_Tetris.cpp  DisplayUnits/SceneryDisplayUnit.cpp
+		  main.cpp  Scenarios/Scenario_DrosophilaRandom.cpp  Agents/ShapeHinter.cpp  util/synthoscopy/finalpreview.cpp
+		  Scenarios/Scenario_modelledDivision.cpp  Director.cpp  Scenarios/Scenario_withCellCycle.cpp  Geometries/util/InnerAxes.h
+		  Scenarios/Scenario_dragAndRotate.cpp  util/texture/texture.cpp  util/synthoscopy/SNR.cpp  Geometries/Spheres.cpp
+		  util/report.cpp  Geometries/Mesh.cpp  Scenarios/utilityScenario_PerlinShowCase.cpp  Agents/util/Texture.cpp
+	Layer 1, files 26:
+		git_hash.h  DisplayUnits/SceneryBufferedDisplayUnit.h  Director.h  util/texture/myround.h
+		  Agents/TrajectoriesHinter.h  DisplayUnits/FileDisplayUnit.h  util/surfacesamplers.h  util/synthoscopy/SNR.h
+		  util/texture/texture.h  util/synthoscopy/FiloGen_VM.h  Geometries/util/GeometryCreator.h  Geometries/util/Serialization.h
+		  Agents/ShapeHinter.h  util/texture/perlin.h  Agents/Nucleus4SAgent.h  Agents/NucleusNSAgent.h
+		  util/synthoscopy/finalpreview.h  DisplayUnits/FlightRecorderDisplayUnit.h  Communication/DistributedCommunicator.h  Agents/util/Texture.h
+		  util/flowfields.h  DisplayUnits/ConsoleDisplayUnit.h  Agents/util/TextureFunctions.h  util/DivisionModels.h
+		  Agents/util/CellCycle.h  Scenarios/common/Scenarios.h
+	Layer 2, files 11:
+		util/rnd_generators.h  Agents/NucleusAgent.h  util/Dots.h  DisplayUnits/SceneryDisplayUnit.h
+		  Geometries/util/SpheresFunctions.h  TrackRecord_CTC.h  Geometries/Mesh.h  Geometries/ScalarImg.h
+		  Geometries/VectorImg.h  Geometries/Geomtery.h  TrackRecord.h
+	Layer 3, files 3:
+		util/FlowField.h  Geometries/Spheres.h  Agents/AbstractAgent.h
+	Layer 4, files 1:
+		FrontOfficer.h
+	Layer 5, files 2:
+		Scenarios/common/Scenario.h  util/strings.h
+	Layer 6, files 3:
+		DisplayUnits/BroadcasterDisplayUnit.h  util/report.h  Geometries/Geometry.h
+	Layer 7, files 1:
+		DisplayUnits/util/RenderingFunctions.h
+	Layer 8, files 1:
+		DisplayUnits/DisplayUnit.h
+	Layer 9, files 1:
+		util/Vector3d.h
+	Not in layers:
+	Found 101 files in layers
+	0 files were not in layers
+
+
+MERGED
+Visualisation saved in graph_dots/merged.dot
+Counts ... nodes: 107, edges: 339
+has_cycle : True
+	Cycle 0:
+		FrontOfficer -> Director -> FrontOfficer
+	Cycle 1:
+		Director -> FrontOfficer -> Director
+	Cycle 2:
+		Agents/AbstractAgent -> FrontOfficer -> Agents/AbstractAgent
+
+
+Layer decomposition:
+	Layer 0, files 35:
+		<mpi.h>  <i3d/image3d.h>  <cstring>  <i3d/transform.h>
+		  <i3d/morphology.h>  <memory>  <stdio.h>  <iostream>
+		  <fstream>  <list>  <i3d/DistanceTransform.h>  <vector>
+		  <i3d/filters.h>  <cmath>  <set>  <i3d/vector3d.h>
+		  <stdlib.h>  <math.h>  <unistd.h>  <i3d/histogram.h>
+		  <string>  <i3d/convolution.h>  <stdexcept>  <map>
+		  <functional>  <sstream>  <gsl/gsl_randist.h>  <sys/time.h>
+		  <utility>  <i3d/basic.h>  <gsl/gsl_rng.h>  <chrono>
+		  <forward_list>  <time.h>  <thread>
+	Layer 1, files 8:
+		Geometries/Geomtery  util/MultiLabels  util/Vector3d  util/report
+		  git_hash  util/texture/myround  TrackRecord_CTC  util/randWalk
+	Layer 2, files 6:
+		util/Dots  util/rnd_generators  DisplayUnits/DisplayUnit  Geometries/util/Serialization
+		  Geometries/util/InnerAxes  util/synthoscopy/SNR
+	Layer 3, files 12:
+		DisplayUnits/FileDisplayUnit  DisplayUnits/ConsoleDisplayUnit  util/FlowField  Agents/util/CellCycle
+		  util/synthoscopy/finalpreview  DisplayUnits/VoidDisplayUnit  DisplayUnits/util/RenderingFunctions  DisplayUnits/SceneryDisplayUnit
+		  DisplayUnits/FlightRecorderDisplayUnit  util/DivisionModels  DisplayUnits/BroadcasterDisplayUnit  util/texture/perlin
+	Layer 4, files 5:
+		util/texture/texture  Geometries/Geometry  util/flowfields  DisplayUnits/SceneryBufferedDisplayUnit
+		  TrackRecord
+	Layer 5, files 5:
+		util/surfacesamplers  Geometries/Mesh  Geometries/Spheres  util/strings
+		  util/synthoscopy/FiloGen_VM
+	Layer 6, files 5:
+		Geometries/util/SpheresFunctions  Geometries/VectorImg  Scenarios/common/Scenario  Geometries/ScalarImg
+		  Agents/util/TextureFunctions
+	Layer 7, files 3:
+		Scenarios/common/Scenarios  Agents/util/Texture  Geometries/util/GeometryCreator
+	Layer 8, files 3:
+		Scenarios/utilityScenario_PerlinShowCase  Scenarios/utilityScenario_doPhaseIIandIII  Scenarios/Scenario_mpiDebug
+	Not in layers:
+		Agents/NucleusAgent  Communication/FrontOfficerSMP  Communication/DistributedCommunicator  Agents/TrajectoriesHinter
+		  Scenarios/Scenario_parallel  Scenarios/Scenario_Texture  main  Agents/ShapeHinter
+		  Communication/DirectorMPI  Scenarios/Scenario_DrosophilaRandom  Scenarios/Scenario_dragAndRotateWithTexture  Scenarios/Scenario_withCellCycle
+		  Communication/FrontOfficerMPI  Scenarios/Scenario_modelledDivision  Agents/Nucleus4SAgent  Scenarios/Scenario_AFewAgents
+		  Agents/AbstractAgent  Scenarios/Scenario_dragAndRotate  Director  Agents/NucleusNSAgent
+		  Scenarios/Scenario_Tetris  Scenarios/Scenario_DrosophilaRegular  FrontOfficer  Scenarios/Scenario_pseudoDivision
+		  Communication/DirectorSMP
+	Found 82 files in layers
+	25 files were not in layers
+
+
+MERGED WITHOUT SYSLIBS
+Visualisation saved in graph_dots/merged_without_syslibs.dot
+Counts ... nodes: 70, edges: 223
+has_cycle : True
+	Cycle 0:
+		Agents/AbstractAgent -> FrontOfficer -> Agents/AbstractAgent
+	Cycle 1:
+		Director -> FrontOfficer -> Director
+	Cycle 2:
+		FrontOfficer -> Director -> FrontOfficer
+
+
+Layer decomposition:
+	Layer 0, files 6:
+		Geometries/Geomtery  util/report  util/Vector3d  git_hash
+		  util/texture/myround  TrackRecord_CTC
+	Layer 1, files 6:
+		util/Dots  util/rnd_generators  DisplayUnits/DisplayUnit  Geometries/util/Serialization
+		  Geometries/util/InnerAxes  util/synthoscopy/SNR
+	Layer 2, files 12:
+		DisplayUnits/FileDisplayUnit  DisplayUnits/ConsoleDisplayUnit  util/FlowField  Agents/util/CellCycle
+		  util/synthoscopy/finalpreview  DisplayUnits/VoidDisplayUnit  DisplayUnits/util/RenderingFunctions  DisplayUnits/SceneryDisplayUnit
+		  DisplayUnits/FlightRecorderDisplayUnit  util/DivisionModels  DisplayUnits/BroadcasterDisplayUnit  util/texture/perlin
+	Layer 3, files 5:
+		util/texture/texture  Geometries/Geometry  util/flowfields  DisplayUnits/SceneryBufferedDisplayUnit
+		  TrackRecord
+	Layer 4, files 5:
+		util/surfacesamplers  Geometries/Mesh  Geometries/Spheres  util/strings
+		  util/synthoscopy/FiloGen_VM
+	Layer 5, files 5:
+		Geometries/util/SpheresFunctions  Geometries/VectorImg  Scenarios/common/Scenario  Geometries/ScalarImg
+		  Agents/util/TextureFunctions
+	Layer 6, files 3:
+		Scenarios/common/Scenarios  Agents/util/Texture  Geometries/util/GeometryCreator
+	Layer 7, files 3:
+		Scenarios/utilityScenario_PerlinShowCase  Scenarios/utilityScenario_doPhaseIIandIII  Scenarios/Scenario_mpiDebug
+	Not in layers:
+		Agents/NucleusAgent  Communication/FrontOfficerSMP  Communication/DistributedCommunicator  Agents/TrajectoriesHinter
+		  Scenarios/Scenario_parallel  Scenarios/Scenario_Texture  main  Agents/ShapeHinter
+		  Communication/DirectorMPI  Scenarios/Scenario_DrosophilaRandom  Scenarios/Scenario_dragAndRotateWithTexture  Scenarios/Scenario_withCellCycle
+		  Communication/FrontOfficerMPI  Scenarios/Scenario_modelledDivision  Agents/Nucleus4SAgent  Agents/AbstractAgent
+		  Scenarios/Scenario_AFewAgents  Scenarios/Scenario_dragAndRotate  Scenarios/Scenario_Tetris  Director
+		  Agents/NucleusNSAgent  Scenarios/Scenario_DrosophilaRegular  FrontOfficer  Scenarios/Scenario_pseudoDivision
+		  Communication/DirectorSMP
+	Found 45 files in layers
+	25 files were not in layers
+
+

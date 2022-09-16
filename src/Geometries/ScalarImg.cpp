@@ -1,8 +1,8 @@
 #include <i3d/DistanceTransform.h>
-#include "../util/report.h"
-#include "Spheres.h"
-#include "ScalarImg.h"
-#include "util/Serialization.h"
+#include "../util/report.hpp"
+#include "Spheres.hpp"
+#include "ScalarImg.hpp"
+#include "util/Serialization.hpp"
 
 /** calculate min surface distance between myself and some foreign agent */
 void ScalarImg::getDistance(const Geometry& otherGeometry,

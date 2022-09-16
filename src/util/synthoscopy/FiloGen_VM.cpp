@@ -37,10 +37,10 @@
 #include <i3d/transform.h>
 #include <i3d/filters.h>
 #include <i3d/convolution.h>
-#include "../rnd_generators.h"
-#include "../texture/texture.h"
-#include "../report.h"
-#include "FiloGen_VM.h"
+#include "../rnd_generators.hpp"
+#include "../texture/texture.hpp"
+#include "../report.hpp"
+#include "FiloGen_VM.hpp"
 
 ///------------------------------------------------------------------------
 namespace filogen

@@ -1,7 +1,7 @@
-#include "SceneryDisplayUnit.h"
-#include "../util/report.h"
+#include "SceneryDisplayUnit.hpp"
+#include "../util/report.hpp"
 #include <sstream>
-#include <zmq.hpp>
+//#include <zmq.hpp>
 
 void SceneryDisplayUnit::DrawPoint(const int ID,
                                    const Vector3d<float>& pos,
@@ -22,7 +22,7 @@ void SceneryDisplayUnit::DrawPoint(const int ID,
 	    << radius << " " << color;
 
 	std::string msgString(msg.str());
-	socket->send( zmq::const_buffer(msgString.c_str(),msgString.size()) );
+	//socket->send( zmq::const_buffer(msgString.c_str(),msgString.size()) );
 }
 
 
@@ -48,7 +48,7 @@ void SceneryDisplayUnit::DrawLine(const int ID,
 	    << color;
 
 	std::string msgString(msg.str());
-	socket->send( zmq::const_buffer(msgString.c_str(),msgString.size()) );
+	//socket->send( zmq::const_buffer(msgString.c_str(),msgString.size()) );
 }
 
 
@@ -77,7 +77,7 @@ void SceneryDisplayUnit::DrawVector(const int ID,
 	    << color;
 
 	std::string msgString(msg.str());
-	socket->send( zmq::const_buffer(msgString.c_str(),msgString.size()) );
+	//socket->send( zmq::const_buffer(msgString.c_str(),msgString.size()) );
 }
 
 
@@ -106,27 +106,30 @@ void SceneryDisplayUnit::DrawTriangle(const int ID,
 	    << color;
 
 	std::string msgString(msg.str());
-	socket->send( zmq::const_buffer(msgString.c_str(),msgString.size()) );
+	//socket->send( zmq::const_buffer(msgString.c_str(),msgString.size()) );
 }
 
 
 void SceneryDisplayUnit::Tick(const char* msg)
 {
 	std::string msgString = std::string("v1 tick ") + (msg != NULL ? msg : "");
-	socket->send( zmq::const_buffer(msgString.c_str(),msgString.size()) );
+	//socket->send( zmq::const_buffer(msgString.c_str(),msgString.size()) );
 }
 
 
 void SceneryDisplayUnit::ConnectToHost(void)
 {
+	/*
 	context  = new zmq::context_t(1);
 	socket   = new zmq::socket_t(*context, ZMQ_PAIR);
 	DEBUG_REPORT("Connecting Scenery DU to: " << (std::string("tcp://")+std::string(hostUrl)));
 	socket->connect(std::string("tcp://")+std::string(hostUrl));
+	*/
 }
 
 void SceneryDisplayUnit::DisconnectFromHost(void)
 {
+	/*
 	if (socket != NULL)
 	{
 		DEBUG_REPORT("Disconnecting Scenery DU from: " << (std::string("tcp://")+std::string(hostUrl)));
@@ -141,4 +144,5 @@ void SceneryDisplayUnit::DisconnectFromHost(void)
 		delete context;
 		context = NULL;
 	}
+	*/
 }

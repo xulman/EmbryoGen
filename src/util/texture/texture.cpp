@@ -32,11 +32,11 @@ Description: Manipulation with procedural texture (Perlin noise).
 #include <i3d/histogram.h>
 #include <i3d/transform.h>
 
-#include "../report.h"
-#include "../rnd_generators.h"
-#include "perlin.h"
-#include "texture.h"
-#include "myround.h"
+#include "../report.hpp"
+#include "../rnd_generators.hpp"
+#include "perlin.hpp"
+#include "texture.hpp"
+#include "myround.hpp"
 
 using namespace i3d;
 using namespace std;

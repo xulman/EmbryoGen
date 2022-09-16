@@ -34,9 +34,9 @@
 #include <i3d/morphology.h>
 #include <i3d/transform.h>
 
-#include "../report.h"
-#include "../rnd_generators.h"
-#include "finalpreview.h"
+#include "../report.hpp"
+#include "../rnd_generators.hpp"
+#include "finalpreview.hpp"
 
 namespace mitogen
 {

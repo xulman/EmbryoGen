@@ -1,7 +1,7 @@
 #include <string>
 #include <list>
-#include "strings.h"
-#include "../Geometries/Geometry.h"
+#include "strings.hpp"
+#include "../Geometries/Geometry.hpp"
 
 /** The buffer length into which any MPI-communicated string must be imprint, The original
     string is padded with zero-value characters if it is too short, or trimmed if too long. */

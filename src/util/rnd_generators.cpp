@@ -3,8 +3,8 @@
 #include <time.h>
 #include <unistd.h>
 
-#include "report.h"
-#include "rnd_generators.h"
+#include "report.hpp"
+#include "rnd_generators.hpp"
 
 /*
  * Based on Pierrre L'Ecuyer, http://www.iro.umontreal.ca/~lecuyer/,

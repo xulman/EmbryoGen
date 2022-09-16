@@ -1,7 +1,7 @@
-#include "../Scenarios/common/Scenarios.h"
-#include "../Scenarios/common/Scenario.h"
-#include "../FrontOfficer.h"
-#include "../util/report.h"
+#include "../Scenarios/common/Scenarios.hpp"
+#include "../Scenarios/common/Scenario.hpp"
+#include "../FrontOfficer.hpp"
+#include "../util/report.hpp"
 
 // ------------------- constants -------------------
 SceneControls& provideSceneControls_withOwnConstants()

@@ -19,11 +19,12 @@ libs/DEPLOY
 VIZU
 BUILD*
 bin*
+build*
 
 # Log file, some documentation material #
 *.log
 doc/Mito*
-src/git_hash.h
+src/git_hash.hpp
 
 # Apple #
 .DS_Store
@@ -34,3 +35,6 @@ src/git_hash.h
 # CLION
 .idea
 cmake-build-*
+
+# VSCode
+.vscode

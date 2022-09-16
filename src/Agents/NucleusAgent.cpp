@@ -1,5 +1,5 @@
-#include "../util/surfacesamplers.h"
-#include "NucleusAgent.h"
+#include "../util/surfacesamplers.hpp"
+#include "NucleusAgent.hpp"
 
 const ForceName ftype_s2s       = "sphere-sphere";     //internal forces
 const ForceName ftype_drive     = "desired movement";

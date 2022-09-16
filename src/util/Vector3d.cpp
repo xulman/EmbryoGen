@@ -1,4 +1,4 @@
-#include "Vector3d.h"
+#include "Vector3d.hpp"
 
 /** template specialization for Vector3d<int>::toPixels(any Vector3d<>),
     this specialization is avoiding std::floor() because this implicitly

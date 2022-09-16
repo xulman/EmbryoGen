@@ -1,7 +1,7 @@
-#include "../util/report.h"
-#include "../DisplayUnits/util/RenderingFunctions.h"
-#include "../util/surfacesamplers.h"
-#include "ShapeHinter.h"
+#include "../util/report.hpp"
+#include "../DisplayUnits/util/RenderingFunctions.hpp"
+#include "../util/surfacesamplers.hpp"
+#include "ShapeHinter.hpp"
 
 void ShapeHinter::drawForDebug(DisplayUnit& du)
 {

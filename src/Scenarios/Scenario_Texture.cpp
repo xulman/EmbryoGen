@@ -1,10 +1,10 @@
-#include "../DisplayUnits/SceneryBufferedDisplayUnit.h"
-#include "../util/Vector3d.h"
-#include "../Geometries/Spheres.h"
-#include "common/Scenarios.h"
-#include "../Agents/NucleusAgent.h"
-#include "../Agents/util/Texture.h"
-#include "../util/texture/texture.h"
+#include "../DisplayUnits/SceneryBufferedDisplayUnit.hpp"
+#include "../util/Vector3d.hpp"
+#include "../Geometries/Spheres.hpp"
+#include "common/Scenarios.hpp"
+#include "../Agents/NucleusAgent.hpp"
+#include "../Agents/util/Texture.hpp"
+#include "../util/texture/texture.hpp"
 
 class myTexturedNucleus: public NucleusAgent, Texture
 {

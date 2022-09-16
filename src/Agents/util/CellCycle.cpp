@@ -1,6 +1,6 @@
 #include <cmath>
-#include "../../util/rnd_generators.h"
-#include "CellCycle.h"
+#include "../../util/rnd_generators.hpp"
+#include "CellCycle.hpp"
 
 float CellCycle::RandomizeCellCycleDuration(const float refDuration, const float spreadFactor)
 {
