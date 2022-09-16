@@ -86,7 +86,80 @@ endif (FEATURE_RUNDISTRIBUTED)
 # TARGET COMPILATION - SOURCE FILES
 #-----------------------------------
 
-set(SOURCES
+#---PYTHON CMAKE INJECTION START---
+set(STD_MODULES )
+add_custom_target(std_modules
+    COMMAND ${CMAKE_COMMAND} -E echo "Building system libraries"
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+)
+
+foreach(module IN LISTS STD_MODULES)
+    add_custom_command(TARGET std_modules PRE_BUILD 
+        COMMAND ${CMAKE_COMMAND} -E echo "${module}"
+        COMMAND g++ -fmodules-ts -std=c++20 -c -x c++-system-header ${module}
+        )
+endforeach()
+
+set(SOURCES ${SOURCES} 
+src/Agents/Nucleus4SAgent.cpp
+src/Agents/NucleusAgent.cpp
+src/Agents/NucleusNSAgent.cpp
+src/Agents/ShapeHinter.cpp
+src/Agents/TrajectoriesHinter.cpp
+src/Agents/util/CellCycle.cpp
+src/Agents/util/Texture.cpp
+src/Agents/util/TextureFunctions.cpp
+src/Communication/DirectorMPI.cpp
+src/Communication/DirectorSMP.cpp
+src/Communication/DistributedCommunicator.cpp
+src/Communication/FrontOfficerMPI.cpp
+src/Communication/FrontOfficerSMP.cpp
+src/Director.cpp
+src/DisplayUnits/SceneryBufferedDisplayUnit.cpp
+src/DisplayUnits/SceneryDisplayUnit.cpp
+src/FrontOfficer.cpp
+src/Geometries/Geometry.cpp
+src/Geometries/Mesh.cpp
+src/Geometries/ScalarImg.cpp
+src/Geometries/Spheres.cpp
+src/Geometries/VectorImg.cpp
+src/main.cpp
+src/Scenarios/common/Scenario.cpp
+src/Scenarios/Scenario_AFewAgents.cpp
+src/Scenarios/Scenario_dragAndRotate.cpp
+src/Scenarios/Scenario_dragAndRotateWithTexture.cpp
+src/Scenarios/Scenario_DrosophilaRandom.cpp
+src/Scenarios/Scenario_DrosophilaRegular.cpp
+src/Scenarios/Scenario_modelledDivision.cpp
+src/Scenarios/Scenario_mpiDebug.cpp
+src/Scenarios/Scenario_parallel.cpp
+src/Scenarios/Scenario_pseudoDivision.cpp
+src/Scenarios/Scenario_Tetris.cpp
+src/Scenarios/Scenario_Texture.cpp
+src/Scenarios/Scenario_withCellCycle.cpp
+src/Scenarios/utilityScenario_doPhaseIIandIII.cpp
+src/Scenarios/utilityScenario_PerlinShowCase.cpp
+src/TrackRecord.cpp
+src/util/flowfields.cpp
+src/util/report.cpp
+src/util/rnd_generators.cpp
+src/util/strings.cpp
+src/util/synthoscopy/FiloGen_VM.cpp
+src/util/synthoscopy/finalpreview.cpp
+src/util/synthoscopy/SNR.cpp
+src/util/texture/myround.cpp
+src/util/texture/perlin.cpp
+src/util/texture/texture.cpp
+src/util/Vector3d.cpp
+)
+
+set(DEPS 
+std_modules
+)
+
+#---PYTHON CMAKE INJECTION END---
+
+set(SOURCES_OLD
 		src/util/Vector3d.cpp
 		src/util/strings.cpp
 		src/util/rnd_generators.cpp
@@ -120,6 +193,15 @@ set(SOURCES
 		src/FrontOfficer.cpp
 		src/main.cpp)
 
+
+set(SOURCE_TO_REMOVE 
+    src/Communication/DirectorMPI.cpp
+    src/Communication/FrontOfficerMPI.cpp
+    src/Communication/DirectorSMP.cpp
+    src/Communication/FrontOfficerSMP.cpp)
+
+list(REMOVE_ITEM SOURCES ${SOURCE_TO_REMOVE})
+
 if (FEATURE_RUNDISTRIBUTED)
 	set(D_FO_SOURCES
 		src/Communication/DirectorMPI.cpp
@@ -130,9 +212,8 @@ else (FEATURE_RUNDISTRIBUTED)
 		src/Communication/FrontOfficerSMP.cpp)
 endif (FEATURE_RUNDISTRIBUTED)
 
-file(GLOB SCENARIOSOURCES src/Scenarios/*.cpp)
-
-add_executable(embryogen ${SOURCES} ${D_FO_SOURCES} ${SCENARIOSOURCES})
+add_executable(embryogen ${SOURCES} ${D_FO_SOURCES})
+add_dependencies(embryogen ${DEPS})
 add_custom_target(commitHash ALL "../imprintGitHash.sh")
 set_target_properties(embryogen PROPERTIES CXX_STANDARD 20)
 #--------------------------------------------
