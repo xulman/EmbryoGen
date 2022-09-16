@@ -550,31 +550,31 @@ void Scenario_modelledDivision::initializeAgents(FrontOfficer* fo, int p, int) {
 	}
 	Spheres fakeGeom(1);
 	fo->startNewAgent(new GlobusManagingAgent(
-	    fo->getNextAvailAgentID(), fakeGeom, params.constants.initTime,
-	    params.constants.incrTime));
+	    fo->getNextAvailAgentID(), fakeGeom, params->constants.initTime,
+	    params->constants.incrTime));
 
 	static DivisionModels2S<divModel_noOfSamples, divModel_noOfSamples>
 	    divModel2S("../src/tests/data/divisionModelsForEmbryoGen.dat",
 	               divModel_deltaTimeBetweenSamples);
 
-	const Vector3d<float> gridStart(params.constants.sceneOffset.x + 10,
-	                                params.constants.sceneSize.y,
-	                                params.constants.sceneSize.z);
+	const Vector3d<float> gridStart(params->constants.sceneOffset.x + 10,
+	                                params->constants.sceneSize.y,
+	                                params->constants.sceneSize.z);
 	const Vector3d<float> gridStep(20, 0, 0);
 
 	Spheres twoS(2);
 	for (int i = 0; i < 1; ++i) {
 		fo->startNewAgent(new SimpleDividingAgent(
 		    fo->getNextAvailAgentID(), "nucleus", divModel2S, twoS,
-		    params.constants.initTime, params.constants.incrTime));
+		    params->constants.initTime, params->constants.incrTime));
 	}
 }
 
 void Scenario_modelledDivision::initializeScene() {
 	displays.registerDisplayUnit(
-	    []() { return new SceneryBufferedDisplayUnit("localhost:8765"); });
+	    []() { return std::make_unique<SceneryBufferedDisplayUnit>("localhost:8765"); });
 	displays.registerDisplayUnit([]() {
-		return new FlightRecorderDisplayUnit("/temp/FR_modelledDivision.txt");
+		return std::make_unique<FlightRecorderDisplayUnit>("/temp/FR_modelledDivision.txt");
 	});
 
 	// disks.enableImgMaskTIFFs();
@@ -585,9 +585,9 @@ void Scenario_modelledDivision::initializeScene() {
 	// displays.enableImgPhantomInImagingUnit("localFiji");
 }
 
-SceneControls& Scenario_modelledDivision::provideSceneControls() {
+std::unique_ptr<SceneControls> Scenario_modelledDivision::provideSceneControls() const {
 	// override the some defaults
-	SceneControls::Constants myConstants;
+	config::scenario::ControlConstants myConstants;
 	myConstants.stopTime = 10000.2f;
 	myConstants.imgRes.from(0.5f);
 	myConstants.sceneSize.from(300, 20, 20);
@@ -595,5 +595,5 @@ SceneControls& Scenario_modelledDivision::provideSceneControls() {
 
 	myConstants.expoTime = 3.f * myConstants.incrTime;
 
-	return *(new SceneControls(myConstants));
+	return std::make_unique<SceneControls>(myConstants);
 }

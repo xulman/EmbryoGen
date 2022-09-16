@@ -1,7 +1,8 @@
 #pragma once
 
+#include "../tools/structures/SmallVector.hpp"
 #include "DisplayUnit.hpp"
-#include <forward_list>
+#include <memory>
 
 /**
  * This class is essentially a repeater that repeats the drawing
@@ -55,15 +56,24 @@ class BroadcasterDisplayUnit : public DisplayUnit {
 			(*it)->Tick(msg);
 	}
 
-	/// variants with reference params
-	void RegisterUnit(DisplayUnit& ds) { displayUnits.push_front(&ds); }
-	void UnregisterUnit(DisplayUnit& ds) { displayUnits.remove(&ds); }
-
 	/// variants with pointer params
-	void RegisterUnit(DisplayUnit* ds) { displayUnits.push_front(ds); }
-	void UnregisterUnit(DisplayUnit* ds) { displayUnits.remove(ds); }
+	void RegisterUnit(std::shared_ptr<DisplayUnit> ds) {
+		displayUnits.push_back(std::move(ds));
+	}
+
+	void UnregisterUnit(std::shared_ptr<DisplayUnit> ds)
+	{
+		UnregisterUnit(ds.get());
+	}
+
+	void UnregisterUnit(DisplayUnit* ds) {
+		for (std::size_t i = 0; i < displayUnits.size(); ++i) {
+			if (displayUnits[i].get() == ds)
+				displayUnits.erase_at(i);
+		}
+	}
 
   private:
 	/** local list of who/where to send the drawing requests */
-	std::forward_list<DisplayUnit*> displayUnits;
+	tools::structures::SmallVector5<std::shared_ptr<DisplayUnit>> displayUnits;
 };

@@ -2,7 +2,9 @@
 
 #include "Scenario.hpp"
 #include <list>
+#include <set>
 #include <vector>
+#include <string>
 
 // instead of the #include statement, the FrontOfficer type is only declared to
 // exists, FrontOfficer's definition depends on Scenario and so we'd end up in a
@@ -19,10 +21,12 @@ class FrontOfficer;
 	class c : public Scenario {                                                \
 	  public:                                                                  \
 		c() : Scenario(provideSceneControls(this)){};                          \
-		SceneControls& provideSceneControls(Scenario* ctx) {                   \
-			return provideSceneControls().setCtx(ctx);                         \
+		std::unique_ptr<SceneControls> provideSceneControls(Scenario* ctx) {   \
+			auto controls = provideSceneControls();                            \
+			controls->setCtx(ctx);                                             \
+			return controls;                                                   \
 		}                                                                      \
-		SceneControls& provideSceneControls();                                 \
+		std::unique_ptr<SceneControls> provideSceneControls() const;           \
 		void initializeScene() override;                                       \
 		void initializeAgents(FrontOfficer*, int, int) override;               \
 	};
@@ -37,26 +41,17 @@ class FrontOfficer;
 	class c : public Scenario {                                                \
 	  public:                                                                  \
 		c() : Scenario(provideSceneControls(this)){};                          \
-		SceneControls& provideSceneControls(Scenario* ctx) {                   \
-			return provideSceneControls().setCtx(ctx);                         \
+		std::unique_ptr<SceneControls> provideSceneControls(Scenario* ctx) {   \
+			auto controls = provideSceneControls();                            \
+			controls->setCtx(ctx);                                             \
+			return controls;                                                   \
 		}                                                                      \
-		SceneControls& provideSceneControls();                                 \
+		std::unique_ptr<SceneControls> provideSceneControls() const;           \
 		void initializeScene() override;                                       \
 		void initializeAgents(FrontOfficer*, int, int) override;               \
 		void initializePhaseIIandIII(void) override;                           \
 		void doPhaseIIandIII(void) override;                                   \
 	};
-
-/** a boilerplate code to handle pairing of scenarios with their
-    command line names, and to instantiate the appropriate scenario */
-#define SCENARIO_MATCHING(n, c)                                                \
-	availableScenarios.emplace_back(n);                                        \
-	if (argc > 1 && scenario == NULL &&                                        \
-	    availableScenarios.back().find(argv[1]) != std::string::npos) {        \
-		report::message(fmt::format("Going to use the scenario: {}",           \
-		                            availableScenarios.back()));               \
-		scenario = new c();                                                    \
-	}
 
 //                                          regular class name
 SCENARIO_DECLARATION_withDefOptSynthoscopy(Scenario_AFewAgents);
@@ -75,17 +70,32 @@ SCENARIO_DECLARATION_withDefOptSynthoscopy(Scenario_mpiDebug);
 SCENARIO_DECLARATION_withDefOptSynthoscopy(Scenario_Tetris);
 //  ---> ADD NEW SCENARIO HERE AND ALSO BELOW <---
 
+/** a boilerplate code to handle pairing of scenarios with their
+    command line names, and to instantiate the appropriate scenario */
+#define SCENARIO_MATCHING(n, c)                                                \
+	availableScenarios.insert(n);                                              \
+	if (!scenario && n == name) {                                              \
+		report::debugMessage(                                                  \
+		    fmt::format("Creating instance of scenario: {}", name));           \
+		scenario = std::make_unique<c>();                                      \
+	}
+
 class Scenarios {
   private:
 	/** list of system-recognized scenarios, actually simulations */
-	std::vector<std::string> availableScenarios;
+	std::set<std::string> availableScenarios;
 
 	/** the scenario/simulation that is going to be used */
-	Scenario* scenario = NULL;
+	std::string scenario_name;
+	
+	int scenario_argc;
+	const char ** scenario_argv;
+	std::vector<std::unique_ptr<Scenario>> scenario_instances;
 
-  public:
-	/** find the right scenario to initialize the simulation with */
-	Scenarios(int argc, char** argv) {
+	/** get new copy of scenario */
+	std::unique_ptr<Scenario> getNewScenario(const std::string& name) {
+		std::unique_ptr<Scenario> scenario;
+
 		//                  nickname            regular class name
 		SCENARIO_MATCHING("aFewAgents", Scenario_AFewAgents)
 		SCENARIO_MATCHING("regularDrosophila", Scenario_DrosophilaRegular)
@@ -104,30 +114,56 @@ class Scenarios {
 		//  ---> ADD NEW SCENARIO HERE (and add definition *cpp file, re-run
 		//  cmake!) <---
 
-		if (scenario == NULL) {
-			if (argc == 1) {
-				report::message(
+		return scenario;
+	}
+
+	void printAvailableScenarios() const
+	{
+		report::message("Currently known scenarios are: ", {false});
+		for (const std::string& scenario_name : availableScenarios)
+				report::message(scenario_name, {false});
+			report::debugMessage("", {false});
+	}
+
+  public:
+	/** find the right scenario to initialize the simulation with */
+	Scenarios(int argc,const char** argv) {
+		/** load available scenarios **/
+		getNewScenario(std::string());
+
+		if (argc == 1)
+		{
+			report::message(
 				    fmt::format("Please run again and choose some of the "
 				                "available scenarios, e.g. as"));
-				report::message(fmt::format("{} regularDrosophila", argv[0]));
-			} else
+			report::message(fmt::format("{} regularDrosophila", argv[0]));
+			printAvailableScenarios();
+		}
+		else
+		{
+			scenario_name = argv[1];
+			if(!getNewScenario(scenario_name))
+			{
 				report::message(
 				    fmt::format("Couldn't match command-line scenario '{}' to "
 				                "any known scenario.",
-				                argv[1]));
+				                scenario_name));
+				printAvailableScenarios();
+				throw report::rtError("Unmatched scenario.");
+			}
 
-			std::cout << "Currently known scenarios are: ";
-			for (auto rs : availableScenarios)
-				std::cout << rs << ", ";
-			std::cout << "\n";
-
-			throw report::rtError("Unmatched scenario.");
-		}
-
+		}	
 		// pass the CLI params inside, to be
 		// possibly considered by Scenario::initialize...() methods
-		scenario->setArgs(argc, argv);
-	}
+		scenario_argc = argc;
+		scenario_argv = argv;
+		// ->setArgs(argc, argv);
+		}
 
-	Scenario& getScenario(void) { return *scenario; }
+	Scenario& getScenario(void) {
+		scenario_instances.emplace_back(getNewScenario(scenario_name));
+		Scenario& new_scenario = *scenario_instances.back();
+		new_scenario.setArgs(scenario_argc, scenario_argv);
+		return new_scenario; 
+	}
 };

@@ -33,7 +33,7 @@ void inline PossiblyReSeed(rndGeneratorHandle& rngHandle) {
 		// this is a bit dangerous in general to hide this test inside here,
 		// but if world around is consistent... we are saving one 'if-test' per
 		// call
-		if (rngHandle.rngState == NULL)
+		if (!rngHandle.rngState)
 			rngHandle.rngState = gsl_rng_alloc(gsl_rng_default);
 
 		const unsigned long s =

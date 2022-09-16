@@ -3,14 +3,14 @@
 #include <mpi.h>
 #endif
 
-SceneControls& Scenario_mpiDebug::provideSceneControls() {
+std::unique_ptr<SceneControls> Scenario_mpiDebug::provideSceneControls() const {
 	// does 3 iterations (but w/o agents)
-	SceneControls::Constants myConstants;
+	config::scenario::ControlConstants myConstants;
 	myConstants.stopTime = myConstants.initTime + 3 * myConstants.incrTime;
 
 	class mySceneControl : public SceneControls {
 	  public:
-		mySceneControl(Constants& c) : SceneControls(c) {}
+		mySceneControl(config::scenario::ControlConstants& c) : SceneControls(c) {}
 
 		void updateControls(const float currTime) override {
 			// execute the following own code after every iteration
@@ -22,13 +22,12 @@ SceneControls& Scenario_mpiDebug::provideSceneControls() {
 		}
 	};
 
-	mySceneControl* ctrl = new mySceneControl(myConstants);
-	return *ctrl;
+	return std::make_unique<mySceneControl>(myConstants);
 }
 
 void Scenario_mpiDebug::initializeScene() {
 	report::debugMessage(fmt::format("disabling wait for key"));
-	params.disableWaitForUserPrompt();
+	params->disableWaitForUserPrompt();
 }
 
 void Scenario_mpiDebug::initializeAgents(FrontOfficer*, int p, int P) {

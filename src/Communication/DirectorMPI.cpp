@@ -3,6 +3,7 @@
 #include "DistributedCommunicator.hpp"
 #include <chrono>
 #include <thread>
+#include <cassert>
 
 void Director::respond_getNextAvailAgentID() {
 	communicator->sendNextID(getNextAvailAgentID());
@@ -216,7 +217,7 @@ void Director::request_renderNextFrame(const int FOsID) {
 }
 
 void Director::waitFor_renderNextFrame(const int FOsID) {
-	SceneControls& sc = scenario.params;
+	SceneControls& sc = *scenario.params;
 	size_t maskPixelLength = 0;
 	int maskZSize = 0;
 	int maskXYSize = 0;

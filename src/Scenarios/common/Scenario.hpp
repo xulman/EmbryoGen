@@ -4,10 +4,12 @@
 #include <set>
 //#include <TransferImage.h>
 #include "../../DisplayUnits/BroadcasterDisplayUnit.hpp"
+#include "../../config.hpp"
 #include "../../util/Vector3d.hpp"
 #include "../../util/report.hpp"
 #include <i3d/image3d.h>
 #include <type_traits>
+#include <memory>
 
 // instead of the #include statement, the FrontOfficer type is only declared to
 // exists, FrontOfficer's definition depends on Scenario and so we'd end up in a
@@ -41,9 +43,6 @@ class SceneControls {
 	friend class Director;
 
   public:
-	// a subset of controls that are treated immutable, and are defined below...
-	class Constants;
-
 	/** the very default c'tor */
 	SceneControls() {
 		// sets up all images but does not allocate them
@@ -55,13 +54,15 @@ class SceneControls {
 	   something own, it achieves so by making a private const copy of the input
 	   Constants (which makes it immune to any possible later changes in the
 	   given input Constants) */
-	SceneControls(Constants& callersOwnConstants)
+	SceneControls(const config::scenario::ControlConstants& callersOwnConstants)
 	    : constants(callersOwnConstants) // makes own copy!
 	{
 		// sets up all images but does not allocate them
 		setOutputImgSpecs(constants.sceneOffset, constants.sceneSize,
 		                  constants.imgRes);
 	}
+
+	virtual ~SceneControls() = default;
 
 	/** the callback method that is regularly executed by the
 	    Direktor and all FOs after every full simulation round is over */
@@ -70,63 +71,9 @@ class SceneControls {
 		                     {false});
 	}
 
-	/** a subset of controls that are treated immutable in the scenario,
-	    it comes with own default values that are, however,
-	    changeable here alone but not when this is part of the scenario */
-	class Constants {
-	  public:
-		// CTC drosophila:
-		// x,y,z res = 2.46306,2.46306,0.492369 px/um
-		// embryo along x-axis
-		// bbox size around the embryo: 480,220,220 um
-		// bbox size around the embryo: 1180,540,110 px
-
-		Constants()
-		    : sceneOffset(0.f), sceneSize(480.f, 220.f, 220.f),
-		      imgRes(2.0f, 2.0f, 2.0f) {}
-
-		/** set up the reference sandbox: offset of the scene [micrometer] */
-		Vector3d<float> sceneOffset;
-		/** set up the reference sandbox: size of the scene [micrometer] */
-		Vector3d<float> sceneSize;
-
-		/** resolution of the output images [pixels per micrometer] */
-		Vector3d<float> imgRes;
-
-		/** initial global simulation time, [min] */
-		float initTime = 0.0f;
-
-		/** increment of the current global simulation time, [min]
-		     represents the time step of one simulation step */
-		float incrTime = 0.1f;
-
-		/** at what global time should the simulation stop [min] */
-		float stopTime = 200.0f;
-
-		/** export simulation status always after this amount of global time,
-		   [min] should be multiple of incrTime to obtain regular sampling */
-		float expoTime = 0.5f;
-
-		/** output filename pattern in the printf() notation
-		    that includes exactly one '%u' parameter: instance masks */
-		const char* imgMask_filenameTemplate = "mask%03u.tif";
-
-		/** output filename pattern in the printf() notation
-		    that includes exactly one '%u' parameter: texture phantom images */
-		const char* imgPhantom_filenameTemplate = "phantom%03u.tif";
-
-		/** output filename pattern in the printf() notation
-		    that includes exactly one '%u' parameter: optical indices images */
-		const char* imgOptics_filenameTemplate = "optics%03u.tif";
-
-		/** output filename pattern in the printf() notation
-		    that includes exactly one '%u' parameter: final output images */
-		const char* imgFinal_filenameTemplate = "finalPreview%03u.tif";
-	};
-
 	/** a subset of truly (that is, syntactically enforced) constant scene
 	 * parameters */
-	const Constants constants;
+	const config::scenario::ControlConstants constants;
 
 	/** output image into which the simulation will be iteratively
 	    rasterized/rendered: instance masks */
@@ -167,7 +114,7 @@ class SceneControls {
 			    fmt::format("Removing transfer channel \"{}\", it might hang "
 			                "here if the send buffers are not empty...",
 			                channelName));
-			// TODO remove this IF, when ->second is not void *
+							
 			delete existingChannel->second;
 
 			transferChannels.erase(existingChannel);
@@ -215,7 +162,7 @@ class SceneControls {
 	}
 
 	void imagesSaving_enableForImgMask() { enableProducingOutput(imgMask); };
-	bool imagesSaving_isEnabledForImgMask() {
+	bool imagesSaving_isEnabledForImgMask() const {
 		return isProducingOutput(imgMask);
 	};
 	void imagesSaving_disableForImgMask() { disableProducingOutput(imgMask); };
@@ -223,7 +170,7 @@ class SceneControls {
 	void imagesSaving_enableForImgPhantom() {
 		enableProducingOutput(imgPhantom);
 	};
-	bool imagesSaving_isEnabledForImgPhantom() {
+	bool imagesSaving_isEnabledForImgPhantom() const {
 		return isProducingOutput(imgPhantom);
 	};
 	void imagesSaving_disableForImgPhantom() {
@@ -233,7 +180,7 @@ class SceneControls {
 	void imagesSaving_enableForImgOptics() {
 		enableProducingOutput(imgOptics);
 	};
-	bool imagesSaving_isEnabledForImgOptics() {
+	bool imagesSaving_isEnabledForImgOptics() const {
 		return isProducingOutput(imgOptics);
 	};
 	void imagesSaving_disableForImgOptics() {
@@ -241,7 +188,7 @@ class SceneControls {
 	};
 
 	void imagesSaving_enableForImgFinal() { enableProducingOutput(imgFinal); };
-	bool imagesSaving_isEnabledForImgFinal() {
+	bool imagesSaving_isEnabledForImgFinal() const {
 		return isProducingOutput(imgFinal);
 	};
 	void imagesSaving_disableForImgFinal() {
@@ -442,8 +389,9 @@ extern SceneControls DefaultSceneControls;
 class Scenario {
   public:
 	/** the one and only must-provide-SceneControls-enforcer c'tor */
-	Scenario(SceneControls& params)
-	    : params(params), displays(*this, params), disks(*this, params) {}
+	Scenario(std::unique_ptr<SceneControls> _params)
+	    : params(std::move(_params)), displays(*this, *params), disks(*this, *params) {}
+
 
 	// to shortcut the Direktor's and FOs' access to this->params
 	friend class FrontOfficer;
@@ -454,27 +402,27 @@ class Scenario {
 	    (the source object is typically created in new scene's own
 	    provideSceneControls()) and whose updateControls() is
 	    regularly called in this->updateScene() */
-	SceneControls& params;
+	std::unique_ptr<SceneControls> params;
 
 	/** CLI params that might be considered by some of the initialize...()
 	 * methods */
 	int argc = 0;
 	/** CLI params that might be considered by some of the initialize...()
 	 * methods */
-	char** argv;
+	const char** argv;
 
   public:
 	/** explicit additional setter of the CLI params, which is not part
 	    of the c'tor in order to keep it simple for the scenarios and
 	    which is always called right after this object is constructed */
-	void setArgs(int argc, char** argv) {
+	void setArgs(int argc,const char** argv) {
 		this->argc = argc;
 		this->argv = argv;
 	}
 
 	/** provides (to the outside world) only a read-only look into
 	    the current state of this scenario's controls */
-	const SceneControls& seeCurrentControls() const { return params; }
+	const SceneControls& seeCurrentControls() const { return *params; }
 
 	/** A callback to ask this scenario to set up itself, except for
 	   instantiating its agents (that shall happen inside initializeAgents()).
@@ -501,7 +449,7 @@ class Scenario {
 			report::debugMessage(fmt::format("by FO #{}: ", contextID),
 			                     {true, false});
 		}
-		params.updateControls(currTime);
+		params->updateControls(currTime);
 	}
 
 	/** A callback to ask this scenario to set up its digital phantom to final
@@ -556,7 +504,7 @@ class Scenario {
 		report::message(
 		    fmt::format("Not distributed: Down-sizing local images because "
 		                "they are (normally) not used from FO."));
-		params.setOutputImgSpecs(params.constants.sceneOffset,
+		params->setOutputImgSpecs(params->constants.sceneOffset,
 		                         Vector3d<float>(0.000001f));
 #endif
 	}
@@ -594,18 +542,19 @@ class Scenario {
 		   FrontOfficer(s) but the object should not be registered and created!
 		   for the Direktor... */
 		DisplayUnit* registerDisplayUnit(
-		    const std::function<DisplayUnit*(void)>& unitFactory) {
+		    std::function<std::shared_ptr<DisplayUnit>(void)> unitFactory) {
 			if (ctx.amIinFOContext()) {
-				DisplayUnit* ds = unitFactory();
-				params.displayUnit.RegisterUnit(ds);
-				return ds;
+				std::shared_ptr<DisplayUnit> ds = unitFactory();
+				auto ptr = ds.get();
+				params.displayUnit.RegisterUnit(std::move(ds));
+				return ptr;
 			} else
-				return NULL;
+				return nullptr;
 		}
 
 		/** registers already existing DisplayUnit;
 		    don't use from Scenario::initializeScene() */
-		void registerDisplayUnit(DisplayUnit* ds) {
+		void registerDisplayUnit(std::shared_ptr<DisplayUnit> ds) {
 			if (ctx.amIinFOContext())
 				params.displayUnit.RegisterUnit(ds);
 		}
@@ -663,12 +612,13 @@ class Scenario {
 			if (ctx.amIinDirektorContext())
 				params.displayChannel_disableForImgFinal(unitNickName);
 		}
-	} displays;
+	};
+	Displays displays;
 
 	struct Disks {
 		Disks(Scenario& thisScenario, SceneControls& thisSceneControls)
 		    : ctx(thisScenario), params(thisSceneControls) {}
-		Scenario& ctx;
+		const Scenario& ctx;
 		SceneControls& params;
 
 		//----- image storing channels -----
@@ -694,7 +644,8 @@ class Scenario {
 		void disableImgFinalTIFFs() {
 			params.imagesSaving_disableForImgFinal();
 		}
-	} disks;
+	};
+	Disks disks;
 
 #ifdef ENABLE_FILOGEN_PHASEIIandIII
   private:

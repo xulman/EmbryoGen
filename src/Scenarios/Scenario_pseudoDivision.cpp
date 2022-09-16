@@ -1,6 +1,7 @@
 #include "../Agents/NucleusAgent.hpp"
 #include "../DisplayUnits/SceneryBufferedDisplayUnit.hpp"
 #include "../Geometries/Spheres.hpp"
+#include "../config.hpp"
 #include "../util/Vector3d.hpp"
 #include "common/Scenarios.hpp"
 #include <fmt/core.h>
@@ -71,14 +72,14 @@ void Scenario_pseudoDivision::initializeAgents(FrontOfficer* fo, int p, int) {
 		Vector3d<float> pos((float)i * 1.0f, 0, 50);
 
 		// position is shifted to the scene centre
-		pos.x += params.constants.sceneSize.x / 2.0f;
-		pos.y += params.constants.sceneSize.y / 2.0f;
-		pos.z += params.constants.sceneSize.z / 2.0f;
+		pos.x += params->constants.sceneSize.x / 2.0f;
+		pos.y += params->constants.sceneSize.y / 2.0f;
+		pos.z += params->constants.sceneSize.z / 2.0f;
 
 		// position is shifted due to scene offset
-		pos.x += params.constants.sceneOffset.x;
-		pos.y += params.constants.sceneOffset.y;
-		pos.z += params.constants.sceneOffset.z;
+		pos.x += params->constants.sceneOffset.x;
+		pos.y += params->constants.sceneOffset.y;
+		pos.z += params->constants.sceneOffset.z;
 
 		Spheres s(2);
 		s.updateCentre(0, pos);
@@ -87,8 +88,8 @@ void Scenario_pseudoDivision::initializeAgents(FrontOfficer* fo, int p, int) {
 		s.updateRadius(1, 10.0f);
 
 		myNucleusB* ag =
-		    new myNucleusB(ID++, "nucleus", s, params.constants.initTime,
-		                   params.constants.incrTime);
+		    new myNucleusB(ID++, "nucleus", s, params->constants.initTime,
+		                   params->constants.incrTime);
 		ag->setDetailedDrawingMode(true);
 		fo->startNewAgent(ag);
 	}
@@ -96,12 +97,12 @@ void Scenario_pseudoDivision::initializeAgents(FrontOfficer* fo, int p, int) {
 
 void Scenario_pseudoDivision::initializeScene() {
 	displays.registerDisplayUnit(
-	    []() { return new SceneryBufferedDisplayUnit("localhost:8765"); });
+	    []() { return std::make_unique<SceneryBufferedDisplayUnit>("localhost:8765"); });
 }
 
-SceneControls& Scenario_pseudoDivision::provideSceneControls() {
-	SceneControls::Constants myConstants;
+std::unique_ptr<SceneControls> Scenario_pseudoDivision::provideSceneControls() const {
+	config::scenario::ControlConstants myConstants;
 	myConstants.stopTime = 6.0f;
 
-	return *(new SceneControls(myConstants));
+	return std::make_unique<SceneControls>(myConstants);
 }

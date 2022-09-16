@@ -233,14 +233,14 @@ void Scenario_dragRotateAndTexture::initializeAgents(FrontOfficer* fo,
 		Vector3d<float> pos(0, radius * axis.y, radius * axis.z);
 
 		// position is shifted to the scene centre
-		pos.x += params.constants.sceneSize.x / 2.0f;
-		pos.y += params.constants.sceneSize.y / 2.0f;
-		pos.z += params.constants.sceneSize.z / 2.0f;
+		pos.x += params->constants.sceneSize.x / 2.0f;
+		pos.y += params->constants.sceneSize.y / 2.0f;
+		pos.z += params->constants.sceneSize.z / 2.0f;
 
 		// position is shifted due to scene offset
-		pos.x += params.constants.sceneOffset.x;
-		pos.y += params.constants.sceneOffset.y;
-		pos.z += params.constants.sceneOffset.z;
+		pos.x += params->constants.sceneOffset.x;
+		pos.y += params->constants.sceneOffset.y;
+		pos.z += params->constants.sceneOffset.z;
 
 		Spheres s(6);
 		// central axis
@@ -261,7 +261,7 @@ void Scenario_dragRotateAndTexture::initializeAgents(FrontOfficer* fo,
 
 		fo->startNewAgent(new myDragAndTextureNucleus_NStexture(
 		    fo->getNextAvailAgentID(), "nucleus travelling NS (3) texture", s,
-		    params.constants.initTime, params.constants.incrTime, 3));
+		    params->constants.initTime, params->constants.incrTime, 3));
 
 		const Vector3d<float> shiftVec(14, 0, 0);
 		for (std::size_t i = 0; i < s.getNoOfSpheres(); ++i)
@@ -269,20 +269,20 @@ void Scenario_dragRotateAndTexture::initializeAgents(FrontOfficer* fo,
 
 		fo->startNewAgent(new myDragAndTextureNucleus_NStexture(
 		    fo->getNextAvailAgentID(), "nucleus travelling NS texture", s,
-		    params.constants.initTime, params.constants.incrTime));
+		    params->constants.initTime, params->constants.incrTime));
 
 		for (std::size_t i = 0; i < s.getNoOfSpheres(); ++i)
 			s.updateCentre(int(i), s.getCentres()[i] + shiftVec);
 
 		fo->startNewAgent(new myDragAndTextureNucleus_2pNStexture(
 		    fo->getNextAvailAgentID(), "nucleus travelling 2pNS texture", s,
-		    params.constants.initTime, params.constants.incrTime));
+		    params->constants.initTime, params->constants.incrTime));
 	}
 }
 
 void Scenario_dragRotateAndTexture::initializeScene() {
 	// override the output images
-	params.setOutputImgSpecs(Vector3d<float>(220, 30, 30),
+	params->setOutputImgSpecs(Vector3d<float>(220, 30, 30),
 	                         Vector3d<float>(70, 160, 160));
 
 	disks.enableImgMaskTIFFs();
@@ -290,9 +290,9 @@ void Scenario_dragRotateAndTexture::initializeScene() {
 	disks.enableImgOpticsTIFFs();
 
 	displays.registerDisplayUnit(
-	    []() { return new SceneryBufferedDisplayUnit("localhost:8765"); });
+	    []() { return std::make_unique<SceneryBufferedDisplayUnit>("localhost:8765"); });
 	displays.registerDisplayUnit([]() {
-		return new FlightRecorderDisplayUnit(
+		return std::make_unique<FlightRecorderDisplayUnit>(
 		    "/temp/FR_dragRotateAndTexture.txt");
 	});
 
@@ -300,11 +300,11 @@ void Scenario_dragRotateAndTexture::initializeScene() {
 	// displays.enableImgPhantomInImagingUnit("localFiji");
 }
 
-SceneControls& Scenario_dragRotateAndTexture::provideSceneControls() {
-	SceneControls::Constants myConstants;
+std::unique_ptr<SceneControls> Scenario_dragRotateAndTexture::provideSceneControls() const {
+	config::scenario::ControlConstants myConstants;
 
 	// override the default stop time
 	myConstants.stopTime = 40.2f;
 
-	return *(new SceneControls(myConstants));
+	return std::make_unique<SceneControls>(myConstants);
 }

@@ -6,6 +6,7 @@
 #include "../Geometries/ScalarImg.hpp"
 #include "../Geometries/VectorImg.hpp"
 #include "../Geometries/util/SpheresFunctions.hpp"
+#include "../config.hpp"
 #include "../util/Vector3d.hpp"
 #include "../util/rnd_generators.hpp"
 #include "common/Scenarios.hpp"
@@ -20,6 +21,7 @@ class GrowableNucleusRand : public NucleusNSAgent {
 	    : NucleusNSAgent(_ID, _type, shape, _currTime, _incrTime),
 	      si(futureGeometry),
 	      presentationGeom(setupSpheresInterpolationAndReturnNoOfSpheres()) {}
+
 
 	float startGrowTime = 99999999.f;
 	float stopGrowTime = 99999999.f;
@@ -100,8 +102,8 @@ void Scenario_DrosophilaRandom::initializeAgents(FrontOfficer* fo, int p, int) {
 	// longer axis x
 	// symmetric/short axes y,z
 
-	const float Xside = (0.90f * params.constants.sceneSize.x) / 2.0f;
-	const float YZside = (0.75f * params.constants.sceneSize.y) / 2.0f;
+	const float Xside = (0.90f * params->constants.sceneSize.x) / 2.0f;
+	const float YZside = (0.75f * params->constants.sceneSize.y) / 2.0f;
 
 	// rnd shifter along axes
 	rndGeneratorHandle coordShifterRNG;
@@ -124,14 +126,14 @@ void Scenario_DrosophilaRandom::initializeAgents(FrontOfficer* fo, int p, int) {
 			Vector3d<float> pos(z, radius * axis.y, radius * axis.z);
 
 			// position is shifted to the scene centre
-			pos.x += params.constants.sceneSize.x / 2.0f;
-			pos.y += params.constants.sceneSize.y / 2.0f;
-			pos.z += params.constants.sceneSize.z / 2.0f;
+			pos.x += params->constants.sceneSize.x / 2.0f;
+			pos.y += params->constants.sceneSize.y / 2.0f;
+			pos.z += params->constants.sceneSize.z / 2.0f;
 
 			// position is shifted due to scene offset
-			pos.x += params.constants.sceneOffset.x;
-			pos.y += params.constants.sceneOffset.y;
-			pos.z += params.constants.sceneOffset.z;
+			pos.x += params->constants.sceneOffset.x;
+			pos.y += params->constants.sceneOffset.y;
+			pos.z += params->constants.sceneOffset.z;
 
 			// also random shift along the main axis
 			pos.x += GetRandomGauss(0.f, 0.3f * dx, coordShifterRNG);
@@ -147,8 +149,8 @@ void Scenario_DrosophilaRandom::initializeAgents(FrontOfficer* fo, int p, int) {
 			s.updateRadius(3, 3.0f);
 
 			GrowableNucleusRand* ag = new GrowableNucleusRand(
-			    ID++, "nucleus growable random", s, params.constants.initTime,
-			    params.constants.incrTime);
+			    ID++, "nucleus growable random", s, params->constants.initTime,
+			    params->constants.incrTime);
 			ag->startGrowTime = 10.0f;
 			fo->startNewAgent(ag);
 		}
@@ -163,15 +165,19 @@ void Scenario_DrosophilaRandom::initializeAgents(FrontOfficer* fo, int p, int) {
 
 	// finally, create the simulation agent to register this shape
 	ShapeHinter* ag = new ShapeHinter(
-	    ID++, "yolk", m, params.constants.initTime, params.constants.incrTime);
+	    ID++, "yolk", m, params->constants.initTime, params->constants.incrTime);
 	fo->startNewAgent(ag, false);
+
 }
 
 void Scenario_DrosophilaRandom::initializeScene() {
-	displays.registerDisplayUnit(
-	    []() { return new SceneryBufferedDisplayUnit("localhost:8765"); });
 	displays.registerDisplayUnit([]() {
-		return new FlightRecorderDisplayUnit("/temp/FR_randomDro.txt");
+		auto unit = std::make_unique<SceneryBufferedDisplayUnit>("localhost:8765");
+		unit->InitBuffers();
+		return unit;
+	});
+	displays.registerDisplayUnit([]() {
+		return std::make_unique<FlightRecorderDisplayUnit>("/temp/FR_randomDro.txt");
 	});
 
 	// disks.enableImgMaskTIFFs();
@@ -179,31 +185,34 @@ void Scenario_DrosophilaRandom::initializeScene() {
 
 class mySceneControls : public SceneControls {
   public:
-	mySceneControls(Constants& callersOwnConstants)
+	mySceneControls(config::scenario::ControlConstants& callersOwnConstants)
 	    : SceneControls(callersOwnConstants) {}
 
 	int doMasks = 0;
 
 	void updateControls(const float currTime) override {
 		if (currTime > 9.5 && doMasks == 0) {
-			report::message(fmt::format("enabling export of masks"), {false});
+			report::debugMessage(fmt::format("enabling export of masks"),
+			                     {false});
 			ctx().disks.enableImgMaskTIFFs();
 			doMasks = 1;
 		} else if (currTime > 11.1 && doMasks == 1) {
-			report::message(fmt::format("disabling export of masks"), {false});
+			report::debugMessage(fmt::format("disabling export of masks"),
+			                     {false});
 			ctx().disks.disableImgMaskTIFFs();
 			doMasks = 2;
 		} else
-			report::message(fmt::format("no change"), {false});
+			report::debugMessage(fmt::format("no change"), {false});
 	}
 };
 
-SceneControls& Scenario_DrosophilaRandom::provideSceneControls() {
-	SceneControls::Constants c;
+std::unique_ptr<SceneControls> Scenario_DrosophilaRandom::provideSceneControls() const 
+{
+	config::scenario::ControlConstants c;
 	c.stopTime = 12.0f;
-
-	auto mSC = new mySceneControls(c);
+	
+	auto mSC = std::make_unique<mySceneControls>(c);
 	mSC->disableWaitForUserPrompt();
 
-	return *mSC;
+	return mSC;
 }

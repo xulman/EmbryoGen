@@ -97,8 +97,9 @@ class ScalarImg : public Geometry {
 
 	// ------------- distances -------------
 	/** calculate min surface distance between myself and some foreign agent */
-	void getDistance(const Geometry& otherGeometry,
-	                 std::list<ProximityPair>& l) const override;
+	void getDistance(
+	    const Geometry& otherGeometry,
+	    tools::structures::SmallVector5<ProximityPair>& l) const override;
 
 	/** Specialized implementation of getDistance() for ScalarImg & Spheres
 	   geometries. Rasterizes the 'other' spheres into the 'local' ScalarImg and
@@ -117,21 +118,22 @@ class ScalarImg : public Geometry {
 	   calculating distance to a Sphere, the opposite "vector" is created and
 	   placed such that the tip of this "vector" points at Sphere's surface. In
 	   other words, the tip becomes the base and vice versa. */
-	void getDistanceToSpheres(const class Spheres* otherSpheres,
-	                          std::list<ProximityPair>& l) const;
+	void getDistanceToSpheres(
+	    const class Spheres* otherSpheres,
+	    tools::structures::SmallVector5<ProximityPair>& l) const;
 
 	/** Specialized implementation of getDistance() for ScalarImg-ScalarImg
 	 * geometries. */
 	/*
 	void getDistanceToScalarImg(const ScalarImg* otherScalarImg,
-	                            std::list<ProximityPair>& l) const;
+	tools::structures::SmallVector5<ProximityPair>& l) const;
 	*/
 
 	/** Specialized implementation of getDistance() for ScalarImg-VectorImg
 	 * geometries. */
 	/*
 	void getDistanceToVectorImg(const VectorImg* otherVectorImg,
-	                            std::list<ProximityPair>& l) const;
+	tools::structures::SmallVector5<ProximityPair>& l) const;
 	*/
 
 	// ------------- AABB -------------

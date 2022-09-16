@@ -2,26 +2,32 @@
 
 #include <gsl/gsl_rng.h>
 
-typedef struct rndGeneratorHandle_t {
+struct rndGeneratorHandle {
 	// constructor to create uninitialized yet valid handle
-	rndGeneratorHandle_t(void) {
+	rndGeneratorHandle(void) {
 		reseedPeriod = 1000000;
 
 		usageCnt = reseedPeriod; // will trigger seeding immediately
-		rngState = NULL;
+		rngState = nullptr;
 	}
 
 	// constructor to create uninitialized yet valid handle
-	rndGeneratorHandle_t(const int _reseedPeriod) {
+	rndGeneratorHandle(const int _reseedPeriod) {
 		reseedPeriod = _reseedPeriod;
 
 		usageCnt = reseedPeriod; // will trigger seeding immediately
-		rngState = NULL;
+		rngState = nullptr;
+	}
+
+	~rndGeneratorHandle()
+	{
+		if (rngState)
+			gsl_rng_free(rngState);
 	}
 
 	int reseedPeriod, usageCnt;
 	gsl_rng* rngState;
-} rndGeneratorHandle;
+};
 
 /**
  * Generates random numbers that tend to form in Gaussian distribution

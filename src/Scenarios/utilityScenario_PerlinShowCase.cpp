@@ -27,16 +27,16 @@ void Scenario_PerlinShowCase::initializeAgents(FrontOfficer*, int p, int) {
 	    "{} PerlinShowCase var alpha beta n    - produce given single sample",
 	    argv[0]));
 
-	params.imgPhantom.SetResolution(i3d::Resolution(xRes, yRes, zRes));
-	params.imgPhantom.MakeRoom((size_t)std::ceil(xSize * xRes),
+	params->imgPhantom.SetResolution(i3d::Resolution(xRes, yRes, zRes));
+	params->imgPhantom.MakeRoom((size_t)std::ceil(xSize * xRes),
 	                           (size_t)std::ceil(ySize * yRes),
 	                           (size_t)std::ceil(zSize * zRes));
 	if (argc == 3)
-		params.imgFinal.CopyMetaData(params.imgPhantom);
+		params->imgFinal.CopyMetaData(params->imgPhantom);
 
 	report::message(fmt::format(
-	    "Perlin image size: {} x {} x {} pixels", params.imgPhantom.GetSizeX(),
-	    params.imgPhantom.GetSizeY(), params.imgPhantom.GetSizeZ()));
+	    "Perlin image size: {} x {} x {} pixels", params->imgPhantom.GetSizeX(),
+	    params->imgPhantom.GetSizeY(), params->imgPhantom.GetSizeZ()));
 
 	char fn[1024];
 
@@ -47,24 +47,24 @@ void Scenario_PerlinShowCase::initializeAgents(FrontOfficer*, int p, int) {
 		double beta = std::stod(std::string(argv[4]));
 		int n = std::stoi(std::string(argv[5]));
 
-		DoPerlin3D(params.imgPhantom, var, alpha, beta, n);
+		DoPerlin3D(params->imgPhantom, var, alpha, beta, n);
 
 		sprintf(fn, "Perlin_%02.2f_%02.2f_%02.2f_%d.ics", var, alpha, beta, n);
 		report::message(fmt::format("Saving Perlin phantom image: {}", fn));
-		params.imgPhantom.SaveImage(fn);
+		params->imgPhantom.SaveImage(fn);
 	} else {
 		// iterate here (matrix of samples)
 		for (double var = 2.0; var <= 8.0; var += 2.0)
 			for (double alpha = 4.0; alpha <= 12.0; alpha += 4.0)
 				for (double beta = 2.0; beta <= 6.0; beta += 2.0)
 					for (int n = 4; n <= 8; n += 2) {
-						DoPerlin3D(params.imgPhantom, var, alpha, beta, n);
+						DoPerlin3D(params->imgPhantom, var, alpha, beta, n);
 
 						sprintf(fn, "Perlin_%02.2f_%02.2f_%02.2f_%d.ics", var,
 						        alpha, beta, n);
 						report::message(
 						    fmt::format("Saving Perlin phantom image: {}", fn));
-						params.imgPhantom.SaveImage(fn);
+						params->imgPhantom.SaveImage(fn);
 
 						if (argc == 3) {
 							doPhaseIIandIII();
@@ -74,23 +74,23 @@ void Scenario_PerlinShowCase::initializeAgents(FrontOfficer*, int p, int) {
 							        var, alpha, beta, n);
 							report::message(fmt::format(
 							    "Saving Perlin final image: {}", fn));
-							params.imgFinal.SaveImage(fn);
+							params->imgFinal.SaveImage(fn);
 						}
 					}
 	}
 
 	// needs to be called here because the initializeScene(), which would have
 	// been much more appropriate place for this, is called prior this method
-	params.imagesSaving_disableForImgPhantom();
-	params.imagesSaving_disableForImgFinal();
+	params->imagesSaving_disableForImgPhantom();
+	params->imagesSaving_disableForImgFinal();
 }
 
 void Scenario_PerlinShowCase::initializeScene() {
-	params.disableWaitForUserPrompt();
+	params->disableWaitForUserPrompt();
 }
 
-SceneControls& Scenario_PerlinShowCase::provideSceneControls() {
-	SceneControls::Constants myConstants;
+std::unique_ptr<SceneControls> Scenario_PerlinShowCase::provideSceneControls() const {
+	config::scenario::ControlConstants myConstants;
 	myConstants.stopTime = 0;
-	return *(new SceneControls(myConstants));
+	return std::make_unique<SceneControls>(myConstants);
 }

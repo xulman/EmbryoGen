@@ -187,7 +187,7 @@ void FrontOfficer::respond_setRenderingDebug() {
 }
 
 void FrontOfficer::broadcast_throwException(
-    const char* /* exceptionMessage */) {
+    const std::string& /* exceptionMessage */) {
 	// this never happens (as Direktor and FO live in the same try block)
 	// MPI world:
 

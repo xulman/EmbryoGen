@@ -243,9 +243,9 @@ ShadowAgent* FrontOfficer::request_ShadowAgentCopy(const int agentID,
 
 	int gotThisAgentID = (int)param_buff[0];
 	std::string gotThisAgentType =
-	    agentsTypesDictionary.translateIdToString((size_t)param_buff[2]);
+	    agentsTypesDictionary.translateIdToString((std::size_t)param_buff[2]);
 	Geometry* gotThisGeom =
-	    geometryCreateAndDeserializeFrom(param_buff[3], data_buff);
+	    geometryCreateAndDeserializeFrom(static_cast<Geometry::ListOfShapeForms>(param_buff[3]), data_buff);
 	free(data_buff);
 
 	return new ShadowAgent(*gotThisGeom, gotThisAgentID, gotThisAgentType);
@@ -403,7 +403,7 @@ void FrontOfficer::waitHereUntilEveryoneIsHereToo() // Will this work without
 }
 
 void FrontOfficer::waitFor_renderNextFrame(const int FOsID) {
-	SceneControls& sc = scenario.params;
+	SceneControls& sc = *scenario.params;
 	if (!(sc.imagesSaving_isEnabledForImgMask() ||
 	      sc.imagesSaving_isEnabledForImgPhantom() ||
 	      sc.imagesSaving_isEnabledForImgOptics())) {
@@ -468,7 +468,7 @@ void FrontOfficer::respond_setRenderingDebug() {
 
 void FrontOfficer::close_communication() { communicator->close(); }
 
-void FrontOfficer::broadcast_throwException(const char* exceptionMessage) {
+void FrontOfficer::broadcast_throwException(const std::string& exceptionMessage) {
 	// Exceptions are be sent to stdout/stderr via REPORT_EXCEPTION and once
 	// process dies the rest of MPI does as well
 	report::message(fmt::format("{}", exceptionMessage));

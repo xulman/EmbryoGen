@@ -5,8 +5,9 @@
 #include <i3d/DistanceTransform.h>
 
 /** calculate min surface distance between myself and some foreign agent */
-void ScalarImg::getDistance(const Geometry& otherGeometry,
-                            std::list<ProximityPair>& l) const {
+void ScalarImg::getDistance(
+    const Geometry& otherGeometry,
+    tools::structures::SmallVector5<ProximityPair>& l) const {
 	switch (otherGeometry.shapeForm) {
 	case ListOfShapeForms::Spheres:
 		getDistanceToSpheres((class Spheres*)&otherGeometry, l);
@@ -39,8 +40,9 @@ void ScalarImg::getDistance(const Geometry& otherGeometry,
 	}
 }
 
-void ScalarImg::getDistanceToSpheres(const class Spheres* otherSpheres,
-                                     std::list<ProximityPair>& l) const {
+void ScalarImg::getDistanceToSpheres(
+    const class Spheres* otherSpheres,
+    tools::structures::SmallVector5<ProximityPair>& l) const {
 	// da plan: determine bounding box within this ScalarImg where
 	// we can potentially see any piece of the foreign Spheres;
 	// sweep it and consider voxel centres; construct a thought
@@ -75,7 +77,8 @@ void ScalarImg::getDistanceToSpheres(const class Spheres* otherSpheres,
 	vecPXhd2.elemMult(vecPXhd2); // make it squared
 
 	// shortcuts to the otherGeometry's spheres
-	const std::vector<Vector3d<precision_t>>& centresO = otherSpheres->getCentres();
+	const std::vector<Vector3d<precision_t>>& centresO =
+	    otherSpheres->getCentres();
 	const std::vector<precision_t>& radiiO = otherSpheres->getRadii();
 	const std::size_t io = otherSpheres->getNoOfSpheres();
 

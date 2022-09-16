@@ -53,23 +53,23 @@ void Scenario::doPhaseIIandIII() {
 	//
 	// phase II
 	if (!imgPSFuserPath.empty()) {
-		filogen::PhaseII(params.imgPhantom, imgPSF);
+		filogen::PhaseII(params->imgPhantom, imgPSF);
 	} else {
 		const float xySigma = 0.6f; // can also be 0.9
 		const float zSigma = 1.8f;  // can also be 2.7
 		report::debugMessage(fmt::format(
 		    "fake PSF is used for PhaseII, with sigmas: {} x {} x {} pixels",
-		    xySigma * params.imgPhantom.GetResolution().GetX(),
-		    xySigma * params.imgPhantom.GetResolution().GetY(),
-		    zSigma * params.imgPhantom.GetResolution().GetZ()));
-		i3d::GaussIIR<float>(params.imgPhantom,
-		                     xySigma * params.imgPhantom.GetResolution().GetX(),
-		                     xySigma * params.imgPhantom.GetResolution().GetY(),
-		                     zSigma * params.imgPhantom.GetResolution().GetZ());
+		    xySigma * params->imgPhantom.GetResolution().GetX(),
+		    xySigma * params->imgPhantom.GetResolution().GetY(),
+		    zSigma * params->imgPhantom.GetResolution().GetZ()));
+		i3d::GaussIIR<float>(params->imgPhantom,
+		                     xySigma * params->imgPhantom.GetResolution().GetX(),
+		                     xySigma * params->imgPhantom.GetResolution().GetY(),
+		                     zSigma * params->imgPhantom.GetResolution().GetZ());
 	}
 	//
 	// phase III
-	filogen::PhaseIII(params.imgPhantom, params.imgFinal);
+	filogen::PhaseIII(params->imgPhantom, params->imgFinal);
 
 #else
 	report::message("WARNING: Empty function, no synthoscopy is going on.");
@@ -101,7 +101,7 @@ std::string("PlanarImg"); //IMPORTANT
         DAIS::StartSendingOneImage(imgParams,cnnParams,URL.c_str(),30);
 
         //set and send metadata
-        std::list<std::string> metaData;
+        std::vector<std::string> metaData;
         //IMPORTANT two lines: 'imagename' and 'some name with allowed
 whitespaces' metaData.push_back(std::string("imagename"));
         metaData.push_back(std::string("EmbryoGen's Image(s)"));

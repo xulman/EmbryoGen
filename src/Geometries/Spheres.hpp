@@ -38,8 +38,9 @@ class Spheres : public Geometry {
 
 	// ------------- distances -------------
 	/** calculate min surface distance between myself and some foreign agent */
-	void getDistance(const Geometry& otherGeometry,
-	                 std::list<ProximityPair>& l) const override;
+	void getDistance(
+	    const Geometry& otherGeometry,
+	    tools::structures::SmallVector5<ProximityPair>& l) const override;
 
 	/** Specialized implementation of getDistance() for Spheres-Spheres
 	   geometries. For every non-zero-radius 'local' sphere, there is an 'other'
@@ -50,8 +51,9 @@ class Spheres : public Geometry {
 	    'other' sphere in their ProximityPairs. This can happen, for example,
 	    when "T" configuration occurs or when large spheres-represented agent
 	    is nearby. The 'local' agent should take this into account. */
-	void getDistanceToSpheres(const Spheres* otherSpheres,
-	                          std::list<ProximityPair>& l) const;
+	void getDistanceToSpheres(
+	    const Spheres* otherSpheres,
+	    tools::structures::SmallVector5<ProximityPair>& l) const;
 
 	/** tests position of the point w.r.t. this geometry, which is
 	    the union of these spheres, and returns index of the first

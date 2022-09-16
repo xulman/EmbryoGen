@@ -204,7 +204,7 @@ class Geometry {
 	using precision_t = config::geometry::precision_t;
 	using point_t = details::geometry::point_t;
 
-  protected:
+ 
 	/** A variant of how the shape of an simulated agent is represented */
 	enum class ListOfShapeForms {
 		Spheres = 0,
@@ -214,6 +214,7 @@ class Geometry {
 		undefGeometry = 10
 	};
 
+ 	protected:
 	/** Construct empty geometry object of given shape form.
 	    This class should never be used constructed directly, always use some
 	    derived class such as Spheres, Mesh, ScalarImg or VectorImg. */
@@ -230,9 +231,10 @@ class Geometry {
 	/** Calculate and determine proximity and collision pairs, if any,
 	    between myself and some other agent. A (scaled) ForceVector<precision_t>
 	    can be easily constructed from the points of the ProximityPair.
-	    The discovered ProximityPairs are added to the current list l. */
-	virtual void getDistance(const Geometry& otherGeometry,
-	                         std::list<ProximityPair>& l) const = 0;
+	    The discovered ProximityPairs are added to the current vector l. */
+	virtual void
+	getDistance(const Geometry& otherGeometry,
+	            tools::structures::SmallVector5<ProximityPair>& l) const = 0;
 
 	/** Calculate and determine proximity and collision pairs, if any,
 	    between myself and some other agent. To facilitate construction
@@ -241,7 +243,7 @@ class Geometry {
 	    ProximityPair::callerHint only in the newly added ProximityPairs.
 	    The discovered ProximityPairs are added to the current list l. */
 	void getDistance(const Geometry& otherGeometry,
-	                 std::list<ProximityPair>& l,
+	                 tools::structures::SmallVector5<ProximityPair>& l,
 	                 void* const callerHint) const {
 		// call the original implementation (that is without callerHint)
 		getDistance(otherGeometry, l);
@@ -249,15 +251,6 @@ class Geometry {
 		// scan the newly added items and supply them with the callerHint
 		for (auto& item : l)
 			item.callerHint = callerHint;
-
-		/**
-		std::list<ProximityPair>::iterator ll = l.end();
-		while (itemsOnTheList < l.size()) {
-		    --ll;
-		    ll->callerHint = callerHint;
-		    ++itemsOnTheList;
-		}
-		**/
 	}
 
   protected:
@@ -267,10 +260,12 @@ class Geometry {
 	    case, the getDistance() is in a reversed/symmetric setting and the
 	    ProximityPairs are reversed afterwards (to make 'local' relevant to
 	    this object). */
-	void getSymmetricDistance(const Geometry& otherGeometry,
-	                          std::list<ProximityPair>& l) const {
+
+	void getSymmetricDistance(
+	    const Geometry& otherGeometry,
+	    tools::structures::SmallVector5<ProximityPair>& l) const {
 		// setup a new list for the symmetric case...
-		std::list<ProximityPair> nl;
+		tools::structures::SmallVector5<ProximityPair> nl;
 		otherGeometry.getDistance(*this, nl);
 
 		//...and reverse ProximityPairs afterwards
@@ -278,7 +273,8 @@ class Geometry {
 			p->swap();
 
 		//"return" the original list with the new one
-		l.splice(l.end(), nl);
+		for (ProximityPair& item : nl)
+			l.push_back(item);
 	}
 
   public:

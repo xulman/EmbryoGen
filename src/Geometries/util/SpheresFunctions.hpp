@@ -490,7 +490,7 @@ class SpheresFunctions {
 
 		/** essentially a multimap (permitting multiple values for the same key)
 		    that preserves the order in which items were added */
-		std::list<planItem_t> expansionPlan;
+		tools::structures::SmallVector5<planItem_t> expansionPlan;
 
 		int optimalTargetSpheresNo;
 

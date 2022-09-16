@@ -71,7 +71,7 @@ class ParallelNucleus : public AbstractAgent {
 	const float searchAroundDistance;
 
 	/// who has been found around
-	std::list<const ShadowAgent*> nearbyAgents;
+	std::deque<const ShadowAgent*> nearbyAgents;
 
 	/// internal affairs: flag that the agent should move
 	void advanceAndBuildIntForces(const float) {
@@ -182,8 +182,8 @@ class ParallelNucleus : public AbstractAgent {
 
 // ------------------ setting up the simulation scenario ------------------
 //
-SceneControls& Scenario_Parallel::provideSceneControls() {
-	SceneControls::Constants myConstants;
+std::unique_ptr<SceneControls> Scenario_Parallel::provideSceneControls() const {
+	config::scenario::ControlConstants myConstants;
 	//
 	// do 20 (internal) iterations and then stop
 	myConstants.stopTime = myConstants.initTime + 20 * myConstants.incrTime;
@@ -196,7 +196,7 @@ SceneControls& Scenario_Parallel::provideSceneControls() {
 
 	class mySceneControl : public SceneControls {
 	  public:
-		mySceneControl(Constants& c) : SceneControls(c) {
+		mySceneControl(config::scenario::ControlConstants& c) : SceneControls(c) {
 			// DisplayUnits handling: variant A
 			displayUnit.RegisterUnit(myDU);
 		}
@@ -217,10 +217,10 @@ SceneControls& Scenario_Parallel::provideSceneControls() {
 		}
 
 		// DisplayUnits handling: variant A
-		ConsoleDisplayUnit myDU;
+		std::shared_ptr<DisplayUnit> myDU = std::make_shared<ConsoleDisplayUnit>();
 	};
 
-	mySceneControl* ctrl = new mySceneControl(myConstants);
+	auto ctrl = std::make_unique<mySceneControl>(myConstants);
 
 	// DisplayUnits handling: variant B
 	//
@@ -235,7 +235,7 @@ SceneControls& Scenario_Parallel::provideSceneControls() {
 	// SceneryBufferedDisplayUnit("192.168.3.110:8765") );  //PC     @ Vlado's
 	// home
 
-	return *ctrl;
+	return ctrl;
 }
 
 void Scenario_Parallel::initializeScene() {
@@ -246,7 +246,7 @@ void Scenario_Parallel::initializeScene() {
 	const int howManyAlongY = argc > 3 ? atoi(argv[3]) : 4;
 
 	// setup the output images: that many pixels as many agents
-	params.setOutputImgSpecs(Vector3d<float>(0), // offset: um
+	params->setOutputImgSpecs(Vector3d<float>(0), // offset: um
 	                         Vector3d<float>((float)howManyAlongX,
 	                                         (float)howManyAlongY,
 	                                         1.f), // size: um = px
@@ -270,7 +270,7 @@ void Scenario_Parallel::initializeAgents(FrontOfficer* fo, int p, int P) {
 	report::message(fmt::format(
 	    "Parallel Scenario: going to connect to scenery/SimViewer at {}", url));
 	displays.registerDisplayUnit(
-	    []() { return new SceneryBufferedDisplayUnit(url); });
+	    []() { return std::make_unique<SceneryBufferedDisplayUnit>(url); });
 
 	report::message(
 	    fmt::format("Parallel Scenario p={} P={} initializing now...", p, P));
@@ -280,9 +280,9 @@ void Scenario_Parallel::initializeAgents(FrontOfficer* fo, int p, int P) {
 
 	// corner of the grid of agents such that centre of the grid coincides with
 	// scene's centre
-	Vector3d<float> simCorner(params.constants.sceneSize);
+	Vector3d<float> simCorner(params->constants.sceneSize);
 	simCorner /= 2.0f;
-	simCorner += params.constants.sceneOffset;
+	simCorner += params->constants.sceneOffset;
 	simCorner.x -= placementStepX * ((float)howManyAlongX - 1.f) / 2.f;
 	simCorner.y -= placementStepY * ((float)howManyAlongY - 1.f) / 2.f;
 
@@ -323,7 +323,7 @@ void Scenario_Parallel::initializeAgents(FrontOfficer* fo, int p, int P) {
 				sprintf(agentName, "nucleus %d @ %d,%d", ID, x, y);
 				ParallelNucleus* ag = new ParallelNucleus(
 				    ID, std::string(agentName), s, x, y,
-				    params.constants.initTime, params.constants.incrTime);
+				    params->constants.initTime, params->constants.incrTime);
 				fo->startNewAgent(ag);
 			}
 		}

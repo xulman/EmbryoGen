@@ -1,8 +1,9 @@
 #include "Spheres.hpp"
 #include "util/Serialization.hpp"
 
-void Spheres::getDistance(const Geometry& otherGeometry,
-                          std::list<ProximityPair>& l) const {
+void Spheres::getDistance(
+    const Geometry& otherGeometry,
+    tools::structures::SmallVector5<ProximityPair>& l) const {
 	switch (otherGeometry.shapeForm) {
 	case ListOfShapeForms::Spheres:
 		getDistanceToSpheres((Spheres*)&otherGeometry, l);
@@ -24,8 +25,9 @@ void Spheres::getDistance(const Geometry& otherGeometry,
 	}
 }
 
-void Spheres::getDistanceToSpheres(const Spheres* otherSpheres,
-                                   std::list<ProximityPair>& l) const {
+void Spheres::getDistanceToSpheres(
+    const Spheres* otherSpheres,
+    tools::structures::SmallVector5<ProximityPair>& l) const {
 	// shortcuts to the otherGeometry's spheres
 	const std::vector<Vector3d<precision_t>>& centresO =
 	    otherSpheres->getCentres();

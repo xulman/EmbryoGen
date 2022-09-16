@@ -66,8 +66,8 @@ void Scenario_DrosophilaRegular::initializeAgents(FrontOfficer* fo,
 	// longer axis x
 	// symmetric/short axes y,z
 
-	const float Xside = (0.90f * params.constants.sceneSize.x) / 2.0f;
-	const float YZside = (0.75f * params.constants.sceneSize.y) / 2.0f;
+	const float Xside = (0.90f * params->constants.sceneSize.x) / 2.0f;
+	const float YZside = (0.75f * params->constants.sceneSize.y) / 2.0f;
 
 	for (float z = -Xside; z <= +Xside; z += dx) {
 		// radius at this z position
@@ -83,14 +83,14 @@ void Scenario_DrosophilaRegular::initializeAgents(FrontOfficer* fo,
 			Vector3d<float> pos(z, radius * axis.y, radius * axis.z);
 
 			// position is shifted to the scene centre
-			pos.x += params.constants.sceneSize.x / 2.0f;
-			pos.y += params.constants.sceneSize.y / 2.0f;
-			pos.z += params.constants.sceneSize.z / 2.0f;
+			pos.x += params->constants.sceneSize.x / 2.0f;
+			pos.y += params->constants.sceneSize.y / 2.0f;
+			pos.z += params->constants.sceneSize.z / 2.0f;
 
 			// position is shifted due to scene offset
-			pos.x += params.constants.sceneOffset.x;
-			pos.y += params.constants.sceneOffset.y;
-			pos.z += params.constants.sceneOffset.z;
+			pos.x += params->constants.sceneOffset.x;
+			pos.y += params->constants.sceneOffset.y;
+			pos.z += params->constants.sceneOffset.z;
 
 			Spheres s(4);
 			s.updateCentre(0, pos);
@@ -103,8 +103,8 @@ void Scenario_DrosophilaRegular::initializeAgents(FrontOfficer* fo,
 			s.updateRadius(3, 3.0f);
 
 			GrowableNucleusReg* ag = new GrowableNucleusReg(
-			    ID++, "nucleus growable regular", s, params.constants.initTime,
-			    params.constants.incrTime);
+			    ID++, "nucleus growable regular", s, params->constants.initTime,
+			    params->constants.incrTime);
 			ag->startGrowTime = 1.0f;
 			fo->startNewAgent(ag);
 		}
@@ -118,13 +118,13 @@ void Scenario_DrosophilaRegular::initializeAgents(FrontOfficer* fo,
 
 	// finally, create the simulation agent to register this shape
 	ShapeHinter* ag = new ShapeHinter(
-	    ID++, "yolk", m, params.constants.initTime, params.constants.incrTime);
+	    ID++, "yolk", m, params->constants.initTime, params->constants.incrTime);
 	fo->startNewAgent(ag, false);
 
 	//-------------
 	TrajectoriesHinter* at = new TrajectoriesHinter(
 	    ID++, "trajectories", initShape, VectorImg::ChoosingPolicy::avgVec,
-	    params.constants.initTime, params.constants.incrTime);
+	    params->constants.initTime, params->constants.incrTime);
 	fo->startNewAgent(at, false);
 
 	// the trajectories hinter:
@@ -137,9 +137,9 @@ void Scenario_DrosophilaRegular::initializeAgents(FrontOfficer* fo,
 
 void Scenario_DrosophilaRegular::initializeScene() {
 	displays.registerDisplayUnit(
-	    []() { return new SceneryBufferedDisplayUnit("localhost:8765"); });
+	    []() { return std::make_unique<SceneryBufferedDisplayUnit>("localhost:8765"); });
 }
 
-SceneControls& Scenario_DrosophilaRegular::provideSceneControls() {
-	return DefaultSceneControls;
+std::unique_ptr<SceneControls> Scenario_DrosophilaRegular::provideSceneControls() const {
+	return std::make_unique<SceneControls>(DefaultSceneControls);
 }
