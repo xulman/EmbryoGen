@@ -10,6 +10,8 @@
  */
 class DisplayUnit {
   public:
+	virtual ~DisplayUnit() = default;
+	
 	/** Draws a point at 'pos', often as a sphere of 'radius'.
 	    'color' is an index to a color look up table that might
 	    exist at the drawing side. Every point may be recognized

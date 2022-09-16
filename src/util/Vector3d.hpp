@@ -53,6 +53,32 @@ class Vector3d {
 	/** copy constructor from i3d::Vector3d */
 	Vector3d(const i3d::Vector3d<T>& iv3d) { fromI3dVector3d(iv3d); }
 
+	T& operator[](std::size_t i) {
+		switch (i) {
+		case 0:
+			return x;
+		case 1:
+			return y;
+		case 2:
+			return z;
+		}
+		throw std::out_of_range(
+		    fmt::format("Index: {} is out of range\n", i).c_str());
+	}
+
+	T operator[](std::size_t i) const {
+		switch (i) {
+		case 0:
+			return x;
+		case 1:
+			return y;
+		case 2:
+			return z;
+		}
+		throw std::out_of_range(
+		    fmt::format("Index: {} is out of range\n", i).c_str());
+	}
+
 	template <typename U>
 	requires std::is_convertible_v<U, T> Vector3d<T>
 	&operator=(const U scal) {

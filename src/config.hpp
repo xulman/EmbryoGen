@@ -48,7 +48,7 @@ class ControlConstants {
 	float expoTime = 0.5f;
 
 	bool outputToTiff = true;
-	bool outputToDatastore = true;
+	bool outputToDatastore = false;
 
 	/** output filename pattern in the std::format notation
 	    that includes exactly one 'unsigned' parameter: instance masks */
@@ -69,6 +69,7 @@ class ControlConstants {
 	fmt::format_string<int&> imgFinal_filenameTemplate =
 	    "finalPreview{:03}.tif";
 
+	/** Datatore properties */
 	std::string ds_serverAddress = "127.0.0.1";
 	int ds_port = 9080;
 	std::string ds_datasetUUID = "6316f28a-a56d-4bcd-8ab9-b30b2abfdeba";
@@ -78,5 +79,9 @@ class ControlConstants {
 	int ds_finalChannel = 3;
 };
 } // namespace scenario
+
+/** GRPC properties */
+const std::string grpc_serverAddress = "127.0.0.1";
+constexpr int grpc_port = 50051;
 
 } // namespace config

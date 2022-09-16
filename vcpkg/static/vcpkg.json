@@ -22,7 +22,12 @@
             ]
         },
         "gsl",
-        "grpc",
+        {
+            "name": "grpc",
+            "features": [
+                "codegen"
+            ]
+        },
         "openmpi",
         "fmt",
         "poco"

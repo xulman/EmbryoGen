@@ -17,24 +17,24 @@ class BroadcasterDisplayUnit : public DisplayUnit {
 	               const Vector3d<float>& pos,
 	               const float radius = 1.0f,
 	               const int color = 0) override {
-		for (auto it = displayUnits.begin(); it != displayUnits.end(); ++it)
-			(*it)->DrawPoint(ID, pos, radius, color);
+		for (auto& du : displayUnits)
+			du->DrawPoint(ID, pos, radius, color);
 	}
 
 	void DrawLine(const int ID,
 	              const Vector3d<float>& posA,
 	              const Vector3d<float>& posB,
 	              const int color = 0) override {
-		for (auto it = displayUnits.begin(); it != displayUnits.end(); ++it)
-			(*it)->DrawLine(ID, posA, posB, color);
+		for (auto& du : displayUnits)
+			du->DrawLine(ID, posA, posB, color);
 	}
 
 	void DrawVector(const int ID,
 	                const Vector3d<float>& pos,
 	                const Vector3d<float>& vector,
 	                const int color = 0) override {
-		for (auto it = displayUnits.begin(); it != displayUnits.end(); ++it)
-			(*it)->DrawVector(ID, pos, vector, color);
+		for (auto& du : displayUnits)
+			du->DrawVector(ID, pos, vector, color);
 	}
 
 	void DrawTriangle(const int ID,
@@ -42,18 +42,18 @@ class BroadcasterDisplayUnit : public DisplayUnit {
 	                  const Vector3d<float>& posB,
 	                  const Vector3d<float>& posC,
 	                  const int color = 0) override {
-		for (auto it = displayUnits.begin(); it != displayUnits.end(); ++it)
-			(*it)->DrawTriangle(ID, posA, posB, posC, color);
+		for (auto& du : displayUnits)
+			du->DrawTriangle(ID, posA, posB, posC, color);
 	}
 
 	void Flush(void) override {
-		for (auto it = displayUnits.begin(); it != displayUnits.end(); ++it)
-			(*it)->Flush();
+		for (auto& du : displayUnits)
+			du->Flush();
 	}
 
 	void Tick(const std::string& msg) override {
-		for (auto it = displayUnits.begin(); it != displayUnits.end(); ++it)
-			(*it)->Tick(msg);
+		for (auto& du : displayUnits)
+			du->Tick(msg);
 	}
 
 	/// variants with pointer params
@@ -61,8 +61,7 @@ class BroadcasterDisplayUnit : public DisplayUnit {
 		displayUnits.push_back(std::move(ds));
 	}
 
-	void UnregisterUnit(std::shared_ptr<DisplayUnit> ds)
-	{
+	void UnregisterUnit(std::shared_ptr<DisplayUnit> ds) {
 		UnregisterUnit(ds.get());
 	}
 
