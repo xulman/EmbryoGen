@@ -9,17 +9,15 @@
 
 /** profiling aiders: starts stopwatch and returns "session handler",
     which is actually the current system time */
-inline const std::chrono::time_point<std::chrono::system_clock> tic(void) {
-	return (std::chrono::system_clock::now());
-}
+inline auto tic(void) { return (std::chrono::system_clock::now()); }
 
 /** profiling aiders: stops stopwatch and reports the elapsed time,
     requires some counter-part earlier time (e.g. the "session handler") */
 inline std::string
-toc(const std::chrono::time_point<std::chrono::system_clock>& ticTime) {
-	const std::chrono::duration<double>&& deltaT =
+toc(const std::chrono::time_point<std::chrono::system_clock> ticTime) {
+	std::chrono::duration<double> deltaT =
 	    std::chrono::system_clock::now() - ticTime;
-	return (std::to_string(deltaT.count()).append(" seconds"));
+	return std::to_string(deltaT.count()) + " seconds";
 }
 
 /** Translates everything stream-able to string */

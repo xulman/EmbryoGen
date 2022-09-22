@@ -6,9 +6,6 @@
 #include <i3d/basic.h>
 #include <iostream>
 
-
-#define REPORT_EXCEPTION(x) report::message(fmt::format("{}\n\n", x));
-
 int main(int argc, char** argv) {
 	report::message(
 	    fmt::format("This is EmbryoGen at commit rev {}.", gitCommitHash),

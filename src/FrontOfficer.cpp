@@ -15,16 +15,6 @@ void FrontOfficer::init1_SMP() {
 }
 
 void FrontOfficer::init2_SMP() {
-#ifdef DISTRIBUTED
-	// in the SMP case, this method will be called explicitly
-	// from the Direktor, and thus the run is synchronized here
-	prepareForUpdateAndPublishAgents();
-	waitHereUntilEveryoneIsHereToo();
-
-	updateAndPublishAgents();
-	waitHereUntilEveryoneIsHereToo();
-	postprocessAfterUpdateAndPublishAgents();
-#endif
 	reportSituation();
 	report::message(fmt::format("FO #{} initialized", ID));
 }
@@ -193,10 +183,8 @@ void FrontOfficer::executeInternals() {
 }
 
 void FrontOfficer::executeExternals() {
-#ifdef DISTRIBUTED
 #ifndef NDEBUG
 	reportAABBs();
-#endif
 #endif
 	// react (unwillingly) to the new geometries... (can run in parallel),
 	// the agents' (external at least!) geometries must not change during this
@@ -510,27 +498,17 @@ void FrontOfficer::renderNextFrame() {
 		// always check for their availability first:
 		if (sc.isProducingOutput(sc.imgPhantom) &&
 		    sc.isProducingOutput(sc.imgOptics)) {
-#ifdef DISTRIBUTED
-			ag.second->drawTexture(sc.imgPhantom, sc.imgOptics);
-#else
 			ag.second->drawTexture(Direktor->refOnDirektorsImgPhantom(),
 			                       Direktor->refOnDirektorsImgOptics());
-#endif
 		}
 		if (sc.isProducingOutput(sc.imgMask)) {
-#ifdef DISTRIBUTED
-			ag.second->drawMask(sc.imgMask);
-			if (renderingDebug)
-				ag.second->drawForDebug(
-				    sc.imgMask); // TODO, should go into its own separate image
-#else
+
 			ag.second->drawMask(Direktor->refOnDirektorsImgMask());
 			if (renderingDebug)
 				ag.second->drawForDebug(
 				    Direktor
 				        ->refOnDirektorsImgMask()); // TODO, should go into its
 				                                    // own separate image
-#endif
 		}
 	}
 	// note that this far the code was executed on all FOs, that means in

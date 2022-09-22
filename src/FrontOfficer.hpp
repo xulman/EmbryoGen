@@ -8,11 +8,6 @@
 #include <list>
 #include <map>
 
-#ifdef DISTRIBUTED
-#include <atomic>
-#include <thread>
-#endif
-
 class AbstractAgent;
 class ShadowAgent;
 class Director;
@@ -27,17 +22,10 @@ class FrontOfficer //: public Simulation
 	             const int myPortion,
 	             const int allPortions,
 	             DistributedCommunicator* dc = NULL)
-	    : scenario(s), communicator(dc),
-#ifdef DISTRIBUTED
-	      finished(false),
-#endif
-	      ID(myPortion), nextFOsID(nextFO), FOsCount(allPortions),
+	    : scenario(s), communicator(dc), ID(myPortion), nextFOsID(nextFO),
+	      FOsCount(allPortions),
 	      __agentTypeBuf(
 	          new char[StringsImprintSize]) // freed in FrontOfficer::close()
-#ifdef DISTRIBUTED
-	      ,
-	      responder([this] { respond_Loop(); })
-#endif
 	{
 		scenario.declareFOcontext(myPortion);
 		// TODO: create an extra thread to execute/service the respond_...()
@@ -47,9 +35,6 @@ class FrontOfficer //: public Simulation
   protected:
 	Scenario& scenario;
 	DistributedCommunicator* communicator;
-#ifdef DISTRIBUTED
-	std::atomic_bool finished;
-#endif
 
   public:
 	const int ID, nextFOsID, FOsCount;
@@ -91,11 +76,6 @@ class FrontOfficer //: public Simulation
 
 	/** attempts to clean up, if not done earlier */
 	~FrontOfficer(void) {
-#ifdef DISTRIBUTED
-		pthread_cancel(responder.native_handle());
-		responder.join();
-		close_communication();
-#endif
 		report::debugMessage(
 		    fmt::format("FrontOfficer #{} already closed? {}", ID,
 		                (isProperlyClosedFlag ? "yes" : "no")));
@@ -334,10 +314,6 @@ class FrontOfficer //: public Simulation
 
 	void respond_setRenderingDebug();
 
-#ifdef DISTRIBUTED
-	void close_communication();
-#endif
-
   public:
 	void broadcast_throwException(const std::string& exceptionMessage);
 
@@ -395,7 +371,6 @@ class FrontOfficer //: public Simulation
 		++overlapSubmissionsCounter;
 	}
 
-#ifndef DISTRIBUTED
 	Director* Direktor = NULL;
 
   public:
@@ -409,9 +384,4 @@ class FrontOfficer //: public Simulation
 	//(in the MPI world) called from our internal methods, typically
 	// from the respond_...() ones
 	friend class Director;
-#endif
-#ifdef DISTRIBUTED
-	std::thread responder;
-	void respond_Loop();
-#endif
 };

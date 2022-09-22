@@ -6,10 +6,6 @@
 #include <list>
 #include <utility>
 
-#ifdef DISTRIBUTED
-#include <thread>
-#endif
-
 class FrontOfficer;
 class DistributedCommunicator;
 
@@ -22,12 +18,8 @@ class Director {
 	         DistributedCommunicator* dc = NULL)
 	    : scenario(s), communicator(dc), firstFOsID(firstFO),
 	      FOsCount(allPortions),
-	      shallWaitForUserPromptFlag(scenario.params->shallWaitForUserPromptFlag)
-#ifdef DISTRIBUTED
-	      ,
-	      responder([this] { respond_Loop(); })
-#endif
-	{
+	      shallWaitForUserPromptFlag(
+	          scenario.params->shallWaitForUserPromptFlag) {
 		scenario.declareDirektorContext();
 		// TODO: create an extra thread to execute/service the respond_...()
 		// methods
@@ -74,11 +66,6 @@ class Director {
 
 	/** attempts to clean up, if not done earlier */
 	~Director(void) {
-#ifdef DISTRIBUTED
-		pthread_cancel(responder.native_handle());
-		responder.join();
-		close_communication();
-#endif
 		report::debugMessage(
 		    fmt::format("Direktor already closed? {}",
 		                (isProperlyClosedFlag ? "yes" : "no")));
@@ -244,17 +231,12 @@ class Director {
 
 	void broadcast_setRenderingDebug(const bool setFlagToThis);
 
-#ifdef DISTRIBUTED
-	void close_communication();
-#endif
-
   public:
 	void broadcast_throwException(const std::string& exceptionMessage);
 
   protected:
 	void respond_throwException();
 
-#ifndef DISTRIBUTED
 	FrontOfficer* FO = NULL;
 
   public:
@@ -277,9 +259,4 @@ class Director {
 			throw report::rtError("Provided FrontOfficer is actually NULL.");
 		FO = fo;
 	}
-#endif
-#ifdef DISTRIBUTED
-	std::thread responder;
-	void respond_Loop();
-#endif
 };

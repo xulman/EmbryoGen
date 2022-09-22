@@ -8,8 +8,8 @@
 #include "../../util/Vector3d.hpp"
 #include "../../util/report.hpp"
 #include <i3d/image3d.h>
-#include <type_traits>
 #include <memory>
+#include <type_traits>
 
 // instead of the #include statement, the FrontOfficer type is only declared to
 // exists, FrontOfficer's definition depends on Scenario and so we'd end up in a
@@ -114,7 +114,7 @@ class SceneControls {
 			    fmt::format("Removing transfer channel \"{}\", it might hang "
 			                "here if the send buffers are not empty...",
 			                channelName));
-							
+
 			delete existingChannel->second;
 
 			transferChannels.erase(existingChannel);
@@ -390,8 +390,8 @@ class Scenario {
   public:
 	/** the one and only must-provide-SceneControls-enforcer c'tor */
 	Scenario(std::unique_ptr<SceneControls> _params)
-	    : params(std::move(_params)), displays(*this, *params), disks(*this, *params) {}
-
+	    : params(std::move(_params)), displays(*this, *params),
+	      disks(*this, *params) {}
 
 	// to shortcut the Direktor's and FOs' access to this->params
 	friend class FrontOfficer;
@@ -415,7 +415,7 @@ class Scenario {
 	/** explicit additional setter of the CLI params, which is not part
 	    of the c'tor in order to keep it simple for the scenarios and
 	    which is always called right after this object is constructed */
-	void setArgs(int argc,const char** argv) {
+	void setArgs(int argc, const char** argv) {
 		this->argc = argc;
 		this->argv = argv;
 	}
@@ -500,23 +500,12 @@ class Scenario {
 	    to define the appropriate context of this particular scenario object */
 	void declareFOcontext(const int myPortion) {
 		contextID = myPortion;
-#ifndef DISTRIBUTED
-		report::message(
-		    fmt::format("Not distributed: Down-sizing local images because "
-		                "they are (normally) not used from FO."));
 		params->setOutputImgSpecs(params->constants.sceneOffset,
-		                         Vector3d<float>(0.000001f));
-#endif
+		                          Vector3d<float>(0.000001f));
 	}
 
 	/** Similar to Scenario::declareFOcontext() but for Direktor */
-	void declareDirektorContext() {
-		contextID = -1;
-#ifndef DISTRIBUTED
-		report::message(fmt::format("Not distributed: Keeping local images "
-		                            "because they are used directly from FO."));
-#endif
-	}
+	void declareDirektorContext() { contextID = -1; }
 
   protected:
 	bool amIinDirektorContext() { return contextID == -1; }

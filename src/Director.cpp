@@ -82,9 +82,7 @@ void Director::init3_SMP(void) {
 	//     as the very last operation of the entire init phase
 
 	// will block itself until the full rendering is complete
-#ifndef DISTRIBUTED
 	renderNextFrame();
-#endif
 }
 
 void Director::reportSituation() {
@@ -126,10 +124,8 @@ void Director::execute(void) {
 		willRenderNextFrameFlag =
 		    currTime + incrTime >= (float)frameCnt * expoTime;
 
-#ifndef DISTRIBUTED
 		FO->willRenderNextFrameFlag = this->willRenderNextFrameFlag;
 		FO->executeInternals();
-#endif
 		waitHereUntilEveryoneIsHereToo();
 
 		prepareForUpdateAndPublishAgents();
@@ -139,9 +135,8 @@ void Director::execute(void) {
 		waitHereUntilEveryoneIsHereToo();
 		postprocessAfterUpdateAndPublishAgents();
 
-#ifndef DISTRIBUTED
 		FO->executeExternals();
-#endif
+
 		waitHereUntilEveryoneIsHereToo();
 
 		prepareForUpdateAndPublishAgents();
@@ -152,15 +147,13 @@ void Director::execute(void) {
 		postprocessAfterUpdateAndPublishAgents();
 
 		// move to the next simulation time point
-#ifndef DISTRIBUTED
+
 		FO->executeEndSub1();
-#endif
+
 		currTime += incrTime;
-#ifdef DISTRIBUTED
-		reportSituation();
+
 #ifndef NDEBUG
 		reportAgentsAllocation();
-#endif
 #endif
 
 		// is this the right time to export data?
@@ -170,9 +163,8 @@ void Director::execute(void) {
 		}
 
 		// this was promised to happen after every simulation round is over
-#ifndef DISTRIBUTED
 		FO->executeEndSub2();
-#endif
+
 		scenario.updateScene(currTime);
 		waitHereUntilEveryoneIsHereToo();
 	}
@@ -182,9 +174,8 @@ void Director::prepareForUpdateAndPublishAgents() {
 	// empty because Direktor is not (yet) managing spatial info
 	// about all agents in the simulation
 
-#ifndef DISTRIBUTED
+
 	FO->prepareForUpdateAndPublishAgents();
-#endif
 }
 
 void Director::updateAndPublishAgents() {
@@ -222,32 +213,18 @@ void Director::updateAndPublishAgents() {
 	// that his broadcasting is over
 	waitFor_publishAgentsAABBs();
 
-#ifdef DISTRIBUTED
-	// now that we were assured that all FOs have broadcast their AABBs,
-	// but the messages sent by the last FO might still being processed
-	// by some FOs and so wait here a bit and then ask FO, one by one,
-	// to tell us how many AABBs it currently has
-	report::debugMessage(
-	    fmt::format("Waiting 1 second before checking all FOs..."));
-	std::this_thread::sleep_for((std::chrono::milliseconds)1000);
-#endif
-
 	// all FOs except myself (assuming i=0 addresses the Direktor)
-#ifndef DISTRIBUTED
 	for (int i = 1; i <= FOsCount; ++i) {
 		if (request_CntOfAABBs(i) != agents.size())
 			throw report::rtError(fmt::format(
 			    "FO #{} does not have a complete list of AABBs", i));
 	}
-#endif
 }
 
 void Director::postprocessAfterUpdateAndPublishAgents() {
 	// currently empty
 
-#ifndef DISTRIBUTED
 	FO->postprocessAfterUpdateAndPublishAgents();
-#endif
 }
 
 int Director::getNextAvailAgentID() { return ++lastUsedAgentID; }
