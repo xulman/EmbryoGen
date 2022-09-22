@@ -103,9 +103,7 @@ set(SOURCES
 		src/main.cpp)
 
 
-set(D_FO_SOURCES
-	src/Communication/DirectorSMP.cpp
-	src/Communication/FrontOfficerSMP.cpp)
+set(D_FO_SOURCES)
 
 file(GLOB SCENARIOSOURCES src/Scenarios/*.cpp)
 add_executable(embryogen ${SOURCES} ${D_FO_SOURCES} ${SCENARIOSOURCES})
