@@ -98,7 +98,6 @@ set(SOURCES
 		src/Agents/TrajectoriesHinter.cpp
 		src/Scenarios/common/Scenario.cpp
 		src/TrackRecord.cpp
-		src/Communication/DistributedCommunicator.cpp
 		src/Director.cpp
 		src/FrontOfficer.cpp
 		src/main.cpp)
