@@ -35,17 +35,12 @@ option(DEBUG_DIST_VERSION "Shall I display debug information for distributed com
 
 option(FEATURE_ENABLEPHOTOBLEACHING  "Shall texture particles be loosing their intensity in the phantom image?" OFF)
 option(FEATURE_USEFILOGENSYNTHOSCOPY "Shall synthoscopy code from FiloGen be used instead of the one from MitoGen?" ON)
-option(FEATURE_RUNDISTRIBUTED        "Shall the simulation use MPI (message passing interface) and run distributed?" OFF)
-option(FEATURE_USEOpenMP             "Use OpenMP for single node parallelization" OFF)
 option(ENABLE_HPC_DATASTORE_LOG      "Shall I display hpc datastore log?" OFF)
 
 #-------------------------------------------------------
 # TRANSLATE FEATURE REQUESTS INTO PREPROCESSOR CONSTANTS
 #-------------------------------------------------------
 
-if (DEBUG_DIST_VERSION)
-	add_definitions(-DDISTRIBUTED_DEBUG)
-endif (DEBUG_DIST_VERSION)
 
 if (FEATURE_ENABLEPHOTOBLEACHING)
 	add_definitions(-DENABLED_PHOTOBLEACHING)
@@ -56,10 +51,6 @@ if (FEATURE_USEFILOGENSYNTHOSCOPY)
 else (FEATURE_USEFILOGENSYNTHOSCOPY)
 	add_definitions(-DENABLE_MITOGEN_FINALPREVIEW)
 endif (FEATURE_USEFILOGENSYNTHOSCOPY)
-
-if (FEATURE_RUNDISTRIBUTED)
-	add_definitions(-DDISTRIBUTED)
-endif (FEATURE_RUNDISTRIBUTED)
 
 if (NOT ENABLE_HPC_DATASTORE_LOG)
 	add_definitions(-DDATASTORE_NLOG)
@@ -74,14 +65,6 @@ if (DEBUG_VERSION)
 else (DEBUG_VERSION)
 	set(CMAKE_BUILD_TYPE "RELEASE" CACHE STATIC "" FORCE)
 endif (DEBUG_VERSION)
-
-if (FEATURE_RUNDISTRIBUTED)
-	find_package(MPI REQUIRED)
-	message(STATUS "===============================================================================")
-	message(STATUS "==> MPI Run: ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} ${MPIEXEC_MAX_NUMPROCS} ${MPIEXEC_PREFLAGS} EXECUTABLE ${MPIEXEC_POSTFLAGS} ARGS")
-	message(STATUS "===============================================================================")
-	set(CMAKE_CXX_COMPILER ${MPI_CXX_COMPILER})
-endif (FEATURE_RUNDISTRIBUTED)
 
 #-----------------------------------
 # TARGET COMPILATION - SOURCE FILES
@@ -121,23 +104,9 @@ set(SOURCES
 		src/main.cpp)
 
 
-set(SOURCE_TO_REMOVE 
-    src/Communication/DirectorMPI.cpp
-    src/Communication/FrontOfficerMPI.cpp
-    src/Communication/DirectorSMP.cpp
-    src/Communication/FrontOfficerSMP.cpp)
-
-list(REMOVE_ITEM SOURCES ${SOURCE_TO_REMOVE})
-
-if (FEATURE_RUNDISTRIBUTED)
-	set(D_FO_SOURCES
-		src/Communication/DirectorMPI.cpp
-		src/Communication/FrontOfficerMPI.cpp)
-else (FEATURE_RUNDISTRIBUTED)
-	set(D_FO_SOURCES
-		src/Communication/DirectorSMP.cpp
-		src/Communication/FrontOfficerSMP.cpp)
-endif (FEATURE_RUNDISTRIBUTED)
+set(D_FO_SOURCES
+	src/Communication/DirectorSMP.cpp
+	src/Communication/FrontOfficerSMP.cpp)
 
 file(GLOB SCENARIOSOURCES src/Scenarios/*.cpp)
 add_executable(embryogen ${SOURCES} ${D_FO_SOURCES} ${SCENARIOSOURCES})
@@ -233,10 +202,6 @@ set(LIBS ${LIBS} ${gRPC_LIBS})
 # FMT library
 find_package(fmt CONFIG REQUIRED)
 set(LIBS ${LIBS} fmt::fmt)
-
-if (FEATURE_RUNDISTRIBUTED)
-	set(LIBS ${LIBS} MPI::MPI_CXX)
-endif (FEATURE_RUNDISTRIBUTED)
 
 # POCO library
 find_package(Poco CONFIG REQUIRED Net JSON)

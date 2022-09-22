@@ -183,10 +183,6 @@ void Scenario_DrosophilaRandom::initializeScene() {
 		return std::make_unique<FlightRecorderDisplayUnit>(
 		    "/temp/FR_randomDro.txt");
 	});
-
-	displays.registerDisplayUnit(
-	    []() { return std::make_unique<GrpcDisplayUnit>(); });
-	// disks.enableImgMaskTIFFs();
 }
 
 class mySceneControls : public SceneControls {

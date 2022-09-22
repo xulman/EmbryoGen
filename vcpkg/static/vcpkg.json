@@ -28,7 +28,6 @@
                 "codegen"
             ]
         },
-        "openmpi",
         "fmt",
         "poco"
     ]
