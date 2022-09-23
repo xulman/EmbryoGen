@@ -29,6 +29,7 @@
             ]
         },
         "fmt",
-        "poco"
+        "poco",
+        "openmpi"
     ]
 }

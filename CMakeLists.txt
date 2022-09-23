@@ -31,7 +31,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wconversion -Werror -O3 -
 #------------------------------------------------
 
 option(DEBUG_VERSION      "Shall I display debug information?" ON)
-option(DEBUG_DIST_VERSION "Shall I display debug information for distributed communication?" OFF)
+Option(RUN_DISTRIBUTED "Shall I run distributed (openMPI mode)?" ON)
 
 option(FEATURE_ENABLEPHOTOBLEACHING  "Shall texture particles be loosing their intensity in the phantom image?" OFF)
 option(FEATURE_USEFILOGENSYNTHOSCOPY "Shall synthoscopy code from FiloGen be used instead of the one from MitoGen?" ON)
@@ -54,7 +54,11 @@ endif (FEATURE_USEFILOGENSYNTHOSCOPY)
 
 if (NOT ENABLE_HPC_DATASTORE_LOG)
 	add_definitions(-DDATASTORE_NLOG)
-endif(NOT ENABLE_HPC_DATASTORE_LOG)
+endif (NOT ENABLE_HPC_DATASTORE_LOG)
+
+if (RUN_DISTRIBUTED)
+    add_definitions(-DDISTRIBUTED)
+endif (RUN_DISTRIBUTED)
 
 #-------------------------
 # TARGET COMPILATION SETUP
@@ -203,6 +207,13 @@ set(LIBS ${LIBS} fmt::fmt)
 # POCO library
 find_package(Poco CONFIG REQUIRED Net JSON)
 set(LIBS ${LIBS} Poco::Net Poco::JSON)
+
+# OpenMPI library
+if(RUN_DISTRIBUTED)
+    find_package(MPI REQUIRED)
+    set(LIBS ${LIBS} MPI::MPI_CXX) 
+endif(RUN_DISTRIBUTED)
+
 
 #-----------------------------
 # GENERATING PROTO CODE
