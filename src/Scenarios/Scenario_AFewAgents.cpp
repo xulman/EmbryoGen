@@ -46,7 +46,7 @@ void Scenario_AFewAgents::initializeAgents(FrontOfficer* fo, int p, int) {
 		s.updateCentre(3, pos + Vector3d<float>(0, 0, +9));
 		s.updateRadius(3, 3.0f);
 
-		Nucleus4SAgent* ag =
+		auto ag =
 		    new Nucleus4SAgent(ID++, "nucleus", s, params->constants.initTime,
 		                       params->constants.incrTime);
 		fo->startNewAgent(ag);
@@ -89,16 +89,19 @@ void Scenario_AFewAgents::initializeAgents(FrontOfficer* fo, int p, int) {
 	// m.saveDistImg("GradIN_ZeroOUT.tif");
 
 	// finally, create the simulation agent to register this shape
-	ShapeHinter* ag = new ShapeHinter(
-	    ID++, "yolk", m, params->constants.initTime, params->constants.incrTime);
+	ShapeHinter* ag =
+	    new ShapeHinter(ID++, "yolk", m, params->constants.initTime,
+	                    params->constants.incrTime);
 	fo->startNewAgent(ag, false);
 }
 
 void Scenario_AFewAgents::initializeScene() {
-	displays.registerDisplayUnit(
-	    []() { return std::make_unique<SceneryBufferedDisplayUnit>("localhost:8765"); });
+	displays.registerDisplayUnit([]() {
+		return std::make_unique<SceneryBufferedDisplayUnit>("localhost:8765");
+	});
 }
 
-std::unique_ptr<SceneControls> Scenario_AFewAgents::provideSceneControls() const {
+std::unique_ptr<SceneControls>
+Scenario_AFewAgents::provideSceneControls() const {
 	return std::make_unique<SceneControls>(DefaultSceneControls);
 }
