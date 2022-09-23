@@ -3,8 +3,8 @@
 #include "Scenario.hpp"
 #include <list>
 #include <set>
-#include <vector>
 #include <string>
+#include <vector>
 
 // instead of the #include statement, the FrontOfficer type is only declared to
 // exists, FrontOfficer's definition depends on Scenario and so we'd end up in a
@@ -69,6 +69,7 @@ SCENARIO_DECLARATION_withDefOptSynthoscopy(Scenario_Parallel);
 SCENARIO_DECLARATION_withDefOptSynthoscopy(Scenario_mpiDebug);
 SCENARIO_DECLARATION_withDefOptSynthoscopy(Scenario_Tetris);
 //  ---> ADD NEW SCENARIO HERE AND ALSO BELOW <---
+SCENARIO_DECLARATION_withDefOptSynthoscopy(Scenario_oneAgent);
 
 /** a boilerplate code to handle pairing of scenarios with their
     command line names, and to instantiate the appropriate scenario */
@@ -87,9 +88,9 @@ class Scenarios {
 
 	/** the scenario/simulation that is going to be used */
 	std::string scenario_name;
-	
+
 	int scenario_argc;
-	const char ** scenario_argv;
+	const char** scenario_argv;
 	std::vector<std::unique_ptr<Scenario>> scenario_instances;
 
 	/** get new copy of scenario */
@@ -113,37 +114,34 @@ class Scenarios {
 		SCENARIO_MATCHING("tetris", Scenario_Tetris)
 		//  ---> ADD NEW SCENARIO HERE (and add definition *cpp file, re-run
 		//  cmake!) <---
+		SCENARIO_MATCHING("oneAgent", Scenario_oneAgent)
 
 		return scenario;
 	}
 
-	void printAvailableScenarios() const
-	{
+	void printAvailableScenarios() const {
 		report::message("Currently known scenarios are: ", {false});
 		for (const std::string& scenario_name : availableScenarios)
-				report::message(scenario_name, {false});
-			report::debugMessage("", {false});
+			report::message(scenario_name, {false});
+		report::debugMessage("", {false});
 	}
 
   public:
 	/** find the right scenario to initialize the simulation with */
-	Scenarios(int argc,const char** argv) {
+	Scenarios(int argc, const char** argv) {
 		/** load available scenarios **/
 		getNewScenario(std::string());
 
-		if (argc == 1)
-		{
+		if (argc == 1) {
 			report::message(
-				    fmt::format("Please run again and choose some of the "
-				                "available scenarios, e.g. as"));
+			    fmt::format("Please run again and choose some of the "
+			                "available scenarios, e.g. as"));
 			report::message(fmt::format("{} regularDrosophila", argv[0]));
 			printAvailableScenarios();
-		}
-		else
-		{
+			throw report::rtError("Scenario not selected");
+		} else {
 			scenario_name = argv[1];
-			if(!getNewScenario(scenario_name))
-			{
+			if (!getNewScenario(scenario_name)) {
 				report::message(
 				    fmt::format("Couldn't match command-line scenario '{}' to "
 				                "any known scenario.",
@@ -151,19 +149,18 @@ class Scenarios {
 				printAvailableScenarios();
 				throw report::rtError("Unmatched scenario.");
 			}
-
-		}	
+		}
 		// pass the CLI params inside, to be
 		// possibly considered by Scenario::initialize...() methods
 		scenario_argc = argc;
 		scenario_argv = argv;
 		// ->setArgs(argc, argv);
-		}
+	}
 
 	Scenario& getScenario(void) {
 		scenario_instances.emplace_back(getNewScenario(scenario_name));
 		Scenario& new_scenario = *scenario_instances.back();
 		new_scenario.setArgs(scenario_argc, scenario_argv);
-		return new_scenario; 
+		return new_scenario;
 	}
 };
