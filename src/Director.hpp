@@ -1,33 +1,32 @@
 #pragma once
 
+#include "FrontOfficer.hpp"
 #include "Scenarios/common/Scenario.hpp"
 #include "TrackRecord_CTC.hpp"
 #include "util/report.hpp"
+#include <functional>
 #include <list>
 #include <utility>
-
-class FrontOfficer;
-class DistributedCommunicator;
 
 /** has access to Scenario, to reach its doPhaseIIandIII() */
 class Director {
   public:
-	Director(Scenario& s,
+	Director(std::function<ScenarioUPTR()> ScenarioFactory,
 	         const int firstFO,
-	         const int allPortions,
-	         DistributedCommunicator* dc = NULL)
-	    : scenario(s), communicator(dc), firstFOsID(firstFO),
-	      FOsCount(allPortions),
-	      shallWaitForUserPromptFlag(
-	          scenario.params->shallWaitForUserPromptFlag) {
-		scenario.declareDirektorContext();
-		// TODO: create an extra thread to execute/service the respond_...()
-		// methods
-	}
+	         const int allPortions);
+
+	Director(const Director&) = delete;
+	Director(Director&&) = delete;
+	Director& operator=(const Director&) = delete;
+	Director& operator=(Director&&) = delete;
+
+	/** attempts to clean up, if not done earlier */
+	~Director();
+
+	void init();
 
   protected:
-	Scenario& scenario;
-	DistributedCommunicator* communicator;
+	ScenarioUPTR scenario;
 
   public:
 	/** the firstFOsID is where the round robin chain starts */
@@ -44,34 +43,22 @@ class Director {
 	   of the synchronization on their own when in MPI regime but during SMP the
 	   internal sync stuff does not work and the sync has to be enforced from
 	   the outside */
-	void initMPI(void) {
+	void initMPI() {
 		init1_SMP();
 		init2_SMP();
 		init3_SMP();
 	}
 
 	/** stage 1/3 to do: scene heavy inits and synthoscopy warm up */
-	void init1_SMP(void);
+	void init1_SMP();
 	/** stage 2/3 to do: scene heavy inits and synthoscopy warm up */
-	void init2_SMP(void);
+	void init2_SMP();
 	/** stage 3/3 to do: renders the first frame */
-	void init3_SMP(void);
+	void init3_SMP();
 
 	/** does the simulation loops, i.e. triggers calls of AbstractAgent's
 	 * methods in the right order */
-	void execute(void);
-
-	/** frees simulation agents, writes the tracks.txt file */
-	void close(void);
-
-	/** attempts to clean up, if not done earlier */
-	~Director(void) {
-		report::debugMessage(
-		    fmt::format("Direktor already closed? {}",
-		                (isProperlyClosedFlag ? "yes" : "no")));
-		if (!isProperlyClosedFlag)
-			this->close();
-	}
+	void execute();
 
 	/** new available, not-yet-used, unique agent ID is created here */
 	int getNextAvailAgentID();
@@ -103,22 +90,20 @@ class Director {
 	/** returns the state of the 'willRenderNextFrameFlag', that is if the
 	    current simulation round with end up with the call to renderNextFrame()
 	 */
-	bool willRenderNextFrame(void) const { return willRenderNextFrameFlag; }
+	bool willRenderNextFrame() const { return willRenderNextFrameFlag; }
 
 	/** returns the state of the 'shallWaitForUserPromptFlag', that is if an
 	    user will be prompted (and the simulation would stop and wait) at
 	    the end of the renderNextFrame() */
-	bool willWaitForUserPrompt(void) const {
-		return shallWaitForUserPromptFlag;
-	}
+	bool willWaitForUserPrompt() const { return shallWaitForUserPromptFlag; }
 
 	/** sets the 'shallWaitForUserPromptFlag', making renderNextFrame() to
 	   prompt the user (and stop the simulation and wait... and also become
 	   "command-able") */
-	void enableWaitForUserPrompt(void) { shallWaitForUserPromptFlag = true; }
+	void enableWaitForUserPrompt() { shallWaitForUserPromptFlag = true; }
 
 	/** the opposite of the Director::enableWaitForUserPrompt() */
-	void disableWaitForUserPrompt(void) { shallWaitForUserPromptFlag = false; }
+	void disableWaitForUserPrompt() { shallWaitForUserPromptFlag = false; }
 
 	/** notifies the agent to enable/disable its detailed drawing routines */
 	void setAgentsDetailedDrawingMode(const int agentID, const bool state);
@@ -134,9 +119,6 @@ class Director {
 	void reportAgentsAllocation();
 
   protected:
-	/** flag to run-once the closing routines */
-	bool isProperlyClosedFlag = false;
-
 	/** last-used ID from any of the existing or former-existing agents;
 	    with every new agent added, this attribute must always increase */
 	int lastUsedAgentID = 0;
@@ -237,26 +219,20 @@ class Director {
   protected:
 	void respond_throwException();
 
-	FrontOfficer* FO = NULL;
+	std::vector<FrontOfficer> FOs;
 
   public:
 	// provides shortcuts for the FO to the output images of
 	// the Direktor to have them filled directly
 	i3d::Image3d<i3d::GRAY16>& refOnDirektorsImgMask(void) {
-		return scenario.params->imgMask;
+		return scenario->params->imgMask;
 	}
 
 	i3d::Image3d<float>& refOnDirektorsImgPhantom(void) {
-		return scenario.params->imgPhantom;
+		return scenario->params->imgPhantom;
 	}
 
 	i3d::Image3d<float>& refOnDirektorsImgOptics(void) {
-		return scenario.params->imgOptics;
-	}
-
-	void connectWithFrontOfficer(FrontOfficer* fo) {
-		if (fo == NULL)
-			throw report::rtError("Provided FrontOfficer is actually NULL.");
-		FO = fo;
+		return scenario->params->imgOptics;
 	}
 };

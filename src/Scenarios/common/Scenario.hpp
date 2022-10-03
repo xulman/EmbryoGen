@@ -345,7 +345,7 @@ class SceneControls {
     special SceneControls, and access to individual attributes holding the
    default values (useful when cherry-pick changing only some of the const'ed
    attributes by using the SceneControls(...) c'tor */
-extern SceneControls DefaultSceneControls;
+static SceneControls DefaultSceneControls;
 
 /**
  * The base class for all scenarios. Provides methods that new scenario
@@ -642,3 +642,4 @@ class Scenario {
 	i3d::Image3d<float> imgPSF;
 #endif
 };
+using ScenarioUPTR = std::unique_ptr<Scenario>;

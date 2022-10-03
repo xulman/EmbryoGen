@@ -1,7 +1,5 @@
 #include "Scenario.hpp"
 
-SceneControls DefaultSceneControls;
-
 #if defined ENABLE_MITOGEN_FINALPREVIEW
 #include "../../util/synthoscopy/finalpreview.hpp"
 #elif defined ENABLE_FILOGEN_PHASEIIandIII
@@ -62,10 +60,11 @@ void Scenario::doPhaseIIandIII() {
 		    xySigma * params->imgPhantom.GetResolution().GetX(),
 		    xySigma * params->imgPhantom.GetResolution().GetY(),
 		    zSigma * params->imgPhantom.GetResolution().GetZ()));
-		i3d::GaussIIR<float>(params->imgPhantom,
-		                     xySigma * params->imgPhantom.GetResolution().GetX(),
-		                     xySigma * params->imgPhantom.GetResolution().GetY(),
-		                     zSigma * params->imgPhantom.GetResolution().GetZ());
+		i3d::GaussIIR<float>(
+		    params->imgPhantom,
+		    xySigma * params->imgPhantom.GetResolution().GetX(),
+		    xySigma * params->imgPhantom.GetResolution().GetY(),
+		    zSigma * params->imgPhantom.GetResolution().GetZ());
 	}
 	//
 	// phase III

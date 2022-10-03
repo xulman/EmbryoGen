@@ -1,192 +1,204 @@
-#------------------------------------------------------------------------
+# ------------------------------------------------------------------------
 #
 # Cross platform CMake configure script for 'EmbryoGen' simulator
 #
-# authors: Vladimir Ulman, Pavel Moravec
-#          Max Planck Institute of Cell Biology and Genetics (c) 2018
-#          IT4Innovations National Supercomputing Center, VSB-TUO (c) 2020
+# authors: Vladimir Ulman, Pavel Moravec Max Planck Institute of Cell Biology
+# and Genetics (c) 2018 IT4Innovations National Supercomputing Center, VSB-TUO
+# (c) 2020
 #
-#------------------------------------------------------------------------
-# OPTION FOR STATIC BUILD MUST BE SET BEFORE SPECIFYING PROJECT(...) 
-#-------------------------------------------------------------------
+# ------------------------------------------------------------------------
+# OPTION FOR STATIC BUILD MUST BE SET BEFORE SPECIFYING PROJECT(...)
+# -------------------------------------------------------------------
 
-option(BUILD_STATIC		"Insert dependencies directly to executable" OFF)
+option(BUILD_STATIC "Insert dependencies directly to executable" OFF)
 # set paht to appropriate vcpkg manifest file
-if (BUILD_STATIC)
-set(VCPKG_MANIFEST_DIR ${CMAKE_SOURCE_DIR}/vcpkg/static)
+if(BUILD_STATIC)
+  set(VCPKG_MANIFEST_DIR ${CMAKE_SOURCE_DIR}/vcpkg/static)
 else(BUILD_STATIC)
-set(VCPKG_MANIFEST_DIR ${CMAKE_SOURCE_DIR}/vcpkg/dynamic)
+  set(VCPKG_MANIFEST_DIR ${CMAKE_SOURCE_DIR}/vcpkg/dynamic)
 endif(BUILD_STATIC)
 
 cmake_minimum_required(VERSION 3.1)
 project(EmbryoGen)
 
 include(GNUInstallDirs)
-set(CMAKE_VERBOSE_MAKEFILE ON CACHE STRING "Tracing the compilation process" FORCE)
+set(CMAKE_VERBOSE_MAKEFILE
+    ON
+    CACHE STRING "Tracing the compilation process" FORCE)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wconversion -Werror -O3 -fmax-errors=1")
+set(CMAKE_CXX_FLAGS
+    "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wconversion -Werror -O3 -fmax-errors=1")
 
-#------------------------------------------------
+# ------------------------------------------------
 # ALL OPTIONS ARE SUMMARIZED HERE (CONTROL PANEL)
-#------------------------------------------------
+# ------------------------------------------------
 
-option(DEBUG_VERSION      "Shall I display debug information?" ON)
-Option(RUN_DISTRIBUTED "Shall I run distributed (openMPI mode)?" ON)
+option(DEBUG_VERSION "Shall I display debug information?" ON)
+option(RUN_DISTRIBUTED "Shall I run distributed (openMPI mode)?" ON)
 
-option(FEATURE_ENABLEPHOTOBLEACHING  "Shall texture particles be loosing their intensity in the phantom image?" OFF)
-option(FEATURE_USEFILOGENSYNTHOSCOPY "Shall synthoscopy code from FiloGen be used instead of the one from MitoGen?" ON)
-option(ENABLE_HPC_DATASTORE_LOG      "Shall I display hpc datastore log?" OFF)
+option(
+  FEATURE_ENABLEPHOTOBLEACHING
+  "Shall texture particles be loosing their intensity in the phantom image?"
+  OFF)
+option(
+  FEATURE_USEFILOGENSYNTHOSCOPY
+  "Shall synthoscopy code from FiloGen be used instead of the one from MitoGen?"
+  ON)
+option(ENABLE_HPC_DATASTORE_LOG "Shall I display hpc datastore log?" OFF)
 
-#-------------------------------------------------------
+# -------------------------------------------------------
 # TRANSLATE FEATURE REQUESTS INTO PREPROCESSOR CONSTANTS
-#-------------------------------------------------------
+# -------------------------------------------------------
 
+if(FEATURE_ENABLEPHOTOBLEACHING)
+  add_definitions(-DENABLED_PHOTOBLEACHING)
+endif(FEATURE_ENABLEPHOTOBLEACHING)
 
-if (FEATURE_ENABLEPHOTOBLEACHING)
-	add_definitions(-DENABLED_PHOTOBLEACHING)
-endif (FEATURE_ENABLEPHOTOBLEACHING)
+if(FEATURE_USEFILOGENSYNTHOSCOPY)
+  add_definitions(-DENABLE_FILOGEN_PHASEIIandIII)
+else(FEATURE_USEFILOGENSYNTHOSCOPY)
+  add_definitions(-DENABLE_MITOGEN_FINALPREVIEW)
+endif(FEATURE_USEFILOGENSYNTHOSCOPY)
 
-if (FEATURE_USEFILOGENSYNTHOSCOPY)
-	add_definitions(-DENABLE_FILOGEN_PHASEIIandIII)
-else (FEATURE_USEFILOGENSYNTHOSCOPY)
-	add_definitions(-DENABLE_MITOGEN_FINALPREVIEW)
-endif (FEATURE_USEFILOGENSYNTHOSCOPY)
+if(NOT ENABLE_HPC_DATASTORE_LOG)
+  add_definitions(-DDATASTORE_NLOG)
+endif(NOT ENABLE_HPC_DATASTORE_LOG)
 
-if (NOT ENABLE_HPC_DATASTORE_LOG)
-	add_definitions(-DDATASTORE_NLOG)
-endif (NOT ENABLE_HPC_DATASTORE_LOG)
+if(RUN_DISTRIBUTED)
+  add_definitions(-DDISTRIBUTED)
+endif(RUN_DISTRIBUTED)
 
-if (RUN_DISTRIBUTED)
-    add_definitions(-DDISTRIBUTED)
-endif (RUN_DISTRIBUTED)
-
-#-------------------------
+# -------------------------
 # TARGET COMPILATION SETUP
-#-------------------------
+# -------------------------
 
-if (DEBUG_VERSION)
-	set(CMAKE_BUILD_TYPE "DEBUG" CACHE STATIC "" FORCE)
-else (DEBUG_VERSION)
-	set(CMAKE_BUILD_TYPE "RELEASE" CACHE STATIC "" FORCE)
-endif (DEBUG_VERSION)
+if(DEBUG_VERSION)
+  set(CMAKE_BUILD_TYPE
+      "DEBUG"
+      CACHE STATIC "" FORCE)
+else(DEBUG_VERSION)
+  set(CMAKE_BUILD_TYPE
+      "RELEASE"
+      CACHE STATIC "" FORCE)
+endif(DEBUG_VERSION)
 
-#-----------------------------------
+# -----------------------------------
 # TARGET COMPILATION - SOURCE FILES
-#-----------------------------------
+# -----------------------------------
 
 set(SOURCES
-		src/util/strings.cpp
-		src/util/rnd_generators.cpp
-		src/util/flowfields.cpp
-		src/util/report.cpp
-		src/util/texture/perlin.cpp
-		src/util/texture/myround.cpp
-		src/util/texture/texture.cpp
-		src/util/synthoscopy/finalpreview.cpp
-		src/util/synthoscopy/FiloGen_VM.cpp
-		src/util/synthoscopy/SNR.cpp
-		src/DisplayUnits/SceneryDisplayUnit.cpp
-		src/DisplayUnits/SceneryBufferedDisplayUnit.cpp
-		src/DisplayUnits/GrpcDisplayUnit.cpp
-		src/Geometries/Geometry.cpp
-		src/Geometries/Spheres.cpp
-		src/Geometries/ScalarImg.cpp
-		src/Geometries/VectorImg.cpp
-		src/Geometries/Mesh.cpp
-		src/Agents/util/CellCycle.cpp
-		src/Agents/util/Texture.cpp
-		src/Agents/NucleusAgent.cpp
-		src/Agents/Nucleus4SAgent.cpp
-		src/Agents/NucleusNSAgent.cpp
-		src/Agents/ShapeHinter.cpp
-		src/Agents/TrajectoriesHinter.cpp
-		src/Scenarios/common/Scenario.cpp
-		src/TrackRecord.cpp
-		src/Director.cpp
-		src/FrontOfficer.cpp
-		src/main.cpp)
+    src/util/strings.cpp
+    src/util/rnd_generators.cpp
+    src/util/flowfields.cpp
+    src/util/report.cpp
+    src/util/texture/perlin.cpp
+    src/util/texture/myround.cpp
+    src/util/texture/texture.cpp
+    src/util/synthoscopy/finalpreview.cpp
+    src/util/synthoscopy/FiloGen_VM.cpp
+    src/util/synthoscopy/SNR.cpp
+    src/DisplayUnits/SceneryDisplayUnit.cpp
+    src/DisplayUnits/SceneryBufferedDisplayUnit.cpp
+    src/DisplayUnits/GrpcDisplayUnit.cpp
+    src/Geometries/Geometry.cpp
+    src/Geometries/Spheres.cpp
+    src/Geometries/ScalarImg.cpp
+    src/Geometries/VectorImg.cpp
+    src/Geometries/Mesh.cpp
+    src/Agents/util/CellCycle.cpp
+    src/Agents/util/Texture.cpp
+    src/Agents/NucleusAgent.cpp
+    src/Agents/Nucleus4SAgent.cpp
+    src/Agents/NucleusNSAgent.cpp
+    src/Agents/ShapeHinter.cpp
+    src/Agents/TrajectoriesHinter.cpp
+    src/Scenarios/common/Scenario.cpp
+    src/TrackRecord.cpp
+    src/Director.cpp
+    src/FrontOfficer.cpp
+    src/main.cpp)
 
-
-set(D_FO_SOURCES)
+set(D_FO_SOURCES src/SimulationControl/DirectorST.cpp
+                 src/SimulationControl/FrontOfficerST.cpp)
 
 file(GLOB SCENARIOSOURCES src/Scenarios/*.cpp)
 add_executable(embryogen ${SOURCES} ${D_FO_SOURCES} ${SCENARIOSOURCES})
-add_custom_target(commitHash ALL "../imprintGitHash.sh")
+add_custom_target(commitHash ALL ${CMAKE_SOURCE_DIR}/imprintGitHash.sh)
 set_target_properties(embryogen PROPERTIES CXX_STANDARD 20)
 
-#--------------------------------------------
+# --------------------------------------------
 # TARGET LINKING - FIRST-LEVEL REQUIRED LIBS
-#--------------------------------------------
+# --------------------------------------------
 
 # i3dlibs library
-if (BUILD_STATIC)
-# static i3dlib dependencies
-find_package(FFTW3 CONFIG REQUIRED)
-set(LIBS ${LIBS} FFTW3::fftw3)
+if(BUILD_STATIC)
+  # static i3dlib dependencies
+  find_package(FFTW3 CONFIG REQUIRED)
+  set(LIBS ${LIBS} FFTW3::fftw3)
 
-find_package(FFTW3f CONFIG REQUIRED)
-set(LIBS ${LIBS} FFTW3::fftw3f)
+  find_package(FFTW3f CONFIG REQUIRED)
+  set(LIBS ${LIBS} FFTW3::fftw3f)
 
-find_package(FFTW3l CONFIG REQUIRED)
-set(LIBS ${LIBS} FFTW3::fftw3l)
+  find_package(FFTW3l CONFIG REQUIRED)
+  set(LIBS ${LIBS} FFTW3::fftw3l)
 
-find_package(clapack CONFIG REQUIRED)
-set(LIBS ${LIBS} lapack)
+  find_package(clapack CONFIG REQUIRED)
+  set(LIBS ${LIBS} lapack)
 
-if  (UNIX)
-if  (NOT APPLE)
-	set(LIBS ${LIBS} f2c)
-endif (NOT APPLE)
-endif (UNIX)
+  if(UNIX)
+    if(NOT APPLE)
+      set(LIBS ${LIBS} f2c)
+    endif(NOT APPLE)
+  endif(UNIX)
 
-find_package(OpenBLAS CONFIG REQUIRED)
-set(LIBS ${LIBS} OpenBLAS::OpenBLAS)
+  find_package(OpenBLAS CONFIG REQUIRED)
+  set(LIBS ${LIBS} OpenBLAS::OpenBLAS)
 
-find_package(TIFF REQUIRED)
-set(LIBS ${LIBS} ${TIFF_LIBRARIES})
+  find_package(TIFF REQUIRED)
+  set(LIBS ${LIBS} ${TIFF_LIBRARIES})
 
-find_package(JPEG REQUIRED)
-set(LIBS ${LIBS} ${JPEG_LIBRARIES})
+  find_package(JPEG REQUIRED)
+  set(LIBS ${LIBS} ${JPEG_LIBRARIES})
 
-find_package(libpng CONFIG REQUIRED)
-if(WIN32)
-	set(LIBS ${LIBS} png)
-else(WIN32)
-	set(LIBS ${LIBS} png_static)
-endif(WIN32)
+  find_package(libpng CONFIG REQUIRED)
+  if(WIN32)
+    set(LIBS ${LIBS} png)
+  else(WIN32)
+    set(LIBS ${LIBS} png_static)
+  endif(WIN32)
 
-find_package(libics CONFIG REQUIRED)
-set(LIBS ${LIBS} libics)
+  find_package(libics CONFIG REQUIRED)
+  set(LIBS ${LIBS} libics)
 
-find_package(ZLIB REQUIRED)
-set(LIBS ${LIBS} ZLIB::ZLIB)
+  find_package(ZLIB REQUIRED)
+  set(LIBS ${LIBS} ZLIB::ZLIB)
 
-find_package(hdf5 CONFIG REQUIRED)
-if (WIN32)
-	set(LIBS ${LIBS} hdf5::hdf5-shared hdf5::hdf5_hl-shared)
-else(WIN32)
-	set(LIBS ${LIBS} hdf5::hdf5-static hdf5::hdf5_hl-static)
-endif(WIN32)
+  find_package(hdf5 CONFIG REQUIRED)
+  if(WIN32)
+    set(LIBS ${LIBS} hdf5::hdf5-shared hdf5::hdf5_hl-shared)
+  else(WIN32)
+    set(LIBS ${LIBS} hdf5::hdf5-static hdf5::hdf5_hl-static)
+  endif(WIN32)
 
-find_package(RXSpencer CONFIG REQUIRED)
-set(LIBS ${LIBS} rxspencer)
+  find_package(RXSpencer CONFIG REQUIRED)
+  set(LIBS ${LIBS} rxspencer)
 
-add_library(i3dcore STATIC IMPORTED)
-set_target_properties(i3dcore PROPERTIES
-    IMPORTED_LOCATION /usr/local/lib/libi3dcore.a)
+  add_library(i3dcore STATIC IMPORTED)
+  set_target_properties(i3dcore PROPERTIES IMPORTED_LOCATION
+                                           /usr/local/lib/libi3dcore.a)
 
-add_library(i3dalgo STATIC IMPORTED)
-set_target_properties(i3dalgo PROPERTIES
-    IMPORTED_LOCATION /usr/local/lib/libi3dalgo.a)
+  add_library(i3dalgo STATIC IMPORTED)
+  set_target_properties(i3dalgo PROPERTIES IMPORTED_LOCATION
+                                           /usr/local/lib/libi3dalgo.a)
 
 else(BUILD_STATIC)
-add_library(i3dcore SHARED IMPORTED)
-set_target_properties(i3dcore PROPERTIES
-    IMPORTED_LOCATION /usr/local/lib/libi3dcore.so)
+  add_library(i3dcore SHARED IMPORTED)
+  set_target_properties(i3dcore PROPERTIES IMPORTED_LOCATION
+                                           /usr/local/lib/libi3dcore.so)
 
-add_library(i3dalgo SHARED IMPORTED)
-set_target_properties(i3dalgo PROPERTIES
-    IMPORTED_LOCATION /usr/local/lib/libi3dalgo.so)
+  add_library(i3dalgo SHARED IMPORTED)
+  set_target_properties(i3dalgo PROPERTIES IMPORTED_LOCATION
+                                           /usr/local/lib/libi3dalgo.so)
 
 endif(BUILD_STATIC)
 set(LIBS i3dcore i3dalgo ${LIBS})
@@ -197,7 +209,7 @@ set(LIBS ${LIBS} GSL::gsl GSL::gslcblas)
 
 # Google rpc
 find_package(gRPC CONFIG REQUIRED)
-set(gRPC_LIBS  gRPC::gpr gRPC::grpc gRPC::grpc++ gRPC::grpc++_alts)
+set(gRPC_LIBS gRPC::gpr gRPC::grpc gRPC::grpc++ gRPC::grpc++_alts)
 set(LIBS ${LIBS} ${gRPC_LIBS})
 
 # FMT library
@@ -210,14 +222,13 @@ set(LIBS ${LIBS} Poco::Net Poco::JSON)
 
 # OpenMPI library
 if(RUN_DISTRIBUTED)
-    find_package(MPI REQUIRED)
-    set(LIBS ${LIBS} MPI::MPI_CXX) 
+  find_package(MPI REQUIRED)
+  set(LIBS ${LIBS} MPI::MPI_CXX)
 endif(RUN_DISTRIBUTED)
 
-
-#-----------------------------
+# -----------------------------
 # GENERATING PROTO CODE
-#-----------------------------
+# -----------------------------
 
 # ========= GENERATING PROTO CODE =========
 set(proto_name "protocol")
@@ -234,44 +245,37 @@ set(bin_grpc_hdrs "${proto_path}/${proto_name}.grpc.pb.h")
 
 # generate to binary dir
 add_custom_command(
-    OUTPUT "${bin_proto_srcs}" "${bin_proto_hdrs}" "${bin_grpc_srcs}" "${bin_grpc_hdrs}"
-    "${src_proto_hdrs}" "${src_grpc_hdrs}"
-    COMMAND ${Protobuf_PROTOC_EXECUTABLE}
-    ARGS  --grpc_out "${proto_path}"
-         --cpp_out "${proto_path}"
-         --plugin=protoc-gen-grpc="${grpc_cpp_plugin}"
-         -I "${proto_path}"
-         "${proto_file}"
-)
+  OUTPUT "${bin_proto_srcs}" "${bin_proto_hdrs}" "${bin_grpc_srcs}"
+         "${bin_grpc_hdrs}" "${src_proto_hdrs}" "${src_grpc_hdrs}"
+  COMMAND
+    ${Protobuf_PROTOC_EXECUTABLE} ARGS --grpc_out "${proto_path}" --cpp_out
+    "${proto_path}" --plugin=protoc-gen-grpc="${grpc_cpp_plugin}" -I
+    "${proto_path}" "${proto_file}")
 
-add_library(grpc_proto_lib
-    "${bin_grpc_srcs}"
-    "${bin_grpc_hdrs}"
-    "${bin_proto_srcs}"
-    "${bin_proto_hdrs}"
-)
+add_library(grpc_proto_lib "${bin_grpc_srcs}" "${bin_grpc_hdrs}"
+                           "${bin_proto_srcs}" "${bin_proto_hdrs}")
 
 target_link_libraries(grpc_proto_lib ${gRPC_LIBS})
 
 set(LIBS ${LIBS} grpc_proto_lib)
 
-#----------------
+# ----------------
 # TARGET LINKING
-#----------------
+# ----------------
 
 if(FEATURE_USEOpenMP)
-	if (APPLE)
-		if(CMAKE_C_COMPILER_ID MATCHES "Clang")
-			set(OpenMP_CXX "${CMAKE_CXX_COMPILER}")
-			set(OpenMP_CXX_FLAGS "-fopenmp=libomp -Wno-unused-command-line-argument")
-			set(OpenMP_CXX_LIB_NAMES "libomp")
-			find_library(OpenMP_libomp_LIBRARY omp)
-			set(LIBS ${LIBS} OpenMP_libomp_LIBRARY)
-		endif()
-	endif (APPLE)
+  if(APPLE)
+    if(CMAKE_C_COMPILER_ID MATCHES "Clang")
+      set(OpenMP_CXX "${CMAKE_CXX_COMPILER}")
+      set(OpenMP_CXX_FLAGS "-fopenmp=libomp -Wno-unused-command-line-argument")
+      set(OpenMP_CXX_LIB_NAMES "libomp")
+      find_library(OpenMP_libomp_LIBRARY omp)
+      set(LIBS ${LIBS} OpenMP_libomp_LIBRARY)
+    endif()
+  endif(APPLE)
 
-	find_package(OpenMP)
-	set(LIBS ${LIBS} OpenMP::OpenMP_CXX)
+  find_package(OpenMP)
+  set(LIBS ${LIBS} OpenMP::OpenMP_CXX)
 endif(FEATURE_USEOpenMP)
 
 target_link_libraries(embryogen ${LIBS})

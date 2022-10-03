@@ -5,6 +5,7 @@
 #include <set>
 #include <string>
 #include <vector>
+#include <memory>
 
 // instead of the #include statement, the FrontOfficer type is only declared to
 // exists, FrontOfficer's definition depends on Scenario and so we'd end up in a
@@ -91,7 +92,6 @@ class Scenarios {
 
 	int scenario_argc;
 	const char** scenario_argv;
-	std::vector<std::unique_ptr<Scenario>> scenario_instances;
 
 	/** get new copy of scenario */
 	std::unique_ptr<Scenario> getNewScenario(const std::string& name) {
@@ -157,10 +157,9 @@ class Scenarios {
 		// ->setArgs(argc, argv);
 	}
 
-	Scenario& getScenario(void) {
-		scenario_instances.emplace_back(getNewScenario(scenario_name));
-		Scenario& new_scenario = *scenario_instances.back();
-		new_scenario.setArgs(scenario_argc, scenario_argv);
+	ScenarioUPTR getScenario() {
+		auto new_scenario = getNewScenario(scenario_name);
+		new_scenario->setArgs(scenario_argc, scenario_argv);
 		return new_scenario;
 	}
 };

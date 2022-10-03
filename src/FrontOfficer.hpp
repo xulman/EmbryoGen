@@ -11,30 +11,31 @@
 class AbstractAgent;
 class ShadowAgent;
 class Director;
-class DistributedCommunicator;
 
 /** has access to Simulation, to reach its initializeAgents() */
 class FrontOfficer //: public Simulation
 {
   public:
-	FrontOfficer(Scenario& s,
+	FrontOfficer(ScenarioUPTR s,
 	             const int nextFO,
 	             const int myPortion,
-	             const int allPortions,
-	             DistributedCommunicator* dc = NULL)
-	    : scenario(s), communicator(dc), ID(myPortion), nextFOsID(nextFO),
-	      FOsCount(allPortions),
-	      __agentTypeBuf(
-	          new char[StringsImprintSize]) // freed in FrontOfficer::close()
-	{
-		scenario.declareFOcontext(myPortion);
+	             const int allPortions)
+	    : scenario(std::move(s)), ID(myPortion), nextFOsID(nextFO), FOsCount(allPortions) {
+		scenario->declareFOcontext(myPortion);
 		// TODO: create an extra thread to execute/service the respond_...()
 		// methods
 	}
 
+	FrontOfficer(const FrontOfficer&) = delete;
+	// TODO Fix this later :D
+	FrontOfficer(FrontOfficer&&) = default;
+	FrontOfficer& operator=(const FrontOfficer&) = delete;
+	FrontOfficer& operator=(FrontOfficer&&) = default;
+
+	~FrontOfficer();
+
   protected:
-	Scenario& scenario;
-	DistributedCommunicator* communicator;
+	ScenarioUPTR scenario;
 
   public:
 	const int ID, nextFOsID, FOsCount;
@@ -53,7 +54,7 @@ class FrontOfficer //: public Simulation
 	   init2_SMP()) and executed in the right order; in the MPI case, the
 	   synchronization of the execution happens natively inside these methods so
 	   we just call of them here */
-	void initMPI(void) {
+	void initMPI() {
 		init1_SMP();
 		init2_SMP();
 	}
@@ -68,20 +69,8 @@ class FrontOfficer //: public Simulation
 
 	/** aiders for the execute() that are called directly from it (when running
 	    as distributed), or from the Direktor's execute() (when in SMP mode) */
-	void executeEndSub1(void);
-	void executeEndSub2(void);
-
-	/** frees simulation agents */
-	void close(void);
-
-	/** attempts to clean up, if not done earlier */
-	~FrontOfficer(void) {
-		report::debugMessage(
-		    fmt::format("FrontOfficer #{} already closed? {}", ID,
-		                (isProperlyClosedFlag ? "yes" : "no")));
-		if (!isProperlyClosedFlag)
-			this->close();
-	}
+	void executeEndSub1();
+	void executeEndSub2();
 
 	/** agent asks here for a new unique agent ID */
 	int getNextAvailAgentID();
@@ -202,9 +191,6 @@ class FrontOfficer //: public Simulation
 	}
 
   protected:
-	/** flag to run-once the closing routines */
-	bool isProperlyClosedFlag = false;
-
 	/** lists of existing agents scheduled for the addition to or
 	    for the removal from the simulation (at the appropriate,
 	    occasion) and computed on this node (managed by this FO) */
@@ -301,7 +287,6 @@ class FrontOfficer //: public Simulation
 
 	void broadcast_newAgentsTypes();
 	void respond_newAgentsTypes(int noOfIncomingNewAgentTypes);
-	char* const __agentTypeBuf; // RO pointer on RW data
 
 	void respond_setDetailedDrawingMode();
 	void respond_setDetailedReportingMode();

@@ -10,12 +10,12 @@
 
 void Director::init1_SMP(void) {
 	report::message(fmt::format("Direktor initializing now..."));
-	currTime = scenario.params->constants.initTime;
+	currTime = scenario->params->constants.initTime;
 
 	// a bit of stats before we start...
-	const auto& sSum = scenario.params->constants.sceneSize;
+	const auto& sSum = scenario->params->constants.sceneSize;
 	Vector3d<float> sSpx(sSum);
-	sSpx.elemMult(scenario.params->constants.imgRes);
+	sSpx.elemMult(scenario->params->constants.imgRes);
 	std::string sMsg = fmt::format(
 	    "scenario suggests this scene size: {} x {} x {} um -> {} x {} x {} px",
 	    sSum.x, sSum.y, sSum.z, sSpx.x, sSpx.y, sSpx.z);
@@ -43,19 +43,19 @@ void Director::init1_SMP(void) {
 		report::message(fmt::format("{} ({} voxels)", sMsg, sSpxTotal));
 	}
 
-	scenario.initializeScene();
-	scenario.initializePhaseIIandIII();
+	scenario->initializeScene();
+	scenario->initializePhaseIIandIII();
 
 	//"reminder" test
-	if (scenario.params->imagesSaving_isEnabledForImgPhantom() ||
-	    scenario.params->imagesSaving_isEnabledForImgOptics()) {
-		if (!scenario.params->imagesSaving_isEnabledForImgOptics()) {
+	if (scenario->params->imagesSaving_isEnabledForImgPhantom() ||
+	    scenario->params->imagesSaving_isEnabledForImgOptics()) {
+		if (!scenario->params->imagesSaving_isEnabledForImgOptics()) {
 			report::message(fmt::format("===> Found enabled phantom images, "
 			                            "but disabled optics images."));
 			report::message(fmt::format(
 			    "===> Will actually not render agents until both is enabled."));
 		}
-		if (!scenario.params->imagesSaving_isEnabledForImgPhantom()) {
+		if (!scenario->params->imagesSaving_isEnabledForImgPhantom()) {
 			report::message(fmt::format("===> Found enabled optics images, but "
 			                            "disabled phantom images."));
 			report::message(fmt::format(
@@ -91,9 +91,7 @@ void Director::reportSituation() {
 	    currTime, agents.size()));
 }
 
-void Director::close(void) {
-	// mark before closing is attempted...
-	isProperlyClosedFlag = true;
+Director::~Director() {
 	report::debugMessage(fmt::format("running the closing sequence"));
 
 	// TODO: should close/kill the service thread too
@@ -113,9 +111,9 @@ void Director::close(void) {
 void Director::execute(void) {
 	report::message(fmt::format("Direktor has just started the simulation"));
 
-	const float stopTime = scenario.params->constants.stopTime;
-	const float incrTime = scenario.params->constants.incrTime;
-	const float expoTime = scenario.params->constants.expoTime;
+	const float stopTime = scenario->params->constants.stopTime;
+	const float incrTime = scenario->params->constants.incrTime;
+	const float expoTime = scenario->params->constants.expoTime;
 
 	// run the simulation rounds, one after another one
 	while (currTime < stopTime) {
@@ -124,8 +122,8 @@ void Director::execute(void) {
 		willRenderNextFrameFlag =
 		    currTime + incrTime >= (float)frameCnt * expoTime;
 
-		FO->willRenderNextFrameFlag = this->willRenderNextFrameFlag;
-		FO->executeInternals();
+		FOs[0].willRenderNextFrameFlag = this->willRenderNextFrameFlag;
+		FOs[0].executeInternals();
 		waitHereUntilEveryoneIsHereToo();
 
 		prepareForUpdateAndPublishAgents();
@@ -135,7 +133,7 @@ void Director::execute(void) {
 		waitHereUntilEveryoneIsHereToo();
 		postprocessAfterUpdateAndPublishAgents();
 
-		FO->executeExternals();
+		FOs[0].executeExternals();
 
 		waitHereUntilEveryoneIsHereToo();
 
@@ -148,7 +146,7 @@ void Director::execute(void) {
 
 		// move to the next simulation time point
 
-		FO->executeEndSub1();
+		FOs[0].executeEndSub1();
 
 		currTime += incrTime;
 
@@ -163,9 +161,9 @@ void Director::execute(void) {
 		}
 
 		// this was promised to happen after every simulation round is over
-		FO->executeEndSub2();
+		FOs[0].executeEndSub2();
 
-		scenario.updateScene(currTime);
+		scenario->updateScene(currTime);
 		waitHereUntilEveryoneIsHereToo();
 	}
 }
@@ -174,8 +172,7 @@ void Director::prepareForUpdateAndPublishAgents() {
 	// empty because Direktor is not (yet) managing spatial info
 	// about all agents in the simulation
 
-
-	FO->prepareForUpdateAndPublishAgents();
+	FOs[0].prepareForUpdateAndPublishAgents();
 }
 
 void Director::updateAndPublishAgents() {
@@ -224,7 +221,7 @@ void Director::updateAndPublishAgents() {
 void Director::postprocessAfterUpdateAndPublishAgents() {
 	// currently empty
 
-	FO->postprocessAfterUpdateAndPublishAgents();
+	FOs[0].postprocessAfterUpdateAndPublishAgents();
 }
 
 int Director::getNextAvailAgentID() { return ++lastUsedAgentID; }
@@ -285,7 +282,7 @@ void Director::setSimulationDebugRendering(const bool state) {
 
 void Director::renderNextFrame() {
 	report::message(fmt::format("Rendering time point {}", frameCnt));
-	SceneControls& sc = *scenario.params;
+	SceneControls& sc = *scenario->params;
 
 	// ----------- OUTPUT EVENTS -----------
 	// prepare the output images
@@ -323,8 +320,8 @@ void Director::renderNextFrame() {
 		}
 
 		if (sc.constants.outputToDatastore) {
-			report::message(
-			    fmt::format("Sending timepoint {} to datastore, hold on...", frameCnt));
+			report::message(fmt::format(
+			    "Sending timepoint {} to datastore, hold on...", frameCnt));
 			ds_conn.write_with_pyramids(sc.imgMask, sc.constants.ds_maskChannel,
 			                            frameCnt, 0, "latest",
 			                            ds::SamplingMode::NEAREST_NEIGHBOUR);
@@ -343,8 +340,8 @@ void Director::renderNextFrame() {
 		}
 
 		if (sc.constants.outputToDatastore) {
-			report::message(
-			    fmt::format("Sending timepoint {} to datastore, hold on...", frameCnt));
+			report::message(fmt::format(
+			    "Sending timepoint {} to datastore, hold on...", frameCnt));
 			ds_conn.write_with_pyramids(
 			    sc.imgPhantom, sc.constants.ds_phantomChannel, frameCnt, 0,
 			    "latest", ds::SamplingMode::NEAREST_NEIGHBOUR);
@@ -363,8 +360,8 @@ void Director::renderNextFrame() {
 		}
 
 		if (sc.constants.outputToDatastore) {
-			report::message(
-			    fmt::format("Sending timepoint {} to datastore, hold on...", frameCnt));
+			report::message(fmt::format(
+			    "Sending timepoint {} to datastore, hold on...", frameCnt));
 			ds_conn.write_with_pyramids(
 			    sc.imgOptics, sc.constants.ds_opticsChannel, frameCnt, 0,
 			    "latest", ds::SamplingMode::NEAREST_NEIGHBOUR);
@@ -376,7 +373,7 @@ void Director::renderNextFrame() {
 	if (sc.isProducingOutput(sc.imgFinal)) {
 		auto fn = fmt::format(sc.constants.imgFinal_filenameTemplate, frameCnt);
 		report::message(fmt::format("Creating {}, hold on...", fn));
-		scenario.doPhaseIIandIII();
+		scenario->doPhaseIIandIII();
 
 		if (sc.constants.outputToTiff) {
 			report::message(fmt::format("Saving {}, hold on...", fn));
@@ -384,8 +381,8 @@ void Director::renderNextFrame() {
 		}
 
 		if (sc.constants.outputToDatastore) {
-			report::message(
-			    fmt::format("Sending timepoint {} to datastore, hold on...", frameCnt));
+			report::message(fmt::format(
+			    "Sending timepoint {} to datastore, hold on...", frameCnt));
 			ds_conn.write_with_pyramids(
 			    sc.imgFinal, sc.constants.ds_finalChannel, frameCnt, 0,
 			    "latest", ds::SamplingMode::NEAREST_NEIGHBOUR);
@@ -549,14 +546,13 @@ void Director::reportAgentsAllocation() {
 		    fmt::format("agent ID {} at FO #{}", AgFO.first, AgFO.second));
 }
 
-
 // =================================== MOVED FROM DirectorSMP.cpp
 void Director::notify_publishAgentsAABBs(const int /* FOsID */) {
 	// notify the first FO
 	// MPI_signalThisEvent_to( FOsID );
 
 	// in the SMP world:
-	FO->updateAndPublishAgents();
+	FOs[0].updateAndPublishAgents();
 }
 
 void Director::waitFor_publishAgentsAABBs() {
@@ -566,14 +562,14 @@ void Director::waitFor_publishAgentsAABBs() {
 }
 
 size_t Director::request_CntOfAABBs(const int /* FOsID */) {
-	return FO->getSizeOfAABBsList();
+	return FOs[0].getSizeOfAABBsList();
 }
 
 void Director::notify_setDetailedDrawingMode(const int /* FOsID */,
                                              const int agentID,
                                              const bool state) {
 	// in the SMP world:
-	FO->setAgentsDetailedDrawingMode(agentID, state);
+	FOs[0].setAgentsDetailedDrawingMode(agentID, state);
 	//
 	// in the MPI, send the above to the agent FOsID
 }
@@ -582,7 +578,7 @@ void Director::notify_setDetailedReportingMode(const int /* FOsID */,
                                                const int agentID,
                                                const bool state) {
 	// in the SMP world:
-	FO->setAgentsDetailedReportingMode(agentID, state);
+	FOs[0].setAgentsDetailedReportingMode(agentID, state);
 	//
 	// in the MPI, send the above to the agent FOsID
 }
@@ -591,7 +587,7 @@ void Director::waitHereUntilEveryoneIsHereToo() {}
 
 void Director::request_renderNextFrame(const int /* FOsID */) {
 	// in the SMP:
-	FO->renderNextFrame();
+	FOs[0].renderNextFrame();
 
 	// MPI world:
 	// this exactly the same code as in
@@ -607,7 +603,7 @@ void Director::waitFor_renderNextFrame(const int /*FOsID*/) {
 
 void Director::broadcast_setRenderingDebug(const bool setFlagToThis) {
 	// SMP:
-	FO->setSimulationDebugRendering(setFlagToThis);
+	FOs[0].setSimulationDebugRendering(setFlagToThis);
 
 	// MPI world:
 	// non-blocking send out to everyone

@@ -8,10 +8,10 @@
 
 void FrontOfficer::init1_SMP() {
 	report::message(fmt::format("FO #{} initializing now...", ID));
-	currTime = scenario.params->constants.initTime;
+	currTime = scenario->params->constants.initTime;
 
-	scenario.initializeScene();
-	scenario.initializeAgents(this, ID, FOsCount);
+	scenario->initializeScene();
+	scenario->initializeAgents(this, ID, FOsCount);
 }
 
 void FrontOfficer::init2_SMP() {
@@ -40,9 +40,7 @@ void FrontOfficer::reportSituation() {
 	    currTime, agents.size(), ID, AABBs.size(), shadowAgents.size()));
 }
 
-void FrontOfficer::close(void) {
-	// mark before closing is attempted...
-	isProperlyClosedFlag = true;
+FrontOfficer::~FrontOfficer() {
 	report::debugMessage(fmt::format("running the closing sequence"));
 
 	// TODO: should close/kill the service thread too
@@ -52,7 +50,7 @@ void FrontOfficer::close(void) {
 	// simultaneously
 	report::debugMessage(
 	    fmt::format("will remove {} active agents", agents.size()));
-	for (auto ag : agents) {
+	for (auto& ag : agents) {
 		// check and possibly remove from the deadAgents list
 		auto daIt = deadAgents.begin();
 		while (daIt != deadAgents.end() && *daIt != ag.second)
@@ -65,7 +63,7 @@ void FrontOfficer::close(void) {
 		}
 
 		delete ag.second;
-		ag.second = NULL;
+		ag.second = nullptr;
 	}
 	agents.clear();
 
@@ -85,22 +83,19 @@ void FrontOfficer::close(void) {
 	// also clean up any shadow agents one may have
 	report::debugMessage(
 	    fmt::format("will remove {} shadow agents", shadowAgents.size()));
-	for (auto sh : shadowAgents) {
+	for (auto& sh : shadowAgents) {
 		delete sh.second;
-		sh.second = NULL;
+		sh.second = nullptr;
 	}
 	shadowAgents.clear();
-
-	// clean up aux attribs
-	delete[] __agentTypeBuf;
 }
 
 void FrontOfficer::execute(void) {
 	report::message(fmt::format("FO #{} is waiting to start simulating", ID));
 
-	const float stopTime = scenario.params->constants.stopTime;
-	const float incrTime = scenario.params->constants.incrTime;
-	const float expoTime = scenario.params->constants.expoTime;
+	const float stopTime = scenario->params->constants.stopTime;
+	const float incrTime = scenario->params->constants.incrTime;
+	const float expoTime = scenario->params->constants.expoTime;
 
 	// run the simulation rounds, one after another one
 	while (currTime < stopTime) {
@@ -146,20 +141,20 @@ void FrontOfficer::execute(void) {
 
 void FrontOfficer::executeEndSub1() {
 	// move to the next simulation time point
-	currTime += scenario.params->constants.incrTime;
+	currTime += scenario->params->constants.incrTime;
 	reportSituation();
 }
 
 void FrontOfficer::executeEndSub2() {
 	// this was promised to happen after every simulation round is over
-	scenario.updateScene(currTime);
+	scenario->updateScene(currTime);
 }
 
 void FrontOfficer::executeInternals() {
 	// after this simulation round is done, all agents should
 	// reach local times greater than this global time
 	const float futureTime =
-	    currTime + scenario.params->constants.incrTime - 0.0001f;
+	    currTime + scenario->params->constants.incrTime - 0.0001f;
 
 	// develop (willingly) new shapes... (can run in parallel),
 	// the agents' (external at least!) geometries must not change during this
@@ -484,7 +479,7 @@ const ShadowAgent* FrontOfficer::getNearbyAgent(const int fetchThisID) {
 
 void FrontOfficer::renderNextFrame() {
 	report::message(fmt::format("Rendering time point {}", frameCnt));
-	SceneControls& sc = *scenario.params;
+	SceneControls& sc = *scenario->params;
 
 	// ----------- OUTPUT EVENTS -----------
 	// clear the output images
@@ -550,7 +545,6 @@ void FrontOfficer::reportAABBs() {
 		    toString(naabb.minCorner), toString(naabb.maxCorner),
 		    agentsToFOsMap[naabb.ID]));
 }
-
 
 //=================================== ADDED FROM FrontOfficerSMP.cpp
 int FrontOfficer::request_getNextAvailAgentID() {

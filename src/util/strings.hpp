@@ -10,10 +10,6 @@
 #include <unordered_set>
 class FrontOfficer;
 
-/** The buffer length into which any MPI-communicated string must be imprint,
-   The original string is padded with zero-value characters if it is too short,
-   or trimmed if too long. */
-extern const size_t StringsImprintSize;
 
 /** The class that pairs std::string with its hash, that is computed with
    hashedString::hash(). While the hash can be always computed on on-demand
