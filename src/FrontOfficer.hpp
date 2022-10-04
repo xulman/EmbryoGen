@@ -20,7 +20,8 @@ class FrontOfficer //: public Simulation
 	             const int nextFO,
 	             const int myPortion,
 	             const int allPortions)
-	    : scenario(std::move(s)), ID(myPortion), nextFOsID(nextFO), FOsCount(allPortions) {
+	    : scenario(std::move(s)), ID(myPortion), nextFOsID(nextFO),
+	      FOsCount(allPortions) {
 		scenario->declareFOcontext(myPortion);
 		// TODO: create an extra thread to execute/service the respond_...()
 		// methods
@@ -34,12 +35,6 @@ class FrontOfficer //: public Simulation
 
 	~FrontOfficer();
 
-  protected:
-	ScenarioUPTR scenario;
-
-  public:
-	const int ID, nextFOsID, FOsCount;
-
 	/** good old getter for otherwise const'ed public ID */
 	int getID() const { return ID; }
 
@@ -47,25 +42,13 @@ class FrontOfficer //: public Simulation
 	// these are implemented in:
 	// FrontOfficer.cpp
 
-	/** scene heavy inits and adds agents for the MPI case; in the SMP case,
-	   however, the execution of this method has to interweave with the
-	   execution of Director::init*() which is solved here by tearing the method
-	   into (outside callable) pieces (in particular, into init1_SMP() and
-	   init2_SMP()) and executed in the right order; in the MPI case, the
-	   synchronization of the execution happens natively inside these methods so
-	   we just call of them here */
-	void initMPI() {
-		init1_SMP();
-		init2_SMP();
-	}
-
 	/** stage 1/2 to do: scene heavy inits and adds agents */
 	void init1_SMP();
 	/** stage 2/2 to do: scene heavy inits and adds agents */
 	void init2_SMP();
 
 	/** does the simulation loops, i.e. calls AbstractAgent's methods */
-	void execute(void);
+	void execute();
 
 	/** aiders for the execute() that are called directly from it (when running
 	    as distributed), or from the Direktor's execute() (when in SMP mode) */
@@ -172,7 +155,7 @@ class FrontOfficer //: public Simulation
 	/** returns the state of the 'willRenderNextFrameFlag', that is if the
 	    current simulation round with end up with the call to renderNextFrame()
 	 */
-	bool willRenderNextFrame(void) const { return willRenderNextFrameFlag; }
+	bool willRenderNextFrame() const { return willRenderNextFrameFlag; }
 
 	/** notifies the agent to enable/disable its detailed drawing routines */
 	void setAgentsDetailedDrawingMode(const int agentID, const bool state);
@@ -190,59 +173,31 @@ class FrontOfficer //: public Simulation
 		return agentsTypesDictionary;
 	}
 
-  protected:
-	/** lists of existing agents scheduled for the addition to or
-	    for the removal from the simulation (at the appropriate,
-	    occasion) and computed on this node (managed by this FO) */
-	std::deque<AbstractAgent*> newAgents, deadAgents;
+	void reportOverlap(const float dist) {
+		// new max overlap?
+		if (dist > overlapMax)
+			overlapMax = dist;
 
-	/** list of all agents currently active in the simulation
-	    and computed on this node (managed by this FO) */
-	std::map<int, AbstractAgent*> agents;
+		// stats for calculating the average
+		overlapAvg += dist;
+		++overlapSubmissionsCounter;
+	}
 
-	/** maps nameIDs (from NamedAxisAlignedBoundingBox, which should be the same
-	    as ShadowAgent::getAgentTypeID()) to ShadowAgent::getAgentType(),
-	    see, e.g., ShadowAgent::createNamedAABB() or
-	   FrontOfficer::broadcast_AABBofAgent() */
-	StringsDictionary agentsTypesDictionary;
+	void connectWithDirektor(Director* d) {
+		if (d == nullptr)
+			throw report::rtError("Provided Director is actually NULL.");
+		Direktor = d;
+	}
 
-	/** list of AABBs of all agents currently active in the entire
-	    simulation, that is, managed by all FOs */
-	std::deque<NamedAxisAlignedBoundingBox> AABBs;
+	// to allow the Direktor to call methods that would be otherwise
+	//(in the MPI world) called from our internal methods, typically
+	// from the respond_...() ones
+	friend class Director;
 
-	/** cache of all recently retrieved geometries of agents
-	    that are computed elsewhere (managed by foreign FO) */
-	std::map<int, ShadowAgent*> shadowAgents;
-
-	/** a complete map of all agents in the simulation (includes even earlier
-	   agents) and their versions of their geometries that were broadcast the
-	   most recently, this attribute works in conjunction with 'shadowAgents'
-	   and getNearbyAgent() */
-	std::map<int, int> agentsAndBroadcastGeomVersions;
-
-	/** a complete map of all agents in the simulation and IDs of FOs
-	    on which they are currently computed; this map is completely
-	    rebuilt everytime the AABBs are exchanged */
-	std::map<int, int> agentsToFOsMap;
-
+  private:
 	/** adds an item to the map this->agentsToFOsMap,
 	    it should be called only from the AABB broadcast receiving methods */
 	void registerThatThisAgentIsAtThisFO(const int agentID, const int FOsID);
-
-	/** current global simulation time [min] */
-	float currTime = 0.0f;
-
-	/** counter of exports/snapshots, used to numerate frames and output image
-	 * files */
-	int frameCnt = 0;
-
-	/** flag if the renderNextFrame() will be called after this simulation round
-	 */
-	bool willRenderNextFrameFlag = false;
-
-	/** Flags if agents' drawForDebug() should be called with every
-	 * this->renderNextFrame() */
-	bool renderingDebug = false;
 
 	/** housekeeping before the AABBs exchange takes place */
 	void prepareForUpdateAndPublishAgents();
@@ -256,54 +211,16 @@ class FrontOfficer //: public Simulation
 	void postprocessAfterUpdateAndPublishAgents();
 
 	/** the main execute() method is actually made of this one */
-	void executeInternals(void);
+	void executeInternals();
 	/** the main execute() method is actually made of this one */
-	void executeExternals(void);
+	void executeExternals();
 	/** local counterpart to the Director::renderNextFrame() */
-	void renderNextFrame(void);
+	void renderNextFrame();
 
 	// ==================== communication methods ====================
 	// these are implemented in either exactly one of the two:
 	// Communication/FrontOfficerSMP.cpp
 	// Communication/FrontOfficerMPI.cpp
-
-	void waitHereUntilEveryoneIsHereToo();
-
-	int request_getNextAvailAgentID();
-
-	void request_startNewAgent(const int newAgentID,
-	                           const int associatedFO,
-	                           const bool wantsToAppearInCTCtracksTXTfile);
-	void request_closeAgent(const int agentID, const int associatedFO);
-	void request_updateParentalLink(const int childID, const int parentID);
-
-	// bool request_willRenderNextFrame();
-
-	void waitFor_publishAgentsAABBs();
-	void notify_publishAgentsAABBs(const int FOsID);
-	void broadcast_AABBofAgent(const ShadowAgent& ag);
-	void respond_AABBofAgent();
-	void respond_CntOfAABBs();
-
-	void broadcast_newAgentsTypes();
-	void respond_newAgentsTypes(int noOfIncomingNewAgentTypes);
-
-	void respond_setDetailedDrawingMode();
-	void respond_setDetailedReportingMode();
-
-	ShadowAgent* request_ShadowAgentCopy(const int agentID, const int FOsID);
-	void respond_ShadowAgentCopy(const int agentID);
-
-	void waitFor_renderNextFrame(const int FOsID);
-	void request_renderNextFrame(const int FOsID);
-
-	void respond_setRenderingDebug();
-
-  public:
-	void broadcast_throwException(const std::string& exceptionMessage);
-
-  protected:
-	void respond_throwException();
 
 	/*
 	naming nomenclature:
@@ -340,33 +257,98 @@ class FrontOfficer //: public Simulation
 	            typically the counter part to the broadcast
 	*/
 
-  private:
+	void waitHereUntilEveryoneIsHereToo();
+
+	int request_getNextAvailAgentID();
+
+	void request_startNewAgent(const int newAgentID,
+	                           const int associatedFO,
+	                           const bool wantsToAppearInCTCtracksTXTfile);
+	void request_closeAgent(const int agentID, const int associatedFO);
+	void request_updateParentalLink(const int childID, const int parentID);
+
+	// bool request_willRenderNextFrame();
+
+	void waitFor_publishAgentsAABBs();
+	void notify_publishAgentsAABBs(const int FOsID);
+	void broadcast_AABBofAgent(const ShadowAgent& ag);
+	void respond_AABBofAgent();
+	void respond_CntOfAABBs();
+
+	void broadcast_newAgentsTypes();
+	void respond_newAgentsTypes(int noOfIncomingNewAgentTypes);
+
+	void respond_setDetailedDrawingMode();
+	void respond_setDetailedReportingMode();
+
+	ShadowAgent* request_ShadowAgentCopy(const int agentID, const int FOsID);
+	void respond_ShadowAgentCopy(const int agentID);
+
+	void waitFor_renderNextFrame(const int FOsID);
+	void request_renderNextFrame(const int FOsID);
+
+	void respond_setRenderingDebug();
+
+	void respond_throwException();
+
+	// ==================== private variables ====================
+
+	ScenarioUPTR scenario;
+
+	int ID, nextFOsID, FOsCount;
+
 	float overlapMax = 0.f;
 	float overlapAvg = 0.f;
 	int overlapSubmissionsCounter = 0;
 
-  public:
-	void reportOverlap(const float dist) {
-		// new max overlap?
-		if (dist > overlapMax)
-			overlapMax = dist;
+	Director* Direktor = nullptr;
 
-		// stats for calculating the average
-		overlapAvg += dist;
-		++overlapSubmissionsCounter;
-	}
+	/** queue of existing agents scheduled for the addition to or
+	for the removal from the simulation (at the appropriate,
+	occasion) and computed on this node (managed by this FO) */
+	std::deque<AbstractAgent*> newAgents, deadAgents;
 
-	Director* Direktor = NULL;
+	/** map of all agents currently active in the simulation
+	and computed on this node (managed by this FO) */
+	std::map<int, AbstractAgent*> agents;
 
-  public:
-	void connectWithDirektor(Director* d) {
-		if (d == NULL)
-			throw report::rtError("Provided Director is actually NULL.");
-		Direktor = d;
-	}
+	/** maps nameIDs (from NamedAxisAlignedBoundingBox, which should be the same
+	as ShadowAgent::getAgentTypeID()) to ShadowAgent::getAgentType(),
+	see, e.g., ShadowAgent::createNamedAABB() or
+   FrontOfficer::broadcast_AABBofAgent() */
+	StringsDictionary agentsTypesDictionary;
 
-	// to allow the Direktor to call methods that would be otherwise
-	//(in the MPI world) called from our internal methods, typically
-	// from the respond_...() ones
-	friend class Director;
+	/** queue of AABBs of all agents currently active in the entire
+	    simulation, that is, managed by all FOs */
+	std::deque<NamedAxisAlignedBoundingBox> AABBs;
+
+	/** cache of all recently retrieved geometries of agents
+	    that are computed elsewhere (managed by foreign FO) */
+	std::map<int, ShadowAgent*> shadowAgents;
+
+	/** a complete map of all agents in the simulation (includes even earlier
+	   agents) and their versions of their geometries that were broadcast the
+	   most recently, this attribute works in conjunction with 'shadowAgents'
+	   and getNearbyAgent() */
+	std::map<int, int> agentsAndBroadcastGeomVersions;
+
+	/** a complete map of all agents in the simulation and IDs of FOs
+	    on which they are currently computed; this map is completely
+	    rebuilt everytime the AABBs are exchanged */
+	std::map<int, int> agentsToFOsMap;
+
+	/** current global simulation time [min] */
+	float currTime = 0.0f;
+
+	/** counter of exports/snapshots, used to numerate frames and output image
+	 * files */
+	int frameCnt = 0;
+
+	/** flag if the renderNextFrame() will be called after this simulation round
+	 */
+	bool willRenderNextFrameFlag = false;
+
+	/** Flags if agents' drawForDebug() should be called with every
+	 * this->renderNextFrame() */
+	bool renderingDebug = false;
 };

@@ -4,6 +4,7 @@
 #include "Scenarios/common/Scenario.hpp"
 #include "TrackRecord_CTC.hpp"
 #include "util/report.hpp"
+#include <any>
 #include <functional>
 #include <list>
 #include <utility>
@@ -21,6 +22,8 @@ class Director {
 	~Director();
 
 	void init();
+	int getFOsCount() const;
+	FrontOfficer& getFirstFO();
 
 	// ==================== simulation methods ====================
 	// these are implemented in:
@@ -171,8 +174,6 @@ class Director {
 	// ==================== private variables ====================
 
 	ScenarioUPTR scenario;
-	/** the firstFOsID is where the round robin chain starts */
-	int firstFOsID, FOsCount;
 
 	/** flag whether an user will be prompted (and the simulation would stop
 	    and wait) at the end of the renderNextFrame(); this attribute actually
@@ -219,5 +220,7 @@ class Director {
 	 * this->renderNextFrame() */
 	bool renderingDebug = false;
 
-	std::vector<FrontOfficer> FOs;
+	/** Pointer to (yet) unknown data for implementation purposes
+	 * (unique_ptr cannot point to void... => shared_ptr) **/
+	std::shared_ptr<void> implementationData = nullptr;
 };
