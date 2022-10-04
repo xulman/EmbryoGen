@@ -20,8 +20,8 @@ cp "$BUILD_D/CMakeCache.txt" "$BUILD_D/CMakeCache.txt.old"
 # Config
 CHANGE_PREC=T
 CHANGE_DBG=T
-CHANGE_DIST=T
-CHANGE_DIST_DBG=T
+CHANGE_DIST=F
+CHANGE_DIST_DBG=F
 CHANGE_STATIC=F
 
 if [ "$2" = "all" ]; then

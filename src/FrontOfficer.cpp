@@ -2,11 +2,7 @@
 #include "Agents/AbstractAgent.hpp"
 #include "Director.hpp"
 
-// Collect external forces
-
-// Collect external forces
-
-void FrontOfficer::init1_SMP() {
+void FrontOfficer::init1() {
 	report::message(fmt::format("FO #{} initializing now...", ID));
 	currTime = scenario->params->constants.initTime;
 
@@ -14,7 +10,7 @@ void FrontOfficer::init1_SMP() {
 	scenario->initializeAgents(this, ID, FOsCount);
 }
 
-void FrontOfficer::init2_SMP() {
+void FrontOfficer::init2() {
 	reportSituation();
 	report::message(fmt::format("FO #{} initialized", ID));
 }
@@ -90,7 +86,7 @@ FrontOfficer::~FrontOfficer() {
 	shadowAgents.clear();
 }
 
-void FrontOfficer::execute(void) {
+void FrontOfficer::execute() {
 	report::message(fmt::format("FO #{} is waiting to start simulating", ID));
 
 	const float stopTime = scenario->params->constants.stopTime;
@@ -131,7 +127,7 @@ void FrontOfficer::execute(void) {
 		if (willRenderNextFrameFlag) {
 			// will block itself until its part of the rendering is complete,
 			// and then it'll be waiting below ready for the next loop
-			renderNextFrame();
+			// renderNextFrame();
 		}
 
 		executeEndSub2();
@@ -212,25 +208,23 @@ void FrontOfficer::updateAndPublishAgents() {
 
 	// we want only to put our 'agents' list into order:
 	// remove/unregister dead agents
-	auto ag = deadAgents.begin();
-	while (ag != deadAgents.end()) {
-		agents.erase((*ag)->ID);   // remove from the 'agents' list
-		delete *ag;                // remove the agent itself (its d'tor)
-		ag = deadAgents.erase(ag); // remove from the 'deadAgents' list
+	for (auto ag_ptr : deadAgents) {
+		agents.erase(ag_ptr->ID);
+		delete ag_ptr;
 	}
+	deadAgents.clear();
 
 	// register the new ones (and remove from the "new born list")
-	ag = newAgents.begin();
-	while (ag != newAgents.end()) {
+	for (auto ag_ptr : newAgents) {
 #ifndef NDEBUG
-		if (agents.find((*ag)->ID) != agents.end())
+		if (agents.contains(ag_ptr->ID))
 			throw report::rtError(fmt::format(
 			    "Attempting to add another agent with the same ID {}",
-			    (*ag)->ID));
+			    ag_ptr->ID));
 #endif
-		agents[(*ag)->ID] = *ag;
-		ag = newAgents.erase(ag);
+		agents[ag_ptr->ID] = ag_ptr;
 	}
+	newAgents.clear();
 
 	// WAIT HERE UNTIL WE'RE TOLD TO START BROADCASTING OUR CHANGES
 	// only FO with a "token" does broadcasting, token passing
@@ -477,33 +471,37 @@ const ShadowAgent* FrontOfficer::getNearbyAgent(const int fetchThisID) {
 	return saCopy;
 }
 
-void FrontOfficer::renderNextFrame() {
+void FrontOfficer::renderNextFrame(i3d::Image3d<i3d::GRAY16>& imgMask,
+                                   i3d::Image3d<float>& imgPhantom,
+                                   i3d::Image3d<float>& imgOptics) {
 	report::message(fmt::format("Rendering time point {}", frameCnt));
 	SceneControls& sc = *scenario->params;
 
 	// ----------- OUTPUT EVENTS -----------
-	// clear the output images
-	sc.imgMask.GetVoxelData() = 0;
-	sc.imgPhantom.GetVoxelData() = 0;
-	sc.imgOptics.GetVoxelData() = 0;
 
 	// go over all cells, and render them -- ONLY IMAGES!
 	for (auto ag : agents) {
 		// raster images may not necessarily always exist,
 		// always check for their availability first:
-		if (sc.isProducingOutput(sc.imgPhantom) &&
-		    sc.isProducingOutput(sc.imgOptics)) {
+		if (sc.isProducingOutput(imgPhantom) &&
+		    sc.isProducingOutput(imgOptics)) {
+			ag.second->drawTexture(imgPhantom, imgOptics);
+			/*
 			ag.second->drawTexture(Direktor->refOnDirektorsImgPhantom(),
 			                       Direktor->refOnDirektorsImgOptics());
+			*/
 		}
-		if (sc.isProducingOutput(sc.imgMask)) {
+		if (sc.isProducingOutput(imgMask)) {
 
-			ag.second->drawMask(Direktor->refOnDirektorsImgMask());
+			ag.second->drawMask(imgMask);
+			// ag.second->drawMask(Direktor->refOnDirektorsImgMask());
 			if (renderingDebug)
-				ag.second->drawForDebug(
-				    Direktor
-				        ->refOnDirektorsImgMask()); // TODO, should go into its
-				                                    // own separate image
+				ag.second->drawForDebug(imgMask);
+			/* ag.second->drawForDebug(
+			    Direktor
+			        ->refOnDirektorsImgMask()); // TODO, should go into its
+			                                    // own separate image
+			                                    */
 		}
 	}
 	// note that this far the code was executed on all FOs, that means in

@@ -4,11 +4,12 @@
 #include "util/Vector3d.hpp"
 #include "util/synthoscopy/SNR.hpp"
 #include <chrono>
+#include <cmath>
 #include <fmt/core.h>
 #include <thread>
 #include <unordered_set>
 
-void Director::init1_SMP() {
+void Director::init1() {
 	report::message(fmt::format("Direktor initializing now..."));
 	currTime = scenario->params->constants.initTime;
 
@@ -21,24 +22,15 @@ void Director::init1_SMP() {
 	    sSum.x, sSum.y, sSum.z, sSpx.x, sSpx.y, sSpx.z);
 
 	double sSpxTotal = sSpx.x * sSpx.y * sSpx.z;
-	if (sSpxTotal > 1024.0 * 1024.0 * 1024.0) {
-		sSpxTotal /= 1024.0 * 1024.0 * 1024.0;
-		int sSpxTotal_int = (int)sSpxTotal;
-		int sSpxTotal_frac = (int)(sSpxTotal * 10.0) % 10;
-		report::message(fmt::format("{} ({}.{} Gvoxels)", sMsg, sSpxTotal_int,
-		                            sSpxTotal_frac));
-	} else if (sSpxTotal > 1024.0 * 1024.0) {
-		sSpxTotal /= 1024.0 * 1024.0;
-		int sSpxTotal_int = (int)sSpxTotal;
-		int sSpxTotal_frac = (int)(sSpxTotal * 10.0) % 10;
-		report::message(fmt::format("{} ({}.{} Mvoxels)", sMsg, sSpxTotal_int,
-		                            sSpxTotal_frac));
+	if (sSpxTotal > std::pow(1024.0, 3)) {
+		report::message(fmt::format("{} ({:.2f} Gvoxels)", sMsg,
+		                            sSpxTotal / std::pow(1024.0, 3)));
+	} else if (std::pow(1024.0, 2)) {
+		report::message(fmt::format("{} ({:.2f} Mvoxels)", sMsg,
+		                            sSpxTotal / std::pow(1024.0, 2)));
 	} else if (sSpxTotal > 1024.0) {
-		sSpxTotal /= 1024.0;
-		int sSpxTotal_int = (int)sSpxTotal;
-		int sSpxTotal_frac = (int)(sSpxTotal * 10.0) % 10;
-		report::message(fmt::format("{} ({}.{} Kvoxels)", sMsg, sSpxTotal_int,
-		                            sSpxTotal_frac));
+		report::message(
+		    fmt::format("{} ({:.2f} Kvoxels)", sMsg, sSpxTotal / 1024.0));
 	} else {
 		report::message(fmt::format("{} ({} voxels)", sMsg, sSpxTotal));
 	}
@@ -64,7 +56,7 @@ void Director::init1_SMP() {
 	}
 }
 
-void Director::init2_SMP(void) {
+void Director::init2() {
 	prepareForUpdateAndPublishAgents();
 	waitHereUntilEveryoneIsHereToo();
 
@@ -76,7 +68,7 @@ void Director::init2_SMP(void) {
 	report::message(fmt::format("Direktor initialized"));
 }
 
-void Director::init3_SMP(void) {
+void Director::init3() {
 	// NB: this method is here only for the cosmetic purposes:
 	//     just wanted that in the SMP case the rendering happens
 	//     as the very last operation of the entire init phase
@@ -119,11 +111,10 @@ void Director::execute() {
 	while (currTime < stopTime) {
 		// one simulation round is happening here,
 		// will this one end with rendering?
-		willRenderNextFrameFlag =
-		    currTime + incrTime >= (float)frameCnt * expoTime;
+		willRenderNextFrameFlag = currTime + incrTime >= float(frameCnt) * expoTime;
 
-		getFirstFO().willRenderNextFrameFlag = this->willRenderNextFrameFlag;
-		getFirstFO().executeInternals();
+		// getFirstFO().willRenderNextFrameFlag = this->willRenderNextFrameFlag;
+		broadcast_executeInternals();
 		waitHereUntilEveryoneIsHereToo();
 
 		prepareForUpdateAndPublishAgents();
@@ -133,7 +124,7 @@ void Director::execute() {
 		waitHereUntilEveryoneIsHereToo();
 		postprocessAfterUpdateAndPublishAgents();
 
-		getFirstFO().executeExternals();
+		broadcast_executeExternals();
 
 		waitHereUntilEveryoneIsHereToo();
 
@@ -146,7 +137,7 @@ void Director::execute() {
 
 		// move to the next simulation time point
 
-		getFirstFO().executeEndSub1();
+		broadcast_executeEndSub1();
 
 		currTime += incrTime;
 
@@ -161,18 +152,11 @@ void Director::execute() {
 		}
 
 		// this was promised to happen after every simulation round is over
-		getFirstFO().executeEndSub2();
+		broadcast_executeEndSub2();
 
 		scenario->updateScene(currTime);
 		waitHereUntilEveryoneIsHereToo();
 	}
-}
-
-void Director::prepareForUpdateAndPublishAgents() {
-	// empty because Direktor is not (yet) managing spatial info
-	// about all agents in the simulation
-
-	getFirstFO().prepareForUpdateAndPublishAgents();
 }
 
 void Director::updateAndPublishAgents() {
@@ -187,7 +171,7 @@ void Director::updateAndPublishAgents() {
 	// notifications had been transferred during the recent simulation
 
 	// remove dead agents from both lists
-	std::unordered_set<int> to_remove;
+	std::set<int> to_remove;
 	for (auto [id, _] : deadAgents)
 		to_remove.insert(id);
 
@@ -204,24 +188,21 @@ void Director::updateAndPublishAgents() {
 
 	// notify the first FO to start broadcasting fresh agents' AABBs
 	// this starts the round-robin-chain between FOs
-	notify_publishAgentsAABBs(getFirstFO().getID());
+	notify_publishAgentsAABBs();
 
 	// wait until we're notified from the last FO
 	// that his broadcasting is over
 	waitFor_publishAgentsAABBs();
 
+#ifndef NDEBUG
 	// all FOs except myself (assuming i=0 addresses the Direktor)
-	for (int i = 1; i <= getFOsCount(); ++i) {
-		if (request_CntOfAABBs(i) != agents.size())
+	auto counts = request_CntsOfAABBs();
+	for (int i = 0; i < getFOsCount(); ++i) {
+		if (counts[i] != agents.size())
 			throw report::rtError(fmt::format(
-			    "FO #{} does not have a complete list of AABBs", i));
+			    "FO #{} does not have a complete list of AABBs", i + 1));
 	}
-}
-
-void Director::postprocessAfterUpdateAndPublishAgents() {
-	// currently empty
-
-	getFirstFO().postprocessAfterUpdateAndPublishAgents();
+#endif
 }
 
 int Director::getNextAvailAgentID() { return ++lastUsedAgentID; }
@@ -286,31 +267,26 @@ void Director::renderNextFrame() {
 
 	// ----------- OUTPUT EVENTS -----------
 	// prepare the output images
-	sc.imgMask.GetVoxelData() = 0;
-	sc.imgPhantom.GetVoxelData() = 0;
-	sc.imgOptics.GetVoxelData() = 0;
+	sc.imgMask.SetAllVoxels(0);
+	sc.imgPhantom.SetAllVoxels(0);
+	sc.imgOptics.SetAllVoxels(0);
 
 	// --------- the big round robin scheme ---------
 	// start the round...:
 	// this essentially sends out the empty images, and leaves them empty!
-	request_renderNextFrame(getFirstFO().getID());
-
-	/* IF THE INITIAL IMAGES WERE NOT ZERO, HERE THEY MUST BE ZEROED
-	//clear the output images
-	sc.imgMask.GetVoxelData()    = 0;
-	sc.imgPhantom.GetVoxelData() = 0;
-	sc.imgOptics.GetVoxelData()  = 0;
-	*/
+	request_renderNextFrame();
 
 	// WAIT HERE UNTIL WE GET THE IMAGES BACK
 	// this essentially pours images from network into local images,
 	// which must be for sure zero beforehand
 	// this will block...
-	waitFor_renderNextFrame(getFirstFO().getID());
+	waitFor_renderNextFrame();
 
 	// save the images
 	ds::Connection ds_conn(sc.constants.ds_serverAddress, sc.constants.ds_port,
 	                       sc.constants.ds_datasetUUID);
+
+	// SAVE MASK
 	if (sc.isProducingOutput(sc.imgMask)) {
 		auto fn = fmt::format(sc.constants.imgMask_filenameTemplate, frameCnt);
 
@@ -330,6 +306,7 @@ void Director::renderNextFrame() {
 		sc.displayChannel_transferImgMask();
 	}
 
+	// SAVE PHANTOM
 	if (sc.isProducingOutput(sc.imgPhantom)) {
 		auto fn =
 		    fmt::format(sc.constants.imgPhantom_filenameTemplate, frameCnt);
@@ -350,6 +327,7 @@ void Director::renderNextFrame() {
 		sc.displayChannel_transferImgPhantom();
 	}
 
+	// SAVE OPTICS
 	if (sc.isProducingOutput(sc.imgOptics)) {
 		auto fn =
 		    fmt::format(sc.constants.imgOptics_filenameTemplate, frameCnt);
@@ -370,6 +348,7 @@ void Director::renderNextFrame() {
 		sc.displayChannel_transferImgOptics();
 	}
 
+	// SAVE FINAL
 	if (sc.isProducingOutput(sc.imgFinal)) {
 		auto fn = fmt::format(sc.constants.imgFinal_filenameTemplate, frameCnt);
 		report::message(fmt::format("Creating {}, hold on...", fn));
@@ -544,67 +523,4 @@ void Director::reportAgentsAllocation() {
 	for (const auto& AgFO : agents)
 		report::message(
 		    fmt::format("agent ID {} at FO #{}", AgFO.first, AgFO.second));
-}
-
-// =================================== MOVED FROM DirectorSMP.cpp
-void Director::notify_publishAgentsAABBs(const int /* FOsID */) {
-	// notify the first FO
-	// MPI_signalThisEvent_to( FOsID );
-
-	// in the SMP world:
-	getFirstFO().updateAndPublishAgents();
-}
-
-void Director::waitFor_publishAgentsAABBs() {
-	// wait here until we're told (that the broadcasting is over)
-
-	// in MPI case, really do wait for the event to come
-}
-
-size_t Director::request_CntOfAABBs(const int /* FOsID */) {
-	return getFirstFO().getSizeOfAABBsList();
-}
-
-void Director::notify_setDetailedDrawingMode(const int /* FOsID */,
-                                             const int agentID,
-                                             const bool state) {
-	// in the SMP world:
-	getFirstFO().setAgentsDetailedDrawingMode(agentID, state);
-	//
-	// in the MPI, send the above to the agent FOsID
-}
-
-void Director::notify_setDetailedReportingMode(const int /* FOsID */,
-                                               const int agentID,
-                                               const bool state) {
-	// in the SMP world:
-	getFirstFO().setAgentsDetailedReportingMode(agentID, state);
-	//
-	// in the MPI, send the above to the agent FOsID
-}
-
-void Director::waitHereUntilEveryoneIsHereToo() {}
-
-void Director::request_renderNextFrame(const int /* FOsID */) {
-	// in the SMP:
-	getFirstFO().renderNextFrame();
-
-	// MPI world:
-	// this exactly the same code as in
-	// FrontOfficer::request_renderNextFrame(FOsID)
-}
-
-void Director::waitFor_renderNextFrame(const int /*FOsID*/) {
-	// does nothing in the SMP
-
-	// MPI world:
-	// this exactly the same code as in FrontOfficer::waitFor_renderNextFrame()
-}
-
-void Director::broadcast_setRenderingDebug(const bool setFlagToThis) {
-	// SMP:
-	getFirstFO().setSimulationDebugRendering(setFlagToThis);
-
-	// MPI world:
-	// non-blocking send out to everyone
 }

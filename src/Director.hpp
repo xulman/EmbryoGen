@@ -111,11 +111,11 @@ class Director {
 	// Director.cpp
 
 	/** stage 1/3 to do: scene heavy inits and synthoscopy warm up */
-	void init1_SMP();
+	void init1();
 	/** stage 2/3 to do: scene heavy inits and synthoscopy warm up */
-	void init2_SMP();
+	void init2();
 	/** stage 3/3 to do: renders the first frame */
-	void init3_SMP();
+	void init3();
 
 	/** housekeeping before the AABBs exchange takes place */
 	void prepareForUpdateAndPublishAgents();
@@ -126,23 +126,14 @@ class Director {
 
 	/** housekeeping after the complete AABBs exchange took place,
 	    "complete" means that _all_ FOs have broadcast all they wanted */
-	void postprocessAfterUpdateAndPublishAgents();
+	void postprocessAfterUpdateAndPublishAgents() const;
 
 	/** Asks all agents to render and raster their state into displayUnit and
 	 * the images */
 	void renderNextFrame();
 
 	// ==================== communication methods ====================
-	// these are implemented in either exactly one of the two:
-	// Communication/DirectorSMP.cpp
-	// Communication/DirectorMPI.cpp
-
-	// ==================== communication methods ====================
-	// these are implemented in either exactly one of the two:
-	// Communication/DirectorSMP.cpp
-	// Communication/DirectorMPI.cpp
-
-	void waitHereUntilEveryoneIsHereToo();
+	void waitHereUntilEveryoneIsHereToo() const;
 
 	void respond_getNextAvailAgentID();
 
@@ -152,24 +143,26 @@ class Director {
 
 	// void respond_willRenderNextFrameFlag();
 
-	void notify_publishAgentsAABBs(const int FOsID);
-	void waitFor_publishAgentsAABBs();
+	void notify_publishAgentsAABBs() const;
+	void waitFor_publishAgentsAABBs() const;
 	void respond_AABBofAgent();
-	size_t request_CntOfAABBs(const int FOsID);
+	std::vector<std::size_t> request_CntsOfAABBs() const;
 
 	void respond_newAgentsTypes(int noOfIncomingNewAgentTypes);
 
-	void notify_setDetailedDrawingMode(const int FOsID,
-	                                   const int agentID,
-	                                   const bool state);
-	void notify_setDetailedReportingMode(const int FOsID,
-	                                     const int agentID,
-	                                     const bool state);
+	void
+	notify_setDetailedDrawingMode(int FOsID, int agentID, bool state) const;
+	void
+	notify_setDetailedReportingMode(int FOsID, int agentID, bool state) const;
 
-	void request_renderNextFrame(const int FOsID);
-	void waitFor_renderNextFrame(const int FOsID);
+	void request_renderNextFrame() const;
+	void waitFor_renderNextFrame() const;
 
-	void broadcast_setRenderingDebug(const bool setFlagToThis);
+	void broadcast_setRenderingDebug(bool setFlagToThis) const;
+	void broadcast_executeInternals() const;
+	void broadcast_executeExternals() const;
+	void broadcast_executeEndSub1() const;
+	void broadcast_executeEndSub2() const;
 
 	// ==================== private variables ====================
 

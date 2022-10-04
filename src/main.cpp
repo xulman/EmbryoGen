@@ -22,8 +22,8 @@ int main(int argc, char** argv) {
 		Director d([&]() { return scenarios.getScenario(); });
 
 		d.init();
-		// no active waiting for Direktor's events, the respective
-		// FOs' methods will be triggered directly from the Direktor
+		// no active waiting for Director's events, the respective
+		// FOs' methods will be triggered directly from the Director
 		d.execute(); // execute the simulation, and render frames
 	}
 

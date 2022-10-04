@@ -16,11 +16,9 @@ class Director;
 class FrontOfficer //: public Simulation
 {
   public:
-	FrontOfficer(ScenarioUPTR s,
-	             const int nextFO,
-	             const int myPortion,
-	             const int allPortions)
-	    : scenario(std::move(s)), ID(myPortion), nextFOsID(nextFO),
+	FrontOfficer(ScenarioUPTR s, const int myPortion, const int allPortions)
+	    : scenario(std::move(s)), ID(myPortion),
+	      nextFOsID((myPortion + 1) % (allPortions + 1)),
 	      FOsCount(allPortions) {
 		scenario->declareFOcontext(myPortion);
 		// TODO: create an extra thread to execute/service the respond_...()
@@ -43,9 +41,9 @@ class FrontOfficer //: public Simulation
 	// FrontOfficer.cpp
 
 	/** stage 1/2 to do: scene heavy inits and adds agents */
-	void init1_SMP();
+	void init1();
 	/** stage 2/2 to do: scene heavy inits and adds agents */
-	void init2_SMP();
+	void init2();
 
 	/** does the simulation loops, i.e. calls AbstractAgent's methods */
 	void execute();
@@ -214,8 +212,16 @@ class FrontOfficer //: public Simulation
 	void executeInternals();
 	/** the main execute() method is actually made of this one */
 	void executeExternals();
-	/** local counterpart to the Director::renderNextFrame() */
+
+	/** There are two functions doing the same
+	 * First (without args) is suppose to get to images via some external way
+	 * Second is passing references to images (for local use)
+	 * These will be called as needed from
+	 * SimulationControl/{Director, FrontOffier}*.cpp  **/
 	void renderNextFrame();
+	void renderNextFrame(i3d::Image3d<i3d::GRAY16>& imgMask,
+	                     i3d::Image3d<float>& imgPhantom,
+	                     i3d::Image3d<float>& imgOptics);
 
 	// ==================== communication methods ====================
 	// these are implemented in either exactly one of the two:
@@ -236,25 +242,26 @@ class FrontOfficer //: public Simulation
 	          it is a peer to peer communication so request methods on the
 	          Direktor's side typically have a parameter that identifies
 	          particular FO, this param is typically missing on the FO side
-	          since there is only one Direktor (and therefore an obvious peer)
+	          since there is only one Direktor (and therefore an obvious
+	peer)
 
 	respond_* typically a counter part to the request_ method
 
 
 	notify_*  that is a non-blocking request until the other side does
-	something, it is a "fire and forget" event, the same addressing rule applies
-	          as for the request methods
+	something, it is a "fire and forget" event, the same addressing rule
+	applies as for the request methods
 
-	waitFor_* blocking counter part to the notify_ methods, the peer waits here
-	until notify signal arrives, it however does not matter who has sent the
-	signal, only the "type" of the signal is important as this method waits only
-	for a signal of the given type
+	waitFor_* blocking counter part to the notify_ methods, the peer waits
+	here until notify signal arrives, it however does not matter who has
+	sent the signal, only the "type" of the signal is important as this
+	method waits only for a signal of the given type
 
 
-	broadcast_* is similar to notify, also sends a particular signal (or data),
-	            it is also "fire and forget", but it addresses everyone, that is
-	            the Direktor and all FOs including yourself; respond_ method is
-	            typically the counter part to the broadcast
+	broadcast_* is similar to notify, also sends a particular signal (or
+	data), it is also "fire and forget", but it addresses everyone, that is
+	            the Direktor and all FOs including yourself; respond_ method
+	is typically the counter part to the broadcast
 	*/
 
 	void waitHereUntilEveryoneIsHereToo();
