@@ -1,10 +1,8 @@
 #include "../Director.hpp"
 #include <cassert>
 
-Director::Director(std::function<ScenarioUPTR()> ScenarioFactory,
-                   const int firstFO,
-                   const int allPortions)
-    : scenario(ScenarioFactory()), firstFOsID(firstFO), FOsCount(allPortions),
+Director::Director(std::function<ScenarioUPTR()> ScenarioFactory)
+    : scenario(ScenarioFactory()), firstFOsID(1), FOsCount(1),
       shallWaitForUserPromptFlag(scenario->params->shallWaitForUserPromptFlag) {
 	scenario->declareDirektorContext();
 

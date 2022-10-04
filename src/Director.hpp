@@ -11,14 +11,12 @@
 /** has access to Scenario, to reach its doPhaseIIandIII() */
 class Director {
   public:
-	Director(std::function<ScenarioUPTR()> ScenarioFactory,
-	         const int firstFO,
-	         const int allPortions);
+	Director(std::function<ScenarioUPTR()> ScenarioFactory);
 
 	Director(const Director&) = delete;
-	Director(Director&&) = delete;
+	Director(Director&&) = default;
 	Director& operator=(const Director&) = delete;
-	Director& operator=(Director&&) = delete;
+	Director& operator=(Director&&) = default;
 
 	/** attempts to clean up, if not done earlier */
 	~Director();

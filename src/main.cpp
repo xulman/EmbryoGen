@@ -15,18 +15,16 @@ int main(int argc, char** argv) {
 
 	// the Scenario object paradigm: there's always (independent) one per
 	// Direktor and each FO; thus, it is always created inline in respective
-	// c'tor calls (scenarios.getScenario() returns reference to copy)
+	// c'tor calls (scenarios.getScenario() returns copy as an unique_ptr)
 
 	auto timeHandle = tic();
-	// single machine case
 	{
-		auto d = std::make_unique<Director>(
-		    [&]() { return scenarios.getScenario(); }, 1, 1);
+		Director d([&]() { return scenarios.getScenario(); });
 
-		d->init();
+		d.init();
 		// no active waiting for Direktor's events, the respective
 		// FOs' methods will be triggered directly from the Direktor
-		d->execute(); // execute the simulation, and render frames
+		d.execute(); // execute the simulation, and render frames
 	}
 
 	report::message(fmt::format("simulation required {}", toc(timeHandle)));
