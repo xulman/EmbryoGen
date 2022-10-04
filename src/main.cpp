@@ -28,5 +28,5 @@ int main(int argc, char** argv) {
 	}
 
 	report::message(fmt::format("simulation required {}", toc(timeHandle)));
-	std::cout << "Happy end.\n\n";
+	report::message("Happy end.\n");
 }

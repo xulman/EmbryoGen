@@ -14,45 +14,17 @@ class Director {
 	Director(std::function<ScenarioUPTR()> ScenarioFactory);
 
 	Director(const Director&) = delete;
-	Director(Director&&) = default;
 	Director& operator=(const Director&) = delete;
-	Director& operator=(Director&&) = default;
 
-	/** attempts to clean up, if not done earlier */
+	Director(Director&&) = default;
+	Director& operator=(Director&&) = default;
 	~Director();
 
 	void init();
 
-  protected:
-	ScenarioUPTR scenario;
-
-  public:
-	/** the firstFOsID is where the round robin chain starts */
-	const int firstFOsID, FOsCount;
-
 	// ==================== simulation methods ====================
 	// these are implemented in:
 	// Director.cpp
-
-	/** scene heavy inits and synthoscopy warm up, renders the first frame in
-	   the end; similarly to FrontOfficer::initMPI(), the execution of the
-	   initialization routine has to interweave with the execution of FO's init
-	   and so this method is chopped into three pieces, these pieces take care
-	   of the synchronization on their own when in MPI regime but during SMP the
-	   internal sync stuff does not work and the sync has to be enforced from
-	   the outside */
-	void initMPI() {
-		init1_SMP();
-		init2_SMP();
-		init3_SMP();
-	}
-
-	/** stage 1/3 to do: scene heavy inits and synthoscopy warm up */
-	void init1_SMP();
-	/** stage 2/3 to do: scene heavy inits and synthoscopy warm up */
-	void init2_SMP();
-	/** stage 3/3 to do: renders the first frame */
-	void init3_SMP();
 
 	/** does the simulation loops, i.e. triggers calls of AbstractAgent's
 	 * methods in the right order */
@@ -116,51 +88,31 @@ class Director {
 	void reportSituation();
 	void reportAgentsAllocation();
 
-  protected:
-	/** last-used ID from any of the existing or former-existing agents;
-	    with every new agent added, this attribute must always increase */
-	int lastUsedAgentID = 0;
+	// provides shortcuts for the FO to the output images of
+	// the Direktor to have them filled directly
+	i3d::Image3d<i3d::GRAY16>& refOnDirektorsImgMask(void) {
+		return scenario->params->imgMask;
+	}
 
-	/** maps of existing agents scheduled for the addition to or
-	    for the removal from the simulation (at the appropriate occasion),
-	     maps between agent ID and FO ID associated with this agent */
-	std::list<std::pair<int, int>> newAgents, deadAgents;
+	i3d::Image3d<float>& refOnDirektorsImgPhantom(void) {
+		return scenario->params->imgPhantom;
+	}
 
-	/** map of all agents currently active in the simulation,
-	    maps between agent ID and FO ID associated with this agent,
-	    the main purpose of this map is to know which FO to ask when
-	    detailed geometry (in a form of the ShadowAgent) is needed */
-	std::list<std::pair<int, int>> agents;
+	i3d::Image3d<float>& refOnDirektorsImgOptics(void) {
+		return scenario->params->imgOptics;
+	}
 
-	/** structure to hold durations of tracks and the mother-daughter relations
-	 */
-	TrackRecords_CTC tracks;
+  private:
+	// ==================== simulation methods ====================
+	// these are implemented in:
+	// Director.cpp
 
-	/** current global simulation time [min] */
-	float currTime = 0.0f;
-
-	/** counter of exports/snapshots, used to numerate frames and output image
-	 * files */
-	int frameCnt = 0;
-
-	/** flag if the renderNextFrame() will be called after this simulation round
-	 */
-	bool willRenderNextFrameFlag = false;
-
-	/** flag whether an user will be prompted (and the simulation would stop
-	    and wait) at the end of the renderNextFrame(); this attribute actually
-	    shadows/overlays over the scenario.params.shallWaitForUserPromptFlag */
-	bool& shallWaitForUserPromptFlag;
-
-	/** time period (in msecs) the simulator waits in
-	   Director::renderNextFrame() when std. input is closed (after Ctrl+D)
-	   before it proceeds with the next round of the simulation (and next round
-	   of rendering eventually) */
-	size_t shallWaitForSimViewer_millis = 1000;
-
-	/** Flags if agents' drawForDebug() should be called with every
-	 * this->renderNextFrame() */
-	bool renderingDebug = false;
+	/** stage 1/3 to do: scene heavy inits and synthoscopy warm up */
+	void init1_SMP();
+	/** stage 2/3 to do: scene heavy inits and synthoscopy warm up */
+	void init2_SMP();
+	/** stage 3/3 to do: renders the first frame */
+	void init3_SMP();
 
 	/** housekeeping before the AABBs exchange takes place */
 	void prepareForUpdateAndPublishAgents();
@@ -175,7 +127,12 @@ class Director {
 
 	/** Asks all agents to render and raster their state into displayUnit and
 	 * the images */
-	void renderNextFrame(void);
+	void renderNextFrame();
+
+	// ==================== communication methods ====================
+	// these are implemented in either exactly one of the two:
+	// Communication/DirectorSMP.cpp
+	// Communication/DirectorMPI.cpp
 
 	// ==================== communication methods ====================
 	// these are implemented in either exactly one of the two:
@@ -211,26 +168,56 @@ class Director {
 
 	void broadcast_setRenderingDebug(const bool setFlagToThis);
 
-  public:
-	void broadcast_throwException(const std::string& exceptionMessage);
+	// ==================== private variables ====================
 
-  protected:
-	void respond_throwException();
+	ScenarioUPTR scenario;
+	/** the firstFOsID is where the round robin chain starts */
+	int firstFOsID, FOsCount;
+
+	/** flag whether an user will be prompted (and the simulation would stop
+	    and wait) at the end of the renderNextFrame(); this attribute actually
+	    shadows/overlays over the scenario.params.shallWaitForUserPromptFlag */
+	bool& shallWaitForUserPromptFlag;
+
+	/** last-used ID from any of the existing or former-existing agents;
+	    with every new agent added, this attribute must always increase */
+	int lastUsedAgentID = 0;
+
+	/** maps of existing agents scheduled for the addition to or
+	    for the removal from the simulation (at the appropriate occasion),
+	     maps between agent ID and FO ID associated with this agent */
+	std::list<std::pair<int, int>> newAgents, deadAgents;
+
+	/** map of all agents currently active in the simulation,
+	    maps between agent ID and FO ID associated with this agent,
+	    the main purpose of this map is to know which FO to ask when
+	    detailed geometry (in a form of the ShadowAgent) is needed */
+	std::list<std::pair<int, int>> agents;
+
+	/** structure to hold durations of tracks and the mother-daughter relations
+	 */
+	TrackRecords_CTC tracks;
+
+	/** current global simulation time [min] */
+	float currTime = 0.0f;
+
+	/** counter of exports/snapshots, used to numerate frames and output image
+	 * files */
+	int frameCnt = 0;
+
+	/** flag if the renderNextFrame() will be called after this simulation round
+	 */
+	bool willRenderNextFrameFlag = false;
+
+	/** time period (in msecs) the simulator waits in
+	Director::renderNextFrame() when std. input is closed (after Ctrl+D)
+	before it proceeds with the next round of the simulation (and next round
+	of rendering eventually) */
+	size_t shallWaitForSimViewer_millis = 1000;
+
+	/** Flags if agents' drawForDebug() should be called with every
+	 * this->renderNextFrame() */
+	bool renderingDebug = false;
 
 	std::vector<FrontOfficer> FOs;
-
-  public:
-	// provides shortcuts for the FO to the output images of
-	// the Direktor to have them filled directly
-	i3d::Image3d<i3d::GRAY16>& refOnDirektorsImgMask(void) {
-		return scenario->params->imgMask;
-	}
-
-	i3d::Image3d<float>& refOnDirektorsImgPhantom(void) {
-		return scenario->params->imgPhantom;
-	}
-
-	i3d::Image3d<float>& refOnDirektorsImgOptics(void) {
-		return scenario->params->imgOptics;
-	}
 };

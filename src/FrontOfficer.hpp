@@ -27,9 +27,9 @@ class FrontOfficer //: public Simulation
 	}
 
 	FrontOfficer(const FrontOfficer&) = delete;
-	// TODO Fix this later :D
-	FrontOfficer(FrontOfficer&&) = default;
 	FrontOfficer& operator=(const FrontOfficer&) = delete;
+
+	FrontOfficer(FrontOfficer&&) = default;
 	FrontOfficer& operator=(FrontOfficer&&) = default;
 
 	~FrontOfficer();
