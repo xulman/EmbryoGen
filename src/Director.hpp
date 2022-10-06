@@ -23,15 +23,13 @@ class Director {
 
 	void init();
 	int getFOsCount() const;
-	FrontOfficer& getFirstFO();
+
+	/** Singal to execute simulation */
+	void execute();
 
 	// ==================== simulation methods ====================
 	// these are implemented in:
 	// Director.cpp
-
-	/** does the simulation loops, i.e. triggers calls of AbstractAgent's
-	 * methods in the right order */
-	void execute();
 
 	/** new available, not-yet-used, unique agent ID is created here */
 	int getNextAvailAgentID();
@@ -116,6 +114,10 @@ class Director {
 	void init2();
 	/** stage 3/3 to do: renders the first frame */
 	void init3();
+
+	/** does the simulation loops, i.e. triggers calls of AbstractAgent's
+	 * methods in the right order */
+	void _execute();
 
 	/** housekeeping before the AABBs exchange takes place */
 	void prepareForUpdateAndPublishAgents();

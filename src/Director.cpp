@@ -100,7 +100,7 @@ Director::~Director() {
 	report::debugMessage(fmt::format("tracks.txt was saved..."));
 }
 
-void Director::execute() {
+void Director::_execute() {
 	report::message(fmt::format("Direktor has just started the simulation"));
 
 	const float stopTime = scenario->params->constants.stopTime;

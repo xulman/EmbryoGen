@@ -16,14 +16,7 @@ class Director;
 class FrontOfficer //: public Simulation
 {
   public:
-	FrontOfficer(ScenarioUPTR s, const int myPortion, const int allPortions)
-	    : scenario(std::move(s)), ID(myPortion),
-	      nextFOsID((myPortion + 1) % (allPortions + 1)),
-	      FOsCount(allPortions) {
-		scenario->declareFOcontext(myPortion);
-		// TODO: create an extra thread to execute/service the respond_...()
-		// methods
-	}
+	FrontOfficer(ScenarioUPTR s, const int myPortion, const int allPortions);
 
 	FrontOfficer(const FrontOfficer&) = delete;
 	FrontOfficer& operator=(const FrontOfficer&) = delete;
@@ -39,6 +32,9 @@ class FrontOfficer //: public Simulation
 	// ==================== simulation methods ====================
 	// these are implemented in:
 	// FrontOfficer.cpp
+
+	/** Initialize FO */
+	void init();
 
 	/** stage 1/2 to do: scene heavy inits and adds agents */
 	void init1();
@@ -187,12 +183,6 @@ class FrontOfficer //: public Simulation
 		Direktor = d;
 	}
 
-	// to allow the Direktor to call methods that would be otherwise
-	//(in the MPI world) called from our internal methods, typically
-	// from the respond_...() ones
-	friend class Director;
-
-  private:
 	/** adds an item to the map this->agentsToFOsMap,
 	    it should be called only from the AABB broadcast receiving methods */
 	void registerThatThisAgentIsAtThisFO(const int agentID, const int FOsID);
@@ -223,6 +213,7 @@ class FrontOfficer //: public Simulation
 	                     i3d::Image3d<float>& imgPhantom,
 	                     i3d::Image3d<float>& imgOptics);
 
+  private:
 	// ==================== communication methods ====================
 	// these are implemented in either exactly one of the two:
 	// Communication/FrontOfficerSMP.cpp
@@ -358,4 +349,8 @@ class FrontOfficer //: public Simulation
 	/** Flags if agents' drawForDebug() should be called with every
 	 * this->renderNextFrame() */
 	bool renderingDebug = false;
+
+	/** Pointer to (yet) unknown data for implementation purposes
+	 * (unique_ptr cannot point to void... => shared_ptr) **/
+	std::shared_ptr<void> implementationData = nullptr;
 };

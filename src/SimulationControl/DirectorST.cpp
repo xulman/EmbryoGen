@@ -34,7 +34,6 @@ void Director::init() {
 }
 
 int Director::getFOsCount() const { return 1; }
-FrontOfficer& Director::getFirstFO() { return get_data(implementationData).FO; }
 
 void Director::prepareForUpdateAndPublishAgents() {
 	get_data(implementationData).FO.prepareForUpdateAndPublishAgents();
@@ -101,3 +100,5 @@ void Director::broadcast_executeEndSub1() const {
 void Director::broadcast_executeEndSub2() const {
 	get_data(implementationData).FO.executeEndSub2();
 }
+
+void Director::execute() { _execute(); }
