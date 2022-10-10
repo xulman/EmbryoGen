@@ -55,6 +55,18 @@ std::vector<std::size_t> Director::request_CntsOfAABBs() const {
 	return {get_data(implementationData).FO.getSizeOfAABBsList()};
 }
 
+std::vector<std::vector<std::pair<int, bool>>>
+Director::request_startedAgents() const {
+	return {get_data(implementationData).FO.getStartedAgents()};
+}
+std::vector<std::vector<int>> Director::request_closedAgents() const {
+	return {get_data(implementationData).FO.getClosedAgents()};
+}
+std::vector<std::vector<std::pair<int, int>>>
+Director::request_parentalLinksUpdates() const {
+	return {get_data(implementationData).FO.getParentalLinksUpdates()};
+}
+
 void Director::request_renderNextFrame() const {
 	SceneControls& sc = *scenario->params;
 	get_data(implementationData)

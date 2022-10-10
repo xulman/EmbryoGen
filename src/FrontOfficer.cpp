@@ -187,23 +187,6 @@ void FrontOfficer::updateAndPublishAgents() {
 		broadcast_AABBofAgent(*(ag.second));
 	}
 
-	/*
-	//here, according to doc/agentTypeDictionary.txt
-	//the previous for-cycle would look like this:
-	size_t cnt = agents.size();
-	for (auto ag : agents)
-	{
-report::debugMessage(fmt::format("reporting AABB of agent ID {}" , ag.first));
-	    if (cnt > 1)
-	        broadcast_AABBofAgent(*(ag.second),0);
-	    else
-	        //the last AABB reports how many agentsTypesDictionary items will
-follow
-	        broadcast_AABBofAgent(*(ag.second),agentsTypesDictionary.howManyShouldBeBroadcast());
-	    --cnt;
-	}
-	*/
-
 	// this passes the "token" on another FO
 	notify_publishAgentsAABBs(nextFOsID);
 
@@ -218,7 +201,7 @@ void FrontOfficer::postprocessAfterUpdateAndPublishAgents() {
 }
 
 int FrontOfficer::getNextAvailAgentID() {
-	return request_getNextAvailAgentID();
+	return nextAvailAgentID++;
 }
 
 void FrontOfficer::startNewAgent(AbstractAgent* ag,
@@ -233,7 +216,7 @@ void FrontOfficer::startNewAgent(AbstractAgent* ag,
 	ag->setOfficer(this);
 
 	// remote registration:
-	request_startNewAgent(ag->ID, this->ID, wantsToAppearInCTCtracksTXTfile);
+	startedAgents.emplace_back(ag->ID, wantsToAppearInCTCtracksTXTfile);
 
 	report::debugMessage(
 	    fmt::format("just registered this new agent: {}", ag->getSignature()));
@@ -248,7 +231,7 @@ void FrontOfficer::closeAgent(AbstractAgent* ag) {
 	deadAgents.push_back(ag);
 
 	// remote registration
-	request_closeAgent(ag->ID, this->ID);
+	closedAgents.emplace_back(ag->ID);
 
 	report::debugMessage(fmt::format("just unregistered this dead agent: {}",
 	                                 ag->getSignature()));
@@ -259,7 +242,7 @@ void FrontOfficer::startNewDaughterAgent(AbstractAgent* ag,
 	startNewAgent(ag, true);
 
 	// CTC logging: also add the parental link
-	request_updateParentalLink(ag->ID, parentID);
+	parentalLinks.emplace_back(ag->ID, parentID);
 }
 
 void FrontOfficer::closeMotherStartDaughters(AbstractAgent* mother,

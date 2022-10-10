@@ -89,11 +89,11 @@ Director::~Director() {
 	// TODO: should close/kill the service thread too
 
 	// close tracks of all agents
-	for (auto ag : agents) {
+	for (auto [id, _] : agents) {
 		// CTC logging?
-		if (tracks.isTrackFollowed(ag.first)    // was part of logging?
-		    && !tracks.isTrackClosed(ag.first)) // wasn't closed yet?
-			tracks.closeTrack(ag.first, frameCnt - 1);
+		if (tracks.isTrackFollowed(id)    // was part of logging?
+		    && !tracks.isTrackClosed(id)) // wasn't closed yet?
+			tracks.closeTrack(id, frameCnt - 1);
 	}
 
 	tracks.exportAllToFile("tracks.txt");
@@ -111,7 +111,8 @@ void Director::_execute() {
 	while (currTime < stopTime) {
 		// one simulation round is happening here,
 		// will this one end with rendering?
-		willRenderNextFrameFlag = currTime + incrTime >= float(frameCnt) * expoTime;
+		willRenderNextFrameFlag =
+		    currTime + incrTime >= float(frameCnt) * expoTime;
 
 		// getFirstFO().willRenderNextFrameFlag = this->willRenderNextFrameFlag;
 		broadcast_executeInternals();
@@ -166,21 +167,43 @@ void Director::updateAndPublishAgents() {
 	// list of newly created in 'newAgents'
 
 	// we essentially only update our "maps"
-	// so that we reliably know "who is living where",
-	// there will be no (network) traffic now because all necessary
-	// notifications had been transferred during the recent simulation
+	// so that we reliably know "who is living where"
 
-	// remove dead agents from both lists
+	// Remove closed agents
+	auto closedAgents = request_closedAgents();
 	std::set<int> to_remove;
-	for (auto [id, _] : deadAgents)
-		to_remove.insert(id);
+	for (std::size_t fo = 1; fo <= closedAgents.size(); ++fo)
+		for (auto id : closedAgents[fo - 1]) {
+			to_remove.insert(id);
+			// CTC logging?
+			if (tracks.isTrackFollowed(id))
+				tracks.closeTrack(id, frameCnt - 1);
+		}
 
-	agents.remove_if(
-	    [&](std::pair<int, int> p) { return to_remove.contains(p.first); });
-	deadAgents.clear();
+	std::erase_if(agents, [&](auto p) { return to_remove.contains(p.first); });
 
-	// move new agents between both lists
-	agents.splice(agents.begin(), newAgents);
+	// Fetch started agents
+	auto startedAgents = request_startedAgents();
+	for (std::size_t fo = 1; fo <= startedAgents.size(); ++fo)
+		for (auto [id, track] : startedAgents[fo - 1]) {
+#ifndef NDEBUG
+			if (agents.contains(id))
+				throw report::rtError(
+				    fmt::format("Agent: {} already exists", id));
+
+#endif
+			agents[id] = int(fo);
+
+			// CTC logging?
+			if (track)
+				tracks.startNewTrack(id, frameCnt);
+		}
+
+	// Update parental links
+	auto parentalLinksUpdates = request_parentalLinksUpdates();
+	for (std::size_t fo = 1; fo <= parentalLinksUpdates.size(); ++fo)
+		for (auto [childID, parentID] : parentalLinksUpdates[fo - 1])
+			tracks.updateParentalLink(childID, parentID);
 
 	// now tell the FOs to start interchanging AABBs of their active agents:
 	// notice that every FO should be "prepared" for this since all
@@ -205,40 +228,10 @@ void Director::updateAndPublishAgents() {
 #endif
 }
 
-int Director::getNextAvailAgentID() { return ++lastUsedAgentID; }
-
-void Director::startNewAgent(const int agentID,
-                             const int associatedFO,
-                             const bool wantsToAppearInCTCtracksTXTfile) {
-	// register the agent for adding into the system
-	newAgents.emplace_back(agentID, associatedFO);
-
-	// CTC logging?
-	if (wantsToAppearInCTCtracksTXTfile)
-		tracks.startNewTrack(agentID, frameCnt);
-}
-
-void Director::closeAgent(const int agentID, const int associatedFO) {
-	// register the agent for removing from the system
-	deadAgents.emplace_back(agentID, associatedFO);
-
-	// CTC logging?
-	if (tracks.isTrackFollowed(agentID))
-		tracks.closeTrack(agentID, frameCnt - 1);
-}
-
-void Director::startNewDaughterAgent(const int childID, const int parentID) {
-	// CTC logging: also add the parental link
-	tracks.updateParentalLink(childID, parentID);
-}
-
-int Director::getFOsIDofAgent(const int agentID) {
-	auto ag = agents.begin();
-	while (ag != agents.end()) {
-		if (ag->first == agentID)
-			return ag->second;
-		++ag;
-	}
+int Director::getFOsIDofAgent(const int agentID) const {
+	auto it = agents.find(agentID);
+	if (it != agents.end())
+		return it->second;
 
 	throw report::rtError(
 	    fmt::format("Couldn't find a record about agent {}", agentID));

@@ -6,7 +6,8 @@ FrontOfficer::FrontOfficer(ScenarioUPTR s,
                            const int myPortion,
                            const int allPortions)
     : scenario(std::move(s)), ID(myPortion),
-      nextFOsID((myPortion + 1) % (allPortions + 1)), FOsCount(allPortions) {
+      nextFOsID((myPortion + 1) % (allPortions + 1)), FOsCount(allPortions),
+      nextAvailAgentID(0) {
 	scenario->declareFOcontext(myPortion);
 }
 
@@ -18,29 +19,7 @@ void FrontOfficer::init() {}
 /** Never called in ST case, but could have some use in other implementations */
 void FrontOfficer::execute() {}
 
-int FrontOfficer::request_getNextAvailAgentID() {
-	return Direktor->getNextAvailAgentID();
-}
-
-void FrontOfficer::request_startNewAgent(
-    const int newAgentID,
-    const int associatedFO,
-    const bool wantsToAppearInCTCtracksTXTfile) {
-	Direktor->startNewAgent(newAgentID, associatedFO,
-	                        wantsToAppearInCTCtracksTXTfile);
-}
-
-void FrontOfficer::request_closeAgent(const int agentID,
-                                      const int associatedFO) {
-	Direktor->closeAgent(agentID, associatedFO);
-}
-
-void FrontOfficer::request_updateParentalLink(const int childID,
-                                              const int parentID) {
-	Direktor->startNewDaughterAgent(childID, parentID);
-}
-
-void FrontOfficer::waitFor_publishAgentsAABBs() {}
+void FrontOfficer::waitFor_publishAgentsAABBs() const {}
 
 void FrontOfficer::notify_publishAgentsAABBs(const int /* FOsID */) {
 	// once our broadcasting is over, notify next FO to do the same

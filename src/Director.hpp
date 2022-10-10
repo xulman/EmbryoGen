@@ -34,29 +34,8 @@ class Director {
 	/** new available, not-yet-used, unique agent ID is created here */
 	int getNextAvailAgentID();
 
-	/** introduces a new agent into the universe of this simulation, and,
-	    optionally, it can log this event into the CTC tracking file */
-	void startNewAgent(const int agentID,
-	                   const int associatedFO,
-	                   const bool wantsToAppearInCTCtracksTXTfile);
-
-	/** removes the agent from this simulation, this event is logged into
-	    the CTC tracking file iff the agent was registered previously;
-	    for the CTC logging, it is assumed that the agent is not available in
-	    the current rendered frame but was (last) visible in the previous frame
-	 */
-	void closeAgent(const int agentID, const int associatedFO);
-
-	/** introduces a new agent into the universe of this simulation, and,
-	    _automatically_, it logs this event into the CTC tracking file
-	    along with the (explicit) parental information; the mother-daughter
-	    relationship is purely semantical and is here only because of the
-	    CTC format, that said, the simulator does not care if an agent is
-	    actually a "daughter" of another agent */
-	void startNewDaughterAgent(const int childID, const int parentID);
-
 	/** returns the ID of FO to which a given agent is associated to */
-	int getFOsIDofAgent(const int agentID);
+	int getFOsIDofAgent(const int agentID) const;
 
 	/** returns the state of the 'willRenderNextFrameFlag', that is if the
 	    current simulation round with end up with the call to renderNextFrame()
@@ -137,8 +116,6 @@ class Director {
 	// ==================== communication methods ====================
 	void waitHereUntilEveryoneIsHereToo() const;
 
-	void respond_getNextAvailAgentID();
-
 	void respond_startNewAgent(int FO); // TBD - add parameters from start*
 	void respond_closeAgent(int FO);
 	void respond_updateParentalLink(int FO);
@@ -149,6 +126,10 @@ class Director {
 	void waitFor_publishAgentsAABBs() const;
 	void respond_AABBofAgent();
 	std::vector<std::size_t> request_CntsOfAABBs() const;
+	std::vector<std::vector<std::pair<int, bool>>> request_startedAgents() const;
+	std::vector<std::vector<int>> request_closedAgents() const;
+	std::vector<std::vector<std::pair<int, int>>> request_parentalLinksUpdates() const;
+
 
 	void respond_newAgentsTypes(int noOfIncomingNewAgentTypes);
 
@@ -175,10 +156,6 @@ class Director {
 	    shadows/overlays over the scenario.params.shallWaitForUserPromptFlag */
 	bool& shallWaitForUserPromptFlag;
 
-	/** last-used ID from any of the existing or former-existing agents;
-	    with every new agent added, this attribute must always increase */
-	int lastUsedAgentID = 0;
-
 	/** maps of existing agents scheduled for the addition to or
 	    for the removal from the simulation (at the appropriate occasion),
 	     maps between agent ID and FO ID associated with this agent */
@@ -188,7 +165,7 @@ class Director {
 	    maps between agent ID and FO ID associated with this agent,
 	    the main purpose of this map is to know which FO to ask when
 	    detailed geometry (in a form of the ShadowAgent) is needed */
-	std::list<std::pair<int, int>> agents;
+	std::map<int, int> agents;
 
 	/** structure to hold durations of tracks and the mother-daughter relations
 	 */

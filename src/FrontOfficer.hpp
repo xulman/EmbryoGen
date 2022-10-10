@@ -146,6 +146,24 @@ class FrontOfficer //: public Simulation
 
 	size_t getSizeOfAABBsList() const;
 
+	std::vector<std::pair<int, bool>> getStartedAgents() {
+		auto cpy(std::move(startedAgents));
+		startedAgents.clear();
+		return cpy;
+	}
+
+	std::vector<int> getClosedAgents() {
+		auto cpy(std::move(closedAgents));
+		closedAgents.clear();
+		return cpy;
+	}
+
+	std::vector<std::pair<int, int>> getParentalLinksUpdates() {
+		auto cpy(std::move(parentalLinks));
+		parentalLinks.clear();
+		return cpy;
+	}
+
 	/** returns the state of the 'willRenderNextFrameFlag', that is if the
 	    current simulation round with end up with the call to renderNextFrame()
 	 */
@@ -257,17 +275,17 @@ class FrontOfficer //: public Simulation
 
 	void waitHereUntilEveryoneIsHereToo();
 
-	int request_getNextAvailAgentID();
-
+	/*
 	void request_startNewAgent(const int newAgentID,
 	                           const int associatedFO,
 	                           const bool wantsToAppearInCTCtracksTXTfile);
 	void request_closeAgent(const int agentID, const int associatedFO);
 	void request_updateParentalLink(const int childID, const int parentID);
+	*/
 
 	// bool request_willRenderNextFrame();
 
-	void waitFor_publishAgentsAABBs();
+	void waitFor_publishAgentsAABBs() const;
 	void notify_publishAgentsAABBs(const int FOsID);
 	void broadcast_AABBofAgent(const ShadowAgent& ag);
 	void respond_AABBofAgent();
@@ -293,7 +311,7 @@ class FrontOfficer //: public Simulation
 
 	ScenarioUPTR scenario;
 
-	int ID, nextFOsID, FOsCount;
+	int ID, nextFOsID, FOsCount, nextAvailAgentID;
 
 	float overlapMax = 0.f;
 	float overlapAvg = 0.f;
@@ -305,6 +323,19 @@ class FrontOfficer //: public Simulation
 	for the removal from the simulation (at the appropriate,
 	occasion) and computed on this node (managed by this FO) */
 	std::deque<AbstractAgent*> newAgents, deadAgents;
+
+	/**
+	 * Buffers filled during simulation with data, that will
+	 * be later send to director (when he issues a request).
+	 */
+	/* std::pair<newAgentID, wantsToAppearInCTCtracksTXTfile> */
+	std::vector<std::pair<int, bool>> startedAgents;
+
+	/* std::vector<agentID> */
+	std::vector<int> closedAgents;
+
+	/* std::pair<childID, parentID> */
+	std::vector<std::pair<int, int>> parentalLinks;
 
 	/** map of all agents currently active in the simulation
 	and computed on this node (managed by this FO) */
