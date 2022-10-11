@@ -1,6 +1,5 @@
 #include "FrontOfficer.hpp"
 #include "Agents/AbstractAgent.hpp"
-#include "Director.hpp"
 
 void FrontOfficer::init1() {
 	report::message(fmt::format("FO #{} initializing now...", ID));

@@ -10,7 +10,6 @@
 
 class AbstractAgent;
 class ShadowAgent;
-class Director;
 
 /** has access to Simulation, to reach its initializeAgents() */
 class FrontOfficer //: public Simulation
@@ -195,12 +194,6 @@ class FrontOfficer //: public Simulation
 		++overlapSubmissionsCounter;
 	}
 
-	void connectWithDirektor(Director* d) {
-		if (d == nullptr)
-			throw report::rtError("Provided Director is actually NULL.");
-		Direktor = d;
-	}
-
 	/** adds an item to the map this->agentsToFOsMap,
 	    it should be called only from the AABB broadcast receiving methods */
 	void registerThatThisAgentIsAtThisFO(const int agentID, const int FOsID);
@@ -299,8 +292,6 @@ class FrontOfficer //: public Simulation
 	float overlapMax = 0.f;
 	float overlapAvg = 0.f;
 	int overlapSubmissionsCounter = 0;
-
-	Director* Direktor = nullptr;
 
 	/** queue of existing agents scheduled for the addition to or
 	for the removal from the simulation (at the appropriate,

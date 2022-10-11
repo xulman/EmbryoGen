@@ -21,7 +21,6 @@ Director::Director(std::function<ScenarioUPTR()> ScenarioFactory)
 	implementationData =
 	    std::make_unique<ImplementationData>(ScenarioFactory(), 1, 1);
 
-	get_data(implementationData).FO.connectWithDirektor(this);
 }
 
 void Director::init() {
