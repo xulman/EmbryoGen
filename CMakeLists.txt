@@ -34,7 +34,7 @@ set(CMAKE_CXX_FLAGS
 # ------------------------------------------------
 
 option(DEBUG_VERSION "Shall I display debug information?" ON)
-option(RUN_DISTRIBUTED "Shall I run distributed (openMPI mode)?" ON)
+option(RUN_DISTRIBUTED "Shall I run distributed (openMPI mode)?" OFF)
 
 option(
   FEATURE_ENABLEPHOTOBLEACHING
@@ -118,9 +118,13 @@ set(SOURCES
     src/FrontOfficer.cpp
     src/main.cpp)
 
-set(D_FO_SOURCES src/SimulationControl/DirectorST.cpp
-                 src/SimulationControl/FrontOfficerST.cpp)
-
+if(RUN_DISTRIBUTED)
+  set(D_FO_SOURCES src/SimulationControl/DirectorMPI.cpp
+                   src/SimulationControl/FrontOfficerMPI.cpp)
+else(RUN_DISTRIBUTED)
+  set(D_FO_SOURCES src/SimulationControl/DirectorST.cpp
+                   src/SimulationControl/FrontOfficerST.cpp)
+endif(RUN_DISTRIBUTED)
 file(GLOB SCENARIOSOURCES src/Scenarios/*.cpp)
 add_executable(embryogen ${SOURCES} ${D_FO_SOURCES} ${SCENARIOSOURCES})
 add_custom_target(commitHash ALL ${CMAKE_SOURCE_DIR}/imprintGitHash.sh)
