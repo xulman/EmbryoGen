@@ -1,5 +1,4 @@
 #include "../Agents/AbstractAgent.hpp"
-#include "../Director.hpp"
 #include "../FrontOfficer.hpp"
 
 FrontOfficer::FrontOfficer(ScenarioUPTR s,
@@ -19,8 +18,6 @@ void FrontOfficer::execute() {}
 
 void FrontOfficer::waitHereUntilEveryoneIsHereToo() const {}
 void FrontOfficer::waitFor_publishAgentsAABBs() const {}
-
-
 
 void FrontOfficer::broadcast_AABBofAgents() {
 	// in this ST particular implementation we do only update ourselves,

@@ -19,7 +19,7 @@ Director::Director(std::function<ScenarioUPTR()> scenarioFactory)
 	scenario->declareDirektorContext();
 
 	implementationData =
-	    std::make_unique<ImplementationData>(scenarioFactory(), 1, 1);
+	    std::make_shared<ImplementationData>(scenarioFactory(), 1, 1);
 }
 
 void Director::init() {
