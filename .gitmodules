@@ -1,3 +1,6 @@
 [submodule "extern/hpc_datastore_cpp"]
 	path = extern/hpc_datastore_cpp
 	url = git@github.com:somik861/hpc-datastore-cpp.git
+[submodule "extern/mpi_wrapper"]
+	path = extern/mpi_wrapper
+	url = https://github.com/somik861/mpi_wrapper.git
