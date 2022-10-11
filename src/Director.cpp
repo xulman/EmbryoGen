@@ -120,13 +120,16 @@ void Director::init1() {
 
 void Director::init2() {
 	prepareForUpdateAndPublishAgents();
+
 	waitHereUntilEveryoneIsHereToo();
 
 	updateAndPublishAgents();
+	/*
 	waitHereUntilEveryoneIsHereToo();
 	postprocessAfterUpdateAndPublishAgents();
 
 	reportSituation();
+	*/
 	report::message(fmt::format("Direktor initialized"));
 }
 
@@ -210,8 +213,8 @@ void Director::updateAndPublishAgents() {
 	// Remove closed agents
 	auto closedAgents = request_closedAgents();
 	std::set<int> to_remove;
-	for (std::size_t fo = 1; fo <= closedAgents.size(); ++fo)
-		for (auto id : closedAgents[fo - 1]) {
+	for (std::size_t fo = 1; fo < closedAgents.size(); ++fo)
+		for (auto id : closedAgents[fo]) {
 			to_remove.insert(id);
 			// CTC logging?
 			if (tracks.isTrackFollowed(id))
@@ -222,8 +225,8 @@ void Director::updateAndPublishAgents() {
 
 	// Fetch started agents
 	auto startedAgents = request_startedAgents();
-	for (std::size_t fo = 1; fo <= startedAgents.size(); ++fo)
-		for (auto [id, track] : startedAgents[fo - 1]) {
+	for (std::size_t fo = 1; fo < startedAgents.size(); ++fo)
+		for (auto [id, track] : startedAgents[fo]) {
 #ifndef NDEBUG
 			if (agents.contains(id))
 				throw report::rtError(
@@ -236,11 +239,12 @@ void Director::updateAndPublishAgents() {
 			if (track)
 				tracks.startNewTrack(id, frameCnt);
 		}
+	return;
 
 	// Update parental links
 	auto parentalLinksUpdates = request_parentalLinksUpdates();
-	for (std::size_t fo = 1; fo <= parentalLinksUpdates.size(); ++fo)
-		for (auto [childID, parentID] : parentalLinksUpdates[fo - 1])
+	for (std::size_t fo = 1; fo < parentalLinksUpdates.size(); ++fo)
+		for (auto [childID, parentID] : parentalLinksUpdates[fo])
 			tracks.updateParentalLink(childID, parentID);
 
 	// now tell the FOs to start interchanging AABBs of their active agents:

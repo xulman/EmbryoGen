@@ -12,19 +12,21 @@ int main(int argc, char** argv) {
 	    {false});
 
 	Scenarios scenarios(argc, const_cast<const char**>(argv));
-
 	// the Scenario object paradigm: there's always (independent) one per
 	// Direktor and each FO; thus, it is always created inline in respective
 	// c'tor calls (scenarios.getScenario() returns copy as an unique_ptr)
-
 	auto timeHandle = tic();
-	{
-		Director d([&]() { return scenarios.getScenario(); });
 
+	// This is wierd try block trying to patch bad i3d exception implementation
+	try {
+		Director d([&]() { return scenarios.getScenario(); });
 		d.init();
+
 		// no active waiting for Director's events, the respective
 		// FOs' methods will be triggered directly from the Director
 		d.execute(); // execute the simulation, and render frames
+	} catch (const i3d::IOException& e) {
+		throw report::rtError(e.what);
 	}
 
 	report::message(fmt::format("simulation required {}", toc(timeHandle)));

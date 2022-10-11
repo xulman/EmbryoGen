@@ -227,7 +227,7 @@ set(LIBS ${LIBS} Poco::Net Poco::JSON)
 # OpenMPI library
 if(RUN_DISTRIBUTED)
   find_package(MPI REQUIRED)
-  set(LIBS ${LIBS} MPI::MPI_CXX)
+  set(LIBS ${LIBS} MPI::MPI_CXX) 
 endif(RUN_DISTRIBUTED)
 
 # -----------------------------

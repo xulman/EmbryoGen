@@ -5,8 +5,8 @@
 namespace {
 class ImplementationData {
   private:
-	// Must be written first, to be created first and destroyed last
-	MPIw::Init_raii _mpi{nullptr, nullptr};
+	// This has to be called first to be constructed first and destructed last
+	MPIManager _mpi;
 
   public:
 	std::unique_ptr<FrontOfficer> FO = nullptr;
@@ -15,6 +15,10 @@ class ImplementationData {
 
 ImplementationData& get_data(const std::shared_ptr<void>& obj) {
 	return *static_cast<ImplementationData*>(obj.get());
+}
+
+bool is_main_director(const std::shared_ptr<void>& obj) {
+	return get_data(obj).FO == nullptr;
 }
 } // namespace
 
@@ -26,32 +30,61 @@ Director::Director(std::function<ScenarioUPTR()> scenarioFactory)
 	int my_rank = MPIw::Comm_rank(MPI_COMM_WORLD);
 	int world_size = MPIw::Comm_size(MPI_COMM_WORLD);
 
+	if (world_size == 1)
+		throw report::rtError("Running MPI version with 1 worker is not "
+		                      "allowed, please run: mpirun ./embryogen ...");
+
+	ImplementationData& impl = get_data(implementationData);
+
 	// Im main director
 	if (my_rank == 0) {
 		scenario->declareDirektorContext();
+		MPI_Comm_dup(MPI_COMM_WORLD, &impl.Dir_comm);
 	} else { // forward to FO
-		get_data(implementationData).FO = std::make_unique<FrontOfficer>(
-		    std::move(scenario), my_rank, world_size);
+		impl.FO = std::make_unique<FrontOfficer>(std::move(scenario), my_rank,
+		                                         getFOsCount());
 	}
 
 	std::cout << fmt::format("DIR: my_rank: {}, world_size: {}", my_rank,
 	                         world_size)
 	          << std::endl;
+
+	int size;
+	MPI_Type_size(MPIw_PAIR_INT_BOOL, &size);
+	std::cout << fmt::format("MPI_TYPE_SIZE: {}", size) << std::endl;
+	std::cout << fmt::format(
+	                 "static_var: {}. mpi_var: {}",
+	                 reinterpret_cast<std::size_t>(MPIw_PAIR_INT_BOOL),
+	                 reinterpret_cast<std::size_t>(
+	                     MPIw::types::get_mpi_type<std::pair<int, bool>>()))
+	          << std::endl;
 }
 
-void Director::init() {}
-
-// BARIERR
+void Director::init() {
+	ImplementationData& impl = get_data(implementationData);
+	if (is_main_director(implementationData)) {
+		init1();
+		init2();
+		// init3();
+	} else {
+		impl.FO->init();
+	}
+}
 
 void Director::execute() {}
 
-int Director::getFOsCount() const { return MPIw::Comm_size(MPI_COMM_WORLD); }
+int Director::getFOsCount() const {
+	return MPIw::Comm_size(MPI_COMM_WORLD) - 1;
+}
 
+// not used ... FOs know what to do
 void Director::prepareForUpdateAndPublishAgents() const {}
 
 void Director::postprocessAfterUpdateAndPublishAgents() const {}
 
-void Director::waitHereUntilEveryoneIsHereToo() const {}
+void Director::waitHereUntilEveryoneIsHereToo() const {
+	MPIw::Barrier(get_data(implementationData).Dir_comm);
+}
 
 void Director::notify_publishAgentsAABBs() const {}
 void Director::waitFor_publishAgentsAABBs() const {}
@@ -60,10 +93,12 @@ std::vector<std::size_t> Director::request_CntsOfAABBs() const { return {}; }
 
 std::vector<std::vector<std::pair<int, bool>>>
 Director::request_startedAgents() const {
-	return {};
+	ImplementationData& impl = get_data(implementationData);
+	return MPIw::Gatherv_recv<std::pair<int, bool>>(impl.Dir_comm, {});
 }
 std::vector<std::vector<int>> Director::request_closedAgents() const {
-	return {};
+	ImplementationData& impl = get_data(implementationData);
+	return MPIw::Gatherv_recv<int>(impl.Dir_comm, {});
 }
 std::vector<std::vector<std::pair<int, int>>>
 Director::request_parentalLinksUpdates() const {

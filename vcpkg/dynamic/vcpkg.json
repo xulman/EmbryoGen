@@ -11,6 +11,13 @@
         },
         "fmt",
         "poco",
+        "hwloc",
+        {
+            "name": "libevent",
+            "features": [
+                "thread"
+            ]
+        },
         "openmpi"
     ]
 }
