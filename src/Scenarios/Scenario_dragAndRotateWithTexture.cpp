@@ -259,7 +259,7 @@ void Scenario_dragRotateAndTexture::initializeAgents(FrontOfficer* fo,
 		s.updateCentre(5, pos + Vector3d<float>(0, 0, -5) + 6.0f * axis);
 		s.updateRadius(5, 3.0f);
 
-		fo->startNewAgent(new myDragAndTextureNucleus_NStexture(
+		fo->startNewAgent(std::make_unique<myDragAndTextureNucleus_NStexture>(
 		    fo->getNextAvailAgentID(), "nucleus travelling NS (3) texture", s,
 		    params->constants.initTime, params->constants.incrTime, 3));
 
@@ -267,14 +267,14 @@ void Scenario_dragRotateAndTexture::initializeAgents(FrontOfficer* fo,
 		for (std::size_t i = 0; i < s.getNoOfSpheres(); ++i)
 			s.updateCentre(int(i), s.getCentres()[i] + shiftVec);
 
-		fo->startNewAgent(new myDragAndTextureNucleus_NStexture(
+		fo->startNewAgent(std::make_unique<myDragAndTextureNucleus_NStexture>(
 		    fo->getNextAvailAgentID(), "nucleus travelling NS texture", s,
 		    params->constants.initTime, params->constants.incrTime));
 
 		for (std::size_t i = 0; i < s.getNoOfSpheres(); ++i)
 			s.updateCentre(int(i), s.getCentres()[i] + shiftVec);
 
-		fo->startNewAgent(new myDragAndTextureNucleus_2pNStexture(
+		fo->startNewAgent(std::make_unique<myDragAndTextureNucleus_2pNStexture>(
 		    fo->getNextAvailAgentID(), "nucleus travelling 2pNS texture", s,
 		    params->constants.initTime, params->constants.incrTime));
 	}
@@ -283,14 +283,15 @@ void Scenario_dragRotateAndTexture::initializeAgents(FrontOfficer* fo,
 void Scenario_dragRotateAndTexture::initializeScene() {
 	// override the output images
 	params->setOutputImgSpecs(Vector3d<float>(220, 30, 30),
-	                         Vector3d<float>(70, 160, 160));
+	                          Vector3d<float>(70, 160, 160));
 
 	disks.enableImgMaskTIFFs();
 	disks.enableImgPhantomTIFFs();
 	disks.enableImgOpticsTIFFs();
 
-	displays.registerDisplayUnit(
-	    []() { return std::make_unique<SceneryBufferedDisplayUnit>("localhost:8765"); });
+	displays.registerDisplayUnit([]() {
+		return std::make_unique<SceneryBufferedDisplayUnit>("localhost:8765");
+	});
 	displays.registerDisplayUnit([]() {
 		return std::make_unique<FlightRecorderDisplayUnit>(
 		    "/temp/FR_dragRotateAndTexture.txt");
@@ -300,7 +301,8 @@ void Scenario_dragRotateAndTexture::initializeScene() {
 	// displays.enableImgPhantomInImagingUnit("localFiji");
 }
 
-std::unique_ptr<SceneControls> Scenario_dragRotateAndTexture::provideSceneControls() const {
+std::unique_ptr<SceneControls>
+Scenario_dragRotateAndTexture::provideSceneControls() const {
 	config::scenario::ControlConstants myConstants;
 
 	// override the default stop time

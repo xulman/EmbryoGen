@@ -38,9 +38,6 @@ void Scenario_withTexture::initializeAgents(FrontOfficer* fo, int p, int) {
 		return;
 	}
 
-	// to obtain a sequence of IDs for new agents...
-	int ID = 1;
-
 	const float radius = 0.4f * params->constants.sceneSize.y;
 	const int howManyToPlace = argc > 2 ? atoi(argv[2]) : 6;
 
@@ -64,10 +61,10 @@ void Scenario_withTexture::initializeAgents(FrontOfficer* fo, int p, int) {
 		s.updateCentre(1, pos + Vector3d<float>(0, 0, +3));
 		s.updateRadius(1, 5.0f);
 
-		myTexturedNucleus* ag = new myTexturedNucleus(
-		    ID++, "nucleus with texture", s, params->constants.initTime,
-		    params->constants.incrTime);
-		fo->startNewAgent(ag);
+		auto ag = std::make_unique<myTexturedNucleus>(
+		    fo->getNextAvailAgentID(), "nucleus with texture", s,
+		    params->constants.initTime, params->constants.incrTime);
+		fo->startNewAgent(std::move(ag));
 	}
 }
 
@@ -77,7 +74,8 @@ void Scenario_withTexture::initializeScene() {
 	disks.enableImgFinalTIFFs();
 }
 
-std::unique_ptr<SceneControls> Scenario_withTexture::provideSceneControls() const {
+std::unique_ptr<SceneControls>
+Scenario_withTexture::provideSceneControls() const {
 	config::scenario::ControlConstants myConstants;
 	myConstants.stopTime = 0.2f;
 

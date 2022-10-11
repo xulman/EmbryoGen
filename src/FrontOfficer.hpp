@@ -54,7 +54,7 @@ class FrontOfficer //: public Simulation
 
 	/** introduces a new agent into the universe of this simulation, and,
 	    optionally, it can log this event into the CTC tracking file */
-	void startNewAgent(AbstractAgent* ag,
+	void startNewAgent(std::unique_ptr<AbstractAgent> ag,
 	                   const bool wantsToAppearInCTCtracksTXTfile = true);
 
 	/** removes the agent from this simulation, this event is logged into
@@ -70,7 +70,7 @@ class FrontOfficer //: public Simulation
 	    relationship is purely semantical and is here only because of the
 	    CTC format, that said, the simulator does not care if an agent is
 	    actually a "daughter" of another agent */
-	void startNewDaughterAgent(AbstractAgent* ag, const int parentID);
+	void startNewDaughterAgent(std::unique_ptr<AbstractAgent> ag, const int parentID);
 
 	/** removes the 'mother' agent from this simulation and introduces two new
 	   instead, this event is logged into the CTC tracking file automatically
@@ -78,8 +78,8 @@ class FrontOfficer //: public Simulation
 	   assumed that the mother is not available in the current rendered frame
 	   but was (last) visible in the previous frame */
 	void closeMotherStartDaughters(AbstractAgent* mother,
-	                               AbstractAgent* daughterA,
-	                               AbstractAgent* daughterB);
+	                              std::unique_ptr<AbstractAgent> daughterA,
+	                               std::unique_ptr<AbstractAgent> daughterB);
 
 	/** Fills the list 'l' of NamedAABBs that are no further than maxDist
 	    parameter [micrometer]. The distance is examined as the distance
@@ -221,21 +221,14 @@ class FrontOfficer //: public Simulation
 	/** the main execute() method is actually made of this one */
 	void executeExternals();
 
-	/** There are two functions doing the same
-	 * First (without args) is suppose to get to images via some external way
-	 * Second is passing references to images (for local use)
-	 * These will be called as needed from
+	/* This will be called as needed from
 	 * SimulationControl/{Director, FrontOffier}*.cpp  **/
-	void renderNextFrame();
 	void renderNextFrame(i3d::Image3d<i3d::GRAY16>& imgMask,
 	                     i3d::Image3d<float>& imgPhantom,
 	                     i3d::Image3d<float>& imgOptics);
 
   private:
 	// ==================== communication methods ====================
-	// these are implemented in either exactly one of the two:
-	// Communication/FrontOfficerSMP.cpp
-	// Communication/FrontOfficerMPI.cpp
 
 	/*
 	naming nomenclature:
@@ -273,21 +266,12 @@ class FrontOfficer //: public Simulation
 	is typically the counter part to the broadcast
 	*/
 
-	void waitHereUntilEveryoneIsHereToo();
-
-	/*
-	void request_startNewAgent(const int newAgentID,
-	                           const int associatedFO,
-	                           const bool wantsToAppearInCTCtracksTXTfile);
-	void request_closeAgent(const int agentID, const int associatedFO);
-	void request_updateParentalLink(const int childID, const int parentID);
-	*/
-
-	// bool request_willRenderNextFrame();
-
+	void waitHereUntilEveryoneIsHereToo() const;
 	void waitFor_publishAgentsAABBs() const;
-	void notify_publishAgentsAABBs(const int FOsID);
-	void broadcast_AABBofAgent(const ShadowAgent& ag);
+
+	// this shall tell all (including this one) FOs the AABB agents,
+	// the Direktor actually does not care
+	void broadcast_AABBofAgents();
 	void respond_AABBofAgent();
 	void respond_CntOfAABBs();
 
@@ -297,11 +281,10 @@ class FrontOfficer //: public Simulation
 	void respond_setDetailedDrawingMode();
 	void respond_setDetailedReportingMode();
 
-	ShadowAgent* request_ShadowAgentCopy(const int agentID, const int FOsID);
+	std::unique_ptr<ShadowAgent> request_ShadowAgentCopy(const int agentID, const int FOsID) const;
 	void respond_ShadowAgentCopy(const int agentID);
 
-	void waitFor_renderNextFrame(const int FOsID);
-	void request_renderNextFrame(const int FOsID);
+	void waitFor_renderNextFrame() const;
 
 	void respond_setRenderingDebug();
 
@@ -322,7 +305,8 @@ class FrontOfficer //: public Simulation
 	/** queue of existing agents scheduled for the addition to or
 	for the removal from the simulation (at the appropriate,
 	occasion) and computed on this node (managed by this FO) */
-	std::deque<AbstractAgent*> newAgents, deadAgents;
+	std::deque<std::unique_ptr<AbstractAgent>> newAgents;
+	std::deque<int> deadAgentsIDs;
 
 	/**
 	 * Buffers filled during simulation with data, that will
@@ -339,7 +323,7 @@ class FrontOfficer //: public Simulation
 
 	/** map of all agents currently active in the simulation
 	and computed on this node (managed by this FO) */
-	std::map<int, AbstractAgent*> agents;
+	std::map<int, std::unique_ptr<AbstractAgent>> agents;
 
 	/** maps nameIDs (from NamedAxisAlignedBoundingBox, which should be the same
 	as ShadowAgent::getAgentTypeID()) to ShadowAgent::getAgentType(),
@@ -353,7 +337,7 @@ class FrontOfficer //: public Simulation
 
 	/** cache of all recently retrieved geometries of agents
 	    that are computed elsewhere (managed by foreign FO) */
-	std::map<int, ShadowAgent*> shadowAgents;
+	std::map<int, std::unique_ptr<ShadowAgent>> shadowAgents;
 
 	/** a complete map of all agents in the simulation (includes even earlier
 	   agents) and their versions of their geometries that were broadcast the

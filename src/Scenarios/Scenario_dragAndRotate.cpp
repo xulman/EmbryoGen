@@ -50,9 +50,6 @@ void Scenario_dragAndRotate::initializeAgents(FrontOfficer* fo, int p, int) {
 		return;
 	}
 
-	// to obtain a sequence of IDs for new agents...
-	int ID = 1;
-
 	const int howManyToPlace = argc > 2 ? atoi(argv[2]) : 12;
 	report::debugMessage(
 	    fmt::format("will rotate {} nuclei...", howManyToPlace));
@@ -85,22 +82,25 @@ void Scenario_dragAndRotate::initializeAgents(FrontOfficer* fo, int p, int) {
 		s.updateCentre(3, pos + 18.0f * axis);
 		s.updateRadius(3, 3.0f);
 
-		myNucleus* ag =
-		    new myNucleus(ID++, "nucleus", s, params->constants.initTime,
-		                  params->constants.incrTime);
+		auto ag = std::make_unique<myNucleus>(
+		    fo->getNextAvailAgentID(), "nucleus", s, params->constants.initTime,
+		    params->constants.incrTime);
 		ag->setDetailedDrawingMode(true);
-		fo->startNewAgent(ag);
+		fo->startNewAgent(std::move(ag));
 	}
 }
 
 void Scenario_dragAndRotate::initializeScene() {
-	displays.registerDisplayUnit(
-	    []() { return std::make_unique<SceneryBufferedDisplayUnit>("localhost:8765"); });
 	displays.registerDisplayUnit([]() {
-		return std::make_unique<FlightRecorderDisplayUnit>("/temp/FR_dragAndRotate.txt");
+		return std::make_unique<SceneryBufferedDisplayUnit>("localhost:8765");
+	});
+	displays.registerDisplayUnit([]() {
+		return std::make_unique<FlightRecorderDisplayUnit>(
+		    "/temp/FR_dragAndRotate.txt");
 	});
 }
 
-std::unique_ptr<SceneControls> Scenario_dragAndRotate::provideSceneControls() const {
+std::unique_ptr<SceneControls>
+Scenario_dragAndRotate::provideSceneControls() const {
 	return std::make_unique<SceneControls>(DefaultSceneControls);
 }

@@ -24,26 +24,24 @@ class myNucleusB : public NucleusAgent {
 
 	void advanceAndBuildIntForces(const float gTime) override {
 		if (gTime >= 2.0f && ID == 1) {
-			// Officer->closeAgent(this);
-
-			int IID = ID + 10;
 
 			Spheres s(futureGeometry);
 			s.updateCentre(0, s.getCentres()[0] + Vector3d<float>(0, 0, 5));
 			s.updateCentre(1, s.getCentres()[1] + Vector3d<float>(0, 0, 5));
-			myNucleusB* agA = new myNucleusB(IID++, "nucleusB", s,
-			                                 currTime + incrTime, incrTime);
+			auto agA = std::make_unique<myNucleusB>(
+			    Officer->getNextAvailAgentID(), "nucleusB", s,
+			    currTime + incrTime, incrTime);
 			agA->setDetailedDrawingMode(true);
-			// Officer->startNewDaughterAgent(agA,ID);
 
 			s.updateCentre(0, s.getCentres()[0] - Vector3d<float>(0, 0, 10));
 			s.updateCentre(1, s.getCentres()[1] - Vector3d<float>(0, 0, 10));
-			myNucleusB* agB = new myNucleusB(IID++, "nucleusB", s,
-			                                 currTime + incrTime, incrTime);
+			auto agB = std::make_unique<myNucleusB>(
+			    Officer->getNextAvailAgentID(), "nucleusB", s,
+			    currTime + incrTime, incrTime);
 			agB->setDetailedDrawingMode(true);
-			// Officer->startNewDaughterAgent(agB,ID);
 
-			Officer->closeMotherStartDaughters(this, agA, agB);
+			Officer->closeMotherStartDaughters(this, std::move(agA),
+			                                   std::move(agB));
 		}
 
 #ifndef NDEBUG
@@ -62,9 +60,6 @@ void Scenario_pseudoDivision::initializeAgents(FrontOfficer* fo, int p, int) {
 		    "Populating only the first FO (which is not this one).");
 		return;
 	}
-
-	// to obtain a sequence of IDs for new agents...
-	int ID = 1;
 
 	const int howManyToPlace = 2;
 	for (int i = 0; i < howManyToPlace; ++i) {
@@ -87,20 +82,22 @@ void Scenario_pseudoDivision::initializeAgents(FrontOfficer* fo, int p, int) {
 		s.updateCentre(1, pos + Vector3d<float>(0, 3, 0));
 		s.updateRadius(1, 10.0f);
 
-		myNucleusB* ag =
-		    new myNucleusB(ID++, "nucleus", s, params->constants.initTime,
-		                   params->constants.incrTime);
+		auto ag = std::make_unique<myNucleusB>(
+		    fo->getNextAvailAgentID(), "nucleus", s, params->constants.initTime,
+		    params->constants.incrTime);
 		ag->setDetailedDrawingMode(true);
-		fo->startNewAgent(ag);
+		fo->startNewAgent(std::move(ag));
 	}
 }
 
 void Scenario_pseudoDivision::initializeScene() {
-	displays.registerDisplayUnit(
-	    []() { return std::make_unique<SceneryBufferedDisplayUnit>("localhost:8765"); });
+	displays.registerDisplayUnit([]() {
+		return std::make_unique<SceneryBufferedDisplayUnit>("localhost:8765");
+	});
 }
 
-std::unique_ptr<SceneControls> Scenario_pseudoDivision::provideSceneControls() const {
+std::unique_ptr<SceneControls>
+Scenario_pseudoDivision::provideSceneControls() const {
 	config::scenario::ControlConstants myConstants;
 	myConstants.stopTime = 6.0f;
 

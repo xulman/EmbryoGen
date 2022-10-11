@@ -321,10 +321,8 @@ void Scenario_Parallel::initializeAgents(FrontOfficer* fo, int p, int P) {
 				int ID = fo->getNextAvailAgentID();
 				// name
 				sprintf(agentName, "nucleus %d @ %d,%d", ID, x, y);
-				ParallelNucleus* ag = new ParallelNucleus(
-				    ID, std::string(agentName), s, x, y,
-				    params->constants.initTime, params->constants.incrTime);
-				fo->startNewAgent(ag);
+				fo->startNewAgent(std::make_unique<ParallelNucleus>(ID, std::string(agentName), s, x, y,
+				    params->constants.initTime, params->constants.incrTime));
 			}
 		}
 }

@@ -46,44 +46,10 @@ FrontOfficer::~FrontOfficer() {
 	// simultaneously
 	report::debugMessage(
 	    fmt::format("will remove {} active agents", agents.size()));
-	for (auto& ag : agents) {
-		// check and possibly remove from the deadAgents list
-		auto daIt = deadAgents.begin();
-		while (daIt != deadAgents.end() && *daIt != ag.second)
-			++daIt;
-		if (daIt != deadAgents.end()) {
-			report::debugMessage(fmt::format(
-			    "removing from deadAgents list the duplicate agent ID {}",
-			    (*daIt)->ID));
-			deadAgents.erase(daIt);
-		}
-
-		delete ag.second;
-		ag.second = nullptr;
-	}
-	agents.clear();
-
-	// now remove what's left on newAgents and deadAgents
-	report::debugMessage(fmt::format("will remove {} and {} agents from "
-	                                 "newAgents and deadAgents, respectively",
-	                                 newAgents.size(), deadAgents.size()));
-	while (!newAgents.empty()) {
-		delete newAgents.front();
-		newAgents.pop_front();
-	}
-	while (!deadAgents.empty()) {
-		delete deadAgents.front();
-		deadAgents.pop_front();
-	}
 
 	// also clean up any shadow agents one may have
 	report::debugMessage(
 	    fmt::format("will remove {} shadow agents", shadowAgents.size()));
-	for (auto& sh : shadowAgents) {
-		delete sh.second;
-		sh.second = nullptr;
-	}
-	shadowAgents.clear();
 }
 
 void FrontOfficer::executeEndSub1() {
@@ -106,21 +72,19 @@ void FrontOfficer::executeInternals() {
 	// develop (willingly) new shapes... (can run in parallel),
 	// the agents' (external at least!) geometries must not change during this
 	// phase
-	std::map<int, AbstractAgent*>::iterator c = agents.begin();
-	for (; c != agents.end(); c++) {
-		c->second->advanceAndBuildIntForces(futureTime);
+	for (auto& [_, ag] : agents) {
+		ag->advanceAndBuildIntForces(futureTime);
 #ifndef NDEBUG
-		if (c->second->getLocalTime() < futureTime)
+		if (ag->getLocalTime() < futureTime)
 			throw report::rtError("Agent is not synchronized.");
 #endif
 	}
 
 	// propagate current internal geometries to the exported ones... (can run in
 	// parallel)
-	c = agents.begin();
-	for (; c != agents.end(); c++) {
-		c->second->adjustGeometryByIntForces();
-		c->second->publishGeometry();
+	for (auto& [_, ag] : agents) {
+		ag->adjustGeometryByIntForces();
+		ag->publishGeometry();
 	}
 }
 
@@ -131,17 +95,14 @@ void FrontOfficer::executeExternals() {
 	// react (unwillingly) to the new geometries... (can run in parallel),
 	// the agents' (external at least!) geometries must not change during this
 	// phase
-	std::map<int, AbstractAgent*>::iterator c = agents.begin();
-	for (; c != agents.end(); c++) {
-		c->second->collectExtForces();
-	}
+	for (auto& [_, ag] : agents)
+		ag->collectExtForces();
 
 	// propagate current internal geometries to the exported ones... (can run in
 	// parallel)
-	c = agents.begin();
-	for (; c != agents.end(); c++) {
-		c->second->adjustGeometryByExtForces();
-		c->second->publishGeometry();
+	for (auto& [_, ag] : agents) {
+		ag->adjustGeometryByExtForces();
+		ag->publishGeometry();
 	}
 }
 
@@ -159,21 +120,20 @@ void FrontOfficer::updateAndPublishAgents() {
 
 	// we want only to put our 'agents' list into order:
 	// remove/unregister dead agents
-	for (auto ag_ptr : deadAgents) {
-		agents.erase(ag_ptr->ID);
-		delete ag_ptr;
-	}
-	deadAgents.clear();
+	for (auto id : deadAgentsIDs)
+		agents.erase(id);
+
+	deadAgentsIDs.clear();
 
 	// register the new ones (and remove from the "new born list")
-	for (auto ag_ptr : newAgents) {
+	for (auto& ag_ptr : newAgents) {
 #ifndef NDEBUG
 		if (agents.contains(ag_ptr->ID))
 			throw report::rtError(fmt::format(
 			    "Attempting to add another agent with the same ID {}",
 			    ag_ptr->ID));
 #endif
-		agents[ag_ptr->ID] = ag_ptr;
+		agents[ag_ptr->ID] = std::move(ag_ptr);
 	}
 	newAgents.clear();
 
@@ -183,12 +143,7 @@ void FrontOfficer::updateAndPublishAgents() {
 	waitFor_publishAgentsAABBs();
 
 	// now distribute AABBs of the existing ones
-	for (auto ag : agents) {
-		broadcast_AABBofAgent(*(ag.second));
-	}
-
-	// this passes the "token" on another FO
-	notify_publishAgentsAABBs(nextFOsID);
+	broadcast_AABBofAgents();
 
 	// and we move on to get blocked on any following checkpoint
 	// while waiting there, our respond_AABBofAgent() collects data
@@ -200,35 +155,35 @@ void FrontOfficer::postprocessAfterUpdateAndPublishAgents() {
 	agentsTypesDictionary.cleanUp(AABBs);
 }
 
-int FrontOfficer::getNextAvailAgentID() {
-	return nextAvailAgentID++;
-}
+int FrontOfficer::getNextAvailAgentID() { return nextAvailAgentID++; }
 
-void FrontOfficer::startNewAgent(AbstractAgent* ag,
+void FrontOfficer::startNewAgent(std::unique_ptr<AbstractAgent> ag,
                                  const bool wantsToAppearInCTCtracksTXTfile) {
-	if (ag == NULL)
+	if (ag == nullptr)
 		throw report::rtError("refuse to include NULL agent.");
 
 	// register the agent for adding into the system:
 	// local registration:
-	agentsTypesDictionary.registerThisString(ag->getAgentType_hashedString());
-	newAgents.push_back(ag);
-	ag->setOfficer(this);
+	auto ag_ptr = ag.get();
+	newAgents.push_back(std::move(ag));
+	agentsTypesDictionary.registerThisString(
+	    ag_ptr->getAgentType_hashedString());
+	ag_ptr->setOfficer(this);
 
 	// remote registration:
-	startedAgents.emplace_back(ag->ID, wantsToAppearInCTCtracksTXTfile);
+	startedAgents.emplace_back(ag_ptr->ID, wantsToAppearInCTCtracksTXTfile);
 
-	report::debugMessage(
-	    fmt::format("just registered this new agent: {}", ag->getSignature()));
+	report::debugMessage(fmt::format("just registered this new agent: {}",
+	                                 ag_ptr->getSignature()));
 }
 
 void FrontOfficer::closeAgent(AbstractAgent* ag) {
-	if (ag == NULL)
+	if (ag == nullptr)
 		throw report::rtError(fmt::format("refuse to deal with NULL agent."));
 
 	// register the agent for removing from the system:
 	// local registration
-	deadAgents.push_back(ag);
+	deadAgentsIDs.push_back(ag->ID);
 
 	// remote registration
 	closedAgents.emplace_back(ag->ID);
@@ -237,40 +192,51 @@ void FrontOfficer::closeAgent(AbstractAgent* ag) {
 	                                 ag->getSignature()));
 }
 
-void FrontOfficer::startNewDaughterAgent(AbstractAgent* ag,
+void FrontOfficer::startNewDaughterAgent(std::unique_ptr<AbstractAgent> ag,
                                          const int parentID) {
-	startNewAgent(ag, true);
-
 	// CTC logging: also add the parental link
 	parentalLinks.emplace_back(ag->ID, parentID);
+	startNewAgent(std::move(ag), true);
 }
 
-void FrontOfficer::closeMotherStartDaughters(AbstractAgent* mother,
-                                             AbstractAgent* daughterA,
-                                             AbstractAgent* daughterB) {
-	if (mother == NULL || daughterA == NULL || daughterB == NULL)
+void FrontOfficer::closeMotherStartDaughters(
+    AbstractAgent* mother,
+    std::unique_ptr<AbstractAgent> daughterA,
+    std::unique_ptr<AbstractAgent> daughterB) {
+	if (mother == nullptr || daughterA == nullptr || daughterB == nullptr)
 		throw report::rtError("refuse to deal with (some) NULL agent.");
 
 	closeAgent(mother);
-	startNewDaughterAgent(daughterA, mother->ID);
-	startNewDaughterAgent(daughterB, mother->ID);
+	startNewDaughterAgent(std::move(daughterA), mother->ID);
+	startNewDaughterAgent(std::move(daughterB), mother->ID);
 	// NB: this can be extended to any number of daughters
 }
 
 void FrontOfficer::setAgentsDetailedDrawingMode(const int agentID,
                                                 const bool state) {
 	// find the agentID among currently existing agents...
-	for (auto ag : agents)
-		if (ag.first == agentID)
-			ag.second->setDetailedDrawingMode(state);
+	auto it = agents.find(agentID);
+#ifndef NDEBUG
+	if (it == agents.end())
+		throw report::rtError(fmt::format("Cannot set detailed drawing mode of "
+		                                  "agent: {} ... agent does not exist",
+		                                  agentID));
+#endif
+	it->second->setDetailedDrawingMode(state);
 }
 
 void FrontOfficer::setAgentsDetailedReportingMode(const int agentID,
                                                   const bool state) {
 	// find the agentID among currently existing agents...
-	for (auto ag : agents)
-		if (ag.first == agentID)
-			ag.second->setDetailedReportingMode(state);
+	auto it = agents.find(agentID);
+#ifndef NDEBUG
+	if (it == agents.end())
+		throw report::rtError(
+		    fmt::format("Cannot set detailed reporting mode of "
+		                "agent: {} ... agent does not exist",
+		                agentID));
+#endif
+	it->second->setDetailedReportingMode(state);
 }
 
 void FrontOfficer::setSimulationDebugRendering(const bool state) {
@@ -348,7 +314,7 @@ const ShadowAgent* FrontOfficer::getNearbyAgent(const int fetchThisID) {
 	// is the requested agent living in the same (*this) FO?
 	const auto ag = agents.find(fetchThisID);
 	if (ag != agents.end())
-		return ag->second;
+		return ag->second.get();
 
 		// no, the requested agent is somewhere outside...
 #ifndef NDEBUG
@@ -368,28 +334,23 @@ const ShadowAgent* FrontOfficer::getNearbyAgent(const int fetchThisID) {
 #endif
 
 	// now, check we have a copy at all and if it is an updated/fresh one
-	auto const saItem = shadowAgents.find(fetchThisID);
+	const auto saItem = shadowAgents.find(fetchThisID);
 	int storedVersion = (saItem != shadowAgents.end())
 	                        ? saItem->second->getGeometry().version
 	                        : -1000000;
 
 	// if we have a recent geometry by us, let's just return this one
 	if (storedVersion == agentsAndBroadcastGeomVersions[fetchThisID])
-		return saItem->second;
+		return saItem->second.get();
 
 	// else, we have to obtain the most recent copy...
 	const int contactThisFO = agentsToFOsMap[fetchThisID];
 	report::debugMessage(fmt::format("Requesting agent ID {} from FO #{}",
 	                                 fetchThisID, contactThisFO));
-	ShadowAgent* const saCopy =
-	    request_ShadowAgentCopy(fetchThisID, contactThisFO);
-
-	// delete the now-old content first (if there was some)
-	if (saItem != shadowAgents.end())
-		delete saItem->second;
 
 	// store the new reference
-	shadowAgents[fetchThisID] = saCopy;
+	shadowAgents[fetchThisID] =
+	    request_ShadowAgentCopy(fetchThisID, contactThisFO);
 
 #ifndef NDEBUG
 	// now the broadcast version must match the one we actually have got
@@ -402,7 +363,7 @@ const ShadowAgent* FrontOfficer::getNearbyAgent(const int fetchThisID) {
 		    shadowAgents[fetchThisID]->getGeometry().version));
 #endif
 
-	return saCopy;
+	return shadowAgents[fetchThisID].get();
 }
 
 void FrontOfficer::renderNextFrame(i3d::Image3d<i3d::GRAY16>& imgMask,
@@ -414,47 +375,31 @@ void FrontOfficer::renderNextFrame(i3d::Image3d<i3d::GRAY16>& imgMask,
 	// ----------- OUTPUT EVENTS -----------
 
 	// go over all cells, and render them -- ONLY IMAGES!
-	for (auto ag : agents) {
+	for (auto& [_, ag] : agents) {
 		// raster images may not necessarily always exist,
 		// always check for their availability first:
 		if (sc.isProducingOutput(imgPhantom) &&
 		    sc.isProducingOutput(imgOptics)) {
-			ag.second->drawTexture(imgPhantom, imgOptics);
-			/*
-			ag.second->drawTexture(Direktor->refOnDirektorsImgPhantom(),
-			                       Direktor->refOnDirektorsImgOptics());
-			*/
+			ag->drawTexture(imgPhantom, imgOptics);
 		}
 		if (sc.isProducingOutput(imgMask)) {
 
-			ag.second->drawMask(imgMask);
-			// ag.second->drawMask(Direktor->refOnDirektorsImgMask());
+			ag->drawMask(imgMask);
 			if (renderingDebug)
-				ag.second->drawForDebug(imgMask);
-			/* ag.second->drawForDebug(
-			    Direktor
-			        ->refOnDirektorsImgMask()); // TODO, should go into its
-			                                    // own separate image
-			                                    */
+				ag->drawForDebug(imgMask);
+			// TODO, should go into its
+			// own separate image
 		}
 	}
 	// note that this far the code was executed on all FOs, that means in
 	// parallel
 
-	// --------- the big round robin scheme ---------
-	// WAIT HERE UNTIL WE GET THE IMAGES TO CONTRIBUTE INTO
-	// this will block...
-	waitFor_renderNextFrame(nextFOsID);
-
-	// note that it is only us who have the token, we
-	// do "pollute" the DisplayUnit (load balancing)
-	//
 	// go over all cells, and render them -- ONLY DISPLAY UNITS!
-	for (auto ag : agents) {
-		ag.second->drawTexture(sc.displayUnit);
-		ag.second->drawMask(sc.displayUnit);
+	for (auto& [_, ag] : agents) {
+		ag->drawTexture(sc.displayUnit);
+		ag->drawMask(sc.displayUnit);
 		if (renderingDebug)
-			ag.second->drawForDebug(sc.displayUnit);
+			ag->drawForDebug(sc.displayUnit);
 	}
 
 	sc.displayUnit.Flush(); // make sure all drawings are sent before the "tick"
@@ -464,7 +409,7 @@ void FrontOfficer::renderNextFrame(i3d::Image3d<i3d::GRAY16>& imgMask,
 
 	++frameCnt;
 
-	request_renderNextFrame(nextFOsID);
+	waitFor_renderNextFrame();
 	// and we move on to get blocked on any following checkpoint
 }
 

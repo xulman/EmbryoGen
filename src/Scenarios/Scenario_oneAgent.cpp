@@ -19,9 +19,9 @@ void Scenario_oneAgent::initializeAgents(FrontOfficer* fo,
 	                                    Vector3d<float>(30.0f));
 	s.updateRadius(0, 20);
 
-	fo->startNewAgent(new NucleusAgent(part, "Init", s,
-	                                   params->constants.initTime,
-	                                   params->constants.incrTime));
+	fo->startNewAgent(std::make_unique<NucleusAgent>(
+	    fo->getNextAvailAgentID(), "Init", s, params->constants.initTime,
+	    params->constants.incrTime));
 }
 
 void Scenario_oneAgent::initializeScene() { disks.enableImgMaskTIFFs(); }

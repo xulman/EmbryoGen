@@ -290,15 +290,16 @@ class SimpleDividingAgent : public NucleusAgent {
 			// daughters will be "injected" into this later from their division
 			// model ref. geometries
 
-			AbstractAgent* d1 = new SimpleDividingAgent(
+			auto d1 = std::make_unique<SimpleDividingAgent>(
 			    Officer->getNextAvailAgentID(), agName, d1Geom, basalBaseDir,
 			    divModels, divModel, 0, time, this->incrTime);
 
-			AbstractAgent* d2 = new SimpleDividingAgent(
+			auto d2 = std::make_unique<SimpleDividingAgent>(
 			    Officer->getNextAvailAgentID(), agName, d2Geom, basalBaseDir,
 			    divModels, divModel, 1, time, this->incrTime);
 
-			Officer->closeMotherStartDaughters(this, d1, d2);
+			Officer->closeMotherStartDaughters(this, std::move(d1),
+			                                   std::move(d2));
 
 			report::message(fmt::format("============== divided ID {} to "
 			                            "daughters' IDs {} & {} ==============",
@@ -549,7 +550,7 @@ void Scenario_modelledDivision::initializeAgents(FrontOfficer* fo, int p, int) {
 		return;
 	}
 	Spheres fakeGeom(1);
-	fo->startNewAgent(new GlobusManagingAgent(
+	fo->startNewAgent(std::make_unique<GlobusManagingAgent>(
 	    fo->getNextAvailAgentID(), fakeGeom, params->constants.initTime,
 	    params->constants.incrTime));
 
@@ -564,17 +565,19 @@ void Scenario_modelledDivision::initializeAgents(FrontOfficer* fo, int p, int) {
 
 	Spheres twoS(2);
 	for (int i = 0; i < 1; ++i) {
-		fo->startNewAgent(new SimpleDividingAgent(
+		fo->startNewAgent(std::make_unique<SimpleDividingAgent>(
 		    fo->getNextAvailAgentID(), "nucleus", divModel2S, twoS,
 		    params->constants.initTime, params->constants.incrTime));
 	}
 }
 
 void Scenario_modelledDivision::initializeScene() {
-	displays.registerDisplayUnit(
-	    []() { return std::make_unique<SceneryBufferedDisplayUnit>("localhost:8765"); });
 	displays.registerDisplayUnit([]() {
-		return std::make_unique<FlightRecorderDisplayUnit>("/temp/FR_modelledDivision.txt");
+		return std::make_unique<SceneryBufferedDisplayUnit>("localhost:8765");
+	});
+	displays.registerDisplayUnit([]() {
+		return std::make_unique<FlightRecorderDisplayUnit>(
+		    "/temp/FR_modelledDivision.txt");
 	});
 
 	// disks.enableImgMaskTIFFs();
@@ -585,7 +588,8 @@ void Scenario_modelledDivision::initializeScene() {
 	// displays.enableImgPhantomInImagingUnit("localFiji");
 }
 
-std::unique_ptr<SceneControls> Scenario_modelledDivision::provideSceneControls() const {
+std::unique_ptr<SceneControls>
+Scenario_modelledDivision::provideSceneControls() const {
 	// override the some defaults
 	config::scenario::ControlConstants myConstants;
 	myConstants.stopTime = 10000.2f;

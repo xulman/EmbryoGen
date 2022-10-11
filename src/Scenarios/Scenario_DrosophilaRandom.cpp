@@ -96,9 +96,6 @@ void Scenario_DrosophilaRandom::initializeAgents(FrontOfficer* fo, int p, int) {
 	// stepping in all directions -> influences the final number of nuclei
 	const float dx = 14.0f;
 
-	// to obtain a sequence of IDs for new agents...
-	int ID = 1;
-
 	// longer axis x
 	// symmetric/short axes y,z
 
@@ -148,11 +145,11 @@ void Scenario_DrosophilaRandom::initializeAgents(FrontOfficer* fo, int p, int) {
 			s.updateCentre(3, pos + 18.0f * axis);
 			s.updateRadius(3, 3.0f);
 
-			GrowableNucleusRand* ag = new GrowableNucleusRand(
-			    ID++, "nucleus growable random", s, params->constants.initTime,
-			    params->constants.incrTime);
+			auto ag = std::make_unique<GrowableNucleusRand>(
+			    fo->getNextAvailAgentID(), "nucleus growable random", s,
+			    params->constants.initTime, params->constants.incrTime);
 			ag->startGrowTime = 10.0f;
-			fo->startNewAgent(ag);
+			fo->startNewAgent(std::move(ag));
 		}
 	}
 
@@ -164,10 +161,10 @@ void Scenario_DrosophilaRandom::initializeAgents(FrontOfficer* fo, int p, int) {
 	// m.saveDistImg("GradIN_ZeroOUT.tif");
 
 	// finally, create the simulation agent to register this shape
-	ShapeHinter* ag =
-	    new ShapeHinter(ID++, "yolk", m, params->constants.initTime,
-	                    params->constants.incrTime);
-	fo->startNewAgent(ag, false);
+	auto ag = std::make_unique<ShapeHinter>(fo->getNextAvailAgentID(), "yolk",
+	                                        m, params->constants.initTime,
+	                                        params->constants.incrTime);
+	fo->startNewAgent(std::move(ag), false);
 }
 
 void Scenario_DrosophilaRandom::initializeScene() {

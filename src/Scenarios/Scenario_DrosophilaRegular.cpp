@@ -60,9 +60,6 @@ void Scenario_DrosophilaRegular::initializeAgents(FrontOfficer* fo,
 	// stepping in all directions -> influences the final number of nuclei
 	const float dx = 14.0f;
 
-	// to obtain a sequence of IDs for new agents...
-	int ID = 1;
-
 	// longer axis x
 	// symmetric/short axes y,z
 
@@ -102,11 +99,11 @@ void Scenario_DrosophilaRegular::initializeAgents(FrontOfficer* fo,
 			s.updateCentre(3, pos + 18.0f * axis);
 			s.updateRadius(3, 3.0f);
 
-			GrowableNucleusReg* ag = new GrowableNucleusReg(
-			    ID++, "nucleus growable regular", s, params->constants.initTime,
-			    params->constants.incrTime);
+			auto ag = std::make_unique<GrowableNucleusReg>(
+			    fo->getNextAvailAgentID(), "nucleus growable regular", s,
+			    params->constants.initTime, params->constants.incrTime);
 			ag->startGrowTime = 1.0f;
-			fo->startNewAgent(ag);
+			fo->startNewAgent(std::move(ag));
 		}
 	}
 
@@ -117,15 +114,16 @@ void Scenario_DrosophilaRegular::initializeAgents(FrontOfficer* fo,
 	// m.saveDistImg("GradIN_ZeroOUT.tif");
 
 	// finally, create the simulation agent to register this shape
-	ShapeHinter* ag = new ShapeHinter(
-	    ID++, "yolk", m, params->constants.initTime, params->constants.incrTime);
-	fo->startNewAgent(ag, false);
+	auto ag = std::make_unique<ShapeHinter>(fo->getNextAvailAgentID(), "yolk",
+	                                        m, params->constants.initTime,
+	                                        params->constants.incrTime);
+	fo->startNewAgent(std::move(ag), false);
 
 	//-------------
-	TrajectoriesHinter* at = new TrajectoriesHinter(
-	    ID++, "trajectories", initShape, VectorImg::ChoosingPolicy::avgVec,
-	    params->constants.initTime, params->constants.incrTime);
-	fo->startNewAgent(at, false);
+	auto at = std::make_unique<TrajectoriesHinter>(
+	    fo->getNextAvailAgentID(), "trajectories", initShape,
+	    VectorImg::ChoosingPolicy::avgVec, params->constants.initTime,
+	    params->constants.incrTime);
 
 	// the trajectories hinter:
 	at->talkToHinter().readFromFile("../DrosophilaYolk_movement.txt",
@@ -133,13 +131,17 @@ void Scenario_DrosophilaRegular::initializeAgents(FrontOfficer* fo,
 	report::message(fmt::format("Timepoints: {}, Tracks: {}",
 	                            at->talkToHinter().size(),
 	                            at->talkToHinter().knownTracks.size()));
+
+	fo->startNewAgent(std::move(at), false);
 }
 
 void Scenario_DrosophilaRegular::initializeScene() {
-	displays.registerDisplayUnit(
-	    []() { return std::make_unique<SceneryBufferedDisplayUnit>("localhost:8765"); });
+	displays.registerDisplayUnit([]() {
+		return std::make_unique<SceneryBufferedDisplayUnit>("localhost:8765");
+	});
 }
 
-std::unique_ptr<SceneControls> Scenario_DrosophilaRegular::provideSceneControls() const {
+std::unique_ptr<SceneControls>
+Scenario_DrosophilaRegular::provideSceneControls() const {
 	return std::make_unique<SceneControls>(DefaultSceneControls);
 }

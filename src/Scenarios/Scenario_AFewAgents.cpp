@@ -5,6 +5,7 @@
 #include "../Geometries/Spheres.hpp"
 #include "../util/Vector3d.hpp"
 #include "common/Scenarios.hpp"
+#include <memory>
 
 // no specific Nucleus (or other "prefilled" agent)
 
@@ -15,9 +16,6 @@ void Scenario_AFewAgents::initializeAgents(FrontOfficer* fo, int p, int) {
 		    "Populating only the first FO (which is not this one)."));
 		return;
 	}
-
-	// to obtain a sequence of IDs for new agents...
-	int ID = 1;
 
 	const float radius = 0.4f * params->constants.sceneSize.y;
 	const int howManyToPlace = 6;
@@ -46,10 +44,9 @@ void Scenario_AFewAgents::initializeAgents(FrontOfficer* fo, int p, int) {
 		s.updateCentre(3, pos + Vector3d<float>(0, 0, +9));
 		s.updateRadius(3, 3.0f);
 
-		auto ag =
-		    new Nucleus4SAgent(ID++, "nucleus", s, params->constants.initTime,
-		                       params->constants.incrTime);
-		fo->startNewAgent(ag);
+		fo->startNewAgent(std::make_unique<Nucleus4SAgent>(
+		    fo->getNextAvailAgentID(), "nucleus", s, params->constants.initTime,
+		    params->constants.incrTime));
 	}
 
 	// shadow hinter geometry (micron size and resolution)
@@ -89,10 +86,11 @@ void Scenario_AFewAgents::initializeAgents(FrontOfficer* fo, int p, int) {
 	// m.saveDistImg("GradIN_ZeroOUT.tif");
 
 	// finally, create the simulation agent to register this shape
-	ShapeHinter* ag =
-	    new ShapeHinter(ID++, "yolk", m, params->constants.initTime,
-	                    params->constants.incrTime);
-	fo->startNewAgent(ag, false);
+	fo->startNewAgent(std::make_unique<ShapeHinter>(fo->getNextAvailAgentID(),
+	                                                "yolk", m,
+	                                                params->constants.initTime,
+	                                                params->constants.incrTime),
+	                  false);
 }
 
 void Scenario_AFewAgents::initializeScene() {

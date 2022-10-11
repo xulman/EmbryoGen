@@ -97,9 +97,6 @@ void Scenario_withCellCycle::initializeAgents(FrontOfficer* fo, int p, int) {
 		return;
 	}
 
-	// to obtain a sequence of IDs for new agents...
-	int ID = 1;
-
 	const int howManyToPlace = 2;
 	for (int i = 0; i < howManyToPlace; ++i) {
 		// the wished position relative to [0,0,0] centre
@@ -121,20 +118,22 @@ void Scenario_withCellCycle::initializeAgents(FrontOfficer* fo, int p, int) {
 		s.updateCentre(1, pos + Vector3d<float>(0, 3, 0));
 		s.updateRadius(1, 10.0f);
 
-		myNucleusC* ag =
-		    new myNucleusC(ID++, "nucleus", s, params->constants.initTime,
-		                   params->constants.incrTime);
+		auto ag = std::make_unique<myNucleusC>(
+		    fo->getNextAvailAgentID(), "nucleus", s, params->constants.initTime,
+		    params->constants.incrTime);
 		ag->setDetailedDrawingMode(true);
-		fo->startNewAgent(ag);
+		fo->startNewAgent(std::move(ag));
 	}
 }
 
 void Scenario_withCellCycle::initializeScene() {
-	displays.registerDisplayUnit(
-	    []() { return std::make_unique<SceneryBufferedDisplayUnit>("localhost:8765"); });
+	displays.registerDisplayUnit([]() {
+		return std::make_unique<SceneryBufferedDisplayUnit>("localhost:8765");
+	});
 }
 
-std::unique_ptr<SceneControls> Scenario_withCellCycle::provideSceneControls() const {
+std::unique_ptr<SceneControls>
+Scenario_withCellCycle::provideSceneControls() const {
 	config::scenario::ControlConstants myConstants;
 	myConstants.stopTime = 8.2f;
 

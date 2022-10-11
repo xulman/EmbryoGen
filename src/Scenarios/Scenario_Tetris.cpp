@@ -184,7 +184,7 @@ void Scenario_Tetris::initializeAgents(FrontOfficer* fo, int p, int) {
 				spheres.updateRadius(int(i),
 				                     sRadius + GetRandomUniform(-0.8f, +0.8f));
 
-			fo->startNewAgent(new TetrisNucleus(
+			fo->startNewAgent(std::make_unique<TetrisNucleus>(
 			    fo->getNextAvailAgentID(), agentName, spheres,
 			    y < 2 ? y + 1 : int(spheres.getNoOfSpheres()) + y - 4,
 			    params->constants.initTime, params->constants.incrTime));
@@ -256,7 +256,7 @@ void Scenario_Tetris::initializeAgents(FrontOfficer* fo, int p, int) {
 		        params.constants.initTime,params.constants.incrTime
 		    ));
 		*/
-		fo->startNewAgent(new TetrisNucleus(
+		fo->startNewAgent(std::make_unique<TetrisNucleus>(
 		    fo->getNextAvailAgentID(), agentName, manyS, 0,
 		    params->constants.initTime, params->constants.incrTime));
 
@@ -266,8 +266,9 @@ void Scenario_Tetris::initializeAgents(FrontOfficer* fo, int p, int) {
 }
 
 void Scenario_Tetris::initializeScene() {
-	displays.registerDisplayUnit(
-	    []() { return std::make_unique<SceneryBufferedDisplayUnit>("localhost:8765"); });
+	displays.registerDisplayUnit([]() {
+		return std::make_unique<SceneryBufferedDisplayUnit>("localhost:8765");
+	});
 	// displays.registerDisplayUnit( [](){ return new
 	// FlightRecorderDisplayUnit("/temp/FR_tetris.txt"); } );
 
