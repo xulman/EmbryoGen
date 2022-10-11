@@ -67,7 +67,7 @@ void NucleusAgent::advanceAndBuildIntForces(const float futureGlobalTime) {
 	currTime += incrTime;
 }
 
-void NucleusAgent::collectExtForces(void) {
+void NucleusAgent::collectExtForces() {
 	// damping force (aka friction due to the environment,
 	// an ext. force that is independent of other agents)
 	// TRAgen paper, eq. (3)
@@ -80,7 +80,7 @@ void NucleusAgent::collectExtForces(void) {
 	// scheduler, please give me ShadowAgents that are not further than
 	// ignoreDistance (and the distance is evaluated based on distances of
 	// AABBs)
-	std::deque<const NamedAxisAlignedBoundingBox*> nearbyAgentBoxes;
+	std::vector<const NamedAxisAlignedBoundingBox*> nearbyAgentBoxes;
 	Officer->getNearbyAABBs(this, ignoreDistance, nearbyAgentBoxes);
 
 #ifndef NDEBUG

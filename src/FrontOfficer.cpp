@@ -1,6 +1,17 @@
 #include "FrontOfficer.hpp"
 #include "Agents/AbstractAgent.hpp"
 
+FrontOfficer::~FrontOfficer() {
+	report::debugMessage(fmt::format("running the closing sequence"));
+	report::debugMessage(
+	    fmt::format("will remove {} active agents", agents.size()));
+	report::debugMessage(
+	    fmt::format("will remove {} shadow agents", shadowAgents.size()));
+}
+
+int FrontOfficer::getID() const { return ID; }
+int FrontOfficer::getNextAvailAgentID() { return nextAvailAgentID++; }
+
 void FrontOfficer::init1() {
 	report::message(fmt::format("FO #{} initializing now...", ID));
 	currTime = scenario->params->constants.initTime;
@@ -14,43 +25,6 @@ void FrontOfficer::init2() {
 	report::message(fmt::format("FO #{} initialized", ID));
 }
 
-void FrontOfficer::reportSituation() {
-	// overlap reports:
-	if (overlapSubmissionsCounter == 0) {
-		report::debugMessage(fmt::format("no overlaps reported at all"));
-	} else {
-		report::debugMessage(fmt::format(
-		    "max overlap: {}, avg overlap: {}, cnt of overlaps: {}", overlapMax,
-		    (overlapSubmissionsCounter > 0
-		         ? overlapAvg / float(overlapSubmissionsCounter)
-		         : 0.f),
-		    overlapSubmissionsCounter));
-	}
-	overlapMax = overlapAvg = 0.f;
-	overlapSubmissionsCounter = 0;
-
-	report::message(fmt::format(
-	    "--------------- {} min ({} in this FO #{} / {} AABBs (entire world), "
-	    "{} cached geometries) ---------------",
-	    currTime, agents.size(), ID, AABBs.size(), shadowAgents.size()));
-}
-
-FrontOfficer::~FrontOfficer() {
-	report::debugMessage(fmt::format("running the closing sequence"));
-
-	// TODO: should close/kill the service thread too
-
-	// delete all agents... also later from newAgents & deadAgents, note that
-	// the same agent may exist on the agents and deadAgents lists
-	// simultaneously
-	report::debugMessage(
-	    fmt::format("will remove {} active agents", agents.size()));
-
-	// also clean up any shadow agents one may have
-	report::debugMessage(
-	    fmt::format("will remove {} shadow agents", shadowAgents.size()));
-}
-
 void FrontOfficer::executeEndSub1() {
 	// move to the next simulation time point
 	currTime += scenario->params->constants.incrTime;
@@ -62,102 +36,9 @@ void FrontOfficer::executeEndSub2() {
 	scenario->updateScene(currTime);
 }
 
-void FrontOfficer::executeInternals() {
-	// after this simulation round is done, all agents should
-	// reach local times greater than this global time
-	const float futureTime =
-	    currTime + scenario->params->constants.incrTime - 0.0001f;
-
-	// develop (willingly) new shapes... (can run in parallel),
-	// the agents' (external at least!) geometries must not change during this
-	// phase
-	for (auto& [_, ag] : agents) {
-		ag->advanceAndBuildIntForces(futureTime);
-#ifndef NDEBUG
-		if (ag->getLocalTime() < futureTime)
-			throw report::rtError("Agent is not synchronized.");
-#endif
-	}
-
-	// propagate current internal geometries to the exported ones... (can run in
-	// parallel)
-	for (auto& [_, ag] : agents) {
-		ag->adjustGeometryByIntForces();
-		ag->publishGeometry();
-	}
-}
-
-void FrontOfficer::executeExternals() {
-#ifndef NDEBUG
-	reportAABBs();
-#endif
-	// react (unwillingly) to the new geometries... (can run in parallel),
-	// the agents' (external at least!) geometries must not change during this
-	// phase
-	for (auto& [_, ag] : agents)
-		ag->collectExtForces();
-
-	// propagate current internal geometries to the exported ones... (can run in
-	// parallel)
-	for (auto& [_, ag] : agents) {
-		ag->adjustGeometryByExtForces();
-		ag->publishGeometry();
-	}
-}
-
-void FrontOfficer::prepareForUpdateAndPublishAgents() {
-	AABBs.clear();
-	agentsToFOsMap.clear();
-	// the agentsAndBroadcastGeomVersions is cummulative, we never erase it
-}
-
-void FrontOfficer::updateAndPublishAgents() {
-	// since the last call of this method, we have:
-	// list of agents that were active after the last call in 'agents'
-	// subset of these that became inactive in 'deadAgents'
-	// list of newly created in 'newAgents'
-
-	// we want only to put our 'agents' list into order:
-	// remove/unregister dead agents
-	for (auto id : deadAgentsIDs)
-		agents.erase(id);
-
-	deadAgentsIDs.clear();
-
-	// register the new ones (and remove from the "new born list")
-	for (auto& ag_ptr : newAgents) {
-#ifndef NDEBUG
-		if (agents.contains(ag_ptr->ID))
-			throw report::rtError(fmt::format(
-			    "Attempting to add another agent with the same ID {}",
-			    ag_ptr->ID));
-#endif
-		agents[ag_ptr->ID] = std::move(ag_ptr);
-	}
-	newAgents.clear();
-
-	// WAIT HERE UNTIL WE'RE TOLD TO START BROADCASTING OUR CHANGES
-	// only FO with a "token" does broadcasting, token passing
-	// is the same as for rendering/building output images (the round robin)
-	waitFor_publishAgentsAABBs();
-
-	// now distribute AABBs of the existing ones
-	broadcast_AABBofAgents();
-
-	// and we move on to get blocked on any following checkpoint
-	// while waiting there, our respond_AABBofAgent() collects data
-}
-
-void FrontOfficer::postprocessAfterUpdateAndPublishAgents() {
-	// post-process local Dictionary
-	agentsTypesDictionary.markAllWasBroadcast();
-	agentsTypesDictionary.cleanUp(AABBs);
-}
-
-int FrontOfficer::getNextAvailAgentID() { return nextAvailAgentID++; }
-
-void FrontOfficer::startNewAgent(std::unique_ptr<AbstractAgent> ag,
-                                 const bool wantsToAppearInCTCtracksTXTfile) {
+void FrontOfficer::startNewAgent(
+    std::unique_ptr<AbstractAgent> ag,
+    const bool wantsToAppearInCTCtracksTXTfile /* = true */) {
 	if (ag == nullptr)
 		throw report::rtError("refuse to include NULL agent.");
 
@@ -208,59 +89,13 @@ void FrontOfficer::closeMotherStartDaughters(
 	closeAgent(mother);
 	startNewDaughterAgent(std::move(daughterA), mother->ID);
 	startNewDaughterAgent(std::move(daughterB), mother->ID);
-	// NB: this can be extended to any number of daughters
-}
-
-void FrontOfficer::setAgentsDetailedDrawingMode(const int agentID,
-                                                const bool state) {
-	// find the agentID among currently existing agents...
-	auto it = agents.find(agentID);
-#ifndef NDEBUG
-	if (it == agents.end())
-		throw report::rtError(fmt::format("Cannot set detailed drawing mode of "
-		                                  "agent: {} ... agent does not exist",
-		                                  agentID));
-#endif
-	it->second->setDetailedDrawingMode(state);
-}
-
-void FrontOfficer::setAgentsDetailedReportingMode(const int agentID,
-                                                  const bool state) {
-	// find the agentID among currently existing agents...
-	auto it = agents.find(agentID);
-#ifndef NDEBUG
-	if (it == agents.end())
-		throw report::rtError(
-		    fmt::format("Cannot set detailed reporting mode of "
-		                "agent: {} ... agent does not exist",
-		                agentID));
-#endif
-	it->second->setDetailedReportingMode(state);
-}
-
-void FrontOfficer::setSimulationDebugRendering(const bool state) {
-	renderingDebug = state;
-}
-
-size_t FrontOfficer::getSizeOfAABBsList() const { return AABBs.size(); }
-
-void FrontOfficer::registerThatThisAgentIsAtThisFO(const int agentID,
-                                                   const int FOsID) {
-#ifndef NDEBUG
-	if (agentsToFOsMap.find(agentID) != agentsToFOsMap.end())
-		throw report::rtError(
-		    fmt::format("Agent ID {} already registered with FO #{} but was "
-		                "(again) broadcast by FO #{}",
-		                agentID, agentsToFOsMap.find(agentID)->second, FOsID));
-#endif
-	agentsToFOsMap[agentID] = FOsID;
 }
 
 void FrontOfficer::getNearbyAABBs(
-    const ShadowAgent* const fromSA,                   // reference agent
-    const float maxDist,                               // threshold dist
-    std::deque<const NamedAxisAlignedBoundingBox*>& l) // output list
-{
+    const ShadowAgent* const fromSA,                    // reference agent
+    const float maxDist,                                // threshold dist
+    std::vector<const NamedAxisAlignedBoundingBox*>& l) // output list
+    const {
 	getNearbyAABBs(NamedAxisAlignedBoundingBox(fromSA->getAABB(),
 	                                           fromSA->getID(),
 	                                           fromSA->getAgentTypeID()),
@@ -268,10 +103,10 @@ void FrontOfficer::getNearbyAABBs(
 }
 
 void FrontOfficer::getNearbyAABBs(
-    const NamedAxisAlignedBoundingBox& fromThisAABB,   // reference box
-    const float maxDist,                               // threshold dist
-    std::deque<const NamedAxisAlignedBoundingBox*>& l) // output list
-{
+    const NamedAxisAlignedBoundingBox& fromThisAABB,    // reference box
+    const float maxDist,                                // threshold dist
+    std::vector<const NamedAxisAlignedBoundingBox*>& l) // output list
+    const {
 	const float maxDist2 = maxDist * maxDist;
 
 	// examine all available boxes/agents
@@ -287,18 +122,18 @@ void FrontOfficer::getNearbyAABBs(
 }
 
 const std::string&
-FrontOfficer::translateNameIdToAgentName(const size_t nameID) {
+FrontOfficer::translateNameIdToAgentName(const size_t nameID) const {
 	return agentsTypesDictionary.translateIdToString(nameID);
 }
 
 void FrontOfficer::getNearbyAgents(
-    const ShadowAgent* const fromSA,   // reference agent
-    const float maxDist,               // threshold dist
-    std::deque<const ShadowAgent*>& l) // output list
+    const ShadowAgent* const fromSA,    // reference agent
+    const float maxDist,                // threshold dist
+    std::vector<const ShadowAgent*>& l) // output list
 {
 	// list with pointers on (nearby) boxes that live in this->AABBs,
 	// these were not created explicitly and so we must not delete them
-	std::deque<const NamedAxisAlignedBoundingBox*> nearbyBoxes;
+	std::vector<const NamedAxisAlignedBoundingBox*> nearbyBoxes;
 
 	getNearbyAABBs(NamedAxisAlignedBoundingBox(fromSA->getAABB(),
 	                                           fromSA->getID(),
@@ -365,6 +200,200 @@ const ShadowAgent* FrontOfficer::getNearbyAgent(const int fetchThisID) {
 	return shadowAgents[fetchThisID].get();
 }
 
+std::size_t FrontOfficer::getSizeOfAABBsList() const { return AABBs.size(); }
+
+std::vector<std::pair<int, bool>> FrontOfficer::getStartedAgents() {
+	auto cpy(std::move(startedAgents));
+	startedAgents.clear();
+	return cpy;
+}
+std::vector<int> FrontOfficer::getClosedAgents() {
+	auto cpy(std::move(closedAgents));
+	closedAgents.clear();
+	return cpy;
+}
+std::vector<std::pair<int, int>> FrontOfficer::getParentalLinksUpdates() {
+	auto cpy(std::move(parentalLinks));
+	parentalLinks.clear();
+	return cpy;
+}
+
+void FrontOfficer::setAgentsDetailedDrawingMode(const int agentID,
+                                                const bool state) {
+	// find the agentID among currently existing agents...
+	auto it = agents.find(agentID);
+#ifndef NDEBUG
+	if (it == agents.end())
+		throw report::rtError(fmt::format("Cannot set detailed drawing mode of "
+		                                  "agent: {} ... agent does not exist",
+		                                  agentID));
+#endif
+	it->second->setDetailedDrawingMode(state);
+}
+
+void FrontOfficer::setAgentsDetailedReportingMode(const int agentID,
+                                                  const bool state) {
+	// find the agentID among currently existing agents...
+	auto it = agents.find(agentID);
+#ifndef NDEBUG
+	if (it == agents.end())
+		throw report::rtError(
+		    fmt::format("Cannot set detailed reporting mode of "
+		                "agent: {} ... agent does not exist",
+		                agentID));
+#endif
+	it->second->setDetailedReportingMode(state);
+}
+
+void FrontOfficer::setSimulationDebugRendering(const bool state) {
+	renderingDebug = state;
+}
+
+void FrontOfficer::reportSituation() {
+	// overlap reports:
+	if (overlapSubmissionsCounter == 0) {
+		report::debugMessage(fmt::format("no overlaps reported at all"));
+	} else {
+		report::debugMessage(fmt::format(
+		    "max overlap: {}, avg overlap: {}, cnt of overlaps: {}", overlapMax,
+		    (overlapSubmissionsCounter > 0
+		         ? overlapAvg / float(overlapSubmissionsCounter)
+		         : 0.f),
+		    overlapSubmissionsCounter));
+	}
+	overlapMax = overlapAvg = 0.f;
+	overlapSubmissionsCounter = 0;
+
+	report::message(fmt::format(
+	    "--------------- {} min ({} in this FO #{} / {} AABBs (entire world), "
+	    "{} cached geometries) ---------------",
+	    currTime, agents.size(), ID, AABBs.size(), shadowAgents.size()));
+}
+
+void FrontOfficer::reportAABBs() {
+	report::message(fmt::format("I now recognize these AABBs:"));
+	for (const auto& naabb : AABBs)
+		report::message(fmt::format(
+		    "agent ID {} \"{}\" spanning from {} to {} and living at FO #{}",
+		    naabb.ID, agentsTypesDictionary.translateIdToString(naabb.nameID),
+		    toString(naabb.minCorner), toString(naabb.maxCorner),
+		    agentsToFOsMap[naabb.ID]));
+}
+
+void FrontOfficer::reportOverlap(const float dist) {
+	// new max overlap?
+	if (dist > overlapMax)
+		overlapMax = dist;
+
+	// stats for calculating the average
+	overlapAvg += dist;
+	++overlapSubmissionsCounter;
+}
+
+void FrontOfficer::registerThatThisAgentIsAtThisFO(const int agentID,
+                                                   const int FOsID) {
+#ifndef NDEBUG
+	if (agentsToFOsMap.find(agentID) != agentsToFOsMap.end())
+		throw report::rtError(
+		    fmt::format("Agent ID {} already registered with FO #{} but was "
+		                "(again) broadcast by FO #{}",
+		                agentID, agentsToFOsMap.find(agentID)->second, FOsID));
+#endif
+	agentsToFOsMap[agentID] = FOsID;
+}
+
+void FrontOfficer::prepareForUpdateAndPublishAgents() {
+	AABBs.clear();
+	agentsToFOsMap.clear();
+	// the agentsAndBroadcastGeomVersions is cummulative, we never erase it
+}
+
+void FrontOfficer::updateAndPublishAgents() {
+	// since the last call of this method, we have:
+	// list of agents that were active after the last call in 'agents'
+	// subset of these that became inactive in 'deadAgents'
+	// list of newly created in 'newAgents'
+
+	// we want only to put our 'agents' list into order:
+	// remove/unregister dead agents
+	for (auto id : deadAgentsIDs)
+		agents.erase(id);
+
+	deadAgentsIDs.clear();
+
+	// register the new ones (and remove from the "new born list")
+	for (auto& ag_ptr : newAgents) {
+#ifndef NDEBUG
+		if (agents.contains(ag_ptr->ID))
+			throw report::rtError(fmt::format(
+			    "Attempting to add another agent with the same ID {}",
+			    ag_ptr->ID));
+#endif
+		agents[ag_ptr->ID] = std::move(ag_ptr);
+	}
+	newAgents.clear();
+
+	// WAIT HERE UNTIL WE'RE TOLD TO START BROADCASTING OUR CHANGES
+	// only FO with a "token" does broadcasting, token passing
+	// is the same as for rendering/building output images (the round robin)
+	waitFor_publishAgentsAABBs();
+
+	// now distribute AABBs of the existing ones
+	broadcast_AABBofAgents();
+
+	// and we move on to get blocked on any following checkpoint
+	// while waiting there, our respond_AABBofAgent() collects data
+}
+
+void FrontOfficer::postprocessAfterUpdateAndPublishAgents() {
+	// post-process local Dictionary
+	agentsTypesDictionary.markAllWasBroadcast();
+	agentsTypesDictionary.cleanUp(AABBs);
+}
+
+void FrontOfficer::executeInternals() {
+	// after this simulation round is done, all agents should
+	// reach local times greater than this global time
+	const float futureTime =
+	    currTime + scenario->params->constants.incrTime - 0.0001f;
+
+	// develop (willingly) new shapes... (can run in parallel),
+	// the agents' (external at least!) geometries must not change during this
+	// phase
+	for (auto& [_, ag] : agents) {
+		ag->advanceAndBuildIntForces(futureTime);
+#ifndef NDEBUG
+		if (ag->getLocalTime() < futureTime)
+			throw report::rtError("Agent is not synchronized.");
+#endif
+	}
+
+	// propagate current internal geometries to the exported ones... (can run in
+	// parallel)
+	for (auto& [_, ag] : agents) {
+		ag->adjustGeometryByIntForces();
+		ag->publishGeometry();
+	}
+}
+
+void FrontOfficer::executeExternals() {
+#ifndef NDEBUG
+	reportAABBs();
+#endif
+	// react (unwillingly) to the new geometries... (can run in parallel),
+	// the agents' (external at least!) geometries must not change during this
+	// phase
+	for (auto& [_, ag] : agents)
+		ag->collectExtForces();
+
+	// propagate current internal geometries to the exported ones... (can run in
+	// parallel)
+	for (auto& [_, ag] : agents) {
+		ag->adjustGeometryByExtForces();
+		ag->publishGeometry();
+	}
+}
+
 void FrontOfficer::renderNextFrame(i3d::Image3d<i3d::GRAY16>& imgMask,
                                    i3d::Image3d<float>& imgPhantom,
                                    i3d::Image3d<float>& imgOptics) {
@@ -410,14 +439,4 @@ void FrontOfficer::renderNextFrame(i3d::Image3d<i3d::GRAY16>& imgMask,
 
 	waitFor_renderNextFrame();
 	// and we move on to get blocked on any following checkpoint
-}
-
-void FrontOfficer::reportAABBs() {
-	report::message(fmt::format("I now recognize these AABBs:"));
-	for (const auto& naabb : AABBs)
-		report::message(fmt::format(
-		    "agent ID {} \"{}\" spanning from {} to {} and living at FO #{}",
-		    naabb.ID, agentsTypesDictionary.translateIdToString(naabb.nameID),
-		    toString(naabb.minCorner), toString(naabb.maxCorner),
-		    agentsToFOsMap[naabb.ID]));
 }

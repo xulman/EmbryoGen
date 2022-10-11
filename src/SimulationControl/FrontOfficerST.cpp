@@ -11,15 +11,16 @@ FrontOfficer::FrontOfficer(ScenarioUPTR s,
 	scenario->declareFOcontext(myPortion);
 }
 
-void FrontOfficer::waitHereUntilEveryoneIsHereToo() const {}
-
 /** Never called in ST case, but could have some use in other implementations */
 void FrontOfficer::init() {}
 
 /** Never called in ST case, but could have some use in other implementations */
 void FrontOfficer::execute() {}
 
+void FrontOfficer::waitHereUntilEveryoneIsHereToo() const {}
 void FrontOfficer::waitFor_publishAgentsAABBs() const {}
+
+
 
 void FrontOfficer::broadcast_AABBofAgents() {
 	// in this ST particular implementation we do only update ourselves,

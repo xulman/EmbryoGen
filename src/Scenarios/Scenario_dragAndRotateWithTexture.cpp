@@ -80,18 +80,14 @@ class myDragAndTextureNucleus_common : public NucleusNSAgent, Texture {
 	void adjustGeometryByExtForces(void) override {
 		NucleusNSAgent::adjustGeometryByExtForces();
 
-		// update only just before the texture rendering event... (to save some
-		// comp. time)
-		if (Officer->willRenderNextFrame()) {
-			updateTextureCoords(dots, futureGeometry);
+		updateTextureCoords(dots, futureGeometry);
 
-			// correct for outlying texture particles
-			int dotOutliers = collectOutlyingDots(futureGeometry);
-			report::debugMessage(fmt::format(
-			    "{} ({} %) dots had to be moved inside the current "
-			    "geometry",
-			    dotOutliers, 100.0 * dotOutliers / double(dots.size())));
-		}
+		// correct for outlying texture particles
+		int dotOutliers = collectOutlyingDots(futureGeometry);
+		report::debugMessage(fmt::format(
+		    "{} ({} %) dots had to be moved inside the current "
+		    "geometry",
+		    dotOutliers, 100.0 * dotOutliers / double(dots.size())));
 	}
 
 	virtual void updateTextureCoords(std::vector<Dot>&, const Spheres&) {

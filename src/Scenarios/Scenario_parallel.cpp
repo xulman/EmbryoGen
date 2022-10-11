@@ -71,7 +71,7 @@ class ParallelNucleus : public AbstractAgent {
 	const float searchAroundDistance;
 
 	/// who has been found around
-	std::deque<const ShadowAgent*> nearbyAgents;
+	std::vector<const ShadowAgent*> nearbyAgents;
 
 	/// internal affairs: flag that the agent should move
 	void advanceAndBuildIntForces(const float) {
