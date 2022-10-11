@@ -13,14 +13,13 @@ ImplementationData& get_data(const std::shared_ptr<void>& obj) {
 	return *static_cast<ImplementationData*>(obj.get());
 }
 
-Director::Director(std::function<ScenarioUPTR()> ScenarioFactory)
-    : scenario(ScenarioFactory()),
+Director::Director(std::function<ScenarioUPTR()> scenarioFactory)
+    : scenario(scenarioFactory()),
       shallWaitForUserPromptFlag(scenario->params->shallWaitForUserPromptFlag) {
 	scenario->declareDirektorContext();
 
 	implementationData =
-	    std::make_unique<ImplementationData>(ScenarioFactory(), 1, 1);
-
+	    std::make_unique<ImplementationData>(scenarioFactory(), 1, 1);
 }
 
 void Director::init() {
@@ -32,10 +31,16 @@ void Director::init() {
 	init3();         // and render the first frame
 }
 
+void Director::execute() { _execute(); }
+
 int Director::getFOsCount() const { return 1; }
 
-void Director::prepareForUpdateAndPublishAgents() {
+void Director::prepareForUpdateAndPublishAgents() const {
 	get_data(implementationData).FO.prepareForUpdateAndPublishAgents();
+}
+
+void Director::postprocessAfterUpdateAndPublishAgents() const {
+	get_data(implementationData).FO.postprocessAfterUpdateAndPublishAgents();
 }
 
 void Director::waitHereUntilEveryoneIsHereToo() const {}
@@ -43,12 +48,7 @@ void Director::waitHereUntilEveryoneIsHereToo() const {}
 void Director::notify_publishAgentsAABBs() const {
 	get_data(implementationData).FO.updateAndPublishAgents();
 }
-
 void Director::waitFor_publishAgentsAABBs() const {}
-
-void Director::postprocessAfterUpdateAndPublishAgents() const {
-	get_data(implementationData).FO.postprocessAfterUpdateAndPublishAgents();
-}
 
 std::vector<std::size_t> Director::request_CntsOfAABBs() const {
 	return {get_data(implementationData).FO.getSizeOfAABBsList()};
@@ -65,14 +65,6 @@ std::vector<std::vector<std::pair<int, int>>>
 Director::request_parentalLinksUpdates() const {
 	return {get_data(implementationData).FO.getParentalLinksUpdates()};
 }
-
-void Director::request_renderNextFrame() const {
-	SceneControls& sc = *scenario->params;
-	get_data(implementationData)
-	    .FO.renderNextFrame(sc.imgMask, sc.imgPhantom, sc.imgOptics);
-}
-
-void Director::waitFor_renderNextFrame() const {}
 
 void Director::notify_setDetailedDrawingMode(int FOsID,
                                              int agentID,
@@ -91,6 +83,14 @@ void Director::notify_setDetailedReportingMode(int FOsID,
 	get_data(implementationData)
 	    .FO.setAgentsDetailedReportingMode(agentID, state);
 }
+
+void Director::request_renderNextFrame() const {
+	SceneControls& sc = *scenario->params;
+	get_data(implementationData)
+	    .FO.renderNextFrame(sc.imgMask, sc.imgPhantom, sc.imgOptics);
+}
+
+void Director::waitFor_renderNextFrame() const {}
 
 void Director::broadcast_setRenderingDebug(bool setFlagToThis) const {
 	get_data(implementationData).FO.setSimulationDebugRendering(setFlagToThis);
@@ -111,5 +111,3 @@ void Director::broadcast_executeEndSub1() const {
 void Director::broadcast_executeEndSub2() const {
 	get_data(implementationData).FO.executeEndSub2();
 }
-
-void Director::execute() { _execute(); }

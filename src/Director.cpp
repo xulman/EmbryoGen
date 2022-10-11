@@ -7,7 +7,69 @@
 #include <cmath>
 #include <fmt/core.h>
 #include <thread>
-#include <unordered_set>
+
+Director::~Director() {
+	report::debugMessage(fmt::format("running the closing sequence"));
+
+	// TODO: should close/kill the service thread too
+
+	// close tracks of all agents
+	for (auto [id, _] : agents) {
+		// CTC logging?
+		if (tracks.isTrackFollowed(id)    // was part of logging?
+		    && !tracks.isTrackClosed(id)) // wasn't closed yet?
+			tracks.closeTrack(id, frameCnt - 1);
+	}
+
+	tracks.exportAllToFile("tracks.txt");
+	report::debugMessage(fmt::format("tracks.txt was saved..."));
+}
+
+int Director::getFOsIDofAgent(int agentID) const {
+	auto it = agents.find(agentID);
+	if (it != agents.end())
+		return it->second;
+
+	throw report::rtError(
+	    fmt::format("Couldn't find a record about agent {}", agentID));
+}
+
+bool Director::willRenderNextFrame() const { return willRenderNextFrameFlag; }
+bool Director::willWaitForUserPrompt() const {
+	return shallWaitForUserPromptFlag;
+}
+void Director::setWaitForUserPrompt(bool state) {
+	shallWaitForUserPromptFlag = state;
+}
+
+void Director::setAgentsDetailedDrawingMode(const int agentID,
+                                            const bool state) const {
+	int FO = getFOsIDofAgent(agentID);
+	notify_setDetailedDrawingMode(FO, agentID, state);
+}
+
+void Director::setAgentsDetailedReportingMode(const int agentID,
+                                              const bool state) const {
+	int FO = getFOsIDofAgent(agentID);
+	notify_setDetailedReportingMode(FO, agentID, state);
+}
+
+void Director::setSimulationDebugRendering(const bool state) {
+	renderingDebug = state;
+	broadcast_setRenderingDebug(state);
+}
+
+void Director::reportSituation() const {
+	report::message(fmt::format(
+	    "--------------- {} min ({} in the entire world) ---------------",
+	    currTime, agents.size()));
+}
+
+void Director::reportAgentsAllocation() const {
+	report::message(fmt::format("I now recognize these agents:"));
+	for (auto [id, FO] : agents)
+		report::message(fmt::format("agent ID {} at FO #{}", id, FO));
+}
 
 void Director::init1() {
 	report::message(fmt::format("Direktor initializing now..."));
@@ -77,29 +139,6 @@ void Director::init3() {
 	renderNextFrame();
 }
 
-void Director::reportSituation() {
-	report::message(fmt::format(
-	    "--------------- {} min ({} in the entire world) ---------------",
-	    currTime, agents.size()));
-}
-
-Director::~Director() {
-	report::debugMessage(fmt::format("running the closing sequence"));
-
-	// TODO: should close/kill the service thread too
-
-	// close tracks of all agents
-	for (auto [id, _] : agents) {
-		// CTC logging?
-		if (tracks.isTrackFollowed(id)    // was part of logging?
-		    && !tracks.isTrackClosed(id)) // wasn't closed yet?
-			tracks.closeTrack(id, frameCnt - 1);
-	}
-
-	tracks.exportAllToFile("tracks.txt");
-	report::debugMessage(fmt::format("tracks.txt was saved..."));
-}
-
 void Director::_execute() {
 	report::message(fmt::format("Direktor has just started the simulation"));
 
@@ -114,7 +153,6 @@ void Director::_execute() {
 		willRenderNextFrameFlag =
 		    currTime + incrTime >= float(frameCnt) * expoTime;
 
-		// getFirstFO().willRenderNextFrameFlag = this->willRenderNextFrameFlag;
 		broadcast_executeInternals();
 		waitHereUntilEveryoneIsHereToo();
 
@@ -226,32 +264,6 @@ void Director::updateAndPublishAgents() {
 			    "FO #{} does not have a complete list of AABBs", i + 1));
 	}
 #endif
-}
-
-int Director::getFOsIDofAgent(const int agentID) const {
-	auto it = agents.find(agentID);
-	if (it != agents.end())
-		return it->second;
-
-	throw report::rtError(
-	    fmt::format("Couldn't find a record about agent {}", agentID));
-}
-
-void Director::setAgentsDetailedDrawingMode(const int agentID,
-                                            const bool state) {
-	int FO = getFOsIDofAgent(agentID);
-	notify_setDetailedDrawingMode(FO, agentID, state);
-}
-
-void Director::setAgentsDetailedReportingMode(const int agentID,
-                                              const bool state) {
-	int FO = getFOsIDofAgent(agentID);
-	notify_setDetailedReportingMode(FO, agentID, state);
-}
-
-void Director::setSimulationDebugRendering(const bool state) {
-	renderingDebug = state;
-	broadcast_setRenderingDebug(state);
 }
 
 void Director::renderNextFrame() {
@@ -509,11 +521,4 @@ void Director::renderNextFrame() {
 			key = 0;
 		}
 	} while (key != 0);
-}
-
-void Director::reportAgentsAllocation() {
-	report::message(fmt::format("I now recognize these agents:"));
-	for (const auto& AgFO : agents)
-		report::message(
-		    fmt::format("agent ID {} at FO #{}", AgFO.first, AgFO.second));
 }

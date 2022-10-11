@@ -4,15 +4,14 @@
 #include "Scenarios/common/Scenario.hpp"
 #include "TrackRecord_CTC.hpp"
 #include "util/report.hpp"
-#include <any>
 #include <functional>
-#include <list>
+#include <memory>
 #include <utility>
 
 /** has access to Scenario, to reach its doPhaseIIandIII() */
 class Director {
   public:
-	Director(std::function<ScenarioUPTR()> ScenarioFactory);
+	Director(std::function<ScenarioUPTR()> scenarioFactory);
 
 	Director(const Director&) = delete;
 	Director& operator=(const Director&) = delete;
@@ -21,72 +20,52 @@ class Director {
 	Director& operator=(Director&&) = default;
 	~Director();
 
-	void init();
-	int getFOsCount() const;
-
-	/** Singal to execute simulation */
-	void execute();
-
-	// ==================== simulation methods ====================
-	// these are implemented in:
-	// Director.cpp
-
-	/** new available, not-yet-used, unique agent ID is created here */
-	int getNextAvailAgentID();
+	// ==================== Implemented in Director.cpp ====================
 
 	/** returns the ID of FO to which a given agent is associated to */
-	int getFOsIDofAgent(const int agentID) const;
+	int getFOsIDofAgent(int agentID) const;
 
 	/** returns the state of the 'willRenderNextFrameFlag', that is if the
 	    current simulation round with end up with the call to renderNextFrame()
 	 */
-	bool willRenderNextFrame() const { return willRenderNextFrameFlag; }
+	bool willRenderNextFrame() const;
 
 	/** returns the state of the 'shallWaitForUserPromptFlag', that is if an
 	    user will be prompted (and the simulation would stop and wait) at
 	    the end of the renderNextFrame() */
-	bool willWaitForUserPrompt() const { return shallWaitForUserPromptFlag; }
+	bool willWaitForUserPrompt() const;
 
-	/** sets the 'shallWaitForUserPromptFlag', making renderNextFrame() to
-	   prompt the user (and stop the simulation and wait... and also become
-	   "command-able") */
-	void enableWaitForUserPrompt() { shallWaitForUserPromptFlag = true; }
-
-	/** the opposite of the Director::enableWaitForUserPrompt() */
-	void disableWaitForUserPrompt() { shallWaitForUserPromptFlag = false; }
+	/** sets the 'shallWaitForUserPromptFlag', choosing, whether
+	   renderNextFrame() should prompt the user (and stop the simulation and
+	   wait... and also become "command-able") */
+	void setWaitForUserPrompt(bool state);
 
 	/** notifies the agent to enable/disable its detailed drawing routines */
-	void setAgentsDetailedDrawingMode(const int agentID, const bool state);
+	void setAgentsDetailedDrawingMode(const int agentID,
+	                                  const bool state) const;
 
 	/** notifies the agent to enable/disable its detailed reporting routines */
-	void setAgentsDetailedReportingMode(const int agentID, const bool state);
+	void setAgentsDetailedReportingMode(const int agentID,
+	                                    const bool state) const;
 
 	/** sets the Director::renderingDebug flag */
 	void setSimulationDebugRendering(const bool state);
 
 	// -------------- debug --------------
-	void reportSituation();
-	void reportAgentsAllocation();
+	void reportSituation() const;
+	void reportAgentsAllocation() const;
 
-	// provides shortcuts for the FO to the output images of
-	// the Direktor to have them filled directly
-	i3d::Image3d<i3d::GRAY16>& refOnDirektorsImgMask(void) {
-		return scenario->params->imgMask;
-	}
+	// ======= Implemented in SimulationControl/Director*.cpp methods =======
+	/** Signal to initialize simulation */
+	void init();
 
-	i3d::Image3d<float>& refOnDirektorsImgPhantom(void) {
-		return scenario->params->imgPhantom;
-	}
+	/** Singal to execute simulation */
+	void execute();
 
-	i3d::Image3d<float>& refOnDirektorsImgOptics(void) {
-		return scenario->params->imgOptics;
-	}
+	int getFOsCount() const;
 
   private:
-	// ==================== simulation methods ====================
-	// these are implemented in:
-	// Director.cpp
-
+	// ==================== Implemented in Director.cpp ====================
 	/** stage 1/3 to do: scene heavy inits and synthoscopy warm up */
 	void init1();
 	/** stage 2/3 to do: scene heavy inits and synthoscopy warm up */
@@ -98,40 +77,33 @@ class Director {
 	 * methods in the right order */
 	void _execute();
 
-	/** housekeeping before the AABBs exchange takes place */
-	void prepareForUpdateAndPublishAgents();
-
 	/** register the new agents, unregister the dead agents;
 	    distribute the new and old existing agents to the sites */
 	void updateAndPublishAgents();
-
-	/** housekeeping after the complete AABBs exchange took place,
-	    "complete" means that _all_ FOs have broadcast all they wanted */
-	void postprocessAfterUpdateAndPublishAgents() const;
 
 	/** Asks all agents to render and raster their state into displayUnit and
 	 * the images */
 	void renderNextFrame();
 
-	// ==================== communication methods ====================
+	// ======= Implemented in SimulationControl/Director*.cpp methods =======
+
+	/** housekeeping before the AABBs exchange takes place */
+	void prepareForUpdateAndPublishAgents() const;
+
+	/** housekeeping after the complete AABBs exchange took place,
+	    "complete" means that _all_ FOs have broadcast all they wanted */
+	void postprocessAfterUpdateAndPublishAgents() const;
+
 	void waitHereUntilEveryoneIsHereToo() const;
-
-	void respond_startNewAgent(int FO); // TBD - add parameters from start*
-	void respond_closeAgent(int FO);
-	void respond_updateParentalLink(int FO);
-
-	// void respond_willRenderNextFrameFlag();
-
 	void notify_publishAgentsAABBs() const;
 	void waitFor_publishAgentsAABBs() const;
-	void respond_AABBofAgent();
+
 	std::vector<std::size_t> request_CntsOfAABBs() const;
-	std::vector<std::vector<std::pair<int, bool>>> request_startedAgents() const;
+	std::vector<std::vector<std::pair<int, bool>>>
+	request_startedAgents() const;
 	std::vector<std::vector<int>> request_closedAgents() const;
-	std::vector<std::vector<std::pair<int, int>>> request_parentalLinksUpdates() const;
-
-
-	void respond_newAgentsTypes(int noOfIncomingNewAgentTypes);
+	std::vector<std::vector<std::pair<int, int>>>
+	request_parentalLinksUpdates() const;
 
 	void
 	notify_setDetailedDrawingMode(int FOsID, int agentID, bool state) const;
@@ -155,11 +127,6 @@ class Director {
 	    and wait) at the end of the renderNextFrame(); this attribute actually
 	    shadows/overlays over the scenario.params.shallWaitForUserPromptFlag */
 	bool& shallWaitForUserPromptFlag;
-
-	/** maps of existing agents scheduled for the addition to or
-	    for the removal from the simulation (at the appropriate occasion),
-	     maps between agent ID and FO ID associated with this agent */
-	std::list<std::pair<int, int>> newAgents, deadAgents;
 
 	/** map of all agents currently active in the simulation,
 	    maps between agent ID and FO ID associated with this agent,

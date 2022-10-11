@@ -18,7 +18,7 @@ class myNucleusB : public NucleusAgent {
 		cytoplasmWidth = 25.0f;
 	}
 
-	~myNucleusB(void) {
+	~myNucleusB() {
 		report::message(fmt::format("{} d'tor", getSignature()));
 	}
 
