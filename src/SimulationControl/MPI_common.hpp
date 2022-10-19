@@ -24,6 +24,8 @@ class MPIManager {
 			MPI_Type_create_struct(2, lengths.data(), displs.data(),
 			                       types.data(), &MPIw_PAIR_INT_BOOL);
 			MPI_Type_commit(&MPIw_PAIR_INT_BOOL);
+			assert(MPIw::Type_size(MPIw_PAIR_INT_BOOL) ==
+			       sizeof(_pair_int_bool));
 		}
 
 		// std::pair<int, int>
@@ -37,6 +39,7 @@ class MPIManager {
 			MPI_Type_create_struct(2, lengths.data(), displs.data(),
 			                       types.data(), &MPIw_PAIR_INT_INT);
 			MPI_Type_commit(&MPIw_PAIR_INT_INT);
+			assert(MPIw::Type_size(MPIw_PAIR_INT_INT) == sizeof(_pair_int_int));
 		}
 	}
 
