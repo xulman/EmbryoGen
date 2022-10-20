@@ -19,10 +19,10 @@ void FrontOfficer::execute() {}
 void FrontOfficer::waitHereUntilEveryoneIsHereToo() const {}
 void FrontOfficer::waitFor_publishAgentsAABBs() const {}
 
-void FrontOfficer::broadcast_AABBofAgents() {
+void FrontOfficer::exchange_AABBofAgents() {
 	// in this ST particular implementation we do only update ourselves,
 	// there is no other FO and Direktor doesn't care about this update
-	for (auto& [id, ag] : agents) {
+	for (const auto& [id, ag] : agents) {
 		AABBs.emplace_back(ag->getAABB(), id, ag->getAgentTypeID());
 		agentsAndBroadcastGeomVersions[id] = ag->getGeometry().version;
 		registerThatThisAgentIsAtThisFO(id, getID());

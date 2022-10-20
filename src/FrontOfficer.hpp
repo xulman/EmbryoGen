@@ -191,7 +191,7 @@ class FrontOfficer {
 
 	// this shall tell all (including this one) FOs the AABB agents,
 	// the Direktor actually does not care
-	void broadcast_AABBofAgents();
+	void exchange_AABBofAgents();
 
 	std::unique_ptr<ShadowAgent> request_ShadowAgentCopy(const int agentID,
 	                                                     const int FOsID) const;
@@ -220,10 +220,8 @@ class FrontOfficer {
 	 */
 	/* std::pair<newAgentID, wantsToAppearInCTCtracksTXTfile> */
 	std::vector<std::pair<int, bool>> startedAgents;
-
 	/* std::vector<agentID> */
 	std::vector<int> closedAgents;
-
 	/* std::pair<childID, parentID> */
 	std::vector<std::pair<int, int>> parentalLinks;
 

@@ -44,20 +44,6 @@ Director::Director(std::function<ScenarioUPTR()> scenarioFactory)
 		impl.FO = std::make_unique<FrontOfficer>(std::move(scenario), my_rank,
 		                                         getFOsCount());
 	}
-
-	std::cout << fmt::format("DIR: my_rank: {}, world_size: {}", my_rank,
-	                         world_size)
-	          << std::endl;
-
-	int size;
-	MPI_Type_size(MPIw_PAIR_INT_BOOL, &size);
-	std::cout << fmt::format("MPI_TYPE_SIZE: {}", size) << std::endl;
-	std::cout << fmt::format(
-	                 "static_var: {}. mpi_var: {}",
-	                 reinterpret_cast<std::size_t>(MPIw_PAIR_INT_BOOL),
-	                 reinterpret_cast<std::size_t>(
-	                     MPIw::types::get_mpi_type<std::pair<int, bool>>()))
-	          << std::endl;
 }
 
 void Director::init() {
@@ -86,10 +72,16 @@ void Director::waitHereUntilEveryoneIsHereToo() const {
 	MPIw::Barrier(get_data(implementationData).Dir_comm);
 }
 
+// not used ... FOs know what to do
 void Director::notify_publishAgentsAABBs() const {}
-void Director::waitFor_publishAgentsAABBs() const {}
+void Director::waitFor_publishAgentsAABBs() const {
+	MPIw::Barrier(get_data(implementationData).Dir_comm);
+}
 
-std::vector<std::size_t> Director::request_CntsOfAABBs() const { return {}; }
+std::vector<std::size_t> Director::request_CntsOfAABBs() const {
+	ImplementationData& impl = get_data(implementationData);
+	return MPIw::Gather_recv_one<std::size_t>(impl.Dir_comm, 0);
+}
 
 std::vector<std::vector<std::pair<int, bool>>>
 Director::request_startedAgents() const {
@@ -102,7 +94,8 @@ std::vector<std::vector<int>> Director::request_closedAgents() const {
 }
 std::vector<std::vector<std::pair<int, int>>>
 Director::request_parentalLinksUpdates() const {
-	return {};
+	ImplementationData& impl = get_data(implementationData);
+	return MPIw::Gatherv_recv<std::pair<int, int>>(impl.Dir_comm, {});
 }
 
 void Director::notify_setDetailedDrawingMode(int /* FOsID */,

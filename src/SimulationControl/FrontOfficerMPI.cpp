@@ -1,4 +1,3 @@
-#include "../Agents/AbstractAgent.hpp"
 #include "../FrontOfficer.hpp"
 #include "MPI_common.hpp"
 #include <limits>
@@ -34,14 +33,6 @@ FrontOfficer::FrontOfficer(ScenarioUPTR s,
 	MPI_Comm_group(MPI_COMM_WORLD, &FO_group);
 	MPI_Group_excl(FO_group, 1, &RANK_DIRECTOR, &FO_group);
 	MPI_Comm_create_group(MPI_COMM_WORLD, FO_group, 0, &impl.FO_comm);
-
-	std::cout << fmt::format(
-	                 "FO: dir_rank: {}, dir_size: {}, fo_rank: {}, fo_size: {}",
-	                 MPIw::Comm_rank(impl.Dir_comm),
-	                 MPIw::Comm_size(impl.Dir_comm),
-	                 MPIw::Comm_rank(impl.FO_comm),
-	                 MPIw::Comm_size(impl.FO_comm))
-	          << std::endl;
 }
 
 void FrontOfficer::init() {
@@ -53,7 +44,14 @@ void FrontOfficer::init() {
 	// Sending closed agents to Director
 	MPIw::Gatherv_send(impl.Dir_comm, getClosedAgents(), RANK_DIRECTOR);
 	// Sending started agents to Director
-	MPIw::Gather_send(impl.Dir_comm, getStartedAgents(), RANK_DIRECTOR);
+	MPIw::Gatherv_send(impl.Dir_comm, getStartedAgents(), RANK_DIRECTOR);
+	// Sending parental links update to Director
+	MPIw::Gatherv_send(impl.Dir_comm, getParentalLinksUpdates(), RANK_DIRECTOR);
+
+	updateAndPublishAgents();
+
+	// Sending AABB count to director
+	MPIw::Gather_send_one(impl.Dir_comm, getSizeOfAABBsList(), RANK_DIRECTOR);
 
 	waitHereUntilEveryoneIsHereToo();
 }
@@ -66,11 +64,27 @@ void FrontOfficer::waitHereUntilEveryoneIsHereToo() const {
 	MPIw::Barrier(get_data(implementationData).Dir_comm);
 }
 
-// TODO
-void FrontOfficer::waitFor_publishAgentsAABBs() const {}
+void FrontOfficer::waitFor_publishAgentsAABBs() const {
+	MPIw::Barrier(get_data(implementationData).Dir_comm);
+}
 
-// TODO
-void FrontOfficer::broadcast_AABBofAgents() {}
+void FrontOfficer::exchange_AABBofAgents() {
+	ImplementationData& impl = get_data(implementationData);
+
+	std::vector<AABBwithInfo> to_send;
+	to_send.reserve(agents.size());
+	for (const auto& [id, ag] : agents)
+		to_send.push_back({id, ag->getAgentTypeID(), ag->getGeometry().version,
+		                   ag->getAABB()});
+
+	auto got = MPIw::Allgatherv(impl.FO_comm, to_send);
+	for (int fo = 1; fo <= int(got.size()); ++fo)
+		for (const auto& [id, type_id, geom_version, AABB] : got[fo - 1]) {
+			AABBs.emplace_back(AABB, id, type_id);
+			agentsAndBroadcastGeomVersions[id] = geom_version;
+			registerThatThisAgentIsAtThisFO(id, fo);
+		}
+}
 
 // TODO
 std::unique_ptr<ShadowAgent>

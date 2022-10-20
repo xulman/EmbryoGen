@@ -333,16 +333,11 @@ void FrontOfficer::updateAndPublishAgents() {
 	}
 	newAgents.clear();
 
-	// WAIT HERE UNTIL WE'RE TOLD TO START BROADCASTING OUR CHANGES
-	// only FO with a "token" does broadcasting, token passing
-	// is the same as for rendering/building output images (the round robin)
-	waitFor_publishAgentsAABBs();
-
 	// now distribute AABBs of the existing ones
-	broadcast_AABBofAgents();
+	exchange_AABBofAgents();
 
-	// and we move on to get blocked on any following checkpoint
-	// while waiting there, our respond_AABBofAgent() collects data
+	// Waits on all other FOs and also resume Director
+	waitFor_publishAgentsAABBs();
 }
 
 void FrontOfficer::postprocessAfterUpdateAndPublishAgents() {

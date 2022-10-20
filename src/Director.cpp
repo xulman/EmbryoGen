@@ -239,7 +239,6 @@ void Director::updateAndPublishAgents() {
 			if (track)
 				tracks.startNewTrack(id, frameCnt);
 		}
-	return;
 
 	// Update parental links
 	auto parentalLinksUpdates = request_parentalLinksUpdates();
@@ -262,10 +261,10 @@ void Director::updateAndPublishAgents() {
 #ifndef NDEBUG
 	// all FOs except myself (assuming i=0 addresses the Direktor)
 	auto counts = request_CntsOfAABBs();
-	for (int i = 0; i < getFOsCount(); ++i) {
-		if (counts[i] != agents.size())
+	for (int fo = 1; fo <= getFOsCount(); ++fo) {
+		if (counts[fo] != agents.size())
 			throw report::rtError(fmt::format(
-			    "FO #{} does not have a complete list of AABBs", i + 1));
+			    "FO #{} does not have a complete list of AABBs", fo));
 	}
 #endif
 }
