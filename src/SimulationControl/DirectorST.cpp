@@ -51,7 +51,7 @@ void Director::notify_publishAgentsAABBs() const {
 void Director::waitFor_publishAgentsAABBs() const {}
 
 std::vector<std::size_t> Director::request_CntsOfAABBs() const {
-	return {get_data(implementationData).FO.getSizeOfAABBsList()};
+	return {0, get_data(implementationData).FO.getSizeOfAABBsList()};
 }
 
 std::vector<std::vector<std::pair<int, bool>>>

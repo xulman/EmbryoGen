@@ -121,15 +121,11 @@ void Director::init1() {
 void Director::init2() {
 	prepareForUpdateAndPublishAgents();
 
-	waitHereUntilEveryoneIsHereToo();
-
 	updateAndPublishAgents();
-	/*
-	waitHereUntilEveryoneIsHereToo();
-	postprocessAfterUpdateAndPublishAgents();
 
+	postprocessAfterUpdateAndPublishAgents();
 	reportSituation();
-	*/
+
 	report::message(fmt::format("Direktor initialized"));
 }
 
@@ -279,9 +275,7 @@ void Director::renderNextFrame() {
 	sc.imgPhantom.SetAllVoxels(0);
 	sc.imgOptics.SetAllVoxels(0);
 
-	// --------- the big round robin scheme ---------
-	// start the round...:
-	// this essentially sends out the empty images, and leaves them empty!
+	// Request filling of local images with scene images
 	request_renderNextFrame();
 
 	// WAIT HERE UNTIL WE GET THE IMAGES BACK
@@ -445,7 +439,7 @@ void Director::renderNextFrame() {
 			break;
 
 		case 'D':
-			renderingDebug ^= true;
+			renderingDebug = !renderingDebug;
 			setSimulationDebugRendering(renderingDebug);
 			report::message(
 			    fmt::format("Debug rendering toggled to: {}",

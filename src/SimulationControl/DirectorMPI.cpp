@@ -51,7 +51,7 @@ void Director::init() {
 	if (is_main_director(implementationData)) {
 		init1();
 		init2();
-		// init3();
+		init3();
 	} else {
 		impl.FO->init();
 	}
@@ -66,6 +66,7 @@ int Director::getFOsCount() const {
 // not used ... FOs know what to do
 void Director::prepareForUpdateAndPublishAgents() const {}
 
+// not used ... FOs know what to do
 void Director::postprocessAfterUpdateAndPublishAgents() const {}
 
 void Director::waitHereUntilEveryoneIsHereToo() const {
@@ -106,8 +107,30 @@ void Director::notify_setDetailedReportingMode(int /* FOsID */,
                                                int /* agentID */,
                                                bool /* state */) const {}
 
-void Director::request_renderNextFrame() const {}
+void Director::request_renderNextFrame() const {
 
+	SceneControls& sc = *scenario->params;
+	ImplementationData& impl = get_data(implementationData);
+	// MPI will not work with std::vector<bool>
+	std::vector<char> to_render{sc.isProducingOutput(sc.imgMask),
+	                            sc.isProducingOutput(sc.imgPhantom),
+	                            sc.isProducingOutput(sc.imgOptics)};
+	MPIw::Bcast_send(impl.Dir_comm, to_render);
+
+	std::vector mask(sc.imgMask.begin(), sc.imgMask.end());
+	std::vector phantom(sc.imgPhantom.begin(), sc.imgPhantom.end());
+	std::vector optics(sc.imgOptics.begin(), sc.imgOptics.end());
+
+	auto got_mask = MPIw::Reduce_recv(impl.Dir_comm, mask, MPI_MAX);
+	auto got_phantom = MPIw::Reduce_recv(impl.Dir_comm, phantom, MPI_MAX);
+	auto got_optics = MPIw::Reduce_recv(impl.Dir_comm, optics, MPI_MAX);
+
+	std::ranges::copy(got_mask, sc.imgMask.begin());
+	std::ranges::copy(got_phantom, sc.imgMask.begin());
+	std::ranges::copy(got_optics, sc.imgMask.begin());
+}
+
+// Not used, synchronization is provided by rendering frame in request_renderNextFrame
 void Director::waitFor_renderNextFrame() const {}
 
 void Director::broadcast_setRenderingDebug(bool /* setFlagToThis*/) const {}

@@ -20,10 +20,13 @@ FrontOfficer::FrontOfficer(ScenarioUPTR s,
                            const int allPortions)
     : scenario(std::move(s)), ID(myPortion),
       nextFOsID((myPortion + 1) % (allPortions + 1)), FOsCount(allPortions),
-      nextAvailAgentID(std::numeric_limits<int>::max() / allPortions *
-                       (myPortion - 1)),
+      nextAvailAgentID(
+          std::numeric_limits<int>::max() / allPortions * (myPortion - 1) + 1),
       implementationData(std::make_shared<ImplementationData>()) {
 	scenario->declareFOcontext(myPortion);
+	// enable alocation for FO images
+	scenario->params->setOutputImgSpecs(scenario->params->constants.sceneOffset,
+	                                    scenario->params->constants.sceneSize);
 
 	ImplementationData& impl = get_data(implementationData);
 	MPI_Comm_dup(MPI_COMM_WORLD, &impl.Dir_comm);
@@ -39,6 +42,19 @@ void FrontOfficer::init() {
 	init1();
 	init2();
 
+	/** Coop with Director::init2() */
+	respond_publishAgentsAABBs();
+	/** End of Coop with Director::init2() */
+
+	/** Coop with Director::init3() */
+	respond_renderNextFrame();
+	/** End of Coop with Director::init3() */
+}
+
+// TODO
+void FrontOfficer::execute() {}
+
+void FrontOfficer::respond_publishAgentsAABBs() {
 	ImplementationData& impl = get_data(implementationData);
 	prepareForUpdateAndPublishAgents();
 	// Sending closed agents to Director
@@ -53,13 +69,40 @@ void FrontOfficer::init() {
 	// Sending AABB count to director
 	MPIw::Gather_send_one(impl.Dir_comm, getSizeOfAABBsList(), RANK_DIRECTOR);
 
-	waitHereUntilEveryoneIsHereToo();
+	postprocessAfterUpdateAndPublishAgents();
 }
 
-// TODO
-void FrontOfficer::execute() {}
+void FrontOfficer::respond_renderNextFrame() {
+	/** TODO optmiziation needed */
+	ImplementationData& impl = get_data(implementationData);
 
-// TODO
+	auto to_render = MPIw::Bcast_recv<char>(impl.Dir_comm, 3, RANK_DIRECTOR);
+	SceneControls& sc = *scenario->params;
+	if (to_render[0])
+		sc.enableProducingOutput(sc.imgMask);
+	else
+		sc.disableProducingOutput(sc.imgMask);
+
+	if (to_render[1])
+		sc.enableProducingOutput(sc.imgPhantom);
+	else
+		sc.disableProducingOutput(sc.imgPhantom);
+
+	if (to_render[2])
+		sc.enableProducingOutput(sc.imgOptics);
+	else
+		sc.disableProducingOutput(sc.imgOptics);
+
+	renderNextFrame(sc.imgMask, sc.imgPhantom, sc.imgOptics);
+	std::vector mask(sc.imgMask.begin(), sc.imgMask.end());
+	std::vector phantom(sc.imgPhantom.begin(), sc.imgPhantom.end());
+	std::vector optics(sc.imgOptics.begin(), sc.imgOptics.end());
+
+	MPIw::Reduce_send(impl.Dir_comm, mask, MPI_MAX, RANK_DIRECTOR);
+	MPIw::Reduce_send(impl.Dir_comm, phantom, MPI_MAX, RANK_DIRECTOR);
+	MPIw::Reduce_send(impl.Dir_comm, optics, MPI_MAX, RANK_DIRECTOR);
+};
+
 void FrontOfficer::waitHereUntilEveryoneIsHereToo() const {
 	MPIw::Barrier(get_data(implementationData).Dir_comm);
 }

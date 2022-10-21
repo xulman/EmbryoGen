@@ -6,7 +6,7 @@ FrontOfficer::FrontOfficer(ScenarioUPTR s,
                            const int allPortions)
     : scenario(std::move(s)), ID(myPortion),
       nextFOsID((myPortion + 1) % (allPortions + 1)), FOsCount(allPortions),
-      nextAvailAgentID(0) {
+      nextAvailAgentID(1) {
 	scenario->declareFOcontext(myPortion);
 }
 

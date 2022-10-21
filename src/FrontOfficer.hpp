@@ -187,6 +187,7 @@ class FrontOfficer {
   private:
 	// ===== Implemented in SimulationControl/FrontOfficer*.cpp methods =====
 	void waitHereUntilEveryoneIsHereToo() const;
+	void respond_publishAgentsAABBs();
 	void waitFor_publishAgentsAABBs() const;
 
 	// this shall tell all (including this one) FOs the AABB agents,
@@ -195,7 +196,7 @@ class FrontOfficer {
 
 	std::unique_ptr<ShadowAgent> request_ShadowAgentCopy(const int agentID,
 	                                                     const int FOsID) const;
-
+	void respond_renderNextFrame();
 	void waitFor_renderNextFrame() const;
 
 	// ==================== private variables ====================
