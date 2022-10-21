@@ -57,7 +57,13 @@ void Director::init() {
 	}
 }
 
-void Director::execute() {}
+void Director::execute() {
+	ImplementationData& impl = get_data(implementationData);
+	if (is_main_director(implementationData))
+		_execute();
+	else
+		impl.FO->execute();
+}
 
 int Director::getFOsCount() const {
 	return MPIw::Comm_size(MPI_COMM_WORLD) - 1;
@@ -130,15 +136,20 @@ void Director::request_renderNextFrame() const {
 	std::ranges::copy(got_optics, sc.imgMask.begin());
 }
 
-// Not used, synchronization is provided by rendering frame in request_renderNextFrame
+// Not used, synchronization is provided by rendering frame in
+// request_renderNextFrame
 void Director::waitFor_renderNextFrame() const {}
 
 void Director::broadcast_setRenderingDebug(bool /* setFlagToThis*/) const {}
 
+// not used ... FOs know what to do
 void Director::broadcast_executeInternals() const {}
 
+// not used ... FOs know what to do
 void Director::broadcast_executeExternals() const {}
 
+// not used ... FOs know what to do
 void Director::broadcast_executeEndSub1() const {}
 
+// not used ... FOs know what to do
 void Director::broadcast_executeEndSub2() const {}

@@ -156,21 +156,14 @@ void Director::_execute() {
 		waitHereUntilEveryoneIsHereToo();
 
 		prepareForUpdateAndPublishAgents();
-		waitHereUntilEveryoneIsHereToo();
-
 		updateAndPublishAgents();
-		waitHereUntilEveryoneIsHereToo();
 		postprocessAfterUpdateAndPublishAgents();
 
 		broadcast_executeExternals();
-
 		waitHereUntilEveryoneIsHereToo();
 
 		prepareForUpdateAndPublishAgents();
-		waitHereUntilEveryoneIsHereToo();
-
 		updateAndPublishAgents();
-		waitHereUntilEveryoneIsHereToo();
 		postprocessAfterUpdateAndPublishAgents();
 
 		// move to the next simulation time point

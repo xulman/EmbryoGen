@@ -51,8 +51,41 @@ void FrontOfficer::init() {
 	/** End of Coop with Director::init3() */
 }
 
-// TODO
-void FrontOfficer::execute() {}
+void FrontOfficer::execute() {
+	report::message(
+	    fmt::format("FO#{} has just started the simulation", getID()));
+
+	const float stopTime = scenario->params->constants.stopTime;
+	const float incrTime = scenario->params->constants.incrTime;
+	const float expoTime = scenario->params->constants.expoTime;
+	bool willRenderNextFrameFlag;
+
+	while (currTime < stopTime) {
+		// will this one end with rendering?
+		willRenderNextFrameFlag =
+		    currTime + incrTime >= float(frameCnt) * expoTime;
+
+		executeInternals();
+		waitHereUntilEveryoneIsHereToo();
+
+		respond_publishAgentsAABBs();
+
+		executeExternals();
+		waitHereUntilEveryoneIsHereToo();
+
+		respond_publishAgentsAABBs();
+
+		executeEndSub1();
+
+		// is this the right time to export data?
+		if (willRenderNextFrameFlag)
+			// will block itself until the full rendering is complete
+			respond_renderNextFrame();
+
+		executeEndSub2();
+		waitHereUntilEveryoneIsHereToo();
+	}
+}
 
 void FrontOfficer::respond_publishAgentsAABBs() {
 	ImplementationData& impl = get_data(implementationData);
@@ -134,7 +167,10 @@ std::unique_ptr<ShadowAgent>
 FrontOfficer::request_ShadowAgentCopy(const int /* agentID */,
                                       const int /* FOsID */) const {
 	// this never happens here (as there is no other FO to talk to)
+	assert(false);
 	return nullptr;
 }
 
+// Not used, synchronization is provided by rendering frame in
+// respond_renderNextFrame
 void FrontOfficer::waitFor_renderNextFrame() const {}

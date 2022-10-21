@@ -33,6 +33,7 @@ std::unique_ptr<ShadowAgent>
 FrontOfficer::request_ShadowAgentCopy(const int /* agentID */,
                                       const int /* FOsID */) const {
 	// this never happens here (as there is no other FO to talk to)
+	assert(false);
 	return nullptr;
 }
 
