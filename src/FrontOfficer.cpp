@@ -273,11 +273,21 @@ void FrontOfficer::reportSituation() {
 void FrontOfficer::reportAABBs() {
 	report::message(fmt::format("I now recognize these AABBs:"));
 	for (const auto& naabb : AABBs)
-		report::message(fmt::format(
-		    "agent ID {} \"{}\" spanning from {} to {} and living at FO #{}",
-		    naabb.ID, agentsTypesDictionary.translateIdToString(naabb.nameID),
-		    toString(naabb.minCorner), toString(naabb.maxCorner),
-		    agentsToFOsMap[naabb.ID]));
+		if (agentsToFOsMap[naabb.ID] == getID())
+			report::message(fmt::format(
+			    "agent ID {} \"{}\" [hash: {}] spanning from {} to {} and "
+			    "living "
+			    "at FO #{}",
+			    naabb.ID,
+			    agentsTypesDictionary.translateIdToString(naabb.nameID),
+			    naabb.nameID, toString(naabb.minCorner),
+			    toString(naabb.maxCorner), agentsToFOsMap[naabb.ID]));
+		else
+			report::message(fmt::format(
+			    "agent ID {} [hash: {}] spanning from {} to {} and living "
+			    "at FO #{}",
+			    naabb.ID, naabb.nameID, toString(naabb.minCorner),
+			    toString(naabb.maxCorner), agentsToFOsMap[naabb.ID]));
 }
 
 void FrontOfficer::reportOverlap(const float dist) {

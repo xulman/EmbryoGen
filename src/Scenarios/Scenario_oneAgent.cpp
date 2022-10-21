@@ -7,6 +7,9 @@
 void Scenario_oneAgent::initializeAgents(FrontOfficer* fo,
                                          int part,
                                          int noOfParts) {
+	if (part != 1)
+		return;
+
 	report::debugMessage(fmt::format(
 	    "Giving one agent to FO representiong part {}/{}", part, noOfParts));
 
