@@ -13,8 +13,9 @@ class ShapeHinter : public AbstractAgent {
 	            const ScalarImg& shape,
 	            const float currTime,
 	            const float incrTime)
-	    : AbstractAgent(ID, type, geometryAlias, currTime, incrTime),
-	      geometryAlias(shape) {
+	    : AbstractAgent(
+	          ID, type, std::make_unique<ScalarImg>(shape), currTime, incrTime),
+	      geometryAlias(*dynamic_cast<ScalarImg*>(geometry.get())) {
 		// update AABBs
 		geometryAlias.Geometry::updateOwnAABB();
 
@@ -35,7 +36,7 @@ class ShapeHinter : public AbstractAgent {
 
 	// ------------- internals geometry -------------
 	/** reference to my exposed geometry ShadowAgents::geometry */
-	ScalarImg geometryAlias;
+	ScalarImg& geometryAlias;
 
 	/** my internal representation of my geometry, which is exactly
 	    of the same form as my ShadowAgent::geometry */

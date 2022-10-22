@@ -189,6 +189,7 @@ class FrontOfficer {
 	void waitHereUntilEveryoneIsHereToo() const;
 	void respond_publishAgentsAABBs();
 	void waitFor_publishAgentsAABBs() const;
+	void waitForAllFOs() const;
 
 	// this shall tell all (including this one) FOs the AABB agents,
 	// the Direktor actually does not care

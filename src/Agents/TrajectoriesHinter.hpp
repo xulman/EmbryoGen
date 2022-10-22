@@ -14,8 +14,12 @@ class TrajectoriesHinter : public AbstractAgent {
 	                   const VectorImg::ChoosingPolicy policy,
 	                   const float currTime,
 	                   const float incrTime)
-	    : AbstractAgent(ID, type, geometryAlias, currTime, incrTime),
-	      geometryAlias(templateImg, policy) {
+	    : AbstractAgent(ID,
+	                    type,
+	                    std::make_unique<VectorImg>(templateImg, policy),
+	                    currTime,
+	                    incrTime),
+	      geometryAlias(*dynamic_cast<VectorImg*>(geometry.get())) {
 		// update AABBs
 		geometryAlias.Geometry::updateOwnAABB();
 		geometryAlias.proxifyFF(ff);
@@ -45,7 +49,7 @@ class TrajectoriesHinter : public AbstractAgent {
 
 	// ------------- internals geometry -------------
 	/** reference to my exposed geometry ShadowAgents::geometry */
-	VectorImg geometryAlias;
+	VectorImg& geometryAlias;
 	float lastUpdatedTime;
 
 	/** my internal representation of my geometry, which is exactly

@@ -24,8 +24,12 @@ class ShadowAgent {
 	   representation) by giving it a concrete implementation of Geometry, e.g.
 	   Mesh or Spheres object. The reference to this object is kept and used,
 	   i.e. no new object is created. */
-	ShadowAgent(Geometry& geom, const int id, const std::string& type)
-	    : geometry(geom), ID(id), agentType(type){};
+	ShadowAgent(std::unique_ptr<Geometry> geom,
+	            const int id,
+	            const std::string& type)
+	    : geometry(std::move(geom)), ID(id), agentType(type){};
+
+	virtual ~ShadowAgent() = default;
 
   protected:
 	/** The geometry of an agent that is exposed to the world.
@@ -33,7 +37,7 @@ class ShadowAgent {
 	    However, it is this geometry that is examined for calculating
 	    distances between agents. See also the discussion
 	   AbstractAgent::drawMask(). */
-	Geometry& geometry;
+	std::unique_ptr<Geometry> geometry;
 
   public:
 	/** label of this agent */
@@ -57,18 +61,18 @@ class ShadowAgent {
   public:
 	/** returns read-only reference to the agent's (axis aligned) bounding box
 	 */
-	const AxisAlignedBoundingBox& getAABB(void) const { return geometry.AABB; }
+	const AxisAlignedBoundingBox& getAABB(void) const { return geometry->AABB; }
 
 	/** constructs an extra object with agent's (axis aligned) named bounding
 	   box and returns pointer on it, caller MUST delete this object eventually
 	 */
 	NamedAxisAlignedBoundingBox* createNamedAABB(void) const {
-		return new NamedAxisAlignedBoundingBox(geometry.AABB, ID,
+		return new NamedAxisAlignedBoundingBox(geometry->AABB, ID,
 		                                       agentType.getHash());
 	}
 
 	/** returns read-only reference to the agent's geometry */
-	const Geometry& getGeometry(void) const { return geometry; }
+	const Geometry& getGeometry(void) const { return *geometry; }
 
 	/** returns agent's ID */
 	int getID(void) const { return ID; }
@@ -124,16 +128,13 @@ class AbstractAgent : public ShadowAgent {
 	    current global time as well as global time increment. */
 	AbstractAgent(const int _ID,
 	              const std::string& _type,
-	              Geometry& geometryContainer,
+	              std::unique_ptr<Geometry> geometryContainer,
 	              const float _currTime,
 	              const float _incrTime)
-	    : ShadowAgent(geometryContainer, _ID, _type), currTime(_currTime),
-	      incrTime(_incrTime){};
+	    : ShadowAgent(std::move(geometryContainer), _ID, _type),
+	      currTime(_currTime), incrTime(_incrTime){};
 
   public:
-	/** Please, override in inherited classes (see docs of AbstractAgent). */
-	virtual ~AbstractAgent(){};
-
 	// ------------- interaction from the Simulation class -------------
 	/** (re)sets the officer to which this agent belongs to, this is also
 	    a communaction handler back to the Simulation class */
@@ -174,6 +175,8 @@ class AbstractAgent : public ShadowAgent {
 	// ------------- to implement one round of simulation -------------
 	/** reports the agent's current local time */
 	float getLocalTime(void) const { return currTime; }
+	/** reports the agent's current incr time */
+	float getIncrTime(void) const { return incrTime; }
 
 	/** This method is considered as a callback function, also known as the
 	    "texture hook", and it should be regularly executed from the main

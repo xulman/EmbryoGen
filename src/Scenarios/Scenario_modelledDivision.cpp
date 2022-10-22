@@ -22,7 +22,11 @@ class GlobusManagingAgent : public AbstractAgent {
 	                    Spheres& fakeGeom,
 	                    const float _currTime,
 	                    const float _incrTime)
-	    : AbstractAgent(_ID, "manager", fakeGeom, _currTime, _incrTime) {}
+	    : AbstractAgent(_ID,
+	                    "manager",
+	                    std::make_unique<Spheres>(fakeGeom),
+	                    _currTime,
+	                    _incrTime) {}
 
 	void advanceAgent(float) override {
 		double averageOverlap =

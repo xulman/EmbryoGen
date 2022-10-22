@@ -1,14 +1,6 @@
 #include "FrontOfficer.hpp"
 #include "Agents/AbstractAgent.hpp"
 
-FrontOfficer::~FrontOfficer() {
-	report::debugMessage(fmt::format("running the closing sequence"));
-	report::debugMessage(
-	    fmt::format("will remove {} active agents", agents.size()));
-	report::debugMessage(
-	    fmt::format("will remove {} shadow agents", shadowAgents.size()));
-}
-
 int FrontOfficer::getID() const { return ID; }
 int FrontOfficer::getNextAvailAgentID() { return nextAvailAgentID++; }
 
@@ -391,6 +383,7 @@ void FrontOfficer::executeExternals() {
 	for (auto& [_, ag] : agents)
 		ag->collectExtForces();
 
+	waitForAllFOs();
 	// propagate current internal geometries to the exported ones... (can run in
 	// parallel)
 	for (auto& [_, ag] : agents) {

@@ -11,6 +11,8 @@ class ImplementationData {
   public:
 	std::unique_ptr<FrontOfficer> FO = nullptr;
 	MPIw::Comm_raii Dir_comm;
+	MPIw::Comm_raii Async_request_comm;
+	MPIw::Comm_raii Async_response_comm;
 };
 
 ImplementationData& get_data(const std::shared_ptr<void>& obj) {
@@ -40,6 +42,8 @@ Director::Director(std::function<ScenarioUPTR()> scenarioFactory)
 	if (my_rank == 0) {
 		scenario->declareDirektorContext();
 		MPI_Comm_dup(MPI_COMM_WORLD, &impl.Dir_comm);
+		MPI_Comm_dup(MPI_COMM_WORLD, &impl.Async_request_comm);
+		MPI_Comm_dup(MPI_COMM_WORLD, &impl.Async_response_comm);
 	} else { // forward to FO
 		impl.FO = std::make_unique<FrontOfficer>(std::move(scenario), my_rank,
 		                                         getFOsCount());
@@ -93,16 +97,18 @@ std::vector<std::size_t> Director::request_CntsOfAABBs() const {
 std::vector<std::vector<std::pair<int, bool>>>
 Director::request_startedAgents() const {
 	ImplementationData& impl = get_data(implementationData);
-	return MPIw::Gatherv_recv<std::pair<int, bool>>(impl.Dir_comm, {});
+	return MPIw::Gatherv_recv(impl.Dir_comm,
+	                          std::vector<std::pair<int, bool>>{});
 }
 std::vector<std::vector<int>> Director::request_closedAgents() const {
 	ImplementationData& impl = get_data(implementationData);
-	return MPIw::Gatherv_recv<int>(impl.Dir_comm, {});
+	return MPIw::Gatherv_recv(impl.Dir_comm, std::vector<int>{});
 }
 std::vector<std::vector<std::pair<int, int>>>
 Director::request_parentalLinksUpdates() const {
 	ImplementationData& impl = get_data(implementationData);
-	return MPIw::Gatherv_recv<std::pair<int, int>>(impl.Dir_comm, {});
+	return MPIw::Gatherv_recv(impl.Dir_comm,
+	                          std::vector<std::pair<int, int>>{});
 }
 
 void Director::notify_setDetailedDrawingMode(int /* FOsID */,

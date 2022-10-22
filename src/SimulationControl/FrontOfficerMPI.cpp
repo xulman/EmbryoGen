@@ -1,16 +1,60 @@
 #include "../FrontOfficer.hpp"
 #include "MPI_common.hpp"
 #include <limits>
+#include <thread>
 
 namespace {
 class ImplementationData {
   public:
 	MPIw::Comm_raii FO_comm;
 	MPIw::Comm_raii Dir_comm;
+	MPIw::Comm_raii Async_request_comm;
+	MPIw::Comm_raii Async_response_comm;
+
+	std::unique_ptr<std::jthread> async_thread;
 };
 
 ImplementationData& get_data(const std::shared_ptr<void>& obj) {
 	return *static_cast<ImplementationData*>(obj.get());
+}
+
+void async_thread(MPI_Comm request_comm,
+                  MPI_Comm response_comm,
+                  FrontOfficer* fo) {
+	auto send_shadow_agent = [=](int agent_id, int dest) {
+		auto ag_ptr = fo->getNearbyAgent(agent_id);
+		report::error(fmt::format("Sending GEOM VERSION: {}",
+		                          ag_ptr->getGeometry().version));
+		SerializedNucleusAgent ser(*dynamic_cast<const NucleusAgent*>(ag_ptr));
+
+		MPIw::Send_one(response_comm, ser.ID, dest,
+		               async_tags::send_shadow_agent);
+		MPIw::Send(response_comm, ser.type, dest,
+		           async_tags::send_shadow_agent);
+		MPIw::Send(response_comm, ser.sphere_centres, dest,
+		           async_tags::send_shadow_agent);
+		MPIw::Send(response_comm, ser.sphere_radii, dest,
+		           async_tags::send_shadow_agent);
+		MPIw::Send_one(response_comm, ser.geom_version, dest,
+		               async_tags::send_shadow_agent);
+	};
+
+	report::debugMessage("Async thread launched");
+	while (true) {
+		auto req = MPIw::Recv_one<int>(request_comm);
+
+		switch (static_cast<async_tags>(req.status.MPI_TAG)) {
+		case async_tags::shutdown:
+			return;
+		case async_tags::request_shadow_agent:
+			send_shadow_agent(req.data, req.status.MPI_SOURCE);
+			break;
+		default:
+			throw report::rtError("Unknown command");
+		}
+	}
+
+	report::debugMessage("Async thread closed");
 }
 
 } // namespace
@@ -30,12 +74,33 @@ FrontOfficer::FrontOfficer(ScenarioUPTR s,
 
 	ImplementationData& impl = get_data(implementationData);
 	MPI_Comm_dup(MPI_COMM_WORLD, &impl.Dir_comm);
+	MPI_Comm_dup(MPI_COMM_WORLD, &impl.Async_request_comm);
+	MPI_Comm_dup(MPI_COMM_WORLD, &impl.Async_response_comm);
 
 	// Create FO comm
 	MPIw::Group_raii FO_group;
 	MPI_Comm_group(MPI_COMM_WORLD, &FO_group);
 	MPI_Group_excl(FO_group, 1, &RANK_DIRECTOR, &FO_group);
 	MPI_Comm_create_group(MPI_COMM_WORLD, FO_group, 0, &impl.FO_comm);
+
+	report::debugMessage("Launching async thread");
+	impl.async_thread = std::make_unique<std::jthread>(
+	    async_thread, impl.Async_request_comm.get(),
+	    impl.Async_response_comm.get(), this);
+}
+
+FrontOfficer::~FrontOfficer() {
+	ImplementationData& impl = get_data(this->implementationData);
+	report::debugMessage(fmt::format("running the closing sequence"));
+	report::debugMessage("Closing async thread");
+
+	MPIw::Send_one(impl.Async_request_comm, 0, getID(),
+	               static_cast<int>(async_tags::shutdown));
+
+	report::debugMessage(
+	    fmt::format("will remove {} active agents", agents.size()));
+	report::debugMessage(
+	    fmt::format("will remove {} shadow agents", shadowAgents.size()));
 }
 
 void FrontOfficer::init() {
@@ -67,7 +132,6 @@ void FrontOfficer::execute() {
 
 		executeInternals();
 		waitHereUntilEveryoneIsHereToo();
-
 		respond_publishAgentsAABBs();
 
 		executeExternals();
@@ -144,6 +208,10 @@ void FrontOfficer::waitFor_publishAgentsAABBs() const {
 	MPIw::Barrier(get_data(implementationData).Dir_comm);
 }
 
+void FrontOfficer::waitForAllFOs() const {
+	MPIw::Barrier(get_data(implementationData).FO_comm);
+}
+
 void FrontOfficer::exchange_AABBofAgents() {
 	ImplementationData& impl = get_data(implementationData);
 
@@ -162,13 +230,41 @@ void FrontOfficer::exchange_AABBofAgents() {
 		}
 }
 
-// TODO
 std::unique_ptr<ShadowAgent>
-FrontOfficer::request_ShadowAgentCopy(const int /* agentID */,
-                                      const int /* FOsID */) const {
-	// this never happens here (as there is no other FO to talk to)
-	assert(false);
-	return nullptr;
+FrontOfficer::request_ShadowAgentCopy(const int agentID,
+                                      const int FOsID) const {
+	ImplementationData& impl = get_data(implementationData);
+	// Send request
+	MPIw::Send_one(impl.Async_request_comm, agentID, FOsID,
+	               async_tags::request_shadow_agent);
+
+	// Recieve data
+
+	SerializedNucleusAgent ser;
+	ser.ID = MPIw::Recv_one<int>(impl.Async_response_comm, FOsID,
+	                             async_tags::send_shadow_agent)
+	             .data;
+
+	auto type_ = MPIw::Recv<char>(impl.Async_response_comm, FOsID,
+	                              async_tags::send_shadow_agent)
+	                 .data;
+	ser.type = std::string(type_.begin(), type_.end());
+
+	ser.sphere_centres =
+	    MPIw::Recv<Vector3d<config::geometry::precision_t>>(
+	        impl.Async_response_comm, FOsID, async_tags::send_shadow_agent)
+	        .data;
+
+	ser.sphere_radii =
+	    MPIw::Recv<config::geometry::precision_t>(
+	        impl.Async_response_comm, FOsID, async_tags::send_shadow_agent)
+	        .data;
+
+	ser.geom_version = MPIw::Recv_one<int>(impl.Async_response_comm, FOsID,
+	                                       async_tags::send_shadow_agent)
+	                       .data;
+
+	return ser.createShadowCopy();
 }
 
 // Not used, synchronization is provided by rendering frame in

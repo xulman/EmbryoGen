@@ -36,6 +36,14 @@ class Spheres : public Geometry {
 		// this));
 	}
 
+	Spheres(std::vector<Vector3d<precision_t>> centres,
+	        std::vector<precision_t> radii)
+	    : Geometry(ListOfShapeForms::Spheres), centres(std::move(centres)),
+	      radii(std::move(radii)) {
+		// sanity check...
+		assert(centres.size() == radii.size());
+	}
+
 	// ------------- distances -------------
 	/** calculate min surface distance between myself and some foreign agent */
 	void getDistance(

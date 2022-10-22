@@ -41,9 +41,13 @@ class ParallelNucleus : public AbstractAgent {
 	                const int _y,
 	                const float _currTime,
 	                const float _incrTime)
-	    : AbstractAgent(_ID, _type, geometry, _currTime, _incrTime),
-	      geometry(shape), x(_x), y(_y),
-	      geometryDx(placementStepX / 5.f, 0.f, 0.f),
+	    : AbstractAgent(_ID,
+	                    _type,
+	                    std::make_unique<Spheres>(shape),
+	                    _currTime,
+	                    _incrTime),
+	      geometry(*dynamic_cast<Spheres*>(AbstractAgent::geometry.get())),
+	      x(_x), y(_y), geometryDx(placementStepX / 5.f, 0.f, 0.f),
 	      searchAroundDistance(
 	          0.95f * getDiagonalAgentsAABBdistance(
 	                      placementStepX, placementStepY, agentRadius)) {
@@ -55,7 +59,7 @@ class ParallelNucleus : public AbstractAgent {
 	}
 
 	/// local (and the only storage) of the current agent's geometry
-	Spheres geometry;
+	Spheres& geometry;
 
 	/// relative position on the grid of nuclei
 	int x, y;
@@ -196,7 +200,8 @@ std::unique_ptr<SceneControls> Scenario_Parallel::provideSceneControls() const {
 
 	class mySceneControl : public SceneControls {
 	  public:
-		mySceneControl(config::scenario::ControlConstants& c) : SceneControls(c) {
+		mySceneControl(config::scenario::ControlConstants& c)
+		    : SceneControls(c) {
 			// DisplayUnits handling: variant A
 			displayUnit.RegisterUnit(myDU);
 		}
@@ -217,7 +222,8 @@ std::unique_ptr<SceneControls> Scenario_Parallel::provideSceneControls() const {
 		}
 
 		// DisplayUnits handling: variant A
-		std::shared_ptr<DisplayUnit> myDU = std::make_shared<ConsoleDisplayUnit>();
+		std::shared_ptr<DisplayUnit> myDU =
+		    std::make_shared<ConsoleDisplayUnit>();
 	};
 
 	auto ctrl = std::make_unique<mySceneControl>(myConstants);
@@ -247,10 +253,10 @@ void Scenario_Parallel::initializeScene() {
 
 	// setup the output images: that many pixels as many agents
 	params->setOutputImgSpecs(Vector3d<float>(0), // offset: um
-	                         Vector3d<float>((float)howManyAlongX,
-	                                         (float)howManyAlongY,
-	                                         1.f), // size: um = px
-	                         Vector3d<float>(1));  // resolution: px/um
+	                          Vector3d<float>((float)howManyAlongX,
+	                                          (float)howManyAlongY,
+	                                          1.f), // size: um = px
+	                          Vector3d<float>(1));  // resolution: px/um
 	disks.enableImgPhantomTIFFs();
 	disks.enableImgOpticsTIFFs();
 	disks.enableImgMaskTIFFs(); // enable if you want to see the constellation
@@ -321,7 +327,8 @@ void Scenario_Parallel::initializeAgents(FrontOfficer* fo, int p, int P) {
 				int ID = fo->getNextAvailAgentID();
 				// name
 				sprintf(agentName, "nucleus %d @ %d,%d", ID, x, y);
-				fo->startNewAgent(std::make_unique<ParallelNucleus>(ID, std::string(agentName), s, x, y,
+				fo->startNewAgent(std::make_unique<ParallelNucleus>(
+				    ID, std::string(agentName), s, x, y,
 				    params->constants.initTime, params->constants.incrTime));
 			}
 		}

@@ -45,8 +45,13 @@ class NucleusAgent : public AbstractAgent {
 	             const Spheres& shape,
 	             const float _currTime,
 	             const float _incrTime)
-	    : AbstractAgent(_ID, _type, geometryAlias, _currTime, _incrTime),
-	      geometryAlias(shape), futureGeometry(shape),
+	    : AbstractAgent(_ID,
+	                    _type,
+	                    std::make_unique<Spheres>(shape),
+	                    _currTime,
+	                    _incrTime),
+	      geometryAlias(*dynamic_cast<Spheres*>(geometry.get())),
+	      futureGeometry(shape),
 	      accels(new Vector3d<float>[2 * shape.getNoOfSpheres()]),
 	      // NB: relies on the fact that geometryAlias.noOfSpheres ==
 	      // futureGeometry.noOfSpheres NB: accels[] and velocities[] together
@@ -92,7 +97,7 @@ class NucleusAgent : public AbstractAgent {
 
 	// ------------- internals geometry -------------
 	/** reference to my exposed geometry ShadowAgents::geometry */
-	Spheres geometryAlias;
+	Spheres& geometryAlias;
 
 	/** my internal representation of my geometry, which is exactly
 	    of the same form as my ShadowAgent::geometry, even the same noOfSpheres

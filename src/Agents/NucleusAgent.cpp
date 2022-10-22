@@ -100,15 +100,15 @@ void NucleusAgent::collectExtForces() {
 			// fetch the relevant ShadowAgent only now -- when we really know
 			// that we want this one
 			const ShadowAgent* sa = Officer->getNearbyAgent(naabb->ID);
-			geometry.getDistance(sa->getGeometry(), proximityPairs_toNuclei,
-			                     (void*)((const NucleusAgent*)sa));
+			geometry->getDistance(sa->getGeometry(), proximityPairs_toNuclei,
+			                      (void*)((const NucleusAgent*)sa));
 		} else {
 			if (agentType[0] == 'y') {
 				const ShadowAgent* sa = Officer->getNearbyAgent(naabb->ID);
-				geometry.getDistance(sa->getGeometry(), proximityPairs_toYolk);
+				geometry->getDistance(sa->getGeometry(), proximityPairs_toYolk);
 			} else {
 				const ShadowAgent* sa = Officer->getNearbyAgent(naabb->ID);
-				geometry.getDistance(sa->getGeometry(), proximityPairs_tracks);
+				geometry->getDistance(sa->getGeometry(), proximityPairs_tracks);
 			}
 		}
 	}

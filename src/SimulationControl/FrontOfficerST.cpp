@@ -10,6 +10,14 @@ FrontOfficer::FrontOfficer(ScenarioUPTR s,
 	scenario->declareFOcontext(myPortion);
 }
 
+FrontOfficer::~FrontOfficer() {
+	report::debugMessage(fmt::format("running the closing sequence"));
+	report::debugMessage(
+	    fmt::format("will remove {} active agents", agents.size()));
+	report::debugMessage(
+	    fmt::format("will remove {} shadow agents", shadowAgents.size()));
+}
+
 /** Never called in ST case, but could have some use in other implementations */
 void FrontOfficer::init() {}
 
@@ -18,6 +26,7 @@ void FrontOfficer::execute() {}
 
 void FrontOfficer::waitHereUntilEveryoneIsHereToo() const {}
 void FrontOfficer::waitFor_publishAgentsAABBs() const {}
+void FrontOfficer::waitForAllFOs() const {}
 
 void FrontOfficer::exchange_AABBofAgents() {
 	// in this ST particular implementation we do only update ourselves,
