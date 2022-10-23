@@ -32,7 +32,8 @@ class SerializedNucleusAgent {
 	          dynamic_cast<const Spheres&>(ag.getGeometry()).getCentres()),
 	      sphere_radii(
 	          dynamic_cast<const Spheres&>(ag.getGeometry()).getRadii()),
-	      geom_version(ag.getGeometry().version) {}
+	      geom_version(ag.getGeometry().version), currTime(ag.getLocalTime()),
+	      incrTime(ag.getIncrTime()) {}
 
 	int ID;
 	std::string type;
@@ -41,11 +42,14 @@ class SerializedNucleusAgent {
 	std::vector<config::geometry::precision_t> sphere_radii;
 	int geom_version;
 
+	float currTime;
+	float incrTime;
+
 	std::unique_ptr<ShadowAgent> createShadowCopy() const {
 		Spheres _sph{sphere_centres, sphere_radii};
-		_sph.version = geom_version;
-		return std::make_unique<ShadowAgent>(
-		    std::make_unique<Spheres>(std::move(_sph)), ID, type);
+		_sph.version = geom_version - 1;
+		return std::make_unique<NucleusAgent>(ID, type, std::move(_sph),
+		                                      currTime, incrTime);
 	}
 };
 
@@ -108,4 +112,11 @@ MPIw_register_type(Vector3d<double>, MPIw_VECTOR3D_FLOAT);
 
 inline constexpr int RANK_DIRECTOR = 0;
 
-enum class async_tags { request_shadow_agent, send_shadow_agent, shutdown };
+enum class async_tags {
+	request_shadow_agent,
+	send_shadow_agent,
+	shutdown,
+	set_rendering_debug,
+	set_detailed_drawing,
+	set_detailed_reporting
+};

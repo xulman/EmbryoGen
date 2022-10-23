@@ -37,6 +37,10 @@ void async_thread(MPI_Comm request_comm,
 		           async_tags::send_shadow_agent);
 		MPIw::Send_one(response_comm, ser.geom_version, dest,
 		               async_tags::send_shadow_agent);
+		MPIw::Send_one(response_comm, ser.currTime, dest,
+		               async_tags::send_shadow_agent);
+		MPIw::Send_one(response_comm, ser.incrTime, dest,
+		               async_tags::send_shadow_agent);
 	};
 
 	report::debugMessage("Async thread launched");
@@ -49,6 +53,23 @@ void async_thread(MPI_Comm request_comm,
 		case async_tags::request_shadow_agent:
 			send_shadow_agent(req.data, req.status.MPI_SOURCE);
 			break;
+		case async_tags::set_rendering_debug:
+			fo->setSimulationDebugRendering(bool(req.data));
+			break;
+		case async_tags::set_detailed_drawing: {
+			bool state =
+			    MPIw::Recv_one<bool>(request_comm, req.status.MPI_SOURCE,
+			                         req.status.MPI_TAG)
+			        .data;
+			fo->setAgentsDetailedDrawingMode(req.data, state);
+		} break;
+		case async_tags::set_detailed_reporting: {
+			bool state =
+			    MPIw::Recv_one<bool>(request_comm, req.status.MPI_SOURCE,
+			                         req.status.MPI_TAG)
+			        .data;
+			fo->setAgentsDetailedReportingMode(req.data, state);
+		} break;
 		default:
 			throw report::rtError("Unknown command");
 		}
@@ -142,9 +163,12 @@ void FrontOfficer::execute() {
 		executeEndSub1();
 
 		// is this the right time to export data?
-		if (willRenderNextFrameFlag)
+		if (willRenderNextFrameFlag) {
 			// will block itself until the full rendering is complete
 			respond_renderNextFrame();
+			// Wait for user input to take place inside Director
+			waitHereUntilEveryoneIsHereToo();
+		}
 
 		executeEndSub2();
 		waitHereUntilEveryoneIsHereToo();
@@ -198,7 +222,7 @@ void FrontOfficer::respond_renderNextFrame() {
 	MPIw::Reduce_send(impl.Dir_comm, mask, MPI_MAX, RANK_DIRECTOR);
 	MPIw::Reduce_send(impl.Dir_comm, phantom, MPI_MAX, RANK_DIRECTOR);
 	MPIw::Reduce_send(impl.Dir_comm, optics, MPI_MAX, RANK_DIRECTOR);
-};
+}
 
 void FrontOfficer::waitHereUntilEveryoneIsHereToo() const {
 	MPIw::Barrier(get_data(implementationData).Dir_comm);
@@ -263,6 +287,14 @@ FrontOfficer::request_ShadowAgentCopy(const int agentID,
 	ser.geom_version = MPIw::Recv_one<int>(impl.Async_response_comm, FOsID,
 	                                       async_tags::send_shadow_agent)
 	                       .data;
+
+	ser.currTime = MPIw::Recv_one<float>(impl.Async_response_comm, FOsID,
+	                                     async_tags::send_shadow_agent)
+	                   .data;
+
+	ser.incrTime = MPIw::Recv_one<float>(impl.Async_response_comm, FOsID,
+	                                     async_tags::send_shadow_agent)
+	                   .data;
 
 	return ser.createShadowCopy();
 }

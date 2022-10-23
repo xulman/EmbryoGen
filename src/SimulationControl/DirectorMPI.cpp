@@ -111,13 +111,27 @@ Director::request_parentalLinksUpdates() const {
 	                          std::vector<std::pair<int, int>>{});
 }
 
-void Director::notify_setDetailedDrawingMode(int /* FOsID */,
-                                             int /* agentID */,
-                                             bool /* state */) const {}
+void Director::notify_setDetailedDrawingMode(int FOsID,
+                                             int agentID,
+                                             bool state) const {
+	assert(FOsID == agents.at(agentID));
+	ImplementationData& impl = get_data(implementationData);
+	MPIw::Send_one(impl.Async_request_comm, agentID, FOsID,
+	               async_tags::set_detailed_drawing);
+	MPIw::Send_one(impl.Async_request_comm, state, FOsID,
+	               async_tags::set_detailed_drawing);
+}
 
-void Director::notify_setDetailedReportingMode(int /* FOsID */,
-                                               int /* agentID */,
-                                               bool /* state */) const {}
+void Director::notify_setDetailedReportingMode(int FOsID,
+                                               int agentID,
+                                               bool state) const {
+	assert(FOsID == agents.at(agentID));
+	ImplementationData& impl = get_data(implementationData);
+	MPIw::Send_one(impl.Async_request_comm, agentID, FOsID,
+	               async_tags::set_detailed_reporting);
+	MPIw::Send_one(impl.Async_request_comm, state, FOsID,
+	               async_tags::set_detailed_reporting);
+}
 
 void Director::request_renderNextFrame() const {
 
@@ -146,7 +160,13 @@ void Director::request_renderNextFrame() const {
 // request_renderNextFrame
 void Director::waitFor_renderNextFrame() const {}
 
-void Director::broadcast_setRenderingDebug(bool /* setFlagToThis*/) const {}
+void Director::broadcast_setRenderingDebug(bool state) const {
+	ImplementationData& impl = get_data(implementationData);
+	// Only send/recv is allowed in async mode
+	for (int fo = 1; fo <= getFOsCount(); ++fo)
+		MPIw::Send_one(impl.Async_request_comm, int(state), fo,
+		               async_tags::set_rendering_debug);
+}
 
 // not used ... FOs know what to do
 void Director::broadcast_executeInternals() const {}

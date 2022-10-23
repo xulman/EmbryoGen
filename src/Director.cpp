@@ -180,6 +180,8 @@ void Director::_execute() {
 		if (willRenderNextFrameFlag) {
 			// will block itself until the full rendering is complete
 			renderNextFrame();
+			// Resume simulation (FOs are waiting for user to finish input)
+			waitHereUntilEveryoneIsHereToo();
 		}
 
 		// this was promised to happen after every simulation round is over
