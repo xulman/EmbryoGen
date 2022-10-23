@@ -1,5 +1,6 @@
 #include "../Agents/AbstractAgent.hpp"
 #include "../FrontOfficer.hpp"
+#include <cassert>
 
 FrontOfficer::FrontOfficer(ScenarioUPTR s,
                            const int myPortion,

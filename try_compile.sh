@@ -1,5 +1,7 @@
 #! /bin/bash
 
+set -e
+
 if [ -z "$1" ]; then
     echo "Enter build directory as first argument please ( ./try_compile BUILD_DIR )"
     exit 1
@@ -60,6 +62,10 @@ change_prec()
 change_cmake()
 {
     echo "Changing $1 to $2"
+    if ! grep -q "^$1=" "${BUILD_D}/CMakeCache.txt"; then
+        echo ERROR: $1 not found 
+        exit 1
+    fi
     sed -i "s/^$1=.*$/$1=$2/" "${BUILD_D}/CMakeCache.txt"
     return $? 
 }
@@ -74,7 +80,7 @@ change_dbg()
 # ON/OFF
 change_dist()
 {
-    change_cmake "FEATURE_RUNDISTRIBUTED:BOOL" "$1"
+    change_cmake "RUN_DISTRIBUTED:BOOL" "$1"
     return $?
 }
 
