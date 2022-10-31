@@ -22,22 +22,16 @@ void async_thread(MPI_Comm request_comm,
                   MPI_Comm response_comm,
                   FrontOfficer* fo) {
 	auto send_shadow_agent = [=](int agent_id, int dest) {
-		auto ag_ptr = fo->getNearbyAgent(agent_id);
-		SerializedNucleusAgent ser(*dynamic_cast<const NucleusAgent*>(ag_ptr));
+		auto ag_ptr = fo->getLocalAgent(agent_id);
+		SerializedShadowAgent ser(*dynamic_cast<const NucleusAgent*>(ag_ptr));
 
 		MPIw::Send_one(response_comm, ser.ID, dest,
 		               async_tags::send_shadow_agent);
 		MPIw::Send(response_comm, ser.type, dest,
 		           async_tags::send_shadow_agent);
-		MPIw::Send(response_comm, ser.sphere_centres, dest,
+		MPIw::Send(response_comm, ser.serialized_geom, dest,
 		           async_tags::send_shadow_agent);
-		MPIw::Send(response_comm, ser.sphere_radii, dest,
-		           async_tags::send_shadow_agent);
-		MPIw::Send_one(response_comm, ser.geom_version, dest,
-		               async_tags::send_shadow_agent);
-		MPIw::Send_one(response_comm, ser.currTime, dest,
-		               async_tags::send_shadow_agent);
-		MPIw::Send_one(response_comm, ser.incrTime, dest,
+		MPIw::Send_one(response_comm, static_cast<int>(ser.geom_type), dest,
 		               async_tags::send_shadow_agent);
 	};
 
@@ -67,6 +61,14 @@ void async_thread(MPI_Comm request_comm,
 			                         req.status.MPI_TAG)
 			        .data;
 			fo->setAgentsDetailedReportingMode(req.data, state);
+		} break;
+		case async_tags::request_type_string: {
+			auto type_ID = MPIw::Recv_one<std::size_t>(
+			                   response_comm, req.status.MPI_SOURCE,
+			                   async_tags::request_type_string)
+			                   .data;
+			MPIw::Send(response_comm, fo->translateNameIdToAgentName(type_ID),
+			           req.status.MPI_SOURCE, async_tags::send_type_string);
 		} break;
 		default:
 			throw report::rtError("Unknown command");
@@ -223,7 +225,12 @@ void FrontOfficer::respond_renderNextFrame() {
 	MPIw::Reduce_send(impl.Dir_comm, optics, MPI_MAX, RANK_DIRECTOR);
 }
 
-void FrontOfficer::waitHereUntilEveryoneIsHereToo() const {
+void FrontOfficer::waitHereUntilEveryoneIsHereToo(
+    const std::source_location& location /* =
+        std::source_location::current() */ ) const {
+	report::debugMessage(
+	    fmt::format("FO#{}: Waiting on everyvone to join me", getID()), {},
+	    location);
 	MPIw::Barrier(get_data(implementationData).Dir_comm);
 }
 
@@ -231,7 +238,11 @@ void FrontOfficer::waitFor_publishAgentsAABBs() const {
 	MPIw::Barrier(get_data(implementationData).Dir_comm);
 }
 
-void FrontOfficer::waitForAllFOs() const {
+void FrontOfficer::waitForAllFOs(
+    const std::source_location& location
+    /* = std::source_location::current() */) const {
+	report::debugMessage(
+	    fmt::format("FO#{}: Waiting on FOs to join me", getID()), {}, location);
 	MPIw::Barrier(get_data(implementationData).FO_comm);
 }
 
@@ -245,17 +256,40 @@ void FrontOfficer::exchange_AABBofAgents() {
 		                   ag->getAABB()});
 
 	auto got = MPIw::Allgatherv(impl.FO_comm, to_send);
+	std::vector<std::string> to_register;
 	for (int fo = 1; fo <= int(got.size()); ++fo)
 		for (const auto& [id, type_id, geom_version, AABB] : got[fo - 1]) {
 			AABBs.emplace_back(AABB, id, type_id);
 			agentsAndBroadcastGeomVersions[id] = geom_version;
 			registerThatThisAgentIsAtThisFO(id, fo);
+
+			if (!agentsTypesDictionary.isInDictionary(type_id)) {
+				report::debugMessage(
+				    fmt::format("FO#{} request type name of id: {} from FO#{}",
+				                getID(), type_id, fo));
+				MPIw::Send_one(impl.Async_request_comm, -1, fo,
+				               async_tags::request_type_string);
+				MPIw::Send_one(impl.Async_response_comm, type_id, fo,
+				               async_tags::request_type_string);
+				auto type = MPIw::Recv<char>(impl.Async_response_comm, fo,
+				                             async_tags::send_type_string)
+				                .data;
+				to_register.emplace_back(type.begin(), type.end());
+			}
 		}
+
+	waitForAllFOs();
+
+	// register types now, to avoid race-condition with async thread
+	for (const std::string& name : to_register)
+		agentsTypesDictionary.registerThisString(name);
 }
 
 std::unique_ptr<ShadowAgent>
 FrontOfficer::request_ShadowAgentCopy(const int agentID,
                                       const int FOsID) const {
+	report::debugError(fmt::format("XXFO#{} requesting {} from FO#{}", getID(),
+	                               agentID, FOsID));
 	ImplementationData& impl = get_data(implementationData);
 	// Send request
 	MPIw::Send_one(impl.Async_request_comm, agentID, FOsID,
@@ -263,7 +297,7 @@ FrontOfficer::request_ShadowAgentCopy(const int agentID,
 
 	// Recieve data
 
-	SerializedNucleusAgent ser;
+	SerializedShadowAgent ser;
 	ser.ID = MPIw::Recv_one<int>(impl.Async_response_comm, FOsID,
 	                             async_tags::send_shadow_agent)
 	             .data;
@@ -273,29 +307,18 @@ FrontOfficer::request_ShadowAgentCopy(const int agentID,
 	                 .data;
 	ser.type = std::string(type_.begin(), type_.end());
 
-	ser.sphere_centres =
-	    MPIw::Recv<Vector3d<config::geometry::precision_t>>(
-	        impl.Async_response_comm, FOsID, async_tags::send_shadow_agent)
-	        .data;
-
-	ser.sphere_radii =
-	    MPIw::Recv<config::geometry::precision_t>(
-	        impl.Async_response_comm, FOsID, async_tags::send_shadow_agent)
-	        .data;
-
-	ser.geom_version = MPIw::Recv_one<int>(impl.Async_response_comm, FOsID,
+	ser.serialized_geom = MPIw::Recv<char>(impl.Async_response_comm, FOsID,
 	                                       async_tags::send_shadow_agent)
-	                       .data;
+	                          .data;
 
-	ser.currTime = MPIw::Recv_one<float>(impl.Async_response_comm, FOsID,
-	                                     async_tags::send_shadow_agent)
-	                   .data;
+	ser.geom_type = static_cast<Geometry::ListOfShapeForms>(
+	    MPIw::Recv_one<int>(impl.Async_response_comm, FOsID,
+	                        async_tags::send_shadow_agent)
+	        .data);
 
-	ser.incrTime = MPIw::Recv_one<float>(impl.Async_response_comm, FOsID,
-	                                     async_tags::send_shadow_agent)
-	                   .data;
-
-	return ser.createShadowCopy();
+	report::debugError(fmt::format("XXFO#{} got {} from FO#{}", getID(),
+	                               agentID, FOsID));
+	return ser.createCopy();
 }
 
 // Not used, synchronization is provided by rendering frame in

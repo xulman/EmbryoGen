@@ -6,19 +6,23 @@
 #include "../Spheres.hpp"
 #include "../VectorImg.hpp"
 
-Geometry* geometryCreateAndDeserializeFrom(Geometry::ListOfShapeForms g_type,
-                                           char* buffer) {
+inline std::unique_ptr<Geometry>
+geometryCreateAndDeserializeFrom(Geometry::ListOfShapeForms g_type,
+                                 const char* buffer) {
 	switch (g_type) {
 	case Geometry::ListOfShapeForms::Spheres:
-		return Spheres::createAndDeserializeFrom(buffer);
+		return std::make_unique<Spheres>(
+		    Spheres::createAndDeserializeFrom(buffer));
 	case Geometry::ListOfShapeForms::Mesh:
-		return Mesh::createAndDeserializeFrom(buffer);
+		return std::make_unique<Mesh>(Mesh::createAndDeserializeFrom(buffer));
 	case Geometry::ListOfShapeForms::ScalarImg:
-		return ScalarImg::createAndDeserializeFrom(buffer);
+		return std::make_unique<ScalarImg>(
+		    ScalarImg::createAndDeserializeFrom(buffer));
 	case Geometry::ListOfShapeForms::VectorImg:
-		return VectorImg::createAndDeserializeFrom(buffer);
+		return std::make_unique<VectorImg>(
+		    VectorImg::createAndDeserializeFrom(buffer));
 	case Geometry::ListOfShapeForms::undefGeometry:
 	default:
-		return NULL;
+		return nullptr;
 	}
 }

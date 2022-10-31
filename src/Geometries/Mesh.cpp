@@ -44,20 +44,20 @@ void Mesh::updateThisAABB(AxisAlignedBoundingBox& /* AABB */) const {
 // -----------------
 long Mesh::getSizeInBytes() const {
 	report::message(fmt::format("NOT SUPPORTED YET!"));
-	return 1;
+	return -1;
 }
 
 void Mesh::serializeTo(char*) const {
 	report::message(fmt::format("NOT SUPPORTED YET!"));
 }
 
-void Mesh::deserializeFrom(char*) {
+void Mesh::deserializeFrom(const char*) {
 	report::message(fmt::format("NOT SUPPORTED YET!"));
 }
 
-Mesh* Mesh::createAndDeserializeFrom(char*) {
+Mesh Mesh::createAndDeserializeFrom(const char*) {
 	report::message(fmt::format("NOT SUPPORTED YET!"));
-	return NULL;
+	return {};
 }
 
 void Mesh::renderIntoMask(i3d::Image3d<i3d::GRAY16>&, const i3d::GRAY16) const {

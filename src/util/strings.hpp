@@ -10,7 +10,6 @@
 #include <unordered_set>
 class FrontOfficer;
 
-
 /** The class that pairs std::string with its hash, that is computed with
    hashedString::hash(). While the hash can be always computed on on-demand
    basis, we opted to have it cached here. In order to maintain the validity of
@@ -127,6 +126,7 @@ class StringsDictionary {
 
 	void registerThisString(const std::string& s);
 	void registerThisString(const hashedString& s);
+	bool isInDictionary(std::size_t s) const;
 
 	// -------------- for broadcasting --------------
   protected:

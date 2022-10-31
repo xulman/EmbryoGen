@@ -242,9 +242,9 @@ class VectorImg : public Geometry {
 	long getSizeInBytes() const override;
 
 	void serializeTo(char* buffer) const override;
-	void deserializeFrom(char* buffer) override;
+	void deserializeFrom(const char* buffer) override;
 
-	static VectorImg* createAndDeserializeFrom(char* buffer);
+	static VectorImg createAndDeserializeFrom(const char* buffer);
 
 	// ----------------- support for rasterization -----------------
 	void renderIntoMask(i3d::Image3d<i3d::GRAY16>& mask,

@@ -268,7 +268,7 @@ void VectorImg::serializeTo(char* buffer) const {
 	Serialization::toBuffer(version, buffer + off);
 }
 
-void VectorImg::deserializeFrom(char* buffer) {
+void VectorImg::deserializeFrom(const char* buffer) {
 	int ppolicy;
 	long off = Deserialization::fromBuffer(buffer, ppolicy);
 
@@ -288,14 +288,14 @@ void VectorImg::deserializeFrom(char* buffer) {
 	updateThisAABB(this->AABB);
 }
 
-VectorImg* VectorImg::createAndDeserializeFrom(char* buffer) {
+VectorImg VectorImg::createAndDeserializeFrom(const char* buffer) {
 	// read the choosing policy model
 	int ppolicy;
 	Deserialization::fromBuffer(buffer, ppolicy);
 
 	// create an object
-	VectorImg* vimg = new VectorImg((ChoosingPolicy)ppolicy);
-	vimg->deserializeFrom(buffer);
+	VectorImg vimg((ChoosingPolicy)ppolicy);
+	vimg.deserializeFrom(buffer);
 	return vimg;
 }
 

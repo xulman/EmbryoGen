@@ -43,7 +43,7 @@ void Director::postprocessAfterUpdateAndPublishAgents() const {
 	get_data(implementationData).FO.postprocessAfterUpdateAndPublishAgents();
 }
 
-void Director::waitHereUntilEveryoneIsHereToo() const {}
+void Director::waitHereUntilEveryoneIsHereToo(const std::source_location&) const {}
 
 void Director::notify_publishAgentsAABBs() const {
 	get_data(implementationData).FO.updateAndPublishAgents();

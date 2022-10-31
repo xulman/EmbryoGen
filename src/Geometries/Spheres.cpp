@@ -141,7 +141,7 @@ void Spheres::serializeTo(char* buffer) const {
 	Serialization::toBuffer(version, buffer + off);
 }
 
-void Spheres::deserializeFrom(char* buffer) {
+void Spheres::deserializeFrom(const char* buffer) {
 	int recv_noOfSpheres;
 	long off = Deserialization::fromBuffer(buffer, recv_noOfSpheres);
 	std::size_t noOfSpheres = getNoOfSpheres();
@@ -163,10 +163,10 @@ void Spheres::deserializeFrom(char* buffer) {
 	updateThisAABB(this->AABB);
 }
 
-Spheres* Spheres::createAndDeserializeFrom(char* buffer) {
+Spheres Spheres::createAndDeserializeFrom(const char* buffer) {
 	// read noOfSpheres and create an object
-	Spheres* s = new Spheres(*((int*)buffer));
-	s->deserializeFrom(buffer);
+	Spheres s(*((const int*)buffer));
+	s.deserializeFrom(buffer);
 	return s;
 }
 

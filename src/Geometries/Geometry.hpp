@@ -301,7 +301,7 @@ class Geometry {
 	virtual long getSizeInBytes() const = 0;
 
 	virtual void serializeTo(char* buffer) const = 0;
-	virtual void deserializeFrom(char* buffer) = 0;
+	virtual void deserializeFrom(const char* buffer) = 0;
 
 	// ----------------- support for rasterization -----------------
 	virtual void renderIntoMask(i3d::Image3d<i3d::GRAY16>& mask,

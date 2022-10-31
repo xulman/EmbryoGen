@@ -25,9 +25,10 @@ void FrontOfficer::init() {}
 /** Never called in ST case, but could have some use in other implementations */
 void FrontOfficer::execute() {}
 
-void FrontOfficer::waitHereUntilEveryoneIsHereToo() const {}
+void FrontOfficer::waitHereUntilEveryoneIsHereToo(
+    const std::source_location&) const {}
 void FrontOfficer::waitFor_publishAgentsAABBs() const {}
-void FrontOfficer::waitForAllFOs() const {}
+void FrontOfficer::waitForAllFOs(const std::source_location&) const {}
 
 void FrontOfficer::exchange_AABBofAgents() {
 	// in this ST particular implementation we do only update ourselves,

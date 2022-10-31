@@ -132,6 +132,8 @@ class FrontOfficer {
 	    the grand scheme of things, please. */
 	const ShadowAgent* getNearbyAgent(const int fetchThisID);
 
+	const ShadowAgent* getLocalAgent(int ID) const;
+
 	std::size_t getSizeOfAABBsList() const;
 
 	std::vector<std::pair<int, bool>> getStartedAgents();
@@ -186,10 +188,13 @@ class FrontOfficer {
 
   private:
 	// ===== Implemented in SimulationControl/FrontOfficer*.cpp methods =====
-	void waitHereUntilEveryoneIsHereToo() const;
+	void
+	waitHereUntilEveryoneIsHereToo(const std::source_location& location =
+	                                   std::source_location::current()) const;
 	void respond_publishAgentsAABBs();
 	void waitFor_publishAgentsAABBs() const;
-	void waitForAllFOs() const;
+	void waitForAllFOs(const std::source_location& location =
+	                       std::source_location::current()) const;
 
 	// this shall tell all (including this one) FOs the AABB agents,
 	// the Direktor actually does not care

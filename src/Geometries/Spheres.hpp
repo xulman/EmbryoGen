@@ -4,7 +4,7 @@
 #include "Geometry.hpp"
 #include <cassert>
 #include <vector>
-
+#include "../../extern/mpi_wrapper/src/include.hpp"
 /**
  * Collection of Spheres::noOfSpheres spheres, the represented shape/geometry
  * is given as the union of these spheres.
@@ -76,7 +76,11 @@ class Spheres : public Geometry {
 	void updateThisAABB(AxisAlignedBoundingBox& AABB) const override;
 
 	// ------------- get/set methods -------------
-	std::size_t getNoOfSpheres(void) const {
+	std::size_t getNoOfSpheres(const std::source_location& loc =
+	                               std::source_location::current()) const {
+		report::debugError(fmt::format("XXMPI#{} No Of Spehers",
+		                               MPIw::Comm_rank(MPI_COMM_WORLD)),
+		                   {true, true, true}, loc);
 		assert(centres.size() == radii.size());
 		return centres.size();
 	}
@@ -111,9 +115,9 @@ class Spheres : public Geometry {
 	long getSizeInBytes() const override;
 
 	void serializeTo(char* buffer) const override;
-	void deserializeFrom(char* buffer) override;
+	void deserializeFrom(const char* buffer) override;
 
-	static Spheres* createAndDeserializeFrom(char* buffer);
+	static Spheres createAndDeserializeFrom(const char* buffer);
 
 	// ----------------- support for rasterization -----------------
 	void renderIntoMask(i3d::Image3d<i3d::GRAY16>& mask,

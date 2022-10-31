@@ -2,10 +2,10 @@
 
 #include "Scenario.hpp"
 #include <list>
+#include <memory>
 #include <set>
 #include <string>
 #include <vector>
-#include <memory>
 
 // instead of the #include statement, the FrontOfficer type is only declared to
 // exists, FrontOfficer's definition depends on Scenario and so we'd end up in a
@@ -58,6 +58,7 @@ class FrontOfficer;
 SCENARIO_DECLARATION_withDefOptSynthoscopy(Scenario_AFewAgents);
 SCENARIO_DECLARATION_withDefOptSynthoscopy(Scenario_DrosophilaRegular);
 SCENARIO_DECLARATION_withDefOptSynthoscopy(Scenario_DrosophilaRandom);
+SCENARIO_DECLARATION_withDefOptSynthoscopy(Scenario_mpiDrosophilaRandom);
 SCENARIO_DECLARATION_withDefOptSynthoscopy(Scenario_pseudoDivision);
 SCENARIO_DECLARATION_withDefOptSynthoscopy(Scenario_modelledDivision);
 SCENARIO_DECLARATION_withDefOptSynthoscopy(Scenario_dragAndRotate);
@@ -101,6 +102,7 @@ class Scenarios {
 		SCENARIO_MATCHING("aFewAgents", Scenario_AFewAgents)
 		SCENARIO_MATCHING("regularDrosophila", Scenario_DrosophilaRegular)
 		SCENARIO_MATCHING("randomDrosophila", Scenario_DrosophilaRandom)
+		SCENARIO_MATCHING("mpiRandomDrosophila", Scenario_mpiDrosophilaRandom)
 		SCENARIO_MATCHING("pseudoDivision", Scenario_pseudoDivision)
 		SCENARIO_MATCHING("modelledDivision", Scenario_modelledDivision)
 		SCENARIO_MATCHING("dragAndRotate", Scenario_dragAndRotate)

@@ -3,6 +3,7 @@
 #include "../../extern/mpi_wrapper/src/include.hpp"
 #include "../Agents/AbstractAgent.hpp"
 #include "../Agents/NucleusAgent.hpp"
+#include "../Geometries/util/GeometryCreator.hpp"
 #include "../config.hpp"
 #include "../util/Vector3d.hpp"
 #include <array>
@@ -23,33 +24,33 @@ class AABBwithInfo {
 	AxisAlignedBoundingBox AABB;
 };
 
-class SerializedNucleusAgent {
+// TODO template this to be able to send (any) agent
+class SerializedShadowAgent {
   public:
-	SerializedNucleusAgent() = default;
-	SerializedNucleusAgent(const NucleusAgent& ag)
+	SerializedShadowAgent() = default;
+	SerializedShadowAgent(const ShadowAgent& ag)
 	    : ID(ag.getID()), type(ag.getAgentType()),
-	      sphere_centres(
-	          dynamic_cast<const Spheres&>(ag.getGeometry()).getCentres()),
-	      sphere_radii(
-	          dynamic_cast<const Spheres&>(ag.getGeometry()).getRadii()),
-	      geom_version(ag.getGeometry().version), currTime(ag.getLocalTime()),
-	      incrTime(ag.getIncrTime()) {}
+	      geom_type(ag.getGeometry().shapeForm) {
+
+		const Geometry& g = ag.getGeometry();
+		serialized_geom.resize(g.getSizeInBytes());
+		g.serializeTo(serialized_geom.data());
+	}
 
 	int ID;
 	std::string type;
+	std::vector<char> serialized_geom;
+	Geometry::ListOfShapeForms geom_type;
 
-	std::vector<Vector3d<config::geometry::precision_t>> sphere_centres;
-	std::vector<config::geometry::precision_t> sphere_radii;
-	int geom_version;
+	std::unique_ptr<ShadowAgent> createCopy() const {
+		auto geom =
+		    geometryCreateAndDeserializeFrom(geom_type, serialized_geom.data());
+		geom->updateOwnAABB();
+		--geom->version;
 
-	float currTime;
-	float incrTime;
-
-	std::unique_ptr<ShadowAgent> createShadowCopy() const {
-		Spheres _sph{sphere_centres, sphere_radii};
-		_sph.version = geom_version - 1;
-		return std::make_unique<NucleusAgent>(ID, type, std::move(_sph),
-		                                      currTime, incrTime);
+		assert(static_cast<Spheres*>(geom.get())->getCentres().size() ==
+		       static_cast<Spheres*>(geom.get())->getRadii().size());
+		return std::make_unique<ShadowAgent>(std::move(geom), ID, type);
 	}
 };
 
@@ -118,5 +119,7 @@ enum class async_tags {
 	shutdown,
 	set_rendering_debug,
 	set_detailed_drawing,
-	set_detailed_reporting
+	set_detailed_reporting,
+	request_type_string,
+	send_type_string
 };

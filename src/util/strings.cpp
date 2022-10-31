@@ -45,6 +45,10 @@ void StringsDictionary::registerThisString(const hashedString& s) {
 		newDictionary[s.getHash()] = s.getString();
 }
 
+bool StringsDictionary::isInDictionary(std::size_t s) const {
+	return knownDictionary.contains(s) || newDictionary.contains(s);
+}
+
 void StringsDictionary::markAllWasBroadcast() {
 	for (const auto& nItem : newDictionary) {
 #ifndef NDEBUG

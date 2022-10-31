@@ -1,5 +1,6 @@
 #include "FrontOfficer.hpp"
 #include "Agents/AbstractAgent.hpp"
+#include <cassert>
 
 int FrontOfficer::getID() const { return ID; }
 int FrontOfficer::getNextAvailAgentID() { return nextAvailAgentID++; }
@@ -170,26 +171,29 @@ const ShadowAgent* FrontOfficer::getNearbyAgent(const int fetchThisID) {
 		return saItem->second.get();
 
 	// else, we have to obtain the most recent copy...
-	const int contactThisFO = agentsToFOsMap[fetchThisID];
-	report::debugMessage(fmt::format("Requesting agent ID {} from FO #{}",
-	                                 fetchThisID, contactThisFO));
+	const int contactThisFO = agentsToFOsMap.at(fetchThisID);
 
 	// store the new reference
 	shadowAgents[fetchThisID] =
 	    request_ShadowAgentCopy(fetchThisID, contactThisFO);
 
+	ShadowAgent* new_ag = shadowAgents[fetchThisID].get();
 #ifndef NDEBUG
 	// now the broadcast version must match the one we actually have got
 	if (agentsAndBroadcastGeomVersions[fetchThisID] !=
-	    shadowAgents[fetchThisID]->getGeometry().version)
+	    new_ag->getGeometry().version)
 		throw report::rtError(fmt::format(
 		    "Should not happen! Agent ID {} promised geometry at version {} "
 		    "but provided version {}",
 		    fetchThisID, agentsAndBroadcastGeomVersions[fetchThisID],
-		    shadowAgents[fetchThisID]->getGeometry().version));
+		    new_ag->getGeometry().version));
 #endif
 
-	return shadowAgents[fetchThisID].get();
+	return new_ag;
+}
+
+const ShadowAgent* FrontOfficer::getLocalAgent(int ID) const {
+	return agents.at(ID).get();
 }
 
 std::size_t FrontOfficer::getSizeOfAABBsList() const { return AABBs.size(); }
@@ -265,21 +269,13 @@ void FrontOfficer::reportSituation() {
 void FrontOfficer::reportAABBs() {
 	report::message(fmt::format("I now recognize these AABBs:"));
 	for (const auto& naabb : AABBs)
-		if (agentsToFOsMap[naabb.ID] == getID())
-			report::message(fmt::format(
-			    "agent ID {} \"{}\" [hash: {}] spanning from {} to {} and "
-			    "living "
-			    "at FO #{}",
-			    naabb.ID,
-			    agentsTypesDictionary.translateIdToString(naabb.nameID),
-			    naabb.nameID, toString(naabb.minCorner),
-			    toString(naabb.maxCorner), agentsToFOsMap[naabb.ID]));
-		else
-			report::message(fmt::format(
-			    "agent ID {} [hash: {}] spanning from {} to {} and living "
-			    "at FO #{}",
-			    naabb.ID, naabb.nameID, toString(naabb.minCorner),
-			    toString(naabb.maxCorner), agentsToFOsMap[naabb.ID]));
+		report::message(fmt::format(
+		    "agent ID {} \"{}\" [hash: {}] spanning from {} to {} and "
+		    "living "
+		    "at FO #{}",
+		    naabb.ID, agentsTypesDictionary.translateIdToString(naabb.nameID),
+		    naabb.nameID, toString(naabb.minCorner), toString(naabb.maxCorner),
+		    agentsToFOsMap[naabb.ID]));
 }
 
 void FrontOfficer::reportOverlap(const float dist) {
@@ -325,13 +321,14 @@ void FrontOfficer::updateAndPublishAgents() {
 
 	// register the new ones (and remove from the "new born list")
 	for (auto& ag_ptr : newAgents) {
+		int agent_id = ag_ptr->ID;
 #ifndef NDEBUG
-		if (agents.contains(ag_ptr->ID))
+		if (agents.contains(agent_id))
 			throw report::rtError(fmt::format(
 			    "Attempting to add another agent with the same ID {}",
-			    ag_ptr->ID));
+			    agent_id));
 #endif
-		agents[ag_ptr->ID] = std::move(ag_ptr);
+		agents[agent_id] = std::move(ag_ptr);
 	}
 	newAgents.clear();
 

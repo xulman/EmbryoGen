@@ -4,6 +4,8 @@
 #include "common/Scenarios.hpp"
 #include <fmt/core.h>
 
+using namespace std::literals;
+
 void Scenario_oneAgent::initializeAgents(FrontOfficer* fo,
                                          int part,
                                          int noOfParts) {
@@ -20,8 +22,8 @@ void Scenario_oneAgent::initializeAgents(FrontOfficer* fo,
 	s.updateRadius(0, 20);
 
 	fo->startNewAgent(std::make_unique<NucleusAgent>(
-	    fo->getNextAvailAgentID(), "Init", s, params->constants.initTime,
-	    params->constants.incrTime));
+	    fo->getNextAvailAgentID(), "Init"s + std::to_string(part), s,
+	    params->constants.initTime, params->constants.incrTime));
 }
 
 void Scenario_oneAgent::initializeScene() { disks.enableImgMaskTIFFs(); }

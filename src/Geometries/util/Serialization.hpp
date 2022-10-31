@@ -127,40 +127,40 @@ class Serialization {
 class Deserialization {
   public:
 	// -------------- basic integer and real numbers --------------
-	static long fromBuffer(char* buffer, short& number) {
-		number = *((short*)buffer);
+	static long fromBuffer(const char* buffer, short& number) {
+		number = *((const short*)buffer);
 		return sizeof(short);
 	}
 
-	static long fromBuffer(char* buffer, int& number) {
-		number = *((int*)buffer);
+	static long fromBuffer(const char* buffer, int& number) {
+		number = *((const int*)buffer);
 		return sizeof(int);
 	}
 
-	static long fromBuffer(char* buffer, long& number) {
-		number = *((long*)buffer);
+	static long fromBuffer(const char* buffer, long& number) {
+		number = *((const long*)buffer);
 		return sizeof(long);
 	}
 
-	static long fromBuffer(char* buffer, size_t& number) {
-		number = *((size_t*)buffer);
+	static long fromBuffer(const char* buffer, size_t& number) {
+		number = *((const size_t*)buffer);
 		return sizeof(size_t);
 	}
 
-	static long fromBuffer(char* buffer, float& number) {
-		number = *((float*)buffer);
+	static long fromBuffer(const char* buffer, float& number) {
+		number = *((const float*)buffer);
 		return sizeof(float);
 	}
 
-	static long fromBuffer(char* buffer, double& number) {
-		number = *((double*)buffer);
+	static long fromBuffer(const char* buffer, double& number) {
+		number = *((const double*)buffer);
 		return sizeof(double);
 	}
 
 	// -------------- vectors --------------
 	template <typename FT>
-	static long fromBuffer(char* buffer, Vector3d<FT>& vector) {
-		FT* bufferView = (FT*)buffer;
+	static long fromBuffer(const char* buffer, Vector3d<FT>& vector) {
+		const FT* bufferView = (const FT*)buffer;
 
 		vector.x = *bufferView;
 		++bufferView;
@@ -173,7 +173,7 @@ class Deserialization {
 
 	// -------------- images --------------
 	template <typename VT>
-	static long fromBuffer(char* buffer, i3d::Image3d<VT>& image) {
+	static long fromBuffer(const char* buffer, i3d::Image3d<VT>& image) {
 		int vxType;
 		long off = fromBuffer(buffer, vxType);
 

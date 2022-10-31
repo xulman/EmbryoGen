@@ -94,7 +94,9 @@ class Director {
 	    "complete" means that _all_ FOs have broadcast all they wanted */
 	void postprocessAfterUpdateAndPublishAgents() const;
 
-	void waitHereUntilEveryoneIsHereToo() const;
+	void
+	waitHereUntilEveryoneIsHereToo(const std::source_location& location =
+	                                   std::source_location::current()) const;
 	void notify_publishAgentsAABBs() const;
 	void waitFor_publishAgentsAABBs() const;
 

@@ -79,7 +79,11 @@ void Director::prepareForUpdateAndPublishAgents() const {}
 // not used ... FOs know what to do
 void Director::postprocessAfterUpdateAndPublishAgents() const {}
 
-void Director::waitHereUntilEveryoneIsHereToo() const {
+void Director::waitHereUntilEveryoneIsHereToo(
+    const std::source_location& location
+    /* = std::source_location::current() */) const {
+	report::debugMessage("Director: Waiting on everyvone to join me", {},
+	                     location);
 	MPIw::Barrier(get_data(implementationData).Dir_comm);
 }
 

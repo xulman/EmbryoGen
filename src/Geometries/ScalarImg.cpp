@@ -337,7 +337,7 @@ void ScalarImg::serializeTo(char* buffer) const {
 	Serialization::toBuffer(version, buffer + off);
 }
 
-void ScalarImg::deserializeFrom(char* buffer) {
+void ScalarImg::deserializeFrom(const char* buffer) {
 	int mmodel;
 	long off = Deserialization::fromBuffer(buffer, mmodel);
 
@@ -355,14 +355,14 @@ void ScalarImg::deserializeFrom(char* buffer) {
 	updateThisAABB(this->AABB);
 }
 
-ScalarImg* ScalarImg::createAndDeserializeFrom(char* buffer) {
+ScalarImg ScalarImg::createAndDeserializeFrom(const char* buffer) {
 	// read the distance model type
 	int mmodel;
 	Deserialization::fromBuffer(buffer, mmodel);
 
 	// create an object
-	ScalarImg* simg = new ScalarImg((DistanceModel)mmodel);
-	simg->deserializeFrom(buffer);
+	ScalarImg simg((DistanceModel)mmodel);
+	simg.deserializeFrom(buffer);
 	return simg;
 }
 
