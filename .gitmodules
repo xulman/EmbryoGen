@@ -4,3 +4,6 @@
 [submodule "extern/mpi_wrapper"]
 	path = extern/mpi_wrapper
 	url = https://github.com/somik861/mpi_wrapper.git
+[submodule "extern/timer"]
+	path = extern/timer
+	url = https://github.com/somik861/timer_help.git
