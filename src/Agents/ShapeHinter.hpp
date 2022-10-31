@@ -26,7 +26,7 @@ class ShapeHinter : public AbstractAgent {
 		    toString(geometryAlias.AABB.maxCorner)));
 	}
 
-	~ShapeHinter(void) {
+	~ShapeHinter() override {
 		report::debugMessage(
 		    fmt::format("EmbryoShell with ID= {} was just deleted", ID));
 	}

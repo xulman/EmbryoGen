@@ -27,7 +27,7 @@ set(CMAKE_VERBOSE_MAKEFILE
     CACHE STRING "Tracing the compilation process" FORCE)
 
 set(CMAKE_CXX_FLAGS
-    "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wconversion -Werror -fmax-errors=1")
+    "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wconversion -Werror -O3 -fmax-errors=1")
 
 # ------------------------------------------------
 # ALL OPTIONS ARE SUMMARIZED HERE (CONTROL PANEL)
