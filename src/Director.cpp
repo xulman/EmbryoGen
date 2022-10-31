@@ -1,5 +1,6 @@
 #include "Director.hpp"
 #include "../extern/hpc_datastore_cpp/src/hpc_ds_api.hpp"
+#include "../extern/timer/timer.hpp"
 #include "FrontOfficer.hpp"
 #include "util/Vector3d.hpp"
 #include "util/synthoscopy/SNR.hpp"
@@ -141,6 +142,8 @@ void Director::init3() {
 void Director::_execute() {
 	report::message(fmt::format("Direktor has just started the simulation"));
 
+	Timer.set_output("bm_times.txt");
+
 	const float stopTime = scenario->params->constants.stopTime;
 	const float incrTime = scenario->params->constants.incrTime;
 	const float expoTime = scenario->params->constants.expoTime;
@@ -152,22 +155,29 @@ void Director::_execute() {
 		willRenderNextFrameFlag =
 		    currTime + incrTime >= float(frameCnt) * expoTime;
 
+		Timer.start("executeInternals");
 		broadcast_executeInternals();
 		waitHereUntilEveryoneIsHereToo();
+		Timer.end("executeInternals");
 
+		Timer.start("updateAndPublishAgents1");
 		prepareForUpdateAndPublishAgents();
 		updateAndPublishAgents();
 		postprocessAfterUpdateAndPublishAgents();
+		Timer.end("updateAndPublishAgents1");
 
+		Timer.start("executeExternals");
 		broadcast_executeExternals();
 		waitHereUntilEveryoneIsHereToo();
+		Timer.end("executeExternals");
 
+		Timer.start("updateAndPublishAgents2");
 		prepareForUpdateAndPublishAgents();
 		updateAndPublishAgents();
 		postprocessAfterUpdateAndPublishAgents();
+		Timer.end("updateAndPublishAgents2");
 
 		// move to the next simulation time point
-
 		broadcast_executeEndSub1();
 
 		currTime += incrTime;
@@ -178,10 +188,12 @@ void Director::_execute() {
 
 		// is this the right time to export data?
 		if (willRenderNextFrameFlag) {
+			Timer.start("renderNextFrame");
 			// will block itself until the full rendering is complete
 			renderNextFrame();
 			// Resume simulation (FOs are waiting for user to finish input)
 			waitHereUntilEveryoneIsHereToo();
+			Timer.end("renderNextFrame");
 		}
 
 		// this was promised to happen after every simulation round is over

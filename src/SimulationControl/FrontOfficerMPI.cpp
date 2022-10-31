@@ -23,8 +23,6 @@ void async_thread(MPI_Comm request_comm,
                   FrontOfficer* fo) {
 	auto send_shadow_agent = [=](int agent_id, int dest) {
 		auto ag_ptr = fo->getNearbyAgent(agent_id);
-		report::error(fmt::format("Sending GEOM VERSION: {}",
-		                          ag_ptr->getGeometry().version));
 		SerializedNucleusAgent ser(*dynamic_cast<const NucleusAgent*>(ag_ptr));
 
 		MPIw::Send_one(response_comm, ser.ID, dest,
@@ -187,9 +185,10 @@ void FrontOfficer::respond_publishAgentsAABBs() {
 
 	updateAndPublishAgents();
 
+#ifndef NDEBUG
 	// Sending AABB count to director
 	MPIw::Gather_send_one(impl.Dir_comm, getSizeOfAABBsList(), RANK_DIRECTOR);
-
+#endif
 	postprocessAfterUpdateAndPublishAgents();
 }
 

@@ -29,6 +29,10 @@ set(CMAKE_VERBOSE_MAKEFILE
 set(CMAKE_CXX_FLAGS
     "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wconversion -Werror -O3 -fmax-errors=1")
 
+set(CMAKE_CXX_FLAGS_RELEASE
+    "${CMAKE_CXX_FLAGS_RELEASE} -flto=4")
+
+
 # ------------------------------------------------
 # ALL OPTIONS ARE SUMMARIZED HERE (CONTROL PANEL)
 # ------------------------------------------------
