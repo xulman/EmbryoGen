@@ -96,18 +96,20 @@ void NucleusAgent::collectExtForces() {
 	for (const auto naabb : nearbyAgentBoxes) {
 		const std::string& agentType =
 		    Officer->translateNameIdToAgentName(naabb->nameID);
+		// fetch the relevant ShadowAgent only now -- when we really know
+		// that we want this one
+		const ShadowAgent* sa = Officer->getNearbyAgent(naabb->ID);
 		if (agentType[0] == 'n') {
-			// fetch the relevant ShadowAgent only now -- when we really know
-			// that we want this one
-			const ShadowAgent* sa = Officer->getNearbyAgent(naabb->ID);
+			report::debugError(
+			    fmt::format("XXFO#{} Before get distance", Officer->getID()));
 			geometry->getDistance(sa->getGeometry(), proximityPairs_toNuclei,
-			                      (void*)((const NucleusAgent*)sa));
+			                      const_cast<ShadowAgent*>(sa));
+			report::debugError(
+			    fmt::format("XXFO#{} After get distance", Officer->getID()));
 		} else {
 			if (agentType[0] == 'y') {
-				const ShadowAgent* sa = Officer->getNearbyAgent(naabb->ID);
 				geometry->getDistance(sa->getGeometry(), proximityPairs_toYolk);
 			} else {
-				const ShadowAgent* sa = Officer->getNearbyAgent(naabb->ID);
 				geometry->getDistance(sa->getGeometry(), proximityPairs_tracks);
 			}
 		}
@@ -189,7 +191,7 @@ void NucleusAgent::collectExtForces() {
 			// sliding force
 			//
 			// difference of velocities
-			g = ((const NucleusAgent*)pp.callerHint)
+			g = static_cast<const NucleusAgent*>(pp.callerHint)
 			        ->getVelocityOfSphere(pp.otherHint);
 			g -= velocities[pp.localHint];
 

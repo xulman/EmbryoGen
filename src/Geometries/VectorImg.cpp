@@ -259,16 +259,22 @@ long VectorImg::getSizeInBytes() const {
 	return 3 * size + 2 * sizeof(int);
 }
 
-void VectorImg::serializeTo(char* buffer) const {
+std::vector<std::byte> VectorImg::serialize() const {
+	std::vector<std::byte> bytes(getSizeInBytes());
+	char* buffer = reinterpret_cast<char*>(bytes.data());
+
 	long off = Serialization::toBuffer((int)policy, buffer);
 	off += Serialization::toBuffer(X, buffer + off);
 	off += Serialization::toBuffer(Y, buffer + off);
 	off += Serialization::toBuffer(Z, buffer + off);
 
 	Serialization::toBuffer(version, buffer + off);
+	return bytes;
 }
 
-void VectorImg::deserializeFrom(const char* buffer) {
+void VectorImg::deserialize(std::span<const std::byte> bytes) {
+	const char* buffer = reinterpret_cast<const char*>(bytes.data());
+
 	int ppolicy;
 	long off = Deserialization::fromBuffer(buffer, ppolicy);
 
@@ -288,14 +294,15 @@ void VectorImg::deserializeFrom(const char* buffer) {
 	updateThisAABB(this->AABB);
 }
 
-VectorImg VectorImg::createAndDeserializeFrom(const char* buffer) {
+VectorImg VectorImg::createAndDeserialize(std::span<const std::byte> bytes) {
 	// read the choosing policy model
 	int ppolicy;
-	Deserialization::fromBuffer(buffer, ppolicy);
+	Deserialization::fromBuffer(reinterpret_cast<const char*>(bytes.data()),
+	                            ppolicy);
 
 	// create an object
 	VectorImg vimg((ChoosingPolicy)ppolicy);
-	vimg.deserializeFrom(buffer);
+	vimg.deserialize(bytes);
 	return vimg;
 }
 

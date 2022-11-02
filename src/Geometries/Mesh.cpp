@@ -47,15 +47,16 @@ long Mesh::getSizeInBytes() const {
 	return -1;
 }
 
-void Mesh::serializeTo(char*) const {
+std::vector<std::byte> Mesh::serialize() const {
+	report::message(fmt::format("NOT SUPPORTED YET!"));
+	return {};
+}
+
+void Mesh::deserialize(std::span<const std::byte> /* bytes */) {
 	report::message(fmt::format("NOT SUPPORTED YET!"));
 }
 
-void Mesh::deserializeFrom(const char*) {
-	report::message(fmt::format("NOT SUPPORTED YET!"));
-}
-
-Mesh Mesh::createAndDeserializeFrom(const char*) {
+Mesh Mesh::createAndDeserialize(std::span<const std::byte> /* bytes */) {
 	report::message(fmt::format("NOT SUPPORTED YET!"));
 	return {};
 }

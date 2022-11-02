@@ -23,7 +23,7 @@ void async_thread(MPI_Comm request_comm,
                   FrontOfficer* fo) {
 	auto send_shadow_agent = [=](int agent_id, int dest) {
 		auto ag_ptr = fo->getLocalAgent(agent_id);
-		SerializedShadowAgent ser(*dynamic_cast<const NucleusAgent*>(ag_ptr));
+		SerializedShadowAgent ser(*ag_ptr);
 
 		MPIw::Send_one(response_comm, ser.ID, dest,
 		               async_tags::send_shadow_agent);
@@ -307,8 +307,8 @@ FrontOfficer::request_ShadowAgentCopy(const int agentID,
 	                 .data;
 	ser.type = std::string(type_.begin(), type_.end());
 
-	ser.serialized_geom = MPIw::Recv<char>(impl.Async_response_comm, FOsID,
-	                                       async_tags::send_shadow_agent)
+	ser.serialized_geom = MPIw::Recv<std::byte>(impl.Async_response_comm, FOsID,
+	                                            async_tags::send_shadow_agent)
 	                          .data;
 
 	ser.geom_type = static_cast<Geometry::ListOfShapeForms>(
@@ -316,8 +316,8 @@ FrontOfficer::request_ShadowAgentCopy(const int agentID,
 	                        async_tags::send_shadow_agent)
 	        .data);
 
-	report::debugError(fmt::format("XXFO#{} got {} from FO#{}", getID(),
-	                               agentID, FOsID));
+	report::debugError(
+	    fmt::format("XXFO#{} got {} from FO#{}", getID(), agentID, FOsID));
 	return ser.createCopy();
 }
 

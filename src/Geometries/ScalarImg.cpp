@@ -330,14 +330,20 @@ long ScalarImg::getSizeInBytes() const {
 	return size + 2 * sizeof(int);
 }
 
-void ScalarImg::serializeTo(char* buffer) const {
+std::vector<std::byte> ScalarImg::serialize() const {
+	std::vector<std::byte> bytes(getSizeInBytes());
+	char* buffer = reinterpret_cast<char*>(bytes.data());
+
 	long off = Serialization::toBuffer((int)model, buffer);
 	off += Serialization::toBuffer(distImg, buffer + off);
 
 	Serialization::toBuffer(version, buffer + off);
+	return bytes;
 }
 
-void ScalarImg::deserializeFrom(const char* buffer) {
+void ScalarImg::deserialize(std::span<const std::byte> bytes) {
+	const char* buffer = reinterpret_cast<const char*>(bytes.data());
+
 	int mmodel;
 	long off = Deserialization::fromBuffer(buffer, mmodel);
 
@@ -355,14 +361,15 @@ void ScalarImg::deserializeFrom(const char* buffer) {
 	updateThisAABB(this->AABB);
 }
 
-ScalarImg ScalarImg::createAndDeserializeFrom(const char* buffer) {
+ScalarImg ScalarImg::createAndDeserialize(std::span<const std::byte> bytes) {
 	// read the distance model type
-	int mmodel;
-	Deserialization::fromBuffer(buffer, mmodel);
+	int model;
+	Deserialization::fromBuffer(reinterpret_cast<const char*>(bytes.data()),
+	                            model);
 
 	// create an object
-	ScalarImg simg((DistanceModel)mmodel);
-	simg.deserializeFrom(buffer);
+	ScalarImg simg((DistanceModel)model);
+	simg.deserialize(bytes);
 	return simg;
 }
 

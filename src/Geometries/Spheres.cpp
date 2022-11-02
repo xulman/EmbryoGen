@@ -6,7 +6,7 @@ void Spheres::getDistance(
     tools::structures::SmallVector5<ProximityPair>& l) const {
 	switch (otherGeometry.shapeForm) {
 	case ListOfShapeForms::Spheres:
-		getDistanceToSpheres((Spheres*)&otherGeometry, l);
+		getDistanceToSpheres(dynamic_cast<const Spheres*>(&otherGeometry), l);
 		break;
 	case ListOfShapeForms::Mesh:
 	case ListOfShapeForms::ScalarImg:
@@ -128,10 +128,12 @@ long Spheres::getSizeInBytes() const {
 	       radii.size() * sizeof(precision_t);
 }
 
-void Spheres::serializeTo(char* buffer) const {
+std::vector<std::byte> Spheres::serialize() const {
+	std::vector<std::byte> bytes(getSizeInBytes());
+	char* buffer = reinterpret_cast<char*>(bytes.data());
+
 	// store noOfSpheres
 	long off = Serialization::toBuffer(int(getNoOfSpheres()), buffer);
-
 	// store individual spheres
 	for (std::size_t i = 0; i < getNoOfSpheres(); ++i) {
 		off += Serialization::toBuffer(centres[i], buffer + off);
@@ -139,9 +141,12 @@ void Spheres::serializeTo(char* buffer) const {
 	}
 
 	Serialization::toBuffer(version, buffer + off);
+	return bytes;
 }
 
-void Spheres::deserializeFrom(const char* buffer) {
+void Spheres::deserialize(std::span<const std::byte> bytes) {
+	const char* buffer = reinterpret_cast<const char*>(bytes.data());
+
 	int recv_noOfSpheres;
 	long off = Deserialization::fromBuffer(buffer, recv_noOfSpheres);
 	std::size_t noOfSpheres = getNoOfSpheres();
@@ -163,10 +168,10 @@ void Spheres::deserializeFrom(const char* buffer) {
 	updateThisAABB(this->AABB);
 }
 
-Spheres Spheres::createAndDeserializeFrom(const char* buffer) {
+Spheres Spheres::createAndDeserialize(std::span<const std::byte> bytes) {
 	// read noOfSpheres and create an object
-	Spheres s(*((const int*)buffer));
-	s.deserializeFrom(buffer);
+	Spheres s(*reinterpret_cast<const int*>(bytes.data()));
+	s.deserialize(bytes);
 	return s;
 }
 

@@ -41,10 +41,10 @@ class Mesh : public Geometry {
   public:
 	long getSizeInBytes() const override;
 
-	void serializeTo(char* buffer) const override;
-	void deserializeFrom(const char* buffer) override;
+	std::vector<std::byte> serialize() const override;
+	void deserialize(std::span<const std::byte> buffer) override;
 
-	static Mesh createAndDeserializeFrom(const char* buffer);
+	static Mesh createAndDeserialize(std::span<const std::byte> buffer);
 
 	// ----------------- support for rasterization -----------------
 	void renderIntoMask(i3d::Image3d<i3d::GRAY16>& mask,

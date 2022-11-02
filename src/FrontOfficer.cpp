@@ -44,7 +44,8 @@ void FrontOfficer::startNewAgent(
 	ag_ptr->setOfficer(this);
 
 	// remote registration:
-	startedAgents.emplace_back(ag_ptr->ID, wantsToAppearInCTCtracksTXTfile);
+	startedAgents.emplace_back(ag_ptr->getID(),
+	                           wantsToAppearInCTCtracksTXTfile);
 
 	report::debugMessage(fmt::format("just registered this new agent: {}",
 	                                 ag_ptr->getSignature()));
@@ -56,10 +57,10 @@ void FrontOfficer::closeAgent(AbstractAgent* ag) {
 
 	// register the agent for removing from the system:
 	// local registration
-	deadAgentsIDs.push_back(ag->ID);
+	deadAgentsIDs.push_back(ag->getID());
 
 	// remote registration
-	closedAgents.emplace_back(ag->ID);
+	closedAgents.emplace_back(ag->getID());
 
 	report::debugMessage(fmt::format("just unregistered this dead agent: {}",
 	                                 ag->getSignature()));
@@ -68,7 +69,7 @@ void FrontOfficer::closeAgent(AbstractAgent* ag) {
 void FrontOfficer::startNewDaughterAgent(std::unique_ptr<AbstractAgent> ag,
                                          const int parentID) {
 	// CTC logging: also add the parental link
-	parentalLinks.emplace_back(ag->ID, parentID);
+	parentalLinks.emplace_back(ag->getID(), parentID);
 	startNewAgent(std::move(ag), true);
 }
 
@@ -80,8 +81,8 @@ void FrontOfficer::closeMotherStartDaughters(
 		throw report::rtError("refuse to deal with (some) NULL agent.");
 
 	closeAgent(mother);
-	startNewDaughterAgent(std::move(daughterA), mother->ID);
-	startNewDaughterAgent(std::move(daughterB), mother->ID);
+	startNewDaughterAgent(std::move(daughterA), mother->getID());
+	startNewDaughterAgent(std::move(daughterB), mother->getID());
 }
 
 void FrontOfficer::getNearbyAABBs(
@@ -321,7 +322,7 @@ void FrontOfficer::updateAndPublishAgents() {
 
 	// register the new ones (and remove from the "new born list")
 	for (auto& ag_ptr : newAgents) {
-		int agent_id = ag_ptr->ID;
+		int agent_id = ag_ptr->getID();
 #ifndef NDEBUG
 		if (agents.contains(agent_id))
 			throw report::rtError(fmt::format(

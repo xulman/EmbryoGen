@@ -6,6 +6,9 @@
 #include "../util/report.hpp"
 #include "../util/strings.hpp"
 #include <i3d/image3d.h>
+#include <span>
+
+enum class agent_class { ShadowAgent };
 
 /**
  * This class is essentially only a read-only representation of
@@ -24,14 +27,58 @@ class ShadowAgent {
 	   representation) by giving it a concrete implementation of Geometry, e.g.
 	   Mesh or Spheres object. The reference to this object is kept and used,
 	   i.e. no new object is created. */
-	ShadowAgent(std::unique_ptr<Geometry> geom,
-	            const int id,
+	ShadowAgent(const int id,
+	            std::unique_ptr<Geometry> geom,
 	            const std::string& type)
-	    : geometry(std::move(geom)), ID(id), agentType(type){};
+	    : ID(id), geometry(std::move(geom)), agentType(type){};
 
 	virtual ~ShadowAgent() = default;
 
+	/** returns read-only reference to the agent's (axis aligned) bounding box
+	 */
+	const AxisAlignedBoundingBox& getAABB() const { return geometry->AABB; }
+
+	/** constructs an extra object with agent's (axis aligned) named bounding
+	   box and returns pointer on it
+	 */
+	std::unique_ptr<NamedAxisAlignedBoundingBox> createNamedAABB() const {
+		return std::make_unique<NamedAxisAlignedBoundingBox>(
+		    geometry->AABB, ID, agentType.getHash());
+	}
+
+	/** returns read-only reference to the agent's geometry */
+	const Geometry& getGeometry() const { return *geometry; }
+
+	/** returns agent's ID */
+	int getID() const { return ID; }
+
+	/** returns read-only reference on agent's designation */
+	const hashedString& getAgentType_hashedString() const { return agentType; }
+
+	/** returns read-only reference on agent's designation */
+	const std::string& getAgentType() const { return agentType.getString(); }
+
+	/** return agent signature composed from ID and designation */
+	std::string getSignature() const {
+		return fmt::format("\"{}:{}\"", ID, agentType.getString());
+	}
+
+	/** returns ID of agent's designation */
+	std::size_t getAgentTypeID() const { return agentType.getHash(); }
+
+	/** Serialization support */
+	virtual std::vector<std::byte> serialize() const { return {}; }
+
+	virtual agent_class getAgentClass() const {
+		return agent_class::ShadowAgent;
+	}
+
+	/* static ShadowAgent deserialize(std::span<const std::byte> bytes) {} */
+
   protected:
+	/** label of this agent */
+	const int ID;
+
 	/** The geometry of an agent that is exposed to the world.
 	    It might be a light-weight version of the agent's exact geometry.
 	    However, it is this geometry that is examined for calculating
@@ -39,11 +86,6 @@ class ShadowAgent {
 	   AbstractAgent::drawMask(). */
 	std::unique_ptr<Geometry> geometry;
 
-  public:
-	/** label of this agent */
-	const int ID;
-
-  protected:
 	/** The type designation of this agent (that is represented with
 	   this->geometry). Simulation agents may decide to "pay attention
 	   to"/smell/interact with only certain types of agents and this attribute
@@ -57,43 +99,6 @@ class ShadowAgent {
 	   "communicate" other agents its new "state" and to allow them act
 	   accordingly). */
 	hashedString agentType;
-
-  public:
-	/** returns read-only reference to the agent's (axis aligned) bounding box
-	 */
-	const AxisAlignedBoundingBox& getAABB(void) const { return geometry->AABB; }
-
-	/** constructs an extra object with agent's (axis aligned) named bounding
-	   box and returns pointer on it, caller MUST delete this object eventually
-	 */
-	NamedAxisAlignedBoundingBox* createNamedAABB(void) const {
-		return new NamedAxisAlignedBoundingBox(geometry->AABB, ID,
-		                                       agentType.getHash());
-	}
-
-	/** returns read-only reference to the agent's geometry */
-	const Geometry& getGeometry(void) const { return *geometry; }
-
-	/** returns agent's ID */
-	int getID(void) const { return ID; }
-
-	/** returns read-only reference on agent's designation */
-	const hashedString& getAgentType_hashedString(void) const {
-		return agentType;
-	}
-
-	/** returns read-only reference on agent's designation */
-	const std::string& getAgentType(void) const {
-		return agentType.getString();
-	}
-
-	/** return agent signature composed from ID and designation */
-	std::string getSignature() const {
-		return fmt::format("\"{}:{}\"", ID, agentType.getString());
-	}
-
-	/** returns ID of agent's designation */
-	size_t getAgentTypeID(void) const { return agentType.getHash(); }
 };
 
 /**
@@ -126,13 +131,13 @@ class AbstractAgent : public ShadowAgent {
 	/** Define a new agent in the simulation by giving its ID, its current
 	    geometry (which get's 'forwarded' to the ShadowAgent), and
 	    current global time as well as global time increment. */
-	AbstractAgent(const int _ID,
-	              const std::string& _type,
+	AbstractAgent(const int ID,
+	              const std::string& type,
 	              std::unique_ptr<Geometry> geometryContainer,
-	              const float _currTime,
-	              const float _incrTime)
-	    : ShadowAgent(std::move(geometryContainer), _ID, _type),
-	      currTime(_currTime), incrTime(_incrTime){};
+	              const float currTime,
+	              const float incrTime)
+	    : ShadowAgent(ID, std::move(geometryContainer), type),
+	      currTime(currTime), incrTime(incrTime){};
 
   public:
 	// ------------- interaction from the Simulation class -------------
@@ -160,7 +165,7 @@ class AbstractAgent : public ShadowAgent {
 	}
 
   protected:
-	FrontOfficer* Officer = NULL;
+	FrontOfficer* Officer = nullptr;
 	bool detailedDrawingMode = false;
 	bool detailedReportingMode = false;
 

@@ -5,6 +5,7 @@
 #include "../tools/structures/SmallVector.hpp"
 #include "../util/Vector3d.hpp"
 #include <i3d/image3d.h>
+#include <span>
 #include <list>
 class DisplayUnit;
 
@@ -300,8 +301,8 @@ class Geometry {
 
 	virtual long getSizeInBytes() const = 0;
 
-	virtual void serializeTo(char* buffer) const = 0;
-	virtual void deserializeFrom(const char* buffer) = 0;
+	virtual std::vector<std::byte> serialize() const = 0;
+	virtual void deserialize(std::span<const std::byte> buffer) = 0;
 
 	// ----------------- support for rasterization -----------------
 	virtual void renderIntoMask(i3d::Image3d<i3d::GRAY16>& mask,

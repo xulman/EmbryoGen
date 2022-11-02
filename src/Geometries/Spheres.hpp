@@ -1,10 +1,10 @@
 #pragma once
 
+#include "../../extern/mpi_wrapper/src/include.hpp"
 #include "../util/report.hpp"
 #include "Geometry.hpp"
 #include <cassert>
 #include <vector>
-#include "../../extern/mpi_wrapper/src/include.hpp"
 /**
  * Collection of Spheres::noOfSpheres spheres, the represented shape/geometry
  * is given as the union of these spheres.
@@ -114,10 +114,10 @@ class Spheres : public Geometry {
   public:
 	long getSizeInBytes() const override;
 
-	void serializeTo(char* buffer) const override;
-	void deserializeFrom(const char* buffer) override;
+	std::vector<std::byte> serialize() const override;
+	void deserialize(std::span<const std::byte> buffer) override;
 
-	static Spheres createAndDeserializeFrom(const char* buffer);
+	static Spheres createAndDeserialize(std::span<const std::byte> buffer);
 
 	// ----------------- support for rasterization -----------------
 	void renderIntoMask(i3d::Image3d<i3d::GRAY16>& mask,

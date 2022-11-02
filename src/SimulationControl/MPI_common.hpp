@@ -30,27 +30,20 @@ class SerializedShadowAgent {
 	SerializedShadowAgent() = default;
 	SerializedShadowAgent(const ShadowAgent& ag)
 	    : ID(ag.getID()), type(ag.getAgentType()),
-	      geom_type(ag.getGeometry().shapeForm) {
-
-		const Geometry& g = ag.getGeometry();
-		serialized_geom.resize(g.getSizeInBytes());
-		g.serializeTo(serialized_geom.data());
-	}
+	      geom_type(ag.getGeometry().shapeForm),
+	      serialized_geom(ag.getGeometry().serialize()) {}
 
 	int ID;
 	std::string type;
-	std::vector<char> serialized_geom;
 	Geometry::ListOfShapeForms geom_type;
+	std::vector<std::byte> serialized_geom;
 
 	std::unique_ptr<ShadowAgent> createCopy() const {
-		auto geom =
-		    geometryCreateAndDeserializeFrom(geom_type, serialized_geom.data());
+		auto geom = geometryCreateAndDeserialize(geom_type, serialized_geom);
 		geom->updateOwnAABB();
 		--geom->version;
 
-		assert(static_cast<Spheres*>(geom.get())->getCentres().size() ==
-		       static_cast<Spheres*>(geom.get())->getRadii().size());
-		return std::make_unique<ShadowAgent>(std::move(geom), ID, type);
+		return std::make_unique<ShadowAgent>(ID, std::move(geom), type);
 	}
 };
 
