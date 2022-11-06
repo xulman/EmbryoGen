@@ -6,5 +6,4 @@ Cmake
 
 Agents
     Create serialization and deserealization
-
-MPI_Wrapper support for std::byte;
+    (Done: ShadowAgent)

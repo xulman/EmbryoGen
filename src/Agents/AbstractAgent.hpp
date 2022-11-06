@@ -3,10 +3,24 @@
 #include "../DisplayUnits/DisplayUnit.hpp"
 #include "../FrontOfficer.hpp"
 #include "../Geometries/Geometry.hpp"
+#include "../Geometries/util/GeometryCreator.hpp"
+#include "../Geometries/util/Serialization.hpp"
 #include "../util/report.hpp"
 #include "../util/strings.hpp"
 #include <i3d/image3d.h>
 #include <span>
+
+// convenient operator for serializations
+template <typename T>
+std::vector<T>& operator+=(std::vector<T>& lhs, const std::vector<T>& rhs) {
+	lhs.insert(lhs.end(), rhs.begin(), rhs.end());
+	return lhs;
+}
+template <typename T>
+std::vector<T>& operator+=(std::vector<T>& lhs, std::span<const T> rhs) {
+	lhs.insert(lhs.end(), rhs.begin(), rhs.end());
+	return lhs;
+}
 
 enum class agent_class { ShadowAgent };
 
@@ -27,10 +41,8 @@ class ShadowAgent {
 	   representation) by giving it a concrete implementation of Geometry, e.g.
 	   Mesh or Spheres object. The reference to this object is kept and used,
 	   i.e. no new object is created. */
-	ShadowAgent(const int id,
-	            std::unique_ptr<Geometry> geom,
-	            const std::string& type)
-	    : ID(id), geometry(std::move(geom)), agentType(type){};
+	ShadowAgent(const int id, std::unique_ptr<Geometry> geom, std::string type)
+	    : ID(id), geometry(std::move(geom)), agentType(std::move(type)){};
 
 	virtual ~ShadowAgent() = default;
 
@@ -67,13 +79,54 @@ class ShadowAgent {
 	std::size_t getAgentTypeID() const { return agentType.getHash(); }
 
 	/** Serialization support */
-	virtual std::vector<std::byte> serialize() const { return {}; }
+	virtual std::vector<std::byte> serialize() const {
+		std::vector<std::byte> out;
+
+		out += Serialization::toBytes(ID);
+		out += Serialization::toBytes(geometry->getType());
+
+		out += Serialization::toBytes(std::size_t(geometry->getSizeInBytes()));
+		out += geometry->serialize();
+
+		out += Serialization::toBytes(agentType.getString().size());
+		out += std::as_bytes(std::span(agentType.getString()));
+
+		return out;
+	}
 
 	virtual agent_class getAgentClass() const {
 		return agent_class::ShadowAgent;
 	}
 
-	/* static ShadowAgent deserialize(std::span<const std::byte> bytes) {} */
+	static ShadowAgent deserialize(std::span<const std::byte> bytes) {
+		auto ID = Deserialization::fromBytes<int>(bytes.first<sizeof(int)>());
+		bytes = bytes.last(bytes.size() - sizeof(int));
+
+		auto geom_type =
+		    Deserialization::fromBytes<int>(bytes.first<sizeof(int)>());
+		bytes = bytes.last(bytes.size() - sizeof(int));
+
+		auto geom_size = Deserialization::fromBytes<std::size_t>(
+		    bytes.first<sizeof(std::size_t)>());
+		bytes = bytes.last(bytes.size() - sizeof(std::size_t));
+
+		auto geom = geometryCreateAndDeserialize(
+		    static_cast<Geometry::ListOfShapeForms>(geom_type),
+		    bytes.first(geom_size));
+
+		bytes = bytes.last(bytes.size() - geom_size);
+
+		auto type_size = Deserialization::fromBytes<std::size_t>(
+		    bytes.first<sizeof(std::size_t)>());
+		bytes = bytes.last(bytes.size() - sizeof(std::size_t));
+		assert(type_size == bytes.size());
+
+		std::string type(type_size, '0');
+		auto type_bytes = std::as_writable_bytes(std::span(type));
+		std::ranges::copy(bytes, type_bytes.data());
+
+		return ShadowAgent(ID, std::move(geom), std::move(type));
+	}
 
   protected:
 	/** label of this agent */

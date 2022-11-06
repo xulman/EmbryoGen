@@ -3,6 +3,7 @@
 #include "../../util/Vector3d.hpp"
 #include "../../util/report.hpp"
 #include <i3d/image3d.h>
+#include <span>
 
 /**
  * This is a container to represent a methods that convert various
@@ -51,6 +52,12 @@ class Serialization {
 	static long toBuffer(const double number, char* buffer) {
 		*((double*)buffer) = number;
 		return sizeof(double);
+	}
+
+	template <typename T>
+	static std::vector<std::byte> toBytes(T value) {
+		auto bytes = std::as_bytes(std::span<T>{&value, 1});
+		return std::vector(bytes.begin(), bytes.end());
 	}
 
 	// -------------- vectors --------------
@@ -157,6 +164,11 @@ class Deserialization {
 		return sizeof(double);
 	}
 
+	template <typename T>
+	static T fromBytes(std::span<const std::byte, sizeof(T)> bytes) {
+		return *reinterpret_cast<const T*>(bytes.data());
+	}
+
 	// -------------- vectors --------------
 	template <typename FT>
 	static long fromBuffer(const char* buffer, Vector3d<FT>& vector) {
@@ -211,15 +223,5 @@ class Deserialization {
 		}
 
 		return off + (image.GetImageSize() * sizeof(VT));
-	}
-
-	static i3d::Image3d<i3d::GRAY8>* createImageOfType1() {
-		return new i3d::Image3d<i3d::GRAY8>;
-	}
-	static i3d::Image3d<i3d::GRAY16>* createImageOfType2() {
-		return new i3d::Image3d<i3d::GRAY16>;
-	}
-	static i3d::Image3d<float>* createImageOfType3() {
-		return new i3d::Image3d<float>;
 	}
 };

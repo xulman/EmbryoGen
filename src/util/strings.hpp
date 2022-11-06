@@ -40,7 +40,7 @@ class hashedString {
 
 	hashedString() {}
 
-	hashedString(const std::string& s) : _string(s) { updateHash(); }
+	hashedString(std::string s) : _string(std::move(s)) { updateHash(); }
 
 	hashedString(const char* s) : _string(s) { updateHash(); }
 
