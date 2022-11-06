@@ -307,14 +307,14 @@ void NucleusAgent::drawForDebug(DisplayUnit& du) {
 		Vector3d<float> periPoint;
 		int periPointCnt = 0;
 
-		for (std::size_t S = 0; S < geometryAlias.getNoOfSpheres(); ++S) {
-			ss.resetByStepSize(float(geometryAlias.radii[S]), 2.6f);
+		for (std::size_t S = 0; S < geometryAlias->getNoOfSpheres(); ++S) {
+			ss.resetByStepSize(float(geometryAlias->radii[S]), 2.6f);
 			while (ss.next(periPoint)) {
-				periPoint += geometryAlias.centres[S];
+				periPoint += geometryAlias->centres[S];
 
 				// draw the periPoint only if it collides with no (and excluding
 				// this) sphere
-				if (geometryAlias.collideWithPoint(periPoint, int(S)) == -1) {
+				if (geometryAlias->collideWithPoint(periPoint, int(S)) == -1) {
 					++periPointCnt;
 					du.DrawPoint(dID++, periPoint, 0.3f, 3);
 				}

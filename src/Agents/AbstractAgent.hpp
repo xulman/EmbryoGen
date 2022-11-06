@@ -29,7 +29,7 @@ T extract(std::span<const std::byte>& bytes) {
 	return val;
 }
 
-enum class agent_class { ShadowAgent, AbstractAgent };
+enum class agent_class { ShadowAgent, AbstractAgent, NucleusAgent };
 
 /**
  * This class is essentially only a read-only representation of
@@ -375,7 +375,7 @@ class AbstractAgent : public ShadowAgent {
 		                      "supported (AA is just an interface)");
 	}
 
-	virtual agent_class getAgentClass() const {
+	virtual agent_class getAgentClass() const override {
 		return agent_class::AbstractAgent;
 	}
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "NucleusAgent.hpp"
+#include <array>
 
 class Nucleus4SAgent : public NucleusAgent {
   public:
@@ -15,12 +16,8 @@ class Nucleus4SAgent : public NucleusAgent {
 			    "Cannot construct Nucleus4SAgent on non-four sphere geometry.");
 
 		// init centreDistances based on the initial geometry
-		centreDistance[0] =
-		    float((geometryAlias.centres[1] - geometryAlias.centres[0]).len());
-		centreDistance[1] =
-		    float((geometryAlias.centres[2] - geometryAlias.centres[1]).len());
-		centreDistance[2] =
-		    float((geometryAlias.centres[3] - geometryAlias.centres[2]).len());
+		for (std::size_t i = 0; i < centreDistance.size(); ++i)
+			centreDistance[i] = float((geometryAlias->centres[i + 1] - geometryAlias->centres[i]).len());
 	}
 
   protected:
@@ -29,7 +26,7 @@ class Nucleus4SAgent : public NucleusAgent {
 	// ------------- internals geometry -------------
 	/** canonical distance between the four cell centres that this agent
 	    should maintain during geometry changes during the simulation */
-	float centreDistance[3];
+	std::array<float, 3> centreDistance;
 
 	/** assuming that the four spheres (that make up this nucleus) should lay
 	    on a line with their centres apart as given in centreDistances[], this

@@ -40,26 +40,24 @@ constexpr float fstrength_hinter_scale = 0.25f; // [1/um^2]
 
 class NucleusAgent : public AbstractAgent {
   public:
-	NucleusAgent(const int _ID,
-	             const std::string& _type,
+	NucleusAgent(const int ID,
+	             std::string type,
 	             const Spheres& shape,
-	             const float _currTime,
-	             const float _incrTime)
-	    : AbstractAgent(_ID,
-	                    _type,
+	             const float currTime,
+	             const float incrTime)
+	    : AbstractAgent(ID,
+	                    std::move(type),
 	                    std::make_unique<Spheres>(shape),
-	                    _currTime,
-	                    _incrTime),
-	      geometryAlias(*dynamic_cast<Spheres*>(geometry.get())),
-	      futureGeometry(shape),
-	      accels(new Vector3d<float>[2 * shape.getNoOfSpheres()]),
+	                    currTime,
+	                    incrTime),
+	      geometryAlias(dynamic_cast<Spheres*>(geometry.get())),
+	      futureGeometry(shape), accels(shape.getNoOfSpheres()),
 	      // NB: relies on the fact that geometryAlias.noOfSpheres ==
 	      // futureGeometry.noOfSpheres NB: accels[] and velocities[] together
 	      // form one buffer (cache friendlier)
-	      velocities(accels + shape.getNoOfSpheres()),
-	      weights(new float[shape.getNoOfSpheres()]) {
+	      velocities(shape.getNoOfSpheres()), weights(shape.getNoOfSpheres()) {
 		// update AABBs
-		geometryAlias.Geometry::updateOwnAABB();
+		geometryAlias->Geometry::updateOwnAABB();
 		futureGeometry.Geometry::updateOwnAABB();
 
 		// estimate of number of forces (per simulation round):
@@ -75,16 +73,103 @@ class NucleusAgent : public AbstractAgent {
 		report::debugMessage(
 		    fmt::format("Nucleus with ID={} was just created", ID));
 	}
+	NucleusAgent(const NucleusAgent&) = delete;
+	NucleusAgent& operator=(const NucleusAgent&) = delete;
 
-	~NucleusAgent(void) {
-		delete[] accels; // NB: deletes also velocities[], see above
-		delete[] weights;
+	NucleusAgent(NucleusAgent&&) = default;
+	NucleusAgent& operator=(NucleusAgent&&) = default;
 
+	~NucleusAgent() {
 		report::debugMessage(
 		    fmt::format("Nucleus with ID={} was just deleted", ID));
 	}
 
+	const Vector3d<float>& getVelocityOfSphere(const long index) const {
+#ifndef NDEBUG
+		if (index >= long(geometryAlias->getNoOfSpheres()))
+			throw report::rtError("requested sphere index out of bound.");
+#endif
+
+		return velocities[index];
+	}
+
+	/** --------- Serialization support --------- */
+	virtual std::vector<std::byte> serialize() const override {
+		std::vector<std::byte> out;
+
+		auto sa = ShadowAgent::serialize();
+		out += Serialization::toBytes(sa.size());
+		out += sa;
+
+		out += Serialization::toBytes(currTime);
+		out += Serialization::toBytes(incrTime);
+
+		return out;
+	}
+	virtual agent_class getAgentClass() const override {
+		return agent_class::NucleusAgent;
+	}
+
+	static NucleusAgent deserialize(std::span<const std::byte> bytes) {
+		auto sa_size = extract<std::size_t>(bytes);
+
+		auto sa = ShadowAgent::deserialize(bytes.first(sa_size));
+		bytes = bytes.last(bytes.size() - sa_size);
+
+		auto currTime = extract<float>(bytes);
+		auto incrTime = extract<float>(bytes);
+
+		return NucleusAgent(sa.getID(), sa.getAgentType(),
+		                    dynamic_cast<const Spheres&>(sa.getGeometry()),
+		                    currTime, incrTime);
+	}
+
   protected:
+	/** essentially creates a new version (next iteration) of 'futureGeometry'
+	   given the current content of the 'forces'; note that, in this particular
+	   agent type, the 'geometryAlias' is kept synchronized with the
+	   'futureGeometry' so they seem to be interchangeable, but in general
+	   setting the 'futureGeometry' might be more rich representation of the
+	   current geometry that is regularly "exported" via publishGeometry() and
+	   for which the list of ProximityPairs was built during collectExtForces()
+	 */
+	void adjustGeometryByForces();
+
+	/** helper method to (correctly) create a force acting on a sphere */
+	inline void exertForceOnSphere(const int sphereIdx,
+	                               const Vector3d<float>& forceVector,
+	                               const ForceName_t forceType) {
+		forces.emplace_back(forceVector, futureGeometry.centres[sphereIdx],
+		                    sphereIdx, forceType);
+	}
+
+	// ------------- to implement one round of simulation -------------
+	void advanceAndBuildIntForces(const float futureGlobalTime) override;
+
+	void adjustGeometryByIntForces() override { adjustGeometryByForces(); }
+
+	void collectExtForces() override;
+
+	void adjustGeometryByExtForces() override { adjustGeometryByForces(); }
+
+	void publishGeometry() override {
+		// promote my NucleusAgent::futureGeometry to my ShadowAgent::geometry,
+		// which happens to be overlaid/mapped-over with
+		// NucleusAgent::geometryAlias (see the constructor)
+		for (std::size_t i = 0; i < geometryAlias->getNoOfSpheres(); ++i) {
+			geometryAlias->centres[i] = futureGeometry.centres[i];
+			geometryAlias->radii[i] = futureGeometry.radii[i] + cytoplasmWidth;
+		}
+
+		// update AABB
+		geometryAlias->Geometry::updateOwnAABB();
+	}
+
+	// ------------- rendering -------------
+	void drawMask(DisplayUnit& du) override;
+	void drawForDebug(DisplayUnit& du) override;
+	void drawMask(i3d::Image3d<i3d::GRAY16>& img) override;
+
 	// ------------- internals state -------------
 	/** motion: desired current velocity [um/min] */
 	Vector3d<float> velocity_CurrentlyDesired;
@@ -97,7 +182,7 @@ class NucleusAgent : public AbstractAgent {
 
 	// ------------- internals geometry -------------
 	/** reference to my exposed geometry ShadowAgents::geometry */
-	Spheres& geometryAlias;
+	Spheres* geometryAlias;
 
 	/** my internal representation of my geometry, which is exactly
 	    of the same form as my ShadowAgent::geometry, even the same noOfSpheres
@@ -131,72 +216,16 @@ class NucleusAgent : public AbstractAgent {
 	/** an aux array of acceleration vectors calculated for every sphere, the
 	   length of this array must match the length of the spheres in the
 	   'futureGeometry' */
-	Vector3d<float>* const accels;
+	std::vector<Vector3d<float>> accels;
 
 	/** an array of velocities vectors of the spheres, the length of this array
 	   must match the length of the spheres that are exposed (geometryAlias) to
 	   the outer world */
-	Vector3d<float>* const velocities;
+	std::vector<Vector3d<float>> velocities;
 
 	/** an aux array of weights of the spheres, the length of this array must
 	   match the length of the spheres in the 'futureGeometry' */
-	float* const weights;
-
-	/** essentially creates a new version (next iteration) of 'futureGeometry'
-	   given the current content of the 'forces'; note that, in this particular
-	   agent type, the 'geometryAlias' is kept synchronized with the
-	   'futureGeometry' so they seem to be interchangeable, but in general
-	   setting the 'futureGeometry' might be more rich representation of the
-	   current geometry that is regularly "exported" via publishGeometry() and
-	   for which the list of ProximityPairs was built during collectExtForces()
-	 */
-	void adjustGeometryByForces(void);
-
-	/** helper method to (correctly) create a force acting on a sphere */
-	inline void exertForceOnSphere(const int sphereIdx,
-	                               const Vector3d<float>& forceVector,
-	                               const ForceName_t forceType) {
-		forces.emplace_back(forceVector, futureGeometry.centres[sphereIdx],
-		                    sphereIdx, forceType);
-	}
-
-	// ------------- to implement one round of simulation -------------
-	void advanceAndBuildIntForces(const float futureGlobalTime) override;
-
-	void adjustGeometryByIntForces(void) override { adjustGeometryByForces(); }
-
-	void collectExtForces(void) override;
-
-	void adjustGeometryByExtForces(void) override { adjustGeometryByForces(); }
-
-	void publishGeometry(void) override {
-		// promote my NucleusAgent::futureGeometry to my ShadowAgent::geometry,
-		// which happens to be overlaid/mapped-over with
-		// NucleusAgent::geometryAlias (see the constructor)
-		for (std::size_t i = 0; i < geometryAlias.getNoOfSpheres(); ++i) {
-			geometryAlias.centres[i] = futureGeometry.centres[i];
-			geometryAlias.radii[i] = futureGeometry.radii[i] + cytoplasmWidth;
-		}
-
-		// update AABB
-		geometryAlias.Geometry::updateOwnAABB();
-	}
-
-  public:
-	const Vector3d<float>& getVelocityOfSphere(const long index) const {
-#ifndef NDEBUG
-		if (index >= long(geometryAlias.getNoOfSpheres()))
-			throw report::rtError("requested sphere index out of bound.");
-#endif
-
-		return velocities[index];
-	}
-
-  protected:
-	// ------------- rendering -------------
-	void drawMask(DisplayUnit& du) override;
-	void drawForDebug(DisplayUnit& du) override;
-	void drawMask(i3d::Image3d<i3d::GRAY16>& img) override;
+	std::vector<float> weights;
 
 #ifndef NDEBUG
 	/** aux memory of the recently generated forces in
