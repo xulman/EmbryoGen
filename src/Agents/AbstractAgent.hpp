@@ -22,7 +22,14 @@ std::vector<T>& operator+=(std::vector<T>& lhs, std::span<const T> rhs) {
 	return lhs;
 }
 
-enum class agent_class { ShadowAgent };
+template <typename T>
+T extract(std::span<const std::byte>& bytes) {
+	auto val = Deserialization::fromBytes<T>(bytes.first<sizeof(T)>());
+	bytes = bytes.last(bytes.size() - sizeof(T));
+	return val;
+}
+
+enum class agent_class { ShadowAgent, AbstractAgent };
 
 /**
  * This class is essentially only a read-only representation of
@@ -43,6 +50,12 @@ class ShadowAgent {
 	   i.e. no new object is created. */
 	ShadowAgent(const int id, std::unique_ptr<Geometry> geom, std::string type)
 	    : ID(id), geometry(std::move(geom)), agentType(std::move(type)){};
+
+	ShadowAgent(const ShadowAgent&) = delete;
+	ShadowAgent& operator=(const ShadowAgent&) = delete;
+
+	ShadowAgent(ShadowAgent&&) = default;
+	ShadowAgent& operator=(ShadowAgent&&) = default;
 
 	virtual ~ShadowAgent() = default;
 
@@ -78,7 +91,7 @@ class ShadowAgent {
 	/** returns ID of agent's designation */
 	std::size_t getAgentTypeID() const { return agentType.getHash(); }
 
-	/** Serialization support */
+	/** --------- Serialization support --------- */
 	virtual std::vector<std::byte> serialize() const {
 		std::vector<std::byte> out;
 
@@ -99,26 +112,15 @@ class ShadowAgent {
 	}
 
 	static ShadowAgent deserialize(std::span<const std::byte> bytes) {
-		auto ID = Deserialization::fromBytes<int>(bytes.first<sizeof(int)>());
-		bytes = bytes.last(bytes.size() - sizeof(int));
+		auto ID = extract<int>(bytes);
+		auto geom_type = extract<Geometry::ListOfShapeForms>(bytes);
+		auto geom_size = extract<std::size_t>(bytes);
 
-		auto geom_type =
-		    Deserialization::fromBytes<int>(bytes.first<sizeof(int)>());
-		bytes = bytes.last(bytes.size() - sizeof(int));
-
-		auto geom_size = Deserialization::fromBytes<std::size_t>(
-		    bytes.first<sizeof(std::size_t)>());
-		bytes = bytes.last(bytes.size() - sizeof(std::size_t));
-
-		auto geom = geometryCreateAndDeserialize(
-		    static_cast<Geometry::ListOfShapeForms>(geom_type),
-		    bytes.first(geom_size));
-
+		auto geom =
+		    geometryCreateAndDeserialize(geom_type, bytes.first(geom_size));
 		bytes = bytes.last(bytes.size() - geom_size);
 
-		auto type_size = Deserialization::fromBytes<std::size_t>(
-		    bytes.first<sizeof(std::size_t)>());
-		bytes = bytes.last(bytes.size() - sizeof(std::size_t));
+		auto type_size = extract<std::size_t>(bytes);
 		assert(type_size == bytes.size());
 
 		std::string type(type_size, '0');
@@ -185,19 +187,22 @@ class AbstractAgent : public ShadowAgent {
 	    geometry (which get's 'forwarded' to the ShadowAgent), and
 	    current global time as well as global time increment. */
 	AbstractAgent(const int ID,
-	              const std::string& type,
+	              std::string type,
 	              std::unique_ptr<Geometry> geometryContainer,
 	              const float currTime,
 	              const float incrTime)
-	    : ShadowAgent(ID, std::move(geometryContainer), type),
-	      currTime(currTime), incrTime(incrTime){};
+	    : ShadowAgent(ID, std::move(geometryContainer), std::move(type)),
+	      currTime(currTime), incrTime(incrTime) {}
+
+	AbstractAgent(ShadowAgent sa, float currTime, float incrTime)
+	    : ShadowAgent(std::move(sa)), currTime(currTime), incrTime(incrTime) {}
 
   public:
 	// ------------- interaction from the Simulation class -------------
 	/** (re)sets the officer to which this agent belongs to, this is also
 	    a communaction handler back to the Simulation class */
 	void setOfficer(FrontOfficer* _officer) {
-		if (_officer == NULL)
+		if (_officer == nullptr)
 			throw report::rtError(
 			    "got NULL reference on my associated Officer.");
 
@@ -217,24 +222,11 @@ class AbstractAgent : public ShadowAgent {
 		detailedReportingMode = state;
 	}
 
-  protected:
-	FrontOfficer* Officer = nullptr;
-	bool detailedDrawingMode = false;
-	bool detailedReportingMode = false;
-
-	// ------------- local time -------------
-	/** agent's local time [min] */
-	float currTime;
-
-	/** global time increment, agent might need to know it for planning [min] */
-	float incrTime;
-
-  public:
 	// ------------- to implement one round of simulation -------------
 	/** reports the agent's current local time */
-	float getLocalTime(void) const { return currTime; }
+	float getLocalTime() const { return currTime; }
 	/** reports the agent's current incr time */
-	float getIncrTime(void) const { return incrTime; }
+	float getIncrTime() const { return incrTime; }
 
 	/** This method is considered as a callback function, also known as the
 	    "texture hook", and it should be regularly executed from the main
@@ -297,17 +289,17 @@ class AbstractAgent : public ShadowAgent {
 	/** This is where agent's shape (geometry) change is implemented as
 	    a result of the acting of internal forces. Don't call publishGeometry()
 	    as it will be triggered from the outside automatically. */
-	virtual void adjustGeometryByIntForces(void) = 0;
+	virtual void adjustGeometryByIntForces() = 0;
 
 	/** This is where agent's interaction with its surrounding happen,
 	    e.g. with other agents, ECM, force fields such as gravity etc.,
 	    and shape change is requested by creating (external) forces. */
-	virtual void collectExtForces(void) = 0;
+	virtual void collectExtForces() = 0;
 
 	/** This is where agent's shape (geometry) change is implemented as
 	    a result of the acting of external forces. Don't call publishGeometry()
 	    as it will be triggered from the outside automatically. */
-	virtual void adjustGeometryByExtForces(void) = 0;
+	virtual void adjustGeometryByExtForces() = 0;
 
 	/** An agent maintains data structure to represent next-time-point geometry.
 	   This one is being built in the current round of simulation, the
@@ -316,7 +308,7 @@ class AbstractAgent : public ShadowAgent {
 	   what is visible to the outside world, we need a convertor function to
 	   "publish" the new geometry to the world. In other words, to update the
 	   (old) this.geometry with the (new) this.futureGeometry. */
-	virtual void publishGeometry(void) = 0;
+	virtual void publishGeometry() = 0;
 
 	// ------------- rendering -------------
 	/** Should render the current detailed shape, i.e. the futureGeometry, into
@@ -376,4 +368,26 @@ class AbstractAgent : public ShadowAgent {
 	    // template <class T> //T = just some Type
 	    void
 	    drawForDebug(i3d::Image3d<i3d::GRAY16>&){};
+
+	/** --------- Serialization support --------- */
+	virtual std::vector<std::byte> serialize() const override {
+		throw report::rtError("Serialization of Abstract agent is not "
+		                      "supported (AA is just an interface)");
+	}
+
+	virtual agent_class getAgentClass() const {
+		return agent_class::AbstractAgent;
+	}
+
+  protected:
+	FrontOfficer* Officer = nullptr;
+	bool detailedDrawingMode = false;
+	bool detailedReportingMode = false;
+
+	// ------------- local time -------------
+	/** agent's local time [min] */
+	float currTime;
+
+	/** global time increment, agent might need to know it for planning [min] */
+	float incrTime;
 };

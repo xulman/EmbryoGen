@@ -6,4 +6,4 @@ Cmake
 
 Agents
     Create serialization and deserealization
-    (Done: ShadowAgent)
+    (Done: ShadowAgent, AbstractAgent)

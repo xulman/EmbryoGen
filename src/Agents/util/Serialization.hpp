@@ -13,6 +13,8 @@ deserialize_agent(std::span<const std::byte> bytes) {
 	switch (ag_cls) {
 	case agent_class::ShadowAgent:
 		return std::make_unique<ShadowAgent>(ShadowAgent::deserialize(bytes));
+	case agent_class::AbstractAgent:
+		throw report::rtError("Abstract agent cannot be serialized");
 	}
 
 	throw report::rtError("Obtained unsupported type for serialization");
