@@ -7,39 +7,77 @@
 
 class TrajectoriesHinter : public AbstractAgent {
   public:
-	template <class T>
 	TrajectoriesHinter(const int ID,
-	                   const std::string& type,
-	                   const i3d::Image3d<T>& templateImg,
-	                   const VectorImg::ChoosingPolicy policy,
+	                   std::string type,
+	                   const VectorImg& shape,
 	                   const float currTime,
 	                   const float incrTime)
 	    : AbstractAgent(ID,
-	                    type,
-	                    std::make_unique<VectorImg>(templateImg, policy),
+	                    std::move(type),
+	                    std::make_unique<VectorImg>(shape),
 	                    currTime,
 	                    incrTime),
-	      geometryAlias(*dynamic_cast<VectorImg*>(geometry.get())) {
+	      geometryAlias(dynamic_cast<VectorImg*>(geometry.get())) {
 		// update AABBs
-		geometryAlias.Geometry::updateOwnAABB();
-		geometryAlias.proxifyFF(ff);
+		geometryAlias->Geometry::updateOwnAABB();
+		geometryAlias->proxifyFF(ff);
 		lastUpdatedTime = currTime - 1;
 
 		report::debugMessage(
 		    fmt::format("EmbryoTracks with ID={} was just created", ID));
 		report::debugMessage(fmt::format(
-		    "AABB: {} -> {}", toString(geometryAlias.AABB.minCorner),
-		    toString(geometryAlias.AABB.maxCorner)));
+		    "AABB: {} -> {}", toString(geometryAlias->AABB.minCorner),
+		    toString(geometryAlias->AABB.maxCorner)));
 	}
 
-	~TrajectoriesHinter(void) {
+	TrajectoriesHinter(const TrajectoriesHinter&) = delete;
+	TrajectoriesHinter& operator=(const TrajectoriesHinter&) = delete;
+
+	TrajectoriesHinter(TrajectoriesHinter&&) = default;
+	TrajectoriesHinter& operator=(TrajectoriesHinter&&) = default;
+
+	~TrajectoriesHinter() {
 		report::debugMessage(
 		    fmt::format("EmbryoTraces with ID={} was just deleted", ID));
 	}
 
-	TrackRecords& talkToHinter() { return traHinter; }
+	TrackRecords& getRecords() { return traHinter; }
 
-  private:
+	/** --------- Serialization support --------- */
+	virtual std::vector<std::byte> serialize() const override {
+		std::vector<std::byte> out;
+
+		auto sa = ShadowAgent::serialize();
+		out += Serialization::toBytes(sa.size());
+		out += sa;
+
+		out += Serialization::toBytes(currTime);
+		out += Serialization::toBytes(incrTime);
+
+		return out;
+	}
+	virtual agent_class getAgentClass() const override {
+		return agent_class::TrajectoriesHinter;
+	}
+
+	static TrajectoriesHinter deserialize(std::span<const std::byte> bytes) {
+		auto sa_size = extract<std::size_t>(bytes);
+
+		auto sa = ShadowAgent::deserialize(bytes.first(sa_size));
+		bytes = bytes.last(bytes.size() - sa_size);
+
+		auto currTime = extract<float>(bytes);
+		auto incrTime = extract<float>(bytes);
+
+		auto th =
+		    TrajectoriesHinter(sa.getID(), sa.getAgentType(),
+		                       dynamic_cast<const VectorImg&>(sa.getGeometry()),
+		                       currTime, incrTime);
+		--th.geometry->version;
+		return th;
+	}
+
+  protected:
 	// ------------- internals state -------------
 	/** manager of the trajectories of all tracks */
 	TrackRecords traHinter;
@@ -49,7 +87,7 @@ class TrajectoriesHinter : public AbstractAgent {
 
 	// ------------- internals geometry -------------
 	/** reference to my exposed geometry ShadowAgents::geometry */
-	VectorImg& geometryAlias;
+	VectorImg* geometryAlias;
 	float lastUpdatedTime;
 
 	/** my internal representation of my geometry, which is exactly
@@ -64,20 +102,20 @@ class TrajectoriesHinter : public AbstractAgent {
 		currTime += incrTime;
 	}
 
-	void adjustGeometryByIntForces(void) override {
+	void adjustGeometryByIntForces() override {
 		// would update my futureGeometry
 	}
 
-	void collectExtForces(void) override {
+	void collectExtForces() override {
 		// hinter is not responding to its surrounding
 	}
 
-	void adjustGeometryByExtForces(void) override {
+	void adjustGeometryByExtForces() override {
 		// would update my futureGeometry
 	}
 
 	// futureGeometry -> geometryAlias
-	void publishGeometry(void) override {
+	void publishGeometry() override {
 		if (currTime > lastUpdatedTime) {
 			report::debugMessage(fmt::format("{}updating FF from {} to {}",
 			                                 getSignature(),

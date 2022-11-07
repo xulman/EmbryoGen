@@ -6,5 +6,3 @@ Cmake
 
 Agents
     Create serialization and deserealization
-    (Done: ShadowAgent, AbstractAgent, NucleusAgent, NucleusNSAgent, Nucleus4SAgent, ShapeHinter)
-    (Missing: TrajectoriesHinter)

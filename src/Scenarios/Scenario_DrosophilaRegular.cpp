@@ -121,16 +121,16 @@ void Scenario_DrosophilaRegular::initializeAgents(FrontOfficer* fo,
 
 	//-------------
 	auto at = std::make_unique<TrajectoriesHinter>(
-	    fo->getNextAvailAgentID(), "trajectories", initShape,
-	    VectorImg::ChoosingPolicy::avgVec, params->constants.initTime,
-	    params->constants.incrTime);
+	    fo->getNextAvailAgentID(), "trajectories",
+	    VectorImg(initShape, VectorImg::ChoosingPolicy::avgVec),
+	    params->constants.initTime, params->constants.incrTime);
 
 	// the trajectories hinter:
-	at->talkToHinter().readFromFile("../DrosophilaYolk_movement.txt",
-	                                Vector3d<float>(2.f), 10.0f, 10.0f);
+	at->getRecords().readFromFile("../DrosophilaYolk_movement.txt",
+	                              Vector3d<float>(2.f), 10.0f, 10.0f);
 	report::message(fmt::format("Timepoints: {}, Tracks: {}",
-	                            at->talkToHinter().size(),
-	                            at->talkToHinter().knownTracks.size()));
+	                            at->getRecords().size(),
+	                            at->getRecords().knownTracks.size()));
 
 	fo->startNewAgent(std::move(at), false);
 }
