@@ -100,12 +100,8 @@ void NucleusAgent::collectExtForces() {
 		// that we want this one
 		const ShadowAgent* sa = Officer->getNearbyAgent(naabb->ID);
 		if (agentType[0] == 'n') {
-			report::debugError(
-			    fmt::format("XXFO#{} Before get distance", Officer->getID()));
 			geometry->getDistance(sa->getGeometry(), proximityPairs_toNuclei,
 			                      const_cast<ShadowAgent*>(sa));
-			report::debugError(
-			    fmt::format("XXFO#{} After get distance", Officer->getID()));
 		} else {
 			if (agentType[0] == 'y') {
 				geometry->getDistance(sa->getGeometry(), proximityPairs_toYolk);

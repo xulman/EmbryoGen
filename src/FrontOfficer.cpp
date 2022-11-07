@@ -179,6 +179,7 @@ const ShadowAgent* FrontOfficer::getNearbyAgent(const int fetchThisID) {
 	    request_ShadowAgentCopy(fetchThisID, contactThisFO);
 
 	ShadowAgent* new_ag = shadowAgents[fetchThisID].get();
+
 #ifndef NDEBUG
 	// now the broadcast version must match the one we actually have got
 	if (agentsAndBroadcastGeomVersions[fetchThisID] !=

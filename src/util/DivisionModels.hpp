@@ -230,7 +230,6 @@ class DivisionModels {
 	   emulated averaging */
 	void getAveragedModel(
 	    DivModelType& m /*, const int fromThisNoOfRandomModels = 2 */) const {
-		// TODO HONZA, toto je wierd :D cekni to
 		constexpr int fromThisNoOfRandomModels = 2;
 
 		float weights[TB + TA][fromThisNoOfRandomModels];
@@ -247,7 +246,6 @@ class DivisionModels {
 	   resulting/output model is being built */
 	void getShiftingGaussWeightedModel(
 	    DivModelType& m /*, const int fromThisNoOfRandomModels = 4*/) const {
-		// TODO HONZA, toto je wierd :D cekni to
 		constexpr int fromThisNoOfRandomModels = 4;
 
 		float weights[TB + TA][fromThisNoOfRandomModels];
@@ -264,7 +262,6 @@ class DivisionModels {
 	    DivModelType& m,
 	    const float boxAmpl =
 	        3 /*, const int fromThisNoOfRandomModels = 4*/) const {
-		// TODO HONZA, toto je wierd :D cekni to
 		constexpr int fromThisNoOfRandomModels = 4;
 
 		float weights[TB + TA][fromThisNoOfRandomModels];

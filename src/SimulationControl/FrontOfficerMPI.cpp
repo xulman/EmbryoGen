@@ -1,4 +1,6 @@
+#include "../Agents/util/Serialization.hpp"
 #include "../FrontOfficer.hpp"
+#include "../Geometries/Geometry.hpp"
 #include "MPI_common.hpp"
 #include <limits>
 #include <thread>
@@ -21,19 +23,6 @@ ImplementationData& get_data(const std::shared_ptr<void>& obj) {
 void async_thread(MPI_Comm request_comm,
                   MPI_Comm response_comm,
                   FrontOfficer* fo) {
-	auto send_shadow_agent = [=](int agent_id, int dest) {
-		auto ag_ptr = fo->getLocalAgent(agent_id);
-		SerializedShadowAgent ser(*ag_ptr);
-
-		MPIw::Send_one(response_comm, ser.ID, dest,
-		               async_tags::send_shadow_agent);
-		MPIw::Send(response_comm, ser.type, dest,
-		           async_tags::send_shadow_agent);
-		MPIw::Send(response_comm, ser.serialized_geom, dest,
-		           async_tags::send_shadow_agent);
-		MPIw::Send_one(response_comm, static_cast<int>(ser.geom_type), dest,
-		               async_tags::send_shadow_agent);
-	};
 
 	report::debugMessage("Async thread launched");
 	while (true) {
@@ -42,9 +31,11 @@ void async_thread(MPI_Comm request_comm,
 		switch (static_cast<async_tags>(req.status.MPI_TAG)) {
 		case async_tags::shutdown:
 			return;
-		case async_tags::request_shadow_agent:
-			send_shadow_agent(req.data, req.status.MPI_SOURCE);
-			break;
+		case async_tags::request_shadow_agent: {
+			auto bytes = serializeAgent(*fo->getLocalAgent(req.data));
+			MPIw::Send(response_comm, bytes, req.status.MPI_SOURCE,
+			           async_tags::send_shadow_agent);
+		} break;
 		case async_tags::set_rendering_debug:
 			fo->setSimulationDebugRendering(bool(req.data));
 			break;
@@ -288,37 +279,17 @@ void FrontOfficer::exchange_AABBofAgents() {
 std::unique_ptr<ShadowAgent>
 FrontOfficer::request_ShadowAgentCopy(const int agentID,
                                       const int FOsID) const {
-	report::debugError(fmt::format("XXFO#{} requesting {} from FO#{}", getID(),
-	                               agentID, FOsID));
 	ImplementationData& impl = get_data(implementationData);
 	// Send request
 	MPIw::Send_one(impl.Async_request_comm, agentID, FOsID,
 	               async_tags::request_shadow_agent);
 
 	// Recieve data
-
-	SerializedShadowAgent ser;
-	ser.ID = MPIw::Recv_one<int>(impl.Async_response_comm, FOsID,
-	                             async_tags::send_shadow_agent)
-	             .data;
-
-	auto type_ = MPIw::Recv<char>(impl.Async_response_comm, FOsID,
-	                              async_tags::send_shadow_agent)
+	auto bytes = MPIw::Recv<std::byte>(impl.Async_response_comm, FOsID,
+	                                   async_tags::send_shadow_agent)
 	                 .data;
-	ser.type = std::string(type_.begin(), type_.end());
 
-	ser.serialized_geom = MPIw::Recv<std::byte>(impl.Async_response_comm, FOsID,
-	                                            async_tags::send_shadow_agent)
-	                          .data;
-
-	ser.geom_type = static_cast<Geometry::ListOfShapeForms>(
-	    MPIw::Recv_one<int>(impl.Async_response_comm, FOsID,
-	                        async_tags::send_shadow_agent)
-	        .data);
-
-	report::debugError(
-	    fmt::format("XXFO#{} got {} from FO#{}", getID(), agentID, FOsID));
-	return ser.createCopy();
+	return deserializeAgent(bytes);
 }
 
 // Not used, synchronization is provided by rendering frame in

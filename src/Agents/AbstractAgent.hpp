@@ -119,7 +119,8 @@ class ShadowAgent {
 		return agent_class::ShadowAgent;
 	}
 
-	static ShadowAgent deserialize(std::span<const std::byte> bytes) {
+	static std::unique_ptr<ShadowAgent>
+	deserialize(std::span<const std::byte> bytes) {
 		auto ID = extract<int>(bytes);
 		auto geom_type = extract<Geometry::ListOfShapeForms>(bytes);
 		auto geom_size = extract<std::size_t>(bytes);
@@ -135,7 +136,8 @@ class ShadowAgent {
 		auto type_bytes = std::as_writable_bytes(std::span(type));
 		std::ranges::copy(bytes, type_bytes.data());
 
-		return ShadowAgent(ID, std::move(geom), std::move(type));
+		return std::make_unique<ShadowAgent>(ID, std::move(geom),
+		                                     std::move(type));
 	}
 
   protected:

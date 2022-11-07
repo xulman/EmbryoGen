@@ -163,15 +163,13 @@ void Scenario_mpiDrosophilaRandom::initializeAgents(FrontOfficer* fo,
 	ScalarImg m(initShape, ScalarImg::DistanceModel::ZeroIN_GradOUT);
 	// m.saveDistImg("GradIN_ZeroOUT.tif");
 
-	/*
 	if (is_mine()) {
-	    // finally, create the simulation agent to register this shape
-	    auto ag = std::make_unique<ShapeHinter>(
-	        fo->getNextAvailAgentID(), "yolk", m, params->constants.initTime,
-	        params->constants.incrTime);
-	    fo->startNewAgent(std::move(ag), false);
+		// finally, create the simulation agent to register this shape
+		auto ag = std::make_unique<ShapeHinter>(
+		    fo->getNextAvailAgentID(), "yolk", m, params->constants.initTime,
+		    params->constants.incrTime);
+		fo->startNewAgent(std::move(ag), false);
 	}
-	*/
 }
 
 void Scenario_mpiDrosophilaRandom::initializeScene() {

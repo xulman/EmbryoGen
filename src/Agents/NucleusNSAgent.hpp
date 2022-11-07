@@ -24,8 +24,9 @@ class NucleusNSAgent : public NucleusAgent {
 	NucleusNSAgent(const NucleusNSAgent&) = delete;
 	NucleusNSAgent& operator=(const NucleusNSAgent&) = delete;
 
-	NucleusNSAgent(NucleusNSAgent&&) = default;
-	NucleusNSAgent& operator=(NucleusNSAgent&&) = default;
+	// Geometry alias does not update :(
+	NucleusNSAgent(NucleusNSAgent&&) = delete;
+	NucleusNSAgent& operator=(NucleusNSAgent&&) = delete;
 
 	/** --------- Serialization support --------- */
 	virtual std::vector<std::byte> serialize() const override {
@@ -44,7 +45,8 @@ class NucleusNSAgent : public NucleusAgent {
 		return agent_class::NucleusNSAgent;
 	}
 
-	static NucleusNSAgent deserialize(std::span<const std::byte> bytes) {
+	static std::unique_ptr<NucleusNSAgent>
+	deserialize(std::span<const std::byte> bytes) {
 		auto sa_size = extract<std::size_t>(bytes);
 
 		auto sa = ShadowAgent::deserialize(bytes.first(sa_size));
@@ -53,10 +55,11 @@ class NucleusNSAgent : public NucleusAgent {
 		auto currTime = extract<float>(bytes);
 		auto incrTime = extract<float>(bytes);
 
-		auto na = NucleusNSAgent(sa.getID(), sa.getAgentType(),
-		                         dynamic_cast<const Spheres&>(sa.getGeometry()),
-		                         currTime, incrTime);
-		--na.geometry->version;
+		auto na = std::make_unique<NucleusNSAgent>(
+		    sa->getID(), sa->getAgentType(),
+		    dynamic_cast<const Spheres&>(sa->getGeometry()), currTime,
+		    incrTime);
+		--na->geometry->version;
 		return na;
 	}
 

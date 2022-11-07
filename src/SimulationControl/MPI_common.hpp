@@ -24,29 +24,6 @@ class AABBwithInfo {
 	AxisAlignedBoundingBox AABB;
 };
 
-// TODO template this to be able to send (any) agent
-class SerializedShadowAgent {
-  public:
-	SerializedShadowAgent() = default;
-	SerializedShadowAgent(const ShadowAgent& ag)
-	    : ID(ag.getID()), type(ag.getAgentType()),
-	      geom_type(ag.getGeometry().shapeForm),
-	      serialized_geom(ag.getGeometry().serialize()) {}
-
-	int ID;
-	std::string type;
-	Geometry::ListOfShapeForms geom_type;
-	std::vector<std::byte> serialized_geom;
-
-	std::unique_ptr<ShadowAgent> createCopy() const {
-		auto geom = geometryCreateAndDeserialize(geom_type, serialized_geom);
-		geom->updateOwnAABB();
-		--geom->version;
-
-		return std::make_unique<ShadowAgent>(ID, std::move(geom), type);
-	}
-};
-
 class MPIManager {
   public:
 	using _pair_int_bool = std::pair<int, bool>;

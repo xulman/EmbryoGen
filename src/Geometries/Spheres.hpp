@@ -76,11 +76,7 @@ class Spheres : public Geometry {
 	void updateThisAABB(AxisAlignedBoundingBox& AABB) const override;
 
 	// ------------- get/set methods -------------
-	std::size_t getNoOfSpheres(const std::source_location& loc =
-	                               std::source_location::current()) const {
-		report::debugError(fmt::format("XXMPI#{} No Of Spehers",
-		                               MPIw::Comm_rank(MPI_COMM_WORLD)),
-		                   {true, true, true}, loc);
+	std::size_t getNoOfSpheres() const {
 		assert(centres.size() == radii.size());
 		return centres.size();
 	}

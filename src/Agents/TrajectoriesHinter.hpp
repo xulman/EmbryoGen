@@ -33,8 +33,9 @@ class TrajectoriesHinter : public AbstractAgent {
 	TrajectoriesHinter(const TrajectoriesHinter&) = delete;
 	TrajectoriesHinter& operator=(const TrajectoriesHinter&) = delete;
 
-	TrajectoriesHinter(TrajectoriesHinter&&) = default;
-	TrajectoriesHinter& operator=(TrajectoriesHinter&&) = default;
+	// Geometry alias does not update :(
+	TrajectoriesHinter(TrajectoriesHinter&&) = delete;
+	TrajectoriesHinter& operator=(TrajectoriesHinter&&) = delete;
 
 	~TrajectoriesHinter() {
 		report::debugMessage(
@@ -60,7 +61,8 @@ class TrajectoriesHinter : public AbstractAgent {
 		return agent_class::TrajectoriesHinter;
 	}
 
-	static TrajectoriesHinter deserialize(std::span<const std::byte> bytes) {
+	static std::unique_ptr<TrajectoriesHinter>
+	deserialize(std::span<const std::byte> bytes) {
 		auto sa_size = extract<std::size_t>(bytes);
 
 		auto sa = ShadowAgent::deserialize(bytes.first(sa_size));
@@ -69,11 +71,11 @@ class TrajectoriesHinter : public AbstractAgent {
 		auto currTime = extract<float>(bytes);
 		auto incrTime = extract<float>(bytes);
 
-		auto th =
-		    TrajectoriesHinter(sa.getID(), sa.getAgentType(),
-		                       dynamic_cast<const VectorImg&>(sa.getGeometry()),
-		                       currTime, incrTime);
-		--th.geometry->version;
+		auto th = std::make_unique<TrajectoriesHinter>(
+		    sa->getID(), sa->getAgentType(),
+		    dynamic_cast<const VectorImg&>(sa->getGeometry()), currTime,
+		    incrTime);
+		--th->geometry->version;
 		return th;
 	}
 

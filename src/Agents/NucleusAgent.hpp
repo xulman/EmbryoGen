@@ -70,18 +70,19 @@ class NucleusAgent : public AbstractAgent {
 		for (std::size_t i = 0; i < shape.getNoOfSpheres(); ++i)
 			weights[i] = 1.0f;
 
-		report::debugMessage(
-		    fmt::format("Nucleus with ID={} was just created", ID));
+		report::debugMessage(fmt::format(
+		    "Nucleus with ID={} was just created", ID));
 	}
 	NucleusAgent(const NucleusAgent&) = delete;
 	NucleusAgent& operator=(const NucleusAgent&) = delete;
 
-	NucleusAgent(NucleusAgent&&) = default;
-	NucleusAgent& operator=(NucleusAgent&&) = default;
+	// Geometry alias does not update :(
+	NucleusAgent(NucleusAgent&& ag) = delete;
+	NucleusAgent& operator=(NucleusAgent&&) = delete;
 
 	~NucleusAgent() {
-		report::debugMessage(
-		    fmt::format("Nucleus with ID={} was just deleted", ID));
+		report::debugMessage(fmt::format(
+		    "Nucleus with ID={} was just deleted", ID));
 	}
 
 	const Vector3d<float>& getVelocityOfSphere(const long index) const {
@@ -110,7 +111,8 @@ class NucleusAgent : public AbstractAgent {
 		return agent_class::NucleusAgent;
 	}
 
-	static NucleusAgent deserialize(std::span<const std::byte> bytes) {
+	static std::unique_ptr<NucleusAgent>
+	deserialize(std::span<const std::byte> bytes) {
 		auto sa_size = extract<std::size_t>(bytes);
 
 		auto sa = ShadowAgent::deserialize(bytes.first(sa_size));
@@ -119,10 +121,11 @@ class NucleusAgent : public AbstractAgent {
 		auto currTime = extract<float>(bytes);
 		auto incrTime = extract<float>(bytes);
 
-		auto na = NucleusAgent(sa.getID(), sa.getAgentType(),
-		                       dynamic_cast<const Spheres&>(sa.getGeometry()),
-		                       currTime, incrTime);
-		--na.geometry->version;
+		auto na = std::make_unique<NucleusAgent>(
+		    sa->getID(), sa->getAgentType(),
+		    dynamic_cast<const Spheres&>(sa->getGeometry()), currTime,
+		    incrTime);
+		--na->geometry->version;
 		return na;
 	}
 

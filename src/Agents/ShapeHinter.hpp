@@ -37,8 +37,9 @@ class ShapeHinter : public AbstractAgent {
 	ShapeHinter(const ShapeHinter&) = delete;
 	ShapeHinter& operator=(const ShapeHinter&) = delete;
 
-	ShapeHinter(ShapeHinter&&) = default;
-	ShapeHinter& operator=(ShapeHinter&&) = default;
+	// Geometry alias does not update :(
+	ShapeHinter(ShapeHinter&&) = delete;
+	ShapeHinter& operator=(ShapeHinter&&) = delete;
 
 	/** --------- Serialization support --------- */
 	virtual std::vector<std::byte> serialize() const override {
@@ -57,7 +58,8 @@ class ShapeHinter : public AbstractAgent {
 		return agent_class::ShapeHinter;
 	}
 
-	static ShapeHinter deserialize(std::span<const std::byte> bytes) {
+	static std::unique_ptr<ShapeHinter>
+	deserialize(std::span<const std::byte> bytes) {
 		auto sa_size = extract<std::size_t>(bytes);
 
 		auto sa = ShadowAgent::deserialize(bytes.first(sa_size));
@@ -66,10 +68,11 @@ class ShapeHinter : public AbstractAgent {
 		auto currTime = extract<float>(bytes);
 		auto incrTime = extract<float>(bytes);
 
-		auto sh = ShapeHinter(sa.getID(), sa.getAgentType(),
-		                      dynamic_cast<const ScalarImg&>(sa.getGeometry()),
-		                      currTime, incrTime);
-		--sh.geometry->version;
+		auto sh = std::make_unique<ShapeHinter>(
+		    sa->getID(), sa->getAgentType(),
+		    dynamic_cast<const ScalarImg&>(sa->getGeometry()), currTime,
+		    incrTime);
+		--sh->geometry->version;
 		return sh;
 	}
 
