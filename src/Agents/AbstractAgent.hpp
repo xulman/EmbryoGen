@@ -29,7 +29,15 @@ T extract(std::span<const std::byte>& bytes) {
 	return val;
 }
 
-enum class agent_class { ShadowAgent, AbstractAgent, NucleusAgent };
+enum class agent_class {
+	ShadowAgent,
+	AbstractAgent,
+	NucleusAgent,
+	NucleusNSAgent,
+	Nucleus4SAgent,
+	ShapeHinter,
+	TrajectoriesHinter
+};
 
 /**
  * This class is essentially only a read-only representation of

@@ -119,9 +119,11 @@ class NucleusAgent : public AbstractAgent {
 		auto currTime = extract<float>(bytes);
 		auto incrTime = extract<float>(bytes);
 
-		return NucleusAgent(sa.getID(), sa.getAgentType(),
-		                    dynamic_cast<const Spheres&>(sa.getGeometry()),
-		                    currTime, incrTime);
+		auto na = NucleusAgent(sa.getID(), sa.getAgentType(),
+		                       dynamic_cast<const Spheres&>(sa.getGeometry()),
+		                       currTime, incrTime);
+		--na.geometry->version;
+		return na;
 	}
 
   protected:

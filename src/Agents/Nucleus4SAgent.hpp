@@ -5,19 +5,60 @@
 
 class Nucleus4SAgent : public NucleusAgent {
   public:
-	Nucleus4SAgent(const int _ID,
-	               const std::string& _type,
+	Nucleus4SAgent(const int ID,
+	               std::string type,
 	               const Spheres& shape,
-	               const float _currTime,
-	               const float _incrTime)
-	    : NucleusAgent(_ID, _type, shape, _currTime, _incrTime) {
+	               const float currTime,
+	               const float incrTime)
+	    : NucleusAgent(ID, std::move(type), shape, currTime, incrTime) {
 		if (shape.getNoOfSpheres() != 4)
 			throw report::rtError(
 			    "Cannot construct Nucleus4SAgent on non-four sphere geometry.");
 
 		// init centreDistances based on the initial geometry
 		for (std::size_t i = 0; i < centreDistance.size(); ++i)
-			centreDistance[i] = float((geometryAlias->centres[i + 1] - geometryAlias->centres[i]).len());
+			centreDistance[i] = float(
+			    (geometryAlias->centres[i + 1] - geometryAlias->centres[i])
+			        .len());
+	}
+
+	Nucleus4SAgent(const Nucleus4SAgent&) = delete;
+	Nucleus4SAgent& operator=(const Nucleus4SAgent&) = delete;
+
+	Nucleus4SAgent(Nucleus4SAgent&&) = default;
+	Nucleus4SAgent& operator=(Nucleus4SAgent&&) = default;
+
+	/** --------- Serialization support --------- */
+	virtual std::vector<std::byte> serialize() const override {
+		std::vector<std::byte> out;
+
+		auto sa = ShadowAgent::serialize();
+		out += Serialization::toBytes(sa.size());
+		out += sa;
+
+		out += Serialization::toBytes(currTime);
+		out += Serialization::toBytes(incrTime);
+
+		return out;
+	}
+	virtual agent_class getAgentClass() const override {
+		return agent_class::NucleusNSAgent;
+	}
+
+	static Nucleus4SAgent deserialize(std::span<const std::byte> bytes) {
+		auto sa_size = extract<std::size_t>(bytes);
+
+		auto sa = ShadowAgent::deserialize(bytes.first(sa_size));
+		bytes = bytes.last(bytes.size() - sa_size);
+
+		auto currTime = extract<float>(bytes);
+		auto incrTime = extract<float>(bytes);
+
+		auto na = Nucleus4SAgent(sa.getID(), sa.getAgentType(),
+		                         dynamic_cast<const Spheres&>(sa.getGeometry()),
+		                         currTime, incrTime);
+		--na.geometry->version;
+		return na;
 	}
 
   protected:
