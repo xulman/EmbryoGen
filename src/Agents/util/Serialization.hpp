@@ -1,6 +1,10 @@
 #pragma once
 #include "../../util/report.hpp"
 #include "../AbstractAgent.hpp"
+#include "../Nucleus4SAgent.hpp"
+#include "../NucleusNSAgent.hpp"
+#include "../ShapeHinter.hpp"
+#include "../TrajectoriesHinter.hpp"
 #include <memory>
 #include <vector>
 
@@ -15,6 +19,19 @@ deserialize_agent(std::span<const std::byte> bytes) {
 		return std::make_unique<ShadowAgent>(ShadowAgent::deserialize(bytes));
 	case agent_class::AbstractAgent:
 		throw report::rtError("Abstract agent cannot be serialized");
+	case agent_class::NucleusAgent:
+		return std::make_unique<ShadowAgent>(NucleusAgent::deserialize(bytes));
+	case agent_class::NucleusNSAgent:
+		return std::make_unique<ShadowAgent>(
+		    NucleusNSAgent::deserialize(bytes));
+	case agent_class::Nucleus4SAgent:
+		return std::make_unique<ShadowAgent>(
+		    Nucleus4SAgent::deserialize(bytes));
+	case agent_class::ShapeHinter:
+		return std::make_unique<ShadowAgent>(ShapeHinter::deserialize(bytes));
+	case agent_class::TrajectoriesHinter:
+		return std::make_unique<ShadowAgent>(
+		    TrajectoriesHinter::deserialize(bytes));
 	}
 
 	throw report::rtError("Obtained unsupported type for serialization");

@@ -3,6 +3,3 @@ Geometry
 
 Cmake 
     fix build chain if i3d in different path
-
-Agents
-    Create serialization and deserealization
