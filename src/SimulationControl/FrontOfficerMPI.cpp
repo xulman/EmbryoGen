@@ -76,8 +76,9 @@ FrontOfficer::FrontOfficer(ScenarioUPTR s,
                            const int allPortions)
     : scenario(std::move(s)), ID(myPortion),
       nextFOsID((myPortion + 1) % (allPortions + 1)), FOsCount(allPortions),
-      nextAvailAgentID(
-          std::numeric_limits<int>::max() / allPortions * (myPortion - 1) + 1),
+      nextAvailAgentID(std::numeric_limits<uint16_t>::max() / allPortions *
+                           (myPortion - 1) +
+                       1),
       implementationData(std::make_shared<ImplementationData>()) {
 	scenario->declareFOcontext(myPortion);
 	// enable alocation for FO images
