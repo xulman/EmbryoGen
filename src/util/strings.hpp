@@ -3,7 +3,6 @@
 #include "../Geometries/Geometry.hpp"
 #include "../tools/concepts.hpp"
 #include "report.hpp"
-#include <list>
 #include <map>
 #include <string>
 #include <type_traits>

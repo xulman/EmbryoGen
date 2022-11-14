@@ -6,7 +6,6 @@
 #include "../util/Vector3d.hpp"
 #include <i3d/image3d.h>
 #include <span>
-#include <list>
 class DisplayUnit;
 
 namespace details {

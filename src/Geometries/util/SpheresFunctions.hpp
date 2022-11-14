@@ -6,7 +6,6 @@
 #include "../Spheres.hpp"
 #include <cmath>
 #include <functional>
-#include <list>
 #include <vector>
 
 class SpheresFunctions {

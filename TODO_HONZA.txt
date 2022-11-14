@@ -1,5 +1,2 @@
-Geometry
-    remove <list>
-
 Cmake 
     fix build chain if i3d in different path

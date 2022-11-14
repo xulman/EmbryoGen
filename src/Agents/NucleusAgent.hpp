@@ -4,7 +4,6 @@
 #include "../util/report.hpp"
 #include "AbstractAgent.hpp"
 #include <fmt/core.h>
-#include <list>
 #include <vector>
 
 const ForceName_t ftype_s2s = "sphere-sphere"; // internal forces

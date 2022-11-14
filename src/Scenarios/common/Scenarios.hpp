@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Scenario.hpp"
-#include <list>
 #include <memory>
 #include <set>
 #include <string>

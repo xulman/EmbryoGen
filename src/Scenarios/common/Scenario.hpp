@@ -2,7 +2,6 @@
 
 #include <map>
 #include <set>
-//#include <TransferImage.h>
 #include "../../DisplayUnits/BroadcasterDisplayUnit.hpp"
 #include "../../config.hpp"
 #include "../../util/Vector3d.hpp"

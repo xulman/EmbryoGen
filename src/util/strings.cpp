@@ -1,6 +1,5 @@
 #include "strings.hpp"
 #include "../Geometries/Geometry.hpp"
-#include <list>
 #include <string>
 
 std::ostream& operator<<(std::ostream& s, const hashedString& hs) {
