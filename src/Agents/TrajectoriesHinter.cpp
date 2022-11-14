@@ -14,8 +14,8 @@ void TrajectoriesHinter::drawForDebug(DisplayUnit& du) {
 #ifdef DRAW_VOXEL_GRID_AROUND_TRAJECTORIES
 		Vector3d<size_t> centrePx;
 		const Vector3d<float> res(
-		    geometryAlias.getImgX().GetResolution().GetRes());
-		const Vector3d<float> off(geometryAlias.getImgX().GetOffset());
+		    geometryAlias().getImgX().GetResolution().GetRes());
+		const Vector3d<float> off(geometryAlias().getImgX().GetOffset());
 #endif
 
 		// scan all time points to read out every tracks' "bending corners"
@@ -53,7 +53,7 @@ void TrajectoriesHinter::drawForDebug(DisplayUnit& du) {
 #ifdef DRAW_VOXEL_GRID_AROUND_TRAJECTORIES
 				// also draw a (local debug) pixel grid around the ball centre
 				createdLines += RenderingFunctions::drawPixelCentresGrid(
-				    du, DBG + createdLines, 1, geometryAlias.getImgX(),
+				    du, DBG + createdLines, 1, geometryAlias().getImgX(),
 				    pos.toPixels(centrePx, res, off), Vector3d<size_t>(3));
 #endif
 			}

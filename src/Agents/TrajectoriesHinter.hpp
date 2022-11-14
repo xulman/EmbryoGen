@@ -16,26 +16,24 @@ class TrajectoriesHinter : public AbstractAgent {
 	                    std::move(type),
 	                    std::make_unique<VectorImg>(shape),
 	                    currTime,
-	                    incrTime),
-	      geometryAlias(dynamic_cast<VectorImg*>(geometry.get())) {
+	                    incrTime) {
 		// update AABBs
-		geometryAlias->Geometry::updateOwnAABB();
-		geometryAlias->proxifyFF(ff);
+		geometryAlias().Geometry::updateOwnAABB();
+		geometryAlias().proxifyFF(ff);
 		lastUpdatedTime = currTime - 1;
 
 		report::debugMessage(
 		    fmt::format("EmbryoTracks with ID={} was just created", ID));
 		report::debugMessage(fmt::format(
-		    "AABB: {} -> {}", toString(geometryAlias->AABB.minCorner),
-		    toString(geometryAlias->AABB.maxCorner)));
+		    "AABB: {} -> {}", toString(geometryAlias().AABB.minCorner),
+		    toString(geometryAlias().AABB.maxCorner)));
 	}
 
 	TrajectoriesHinter(const TrajectoriesHinter&) = delete;
 	TrajectoriesHinter& operator=(const TrajectoriesHinter&) = delete;
 
-	// Geometry alias does not update :(
-	TrajectoriesHinter(TrajectoriesHinter&&) = delete;
-	TrajectoriesHinter& operator=(TrajectoriesHinter&&) = delete;
+	TrajectoriesHinter(TrajectoriesHinter&&) = default;
+	TrajectoriesHinter& operator=(TrajectoriesHinter&&) = default;
 
 	~TrajectoriesHinter() {
 		report::debugMessage(
@@ -89,7 +87,10 @@ class TrajectoriesHinter : public AbstractAgent {
 
 	// ------------- internals geometry -------------
 	/** reference to my exposed geometry ShadowAgents::geometry */
-	VectorImg* geometryAlias;
+	VectorImg& geometryAlias() { return dynamic_cast<VectorImg&>(*geometry); };
+	const VectorImg& geometryAlias() const {
+		return dynamic_cast<const VectorImg&>(*geometry);
+	};
 	float lastUpdatedTime;
 
 	/** my internal representation of my geometry, which is exactly

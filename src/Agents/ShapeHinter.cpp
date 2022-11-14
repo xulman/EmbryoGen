@@ -9,8 +9,8 @@ void ShapeHinter::drawForDebug(DisplayUnit& du) {
 
 		// draw bounding box of the complete ScalarImg
 		dID += RenderingFunctions::drawBox(du, dID, 4,
-		                                   geometryAlias->getDistImgOff(),
-		                                   geometryAlias->getDistImgFarEnd());
+		                                   geometryAlias().getDistImgOff(),
+		                                   geometryAlias().getDistImgFarEnd());
 
 		// render spheres along a certain isoline
 		ImageSampler<float, float> is;
@@ -18,8 +18,8 @@ void ShapeHinter::drawForDebug(DisplayUnit& du) {
 		int periPointCnt = 0;
 
 		is.resetByMicronStep(
-		    geometryAlias->getDistImg(), [](const float px) { return px == 2; },
-		    Vector3d<float>(10, 5, 5));
+		    geometryAlias().getDistImg(),
+		    [](const float px) { return px == 2; }, Vector3d<float>(10, 5, 5));
 		while (is.next(periPoint)) {
 			du.DrawPoint(dID++, periPoint, 0.3f, 4);
 			++periPointCnt;
@@ -36,17 +36,17 @@ void ShapeHinter::drawForDebug(i3d::Image3d<i3d::GRAY16>& img) {
 	                          img.GetOffset().z);
 
 	// shortcuts to our own geometry
-	const i3d::Image3d<float>& distImg = geometryAlias->getDistImg();
-	const Vector3d<float>& distImgRes = geometryAlias->getDistImgRes();
-	const Vector3d<float>& distImgOff = geometryAlias->getDistImgOff();
-	const ScalarImg::DistanceModel model = geometryAlias->getDistImgModel();
+	const i3d::Image3d<float>& distImg = geometryAlias().getDistImg();
+	const Vector3d<float>& distImgRes = geometryAlias().getDistImgRes();
+	const Vector3d<float>& distImgOff = geometryAlias().getDistImgOff();
+	const ScalarImg::DistanceModel model = geometryAlias().getDistImgModel();
 
 	// project and "clip" this AABB into the img frame
 	// so that voxels to sweep can be narrowed down...
 	//
 	//    sweeping position and boundaries (relevant to the 'img')
 	Vector3d<std::size_t> curPos, minSweepPX, maxSweepPX;
-	geometryAlias->AABB.exportInPixelCoords(img, minSweepPX, maxSweepPX);
+	geometryAlias().AABB.exportInPixelCoords(img, minSweepPX, maxSweepPX);
 	//
 	// micron coordinate of the running voxel 'curPos'
 	Vector3d<float> centre;

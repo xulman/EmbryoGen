@@ -218,9 +218,9 @@ class SimpleDividingAgent : public NucleusAgent {
 		for (int i = 0; i < divGeomModelled.getNoOfSpheres(); ++i)
 		    du.DrawPoint(++dID,divGeomModelled.getCentres()[i],divGeomModelled.getRadii()[i],i);
 		*/
-		for (std::size_t i = 0; i < geometryAlias->getNoOfSpheres(); ++i)
-			du.DrawPoint(++dID, geometryAlias->getCentres()[i],
-			             float(geometryAlias->getRadii()[i]), (ID % 3 + 1) * 2);
+		for (std::size_t i = 0; i < geometryAlias().getNoOfSpheres(); ++i)
+			du.DrawPoint(++dID, geometryAlias().getCentres()[i],
+			             float(geometryAlias().getRadii()[i]), (ID % 3 + 1) * 2);
 
 		drawForDebug(du);
 

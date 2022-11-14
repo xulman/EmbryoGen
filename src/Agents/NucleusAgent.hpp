@@ -49,14 +49,13 @@ class NucleusAgent : public AbstractAgent {
 	                    std::make_unique<Spheres>(shape),
 	                    currTime,
 	                    incrTime),
-	      geometryAlias(dynamic_cast<Spheres*>(geometry.get())),
 	      futureGeometry(shape), accels(shape.getNoOfSpheres()),
 	      // NB: relies on the fact that geometryAlias.noOfSpheres ==
 	      // futureGeometry.noOfSpheres NB: accels[] and velocities[] together
 	      // form one buffer (cache friendlier)
 	      velocities(shape.getNoOfSpheres()), weights(shape.getNoOfSpheres()) {
 		// update AABBs
-		geometryAlias->Geometry::updateOwnAABB();
+		geometryAlias().Geometry::updateOwnAABB();
 		futureGeometry.Geometry::updateOwnAABB();
 
 		// estimate of number of forces (per simulation round):
@@ -69,24 +68,23 @@ class NucleusAgent : public AbstractAgent {
 		for (std::size_t i = 0; i < shape.getNoOfSpheres(); ++i)
 			weights[i] = 1.0f;
 
-		report::debugMessage(fmt::format(
-		    "Nucleus with ID={} was just created", ID));
+		report::debugMessage(
+		    fmt::format("Nucleus with ID={} was just created", ID));
 	}
 	NucleusAgent(const NucleusAgent&) = delete;
 	NucleusAgent& operator=(const NucleusAgent&) = delete;
 
-	// Geometry alias does not update :(
-	NucleusAgent(NucleusAgent&& ag) = delete;
-	NucleusAgent& operator=(NucleusAgent&&) = delete;
+	NucleusAgent(NucleusAgent&& ag) = default;
+	NucleusAgent& operator=(NucleusAgent&&) = default;
 
 	~NucleusAgent() {
-		report::debugMessage(fmt::format(
-		    "Nucleus with ID={} was just deleted", ID));
+		report::debugMessage(
+		    fmt::format("Nucleus with ID={} was just deleted", ID));
 	}
 
 	const Vector3d<float>& getVelocityOfSphere(const long index) const {
 #ifndef NDEBUG
-		if (index >= long(geometryAlias->getNoOfSpheres()))
+		if (index >= long(geometryAlias().getNoOfSpheres()))
 			throw report::rtError("requested sphere index out of bound.");
 #endif
 
@@ -129,6 +127,11 @@ class NucleusAgent : public AbstractAgent {
 	}
 
   protected:
+	/** reference to my exposed geometry ShadowAgents::geometry */
+	Spheres& geometryAlias() { return dynamic_cast<Spheres&>(*geometry); };
+	const Spheres& geometryAlias() const {
+		return dynamic_cast<const Spheres&>(*geometry);
+	};
 	/** essentially creates a new version (next iteration) of 'futureGeometry'
 	   given the current content of the 'forces'; note that, in this particular
 	   agent type, the 'geometryAlias' is kept synchronized with the
@@ -160,13 +163,13 @@ class NucleusAgent : public AbstractAgent {
 		// promote my NucleusAgent::futureGeometry to my ShadowAgent::geometry,
 		// which happens to be overlaid/mapped-over with
 		// NucleusAgent::geometryAlias (see the constructor)
-		for (std::size_t i = 0; i < geometryAlias->getNoOfSpheres(); ++i) {
-			geometryAlias->centres[i] = futureGeometry.centres[i];
-			geometryAlias->radii[i] = futureGeometry.radii[i] + cytoplasmWidth;
+		for (std::size_t i = 0; i < geometryAlias().getNoOfSpheres(); ++i) {
+			geometryAlias().centres[i] = futureGeometry.centres[i];
+			geometryAlias().radii[i] = futureGeometry.radii[i] + cytoplasmWidth;
 		}
 
 		// update AABB
-		geometryAlias->Geometry::updateOwnAABB();
+		geometryAlias().Geometry::updateOwnAABB();
 	}
 
 	// ------------- rendering -------------
@@ -185,8 +188,6 @@ class NucleusAgent : public AbstractAgent {
 	float velocity_PersistenceTime;
 
 	// ------------- internals geometry -------------
-	/** reference to my exposed geometry ShadowAgents::geometry */
-	Spheres* geometryAlias;
 
 	/** my internal representation of my geometry, which is exactly
 	    of the same form as my ShadowAgent::geometry, even the same noOfSpheres

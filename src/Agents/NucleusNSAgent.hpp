@@ -24,9 +24,8 @@ class NucleusNSAgent : public NucleusAgent {
 	NucleusNSAgent(const NucleusNSAgent&) = delete;
 	NucleusNSAgent& operator=(const NucleusNSAgent&) = delete;
 
-	// Geometry alias does not update :(
-	NucleusNSAgent(NucleusNSAgent&&) = delete;
-	NucleusNSAgent& operator=(NucleusNSAgent&&) = delete;
+	NucleusNSAgent(NucleusNSAgent&&) = default;
+	NucleusNSAgent& operator=(NucleusNSAgent&&) = default;
 
 	/** --------- Serialization support --------- */
 	virtual std::vector<std::byte> serialize() const override {

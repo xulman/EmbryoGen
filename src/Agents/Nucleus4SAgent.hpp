@@ -18,16 +18,15 @@ class Nucleus4SAgent : public NucleusAgent {
 		// init centreDistances based on the initial geometry
 		for (std::size_t i = 0; i < centreDistance.size(); ++i)
 			centreDistance[i] = float(
-			    (geometryAlias->centres[i + 1] - geometryAlias->centres[i])
+			    (geometryAlias().centres[i + 1] - geometryAlias().centres[i])
 			        .len());
 	}
 
 	Nucleus4SAgent(const Nucleus4SAgent&) = delete;
 	Nucleus4SAgent& operator=(const Nucleus4SAgent&) = delete;
 
-	// Geometry alias does not update :(
-	Nucleus4SAgent(Nucleus4SAgent&&) = delete;
-	Nucleus4SAgent& operator=(Nucleus4SAgent&&) = delete;
+	Nucleus4SAgent(Nucleus4SAgent&&) = default;
+	Nucleus4SAgent& operator=(Nucleus4SAgent&&) = default;
 
 	/** --------- Serialization support --------- */
 	virtual std::vector<std::byte> serialize() const override {

@@ -17,16 +17,15 @@ class ShapeHinter : public AbstractAgent {
 	                    std::move(type),
 	                    std::make_unique<ScalarImg>(shape),
 	                    currTime,
-	                    incrTime),
-	      geometryAlias(dynamic_cast<ScalarImg*>(geometry.get())) {
+	                    incrTime) {
 		// update AABBs
-		geometryAlias->Geometry::updateOwnAABB();
+		geometryAlias().Geometry::updateOwnAABB();
 
 		report::debugMessage(
 		    fmt::format("EmbryoShell with ID={} was just created", ID));
 		report::debugMessage(fmt::format(
-		    "AABB: {} -> {}", toString(geometryAlias->AABB.minCorner),
-		    toString(geometryAlias->AABB.maxCorner)));
+		    "AABB: {} -> {}", toString(geometryAlias().AABB.minCorner),
+		    toString(geometryAlias().AABB.maxCorner)));
 	}
 
 	~ShapeHinter() override {
@@ -37,9 +36,8 @@ class ShapeHinter : public AbstractAgent {
 	ShapeHinter(const ShapeHinter&) = delete;
 	ShapeHinter& operator=(const ShapeHinter&) = delete;
 
-	// Geometry alias does not update :(
-	ShapeHinter(ShapeHinter&&) = delete;
-	ShapeHinter& operator=(ShapeHinter&&) = delete;
+	ShapeHinter(ShapeHinter&&) = default;
+	ShapeHinter& operator=(ShapeHinter&&) = default;
 
 	/** --------- Serialization support --------- */
 	virtual std::vector<std::byte> serialize() const override {
@@ -81,7 +79,10 @@ class ShapeHinter : public AbstractAgent {
 
 	// ------------- internals geometry -------------
 	/** reference to my exposed geometry ShadowAgents::geometry */
-	ScalarImg* geometryAlias;
+	ScalarImg& geometryAlias() { return dynamic_cast<ScalarImg&>(*geometry); };
+	const ScalarImg& geometryAlias() const {
+		return dynamic_cast<const ScalarImg&>(*geometry);
+	};
 
 	/** my internal representation of my geometry, which is exactly
 	    of the same form as my ShadowAgent::geometry */

@@ -33,7 +33,7 @@ class myDragAndTextureNucleus_common : public NucleusNSAgent, Texture {
 		}
 		*/
 		TextureFunctions::addTextureAlongGrid(
-		    dots, *geometryAlias, Geometry::point_t(0), Geometry::point_t(3),
+		    dots, geometryAlias(), Geometry::point_t(0), Geometry::point_t(3),
 		    Vector3d<float>(0.5f));
 	}
 
