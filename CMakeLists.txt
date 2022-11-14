@@ -191,25 +191,16 @@ if(BUILD_STATIC)
   find_package(RXSpencer CONFIG REQUIRED)
   set(LIBS ${LIBS} rxspencer)
 
-  add_library(i3dcore STATIC IMPORTED)
-  set_target_properties(i3dcore PROPERTIES IMPORTED_LOCATION
-                                           /usr/local/lib/libi3dcore.a)
-
-  add_library(i3dalgo STATIC IMPORTED)
-  set_target_properties(i3dalgo PROPERTIES IMPORTED_LOCATION
-                                           /usr/local/lib/libi3dalgo.a)
+  find_library(I3DCORE i3dcore PATH_SUFFIXES ".a" REQUIRED)
+  find_library(I3DALGO i3dalgo PATH_SUFFIXES ".a" REQUIRED)
 
 else(BUILD_STATIC)
-  add_library(i3dcore SHARED IMPORTED)
-  set_target_properties(i3dcore PROPERTIES IMPORTED_LOCATION
-                                           /usr/local/lib/libi3dcore.so)
 
-  add_library(i3dalgo SHARED IMPORTED)
-  set_target_properties(i3dalgo PROPERTIES IMPORTED_LOCATION
-                                           /usr/local/lib/libi3dalgo.so)
+  find_library(I3DCORE i3dcore PATH_SUFFIXES ".so" REQUIRED)
+  find_library(I3DALGO i3dalgo PATH_SUFFIXES ".so" REQUIRED)
 
 endif(BUILD_STATIC)
-set(LIBS i3dcore i3dalgo ${LIBS})
+set(LIBS ${I3DCORE} ${I3DALGO} ${LIBS})
 
 # GSL library
 find_package(GSL REQUIRED)

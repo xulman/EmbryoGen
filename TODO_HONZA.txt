@@ -1,2 +1,5 @@
-Cmake 
-    fix build chain if i3d in different path
+MPI
+    Optimize MPI Image sending
+
+Tools
+    Migrate custom {Static,Small} Vectors from boost
