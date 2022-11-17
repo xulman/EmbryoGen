@@ -7,7 +7,7 @@
 /** calculate min surface distance between myself and some foreign agent */
 void ScalarImg::getDistance(
     const Geometry& otherGeometry,
-    tools::structures::SmallVector5<ProximityPair>& l) const {
+    boost::container::small_vector_base<ProximityPair>& l) const {
 	switch (otherGeometry.shapeForm) {
 	case ListOfShapeForms::Spheres:
 		getDistanceToSpheres((class Spheres*)&otherGeometry, l);
@@ -42,7 +42,7 @@ void ScalarImg::getDistance(
 
 void ScalarImg::getDistanceToSpheres(
     const class Spheres* otherSpheres,
-    tools::structures::SmallVector5<ProximityPair>& l) const {
+    boost::container::small_vector_base<ProximityPair>& l) const {
 	// da plan: determine bounding box within this ScalarImg where
 	// we can potentially see any piece of the foreign Spheres;
 	// sweep it and consider voxel centres; construct a thought

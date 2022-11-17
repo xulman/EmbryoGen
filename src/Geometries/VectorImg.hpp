@@ -133,7 +133,7 @@ class VectorImg : public Geometry {
 	/** calculate min surface distance between myself and some foreign agent */
 	void getDistance(
 	    const Geometry& otherGeometry,
-	    tools::structures::SmallVector5<ProximityPair>& l) const override;
+	    boost::container::small_vector_base<ProximityPair>& l) const override;
 
 	/** Specialized implementation of getDistance() for VectorImg & Spheres
 	   geometries. Rasterizes the 'other' spheres into the 'local' VectorImg
@@ -158,13 +158,13 @@ class VectorImg : public Geometry {
 	   convenience function than anything else). */
 	void getDistanceToSpheres(
 	    const class Spheres* otherSpheres,
-	    tools::structures::SmallVector5<ProximityPair>& l) const;
+	    boost::container::small_vector_base<ProximityPair>& l) const;
 
 	/** Specialized implementation of getDistance() for VectorImg-VectorImg
 	 * geometries. */
 	/*
 	void getDistanceToVectorImg(const VectorImg* otherVectorImg,
-	tools::structures::SmallVector5<ProximityPair>& l) const;
+	boost::container::small_vector_base<ProximityPair>& l) const;
 	*/
 
 	// ------------- AABB -------------

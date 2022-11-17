@@ -225,6 +225,10 @@ if(RUN_DISTRIBUTED)
   set(LIBS ${LIBS} MPI::MPI_CXX) 
 endif(RUN_DISTRIBUTED)
 
+# Boost - Containers
+find_package(Boost REQUIRED)
+set(LIBS ${LIBS} Boost::boost)
+
 # -----------------------------
 # GENERATING PROTO CODE
 # -----------------------------

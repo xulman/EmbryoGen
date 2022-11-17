@@ -4,7 +4,7 @@
 
 void VectorImg::getDistance(
     const Geometry& otherGeometry,
-    tools::structures::SmallVector5<ProximityPair>& l) const {
+    boost::container::small_vector_base<ProximityPair>& l) const {
 	switch (otherGeometry.shapeForm) {
 	case ListOfShapeForms::Spheres:
 		getDistanceToSpheres((class Spheres*)&otherGeometry, l);
@@ -38,7 +38,7 @@ void VectorImg::getDistance(
 
 void VectorImg::getDistanceToSpheres(
     const class Spheres* otherSpheres,
-    tools::structures::SmallVector5<ProximityPair>& l) const {
+    boost::container::small_vector_base<ProximityPair>& l) const {
 	// da plan: determine bounding box within this VectorImg where
 	// we can potentially see any piece of the foreign Spheres;
 	// sweep it and consider voxel centres; construct a thought

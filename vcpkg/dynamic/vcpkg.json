@@ -18,6 +18,7 @@
                 "thread"
             ]
         },
-        "openmpi"
+        "openmpi",
+        "boost-container"
     ]
 }

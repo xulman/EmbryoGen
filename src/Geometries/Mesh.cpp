@@ -4,7 +4,7 @@
 /** calculate min surface distance between myself and some foreign agent */
 void Mesh::getDistance(
     const Geometry& otherGeometry,
-    tools::structures::SmallVector5<ProximityPair>& l) const {
+    boost::container::small_vector_base<ProximityPair>& l) const {
 	switch (otherGeometry.shapeForm) {
 	case ListOfShapeForms::Spheres:
 		// TODO: attempt to project mesh vertices against the spheres (or their

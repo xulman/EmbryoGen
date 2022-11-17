@@ -2,8 +2,8 @@
 
 #include "../DisplayUnits/util/RenderingFunctions.hpp"
 #include "../config.hpp"
-#include "../tools/structures/SmallVector.hpp"
 #include "../util/Vector3d.hpp"
+#include <boost/container/small_vector.hpp>
 #include <i3d/image3d.h>
 #include <span>
 class DisplayUnit;
@@ -235,7 +235,7 @@ class Geometry {
 	    The discovered ProximityPairs are added to the current vector l. */
 	virtual void
 	getDistance(const Geometry& otherGeometry,
-	            tools::structures::SmallVector5<ProximityPair>& l) const = 0;
+	            boost::container::small_vector_base<ProximityPair>& l) const = 0;
 
 	/** Calculate and determine proximity and collision pairs, if any,
 	    between myself and some other agent. To facilitate construction
@@ -244,7 +244,7 @@ class Geometry {
 	    ProximityPair::callerHint only in the newly added ProximityPairs.
 	    The discovered ProximityPairs are added to the current list l. */
 	void getDistance(const Geometry& otherGeometry,
-	                 tools::structures::SmallVector5<ProximityPair>& l,
+	                 boost::container::small_vector_base<ProximityPair>& l,
 	                 void* const callerHint) const {
 		// call the original implementation (that is without callerHint)
 		getDistance(otherGeometry, l);
@@ -264,9 +264,9 @@ class Geometry {
 
 	void getSymmetricDistance(
 	    const Geometry& otherGeometry,
-	    tools::structures::SmallVector5<ProximityPair>& l) const {
+	    boost::container::small_vector_base<ProximityPair>& l) const {
 		// setup a new list for the symmetric case...
-		tools::structures::SmallVector5<ProximityPair> nl;
+		boost::container::small_vector<ProximityPair, 10> nl;
 		otherGeometry.getDistance(*this, nl);
 
 		//...and reverse ProximityPairs afterwards

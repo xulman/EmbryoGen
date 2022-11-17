@@ -28,7 +28,7 @@ class Mesh : public Geometry {
 	/** calculate min surface distance between myself and some foreign agent */
 	void getDistance(
 	    const Geometry& otherGeometry,
-	    tools::structures::SmallVector5<ProximityPair>& l) const override;
+	   boost::container::small_vector_base<ProximityPair>& l) const override;
 
 	// ------------- AABB -------------
 	/** construct AABB from the given Mesh */

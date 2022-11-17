@@ -5,6 +5,7 @@
 #include "git_hash.hpp"
 #include <i3d/basic.h>
 #include <iostream>
+#include <boost/container/small_vector.hpp>
 
 int main(int argc, char** argv) {
 	report::message(

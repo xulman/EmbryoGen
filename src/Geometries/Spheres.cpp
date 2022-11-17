@@ -3,7 +3,7 @@
 
 void Spheres::getDistance(
     const Geometry& otherGeometry,
-    tools::structures::SmallVector5<ProximityPair>& l) const {
+    boost::container::small_vector_base<ProximityPair>& l) const {
 	switch (otherGeometry.shapeForm) {
 	case ListOfShapeForms::Spheres:
 		getDistanceToSpheres(dynamic_cast<const Spheres*>(&otherGeometry), l);
@@ -27,7 +27,7 @@ void Spheres::getDistance(
 
 void Spheres::getDistanceToSpheres(
     const Spheres* otherSpheres,
-    tools::structures::SmallVector5<ProximityPair>& l) const {
+   boost::container::small_vector_base<ProximityPair>& l) const {
 	// shortcuts to the otherGeometry's spheres
 	const std::vector<Vector3d<precision_t>>& centresO =
 	    otherSpheres->getCentres();

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../tools/structures/SmallVector.hpp"
 #include "DisplayUnit.hpp"
+#include <boost/container/small_vector.hpp>
 #include <memory>
 
 /**
@@ -67,12 +67,15 @@ class BroadcasterDisplayUnit : public DisplayUnit {
 
 	void UnregisterUnit(DisplayUnit* ds) {
 		for (std::size_t i = 0; i < displayUnits.size(); ++i) {
-			if (displayUnits[i].get() == ds)
-				displayUnits.erase_at(i);
+			if (displayUnits[i].get() == ds) {
+				displayUnits.erase(displayUnits.begin() + i);
+				return;
+			}
 		}
 	}
 
   private:
 	/** local list of who/where to send the drawing requests */
-	tools::structures::SmallVector5<std::shared_ptr<DisplayUnit>> displayUnits;
+	boost::container::small_vector<std::shared_ptr<DisplayUnit>, 5>
+	    displayUnits;
 };

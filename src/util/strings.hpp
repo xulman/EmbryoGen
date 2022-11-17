@@ -1,7 +1,6 @@
 #pragma once
 
 #include "../Geometries/Geometry.hpp"
-#include "../tools/concepts.hpp"
 #include "report.hpp"
 #include <map>
 #include <string>
@@ -163,7 +162,6 @@ class StringsDictionary {
 	   complexity consequence (as basic_container can do only O(n) search), but
 	   it prevents from Dictionary growing excessively -> use, but sparsely */
 	template <typename T>
-	requires tools::concepts::basic_container_v<T, NamedAxisAlignedBoundingBox>
 	void cleanUp(const T& AABBs) {
 		std::unordered_set<std::size_t> knownNames;
 		for (auto naabb : AABBs)

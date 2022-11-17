@@ -1,8 +1,5 @@
 #pragma once
 
-#include "../../tools/concepts.hpp"
-#include "../../tools/structures/SmallVector.hpp"
-#include "../../tools/structures/StaticVector.hpp"
 #include "../Spheres.hpp"
 #include <cmath>
 #include <functional>
@@ -310,10 +307,10 @@ class SpheresFunctions {
 			    [](FT r, FT) { return r; });
 		}
 
-		typedef const std::function<void(Vector3d<FT>&, FT)> posShakerType;
-		typedef const std::function<FT(FT, FT)> radiusShakerType;
-		typedef posShakerType* posShakerPtr;
-		typedef radiusShakerType* radiusShakerPtr;
+		using posShakerType = const std::function<void(Vector3d<FT>&, FT)>;
+		using radiusShakerType = const std::function<FT(FT, FT)>;
+		using posShakerPtr = posShakerType*;
+		using radiusShakerPtr = radiusShakerType*;
 
 		/** Rebuilds the associated target geometry (Spheres) from the source
 		   geometry according to the expansion plan using the provided shakers.
@@ -326,10 +323,9 @@ class SpheresFunctions {
 		    The position shaker adjusts (or don't) the sphere's centre. The
 		   radius shaker reads in sphere's radius and returns an adjusted (or
 		   the same) value. */
-		void expandSrcIntoThis(
-		    Spheres& targetGeom,
-		    const std::function<void(Vector3d<FT>&, FT)>& positionShaker,
-		    const std::function<FT(FT, FT)>& radiusShaker) const {
+		void expandSrcIntoThis(Spheres& targetGeom,
+		                       posShakerType& positionShaker,
+		                       radiusShakerType& radiusShaker) const {
 #ifndef NDEBUG
 			// test appropriate size of the target geom
 			if (int(targetGeom.getNoOfSpheres()) != optimalTargetSpheresNo)
@@ -352,12 +348,12 @@ class SpheresFunctions {
 			expandSrcIntoThis(targetGeom, positionShakers, radiusShakers);
 		}
 
-		template <typename T, typename U>
-		requires tools::concepts::basic_container_v<T, posShakerPtr> &&
-		    tools::concepts::basic_container_v<U, radiusShakerPtr>
+		template <typename T_cont, typename U_cont>
+		requires std::is_same_v<typename T_cont::value_type, posShakerPtr> &&
+		    std::is_same_v<typename U_cont::value_type, radiusShakerPtr>
 		void expandSrcIntoThis(Spheres& targetGeom,
-		                       const T& positionShakers,
-		                       const U& radiusShakers) const {
+		                       const T_cont& positionShakers,
+		                       const U_cont& radiusShakers) const {
 #ifndef NDEBUG
 			if (positionShakers.size() != radiusShakers.size())
 				throw report::rtError(
@@ -489,7 +485,7 @@ class SpheresFunctions {
 
 		/** essentially a multimap (permitting multiple values for the same key)
 		    that preserves the order in which items were added */
-		tools::structures::SmallVector5<planItem_t> expansionPlan;
+		boost::container::small_vector<planItem_t, 10> expansionPlan;
 
 		int optimalTargetSpheresNo;
 
@@ -783,8 +779,8 @@ class SpheresFunctions {
 		}
 
 	  protected:
-		tools::structures::StaticVector5<posShakerPtr> positionShakers;
-		tools::structures::StaticVector5<radiusShakerPtr> radiusShakers;
+		boost::container::small_vector<posShakerPtr, 5> positionShakers;
+		boost::container::small_vector<radiusShakerPtr, 5> radiusShakers;
 
 		// ------------------- task implementation: maintain the layout
 		// -------------------

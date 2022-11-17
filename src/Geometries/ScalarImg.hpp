@@ -3,6 +3,7 @@
 #include "Geometry.hpp"
 #include "Spheres.hpp"
 #include <i3d/image3d.h>
+#include <boost/container/small_vector.hpp>
 
 /**
  * Shape form based on image (given its size [px], offset [micrometers] and
@@ -99,7 +100,7 @@ class ScalarImg : public Geometry {
 	/** calculate min surface distance between myself and some foreign agent */
 	void getDistance(
 	    const Geometry& otherGeometry,
-	    tools::structures::SmallVector5<ProximityPair>& l) const override;
+	    boost::container::small_vector_base<ProximityPair>& l) const override;
 
 	/** Specialized implementation of getDistance() for ScalarImg & Spheres
 	   geometries. Rasterizes the 'other' spheres into the 'local' ScalarImg and
@@ -120,20 +121,20 @@ class ScalarImg : public Geometry {
 	   other words, the tip becomes the base and vice versa. */
 	void getDistanceToSpheres(
 	    const class Spheres* otherSpheres,
-	    tools::structures::SmallVector5<ProximityPair>& l) const;
+	    boost::container::small_vector_base<ProximityPair>& l) const;
 
 	/** Specialized implementation of getDistance() for ScalarImg-ScalarImg
 	 * geometries. */
 	/*
 	void getDistanceToScalarImg(const ScalarImg* otherScalarImg,
-	tools::structures::SmallVector5<ProximityPair>& l) const;
+	boost::container::small_vector_base<ProximityPair>& l) const;
 	*/
 
 	/** Specialized implementation of getDistance() for ScalarImg-VectorImg
 	 * geometries. */
 	/*
 	void getDistanceToVectorImg(const VectorImg* otherVectorImg,
-	tools::structures::SmallVector5<ProximityPair>& l) const;
+	boost::container::small_vector_base<ProximityPair>& l) const;
 	*/
 
 	// ------------- AABB -------------

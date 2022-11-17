@@ -48,7 +48,7 @@ class Spheres : public Geometry {
 	/** calculate min surface distance between myself and some foreign agent */
 	void getDistance(
 	    const Geometry& otherGeometry,
-	    tools::structures::SmallVector5<ProximityPair>& l) const override;
+	    boost::container::small_vector_base<ProximityPair>& l) const override;
 
 	/** Specialized implementation of getDistance() for Spheres-Spheres
 	   geometries. For every non-zero-radius 'local' sphere, there is an 'other'
@@ -61,7 +61,7 @@ class Spheres : public Geometry {
 	    is nearby. The 'local' agent should take this into account. */
 	void getDistanceToSpheres(
 	    const Spheres* otherSpheres,
-	    tools::structures::SmallVector5<ProximityPair>& l) const;
+	     boost::container::small_vector_base<ProximityPair>& l) const;
 
 	/** tests position of the point w.r.t. this geometry, which is
 	    the union of these spheres, and returns index of the first
