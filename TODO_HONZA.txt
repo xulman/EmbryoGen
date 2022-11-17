@@ -1,5 +1,2 @@
-MPI
-    Optimize MPI Image sending
-
 Tools
     Migrate custom  {Static,Small}Vectors from boost

@@ -9,7 +9,6 @@
 #include "../Geometries/util/SpheresFunctions.hpp"
 #include "../config.hpp"
 #include "../util/Vector3d.hpp"
-#include "../util/rnd_generators.hpp"
 #include "common/Scenarios.hpp"
 
 class GrowableNucleusRand : public NucleusNSAgent {
@@ -103,20 +102,14 @@ void Scenario_mpiDrosophilaRandom::initializeAgents(FrontOfficer* fo,
 	const float Xside = (0.90f * params->constants.sceneSize.x) / 2.0f;
 	const float YZside = (0.75f * params->constants.sceneSize.y) / 2.0f;
 
-	// rnd shifter along axes
-	rndGeneratorHandle coordShifterRNG;
-	float angVar = 0.f;
-
 	for (float z = -Xside; z <= +Xside; z += dx) {
 		// radius at this z position
 		const float radius = YZside * std::sin(std::acos(std::abs(z) / Xside));
 
-		// shifts along the perimeter of the cylinder
-		angVar += GetRandomGauss(0.f, 0.8f, coordShifterRNG);
 
 		const int howManyToPlace = (int)ceil(6.28f * radius / dx);
 		for (int i = 0; i < howManyToPlace; ++i) {
-			const float ang = float(i) / float(howManyToPlace) + angVar;
+			const float ang = float(i) / float(howManyToPlace);
 
 			// the wished position relative to [0,0,0] centre
 			Vector3d<float> axis(0, std::cos(ang * 6.28f),
@@ -132,9 +125,6 @@ void Scenario_mpiDrosophilaRandom::initializeAgents(FrontOfficer* fo,
 			pos.x += params->constants.sceneOffset.x;
 			pos.y += params->constants.sceneOffset.y;
 			pos.z += params->constants.sceneOffset.z;
-
-			// also random shift along the main axis
-			pos.x += GetRandomGauss(0.f, 0.3f * dx, coordShifterRNG);
 
 			if (!is_mine())
 				continue;
