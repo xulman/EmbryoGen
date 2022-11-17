@@ -147,9 +147,16 @@ void Director::request_renderNextFrame() const {
 	                            sc.isProducingOutput(sc.imgOptics)};
 	MPIw::Bcast_send(impl.Dir_comm, to_render);
 
-	std::vector mask(sc.imgMask.begin(), sc.imgMask.end());
-	std::vector phantom(sc.imgPhantom.begin(), sc.imgPhantom.end());
-	std::vector optics(sc.imgOptics.begin(), sc.imgOptics.end());
+	std::vector<std::remove_pointer_t<decltype(sc.imgMask.GetFirstVoxelAddr())>>
+	    mask(sc.imgMask.GetImageSize());
+
+	std::vector<
+	    std::remove_pointer_t<decltype(sc.imgPhantom.GetFirstVoxelAddr())>>
+	    phantom(sc.imgPhantom.GetImageSize());
+
+	std::vector<
+	    std::remove_pointer_t<decltype(sc.imgOptics.GetFirstVoxelAddr())>>
+	    optics(sc.imgOptics.GetImageSize());
 
 	auto got_mask = MPIw::Reduce_recv(impl.Dir_comm, mask, MPI_MAX);
 	auto got_phantom = MPIw::Reduce_recv(impl.Dir_comm, phantom, MPI_MAX);
@@ -159,6 +166,58 @@ void Director::request_renderNextFrame() const {
 	std::ranges::copy(got_phantom, sc.imgMask.begin());
 	std::ranges::copy(got_optics, sc.imgMask.begin());
 }
+
+/* Optimized version of recieving images ... but yet still slower :D
+void Director::request_renderNextFrame() const {
+
+    SceneControls& sc = *scenario->params;
+    ImplementationData& impl = get_data(implementationData);
+    // MPI will not work with std::vector<bool>
+    std::vector<char> to_render{sc.isProducingOutput(sc.imgMask),
+                                sc.isProducingOutput(sc.imgPhantom),
+                                sc.isProducingOutput(sc.imgOptics)};
+    MPIw::Bcast_send(impl.Dir_comm, to_render);
+
+    auto get_image = [&](auto& img, auto bin_op) {
+        using value_type =
+            std::remove_pointer_t<decltype(img.GetFirstVoxelAddr())>;
+
+        auto offsets =
+            MPIw::Gather_recv(impl.Dir_comm, std::array<std::size_t, 6>{0u});
+
+        auto data =
+            MPIw::Gatherv_recv(impl.Dir_comm, std::array<value_type, 0>{});
+
+        for (std::size_t fo = 1; fo < data.size(); ++fo) {
+            i3d::Vector3d<std::size_t> min_point;
+            i3d::Vector3d<std::size_t> slice_size;
+            for (std::size_t i = 0; i < 3; ++i) {
+                min_point[i] = offsets[fo * 6 + i];
+                slice_size[i] = offsets[fo * 6 + 3 + i];
+            }
+
+            assert(data[fo].size() ==
+                   slice_size.x * slice_size.y * slice_size.z);
+
+            std::size_t i = 0;
+            for (std::size_t x = 0; x < slice_size.x; ++x)
+                for (std::size_t y = 0; y < slice_size.y; ++y)
+                    for (std::size_t z = 0; z < slice_size.z; ++z) {
+                        i3d::Vector3d<std::size_t> coords =
+                            min_point + i3d::Vector3d{x, y, z};
+                        auto val = img.GetVoxel(coords);
+                        img.SetVoxel(coords, bin_op(val, data[fo][i++]));
+                    }
+        }
+    };
+
+    auto max = [](auto a, auto b) { return std::max(a, b); };
+
+    get_image(sc.imgMask, max);
+    get_image(sc.imgPhantom, max);
+    get_image(sc.imgOptics, max);
+}
+*/
 
 // Not used, synchronization is provided by rendering frame in
 // request_renderNextFrame

@@ -187,7 +187,6 @@ void FrontOfficer::respond_publishAgentsAABBs() {
 }
 
 void FrontOfficer::respond_renderNextFrame() {
-	/** TODO optmiziation needed */
 	ImplementationData& impl = get_data(implementationData);
 
 	auto to_render = MPIw::Bcast_recv<char>(impl.Dir_comm, 3, RANK_DIRECTOR);
@@ -216,6 +215,79 @@ void FrontOfficer::respond_renderNextFrame() {
 	MPIw::Reduce_send(impl.Dir_comm, phantom, MPI_MAX, RANK_DIRECTOR);
 	MPIw::Reduce_send(impl.Dir_comm, optics, MPI_MAX, RANK_DIRECTOR);
 }
+
+/* Optimized version of sending image to the director ... but yet still slower
+:D void FrontOfficer::respond_renderNextFrame() { ImplementationData& impl =
+get_data(implementationData);
+
+    auto to_render = MPIw::Bcast_recv<char>(impl.Dir_comm, 3, RANK_DIRECTOR);
+    SceneControls& sc = *scenario->params;
+    if (to_render[0])
+        sc.enableProducingOutput(sc.imgMask);
+    else
+        sc.disableProducingOutput(sc.imgMask);
+
+    if (to_render[1])
+        sc.enableProducingOutput(sc.imgPhantom);
+    else
+        sc.disableProducingOutput(sc.imgPhantom);
+
+    if (to_render[2])
+        sc.enableProducingOutput(sc.imgOptics);
+    else
+        sc.disableProducingOutput(sc.imgOptics);
+
+    renderNextFrame(sc.imgMask, sc.imgPhantom, sc.imgOptics);
+
+    auto send_image = [&](const auto& img) {
+        using value_type = std::remove_const_t<
+            std::remove_pointer_t<decltype(img.GetFirstVoxelAddr())>>;
+        i3d::Vector3d<std::size_t> min_point = img.GetSize();
+        i3d::Vector3d<std::size_t> max_point(0);
+
+        for (std::size_t x = 0; x < img.GetSizeX(); ++x)
+            for (std::size_t y = 0; y < img.GetSizeY(); ++y)
+                for (std::size_t z = 0; z < img.GetSizeZ(); ++z)
+                    if (img.GetVoxel(x, y, z) != 0) {
+                        min_point = i3d::min(min_point, {x, y, z});
+                        max_point = i3d::max(max_point, {x + 1, y + 1, z + 1});
+                    }
+
+        // No valid pixel found
+        if (max_point == i3d::Vector3d<std::size_t>{0, 0, 0})
+            min_point = {0, 0, 0};
+
+        assert(min_point.x <= max_point.x);
+        assert(min_point.y <= max_point.y);
+        assert(min_point.z <= max_point.z);
+
+        i3d::Vector3d<std::size_t> slice_size = max_point - min_point;
+
+        std::vector<value_type> to_send(slice_size.x * slice_size.y *
+                                        slice_size.z);
+
+        std::size_t i = 0;
+        for (std::size_t x = 0; x < slice_size.x; ++x)
+            for (std::size_t y = 0; y < slice_size.y; ++y)
+                for (std::size_t z = 0; z < slice_size.z; ++z)
+                    to_send[i++] =
+                        img.GetVoxel(min_point + i3d::Vector3d{x, y, z});
+
+        assert(i == to_send.size());
+
+        MPIw::Gather_send(impl.Dir_comm,
+                          std::array{min_point.x, min_point.y, min_point.z,
+                                     slice_size.x, slice_size.y, slice_size.z},
+                          RANK_DIRECTOR);
+
+        MPIw::Gatherv_send(impl.Dir_comm, to_send, RANK_DIRECTOR);
+    };
+
+    send_image(sc.imgMask);
+    send_image(sc.imgPhantom);
+    send_image(sc.imgOptics);
+}
+*/
 
 void FrontOfficer::waitHereUntilEveryoneIsHereToo(
     const std::source_location& location /* =
