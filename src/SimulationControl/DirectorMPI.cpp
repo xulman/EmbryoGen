@@ -163,8 +163,8 @@ void Director::request_renderNextFrame() const {
 	auto got_optics = MPIw::Reduce_recv(impl.Dir_comm, optics, MPI_MAX);
 
 	std::ranges::copy(got_mask, sc.imgMask.begin());
-	std::ranges::copy(got_phantom, sc.imgMask.begin());
-	std::ranges::copy(got_optics, sc.imgMask.begin());
+	std::ranges::copy(got_phantom, sc.imgPhantom.begin());
+	std::ranges::copy(got_optics, sc.imgOptics.begin());
 }
 
 /* Optimized version of recieving images ... but yet still slower :D
