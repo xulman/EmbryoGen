@@ -1,21 +1,6 @@
 # Compiled C++ object files #
 *.o
-src/proto/*pb.cc
-src/proto/*pb.h
-
-# files for static compile: sources
-libs/*gz
-libs/*zip
-#
-# files for static compile: "factory" folders
-libs/*-*
-libs/i3dlibs
-libs/libf2c
-libs/cppzmq
-libs/libzmq
-#
-# files for static compile: outputs
-libs/DEPLOY
+generated
 
 # Various build folders #
 VIZU
@@ -26,7 +11,6 @@ build*
 # Log file, some documentation material #
 *.log
 doc/Mito*
-src/git_hash.hpp
 
 # Apple #
 .DS_Store

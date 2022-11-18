@@ -1,0 +1,16 @@
+The purpose of this folder is to collect all source files (such as boilerplate
+code) that are automagically generated at compile time. This folder shall come
+empty (except this file) from freshly cloned repository.
+
+After a successful compilation, the following files should appear here:
+
+git_hash.hpp
+buckets_with_graphics.pb.h
+buckets_with_graphics.pb.cc
+buckets_with_graphics.grpc.pb.h
+buckets_with_graphics.grpc.pb.cc
+
+
+Since the generated files are included at places in the project, we prefer to
+keep these files within the 'src' folder tree and not anywhere _outside_ it
+such as where products of compilation are normally stored.

@@ -2,7 +2,7 @@
 #include "FrontOfficer.hpp"
 #include "Scenarios/common/Scenario.hpp"
 #include "Scenarios/common/Scenarios.hpp"
-#include "git_hash.hpp"
+#include "generated/git_hash.hpp"
 #include <i3d/basic.h>
 #include <iostream>
 

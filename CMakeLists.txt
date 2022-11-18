@@ -250,7 +250,7 @@ set(proto_src_file "${proto_src_path}/${proto_name}.proto")
 # this is kind of ugly, but i have not found a better way
 set(grpc_cpp_plugin "${gRPC_DIR}/../../tools/grpc/grpc_cpp_plugin")
 
-set(proto_bin_path "${CMAKE_SOURCE_DIR}/src/proto")
+set(proto_bin_path "${CMAKE_SOURCE_DIR}/src/generated")
 set(bin_proto_srcs "${proto_bin_path}/${proto_name}.pb.cc")
 set(bin_proto_hdrs "${proto_bin_path}/${proto_name}.pb.h")
 set(bin_grpc_srcs "${proto_bin_path}/${proto_name}.grpc.pb.cc")
