@@ -39,7 +39,9 @@ class GrpcDisplayUnit : public DisplayUnit {
 
 
 	// ---------------- internal routines ----------------
-	GrpcDisplayUnit(const std::string& clientName);
+	GrpcDisplayUnit(const std::string& clientName,
+	                const std::string& server_hostname = config::grpc_default_server_address,
+	                const int server_port = config::grpc_default_port);
 	~GrpcDisplayUnit() override;
 
 	void setClientName(const std::string& new_name) {

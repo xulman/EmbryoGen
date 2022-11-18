@@ -81,7 +81,7 @@ class ControlConstants {
 } // namespace scenario
 
 /** GRPC properties */
-const std::string grpc_serverAddress = "127.0.0.1";
-constexpr int grpc_port = 9083;
+const std::string grpc_default_server_address = "127.0.0.1";
+constexpr int grpc_default_port = 9083;
 
 } // namespace config

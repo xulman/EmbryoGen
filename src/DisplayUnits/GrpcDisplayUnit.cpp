@@ -165,10 +165,12 @@ void GrpcDisplayUnit::sendCurrentBatches()
 }
 
 
-GrpcDisplayUnit::GrpcDisplayUnit(const std::string& clientName)
+GrpcDisplayUnit::GrpcDisplayUnit(const std::string& clientName,
+                                 const std::string& server_hostname,
+                                 const int server_port)
 {
 	report::message(fmt::format("constructing GRPC at {}", (long)this));
-	std::string serverURL = fmt::format("{}:{}", config::grpc_serverAddress, config::grpc_port);
+	std::string serverURL = fmt::format("{}:{}", server_hostname, server_port);
 	_stub = proto::ClientToServer::NewStub(
 	    grpc::CreateChannel(serverURL, grpc::InsecureChannelCredentials()) );
 
