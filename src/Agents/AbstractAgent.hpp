@@ -29,6 +29,17 @@ T extract(std::span<const std::byte>& bytes) {
 	return val;
 }
 
+template <typename T>
+std::vector<T> extract_vector(std::span<const std::byte>& bytes,
+                              std::size_t count) {
+	std::vector<T> vec;
+	vec.reserve(count);
+	for (std::size_t n = 0; n < count; ++n)
+		vec.push_back(extract<T>(bytes));
+
+	return vec;
+}
+
 enum class agent_class {
 	ShadowAgent,
 	AbstractAgent,

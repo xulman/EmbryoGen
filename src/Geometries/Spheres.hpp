@@ -60,7 +60,7 @@ class Spheres : public Geometry {
 	    when "T" configuration occurs or when large spheres-represented agent
 	    is nearby. The 'local' agent should take this into account. */
 	void getDistanceToSpheres(
-	    const Spheres* otherSpheres,
+	    const Spheres& otherSpheres,
 	     boost::container::small_vector_base<ProximityPair>& l) const;
 
 	/** tests position of the point w.r.t. this geometry, which is

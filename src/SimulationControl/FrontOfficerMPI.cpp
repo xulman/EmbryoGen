@@ -107,8 +107,7 @@ FrontOfficer::~FrontOfficer() {
 	report::debugMessage(fmt::format("running the closing sequence"));
 	report::debugMessage("Closing async thread");
 
-	MPIw::Send_one(impl.Async_request_comm, 0, getID(),
-	               static_cast<int>(async_tags::shutdown));
+	MPIw::Send_one(impl.Async_request_comm, 0, getID(), async_tags::shutdown);
 
 	report::debugMessage(
 	    fmt::format("will remove {} active agents", agents.size()));

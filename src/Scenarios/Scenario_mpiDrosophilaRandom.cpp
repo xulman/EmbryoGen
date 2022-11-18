@@ -90,7 +90,8 @@ void Scenario_mpiDrosophilaRandom::initializeAgents(FrontOfficer* fo,
                                                     int allParts) {
 
 	auto is_mine = [p, allParts, count = 0]() mutable -> bool {
-		return (count++ % allParts) + 1 == p;
+		return (count++ % allParts) + 1 == p; // && count % 7 != 3 && count > 300 &&
+		      //  count < 500;
 	};
 
 	// stepping in all directions -> influences the final number of nuclei
@@ -105,7 +106,6 @@ void Scenario_mpiDrosophilaRandom::initializeAgents(FrontOfficer* fo,
 	for (float z = -Xside; z <= +Xside; z += dx) {
 		// radius at this z position
 		const float radius = YZside * std::sin(std::acos(std::abs(z) / Xside));
-
 
 		const int howManyToPlace = (int)ceil(6.28f * radius / dx);
 		for (int i = 0; i < howManyToPlace; ++i) {
@@ -204,7 +204,7 @@ class mySceneControls : public SceneControls {
 std::unique_ptr<SceneControls>
 Scenario_mpiDrosophilaRandom::provideSceneControls() const {
 	config::scenario::ControlConstants c;
-	c.stopTime = 12.0f;
+	c.stopTime = 10.4f;
 
 	auto mSC = std::make_unique<mySceneControls>(c);
 	mSC->disableWaitForUserPrompt();

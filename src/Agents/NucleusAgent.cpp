@@ -68,6 +68,7 @@ void NucleusAgent::advanceAndBuildIntForces(const float futureGlobalTime) {
 }
 
 void NucleusAgent::collectExtForces() {
+
 	// damping force (aka friction due to the environment,
 	// an ext. force that is independent of other agents)
 	// TRAgen paper, eq. (3)
@@ -123,6 +124,7 @@ void NucleusAgent::collectExtForces() {
 		    proximityPairs_tracks.size()));
 	}
 
+	// ======== CLEAN ABOVE
 	// now, postprocess the proximityPairs, that is, to
 	// convert proximityPairs_toNuclei to forces according to TRAgen rules
 	Vector3d<float> f, g; // tmp vectors
@@ -153,6 +155,7 @@ void NucleusAgent::collectExtForces() {
 				    ftype_repulsive);
 			}
 		} else {
+
 			// collision, pp.distance <= 0
 			// NB: in collision, the other surface is within local volume, so
 			//     the vector local->other actually points in the opposite
@@ -189,6 +192,12 @@ void NucleusAgent::collectExtForces() {
 			// difference of velocities
 			g = static_cast<const NucleusAgent*>(pp.callerHint)
 			        ->getVelocityOfSphere(pp.otherHint);
+
+			report::debugError(fmt::format(
+			    "ID: {}, toID: {}, G: {}, {}, {}", getID(),
+			    static_cast<const NucleusAgent*>(pp.callerHint)->getID(), g.x,
+			    g.y, g.z));
+			// g = 1; // <- FIX :D TODO HONZA ... continue here
 			g -= velocities[pp.localHint];
 
 			if (detailedReportingMode)
@@ -200,15 +209,19 @@ void NucleusAgent::collectExtForces() {
 			// pair
 			f *= dotProduct(f, g); // f is now the projection of g onto f
 			g -= f; // g is now the difference of velocities without the
-			        // component that is parallel with the proximity pair
+			// component that is parallel with the proximity pair
 
 			// TRAgen paper, somewhat eq. (6)
+
 			g *= fstrength_slide_scale * weights[pp.localHint] /
 			     velocity_PersistenceTime;
+
 			// "surface friction coeff" | velocity->force, the same as for
 			// ftype_drive
+
 			forces.emplace_back(g, futureGeometry.centres[pp.localHint],
 			                    pp.localHint, ftype_slide);
+
 #ifndef NDEBUG
 			Officer->reportOverlap(-float(pp.distance));
 #endif
@@ -255,8 +268,7 @@ void NucleusAgent::drawMask(DisplayUnit& du) {
 	// draw spheres
 	for (std::size_t i = 0; i < futureGeometry.getNoOfSpheres(); ++i) {
 		du.DrawPoint(ID, futureGeometry.centres[i],
-		             float(futureGeometry.radii[i]),
-		             color);
+		             float(futureGeometry.radii[i]), color);
 	}
 
 	// velocities -- global debug
@@ -273,8 +285,8 @@ void NucleusAgent::drawMask(DisplayUnit& du) {
 	if (!detailedDrawingMode) {
 		for (const auto& p : proximityPairs_toNuclei)
 			if (p.distance < 0)
-				du.DrawLine(ID | DisplayUnit::DEBUG_BIT,
-						p.localPos, p.otherPos, 0x000000FF);
+				du.DrawLine(ID | DisplayUnit::DEBUG_BIT, p.localPos, p.otherPos,
+				            0x000000FF);
 	}
 }
 
@@ -326,7 +338,8 @@ void NucleusAgent::drawForDebug(DisplayUnit& du) {
 		// magenta lines with trajectory guiding vectors
 		for (const auto& p : proximityPairs_tracks)
 			if (p.distance > 0)
-				du.DrawVector(dID, p.localPos, p.otherPos - p.localPos, 0xFF00FF);
+				du.DrawVector(dID, p.localPos, p.otherPos - p.localPos,
+				              0xFF00FF);
 
 #ifndef NDEBUG
 		// forces:

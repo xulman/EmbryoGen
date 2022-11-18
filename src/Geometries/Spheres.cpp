@@ -6,7 +6,7 @@ void Spheres::getDistance(
     boost::container::small_vector_base<ProximityPair>& l) const {
 	switch (otherGeometry.shapeForm) {
 	case ListOfShapeForms::Spheres:
-		getDistanceToSpheres(dynamic_cast<const Spheres*>(&otherGeometry), l);
+		getDistanceToSpheres(dynamic_cast<const Spheres&>(otherGeometry), l);
 		break;
 	case ListOfShapeForms::Mesh:
 	case ListOfShapeForms::ScalarImg:
@@ -26,12 +26,12 @@ void Spheres::getDistance(
 }
 
 void Spheres::getDistanceToSpheres(
-    const Spheres* otherSpheres,
+    const Spheres& otherSpheres,
    boost::container::small_vector_base<ProximityPair>& l) const {
 	// shortcuts to the otherGeometry's spheres
 	const std::vector<Vector3d<precision_t>>& centresO =
-	    otherSpheres->getCentres();
-	const std::vector<precision_t>& radiiO = otherSpheres->getRadii();
+	    otherSpheres.getCentres();
+	const std::vector<precision_t>& radiiO = otherSpheres.getRadii();
 
 	// for every my sphere: find nearest other sphere
 	for (std::size_t im = 0; im < getNoOfSpheres(); ++im) {
@@ -43,7 +43,7 @@ void Spheres::getDistanceToSpheres(
 		int bestIo = -1;
 		precision_t bestDist = TOOFAR;
 
-		for (std::size_t io = 0; io < otherSpheres->getNoOfSpheres(); ++io) {
+		for (std::size_t io = 0; io < otherSpheres.getNoOfSpheres(); ++io) {
 			// skip calculation for this sphere if it has no radius...
 			if (radiiO[io] == 0)
 				continue;
@@ -59,7 +59,7 @@ void Spheres::getDistanceToSpheres(
 			}
 		}
 
-		// just in case otherSpheres->getNoOfSpheres() is 0...
+		// just in case otherSpheres.getNoOfSpheres() is 0...
 		if (bestIo > -1) {
 			// we have now a shortest distance between 'im' and 'bestIo',
 			// create output ProximityPairs (and note indices of the incident

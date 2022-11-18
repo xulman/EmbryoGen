@@ -38,6 +38,18 @@ class NucleusNSAgent : public NucleusAgent {
 		out += Serialization::toBytes(currTime);
 		out += Serialization::toBytes(incrTime);
 
+		// out += Serialization::toBytes(forces.size());
+		// out += std::as_bytes(std::span(forces));
+
+		out += Serialization::toBytes(accels.size());
+		out += std::as_bytes(std::span(accels));
+
+		out += Serialization::toBytes(velocities.size());
+		out += std::as_bytes(std::span(velocities));
+
+		out += Serialization::toBytes(weights.size());
+		out += std::as_bytes(std::span(weights));
+
 		return out;
 	}
 	virtual agent_class getAgentClass() const override {
@@ -54,11 +66,26 @@ class NucleusNSAgent : public NucleusAgent {
 		auto currTime = extract<float>(bytes);
 		auto incrTime = extract<float>(bytes);
 
+		auto accels_size = extract<std::size_t>(bytes);
+		auto accels = extract_vector<Vector3d<float>>(bytes, accels_size);
+
+		auto velocities_size = extract<std::size_t>(bytes);
+		auto velocities =
+		    extract_vector<Vector3d<float>>(bytes, velocities_size);
+
+		auto weights_size = extract<std::size_t>(bytes);
+		auto weights = extract_vector<float>(bytes, weights_size);
+
 		auto na = std::make_unique<NucleusNSAgent>(
 		    sa->getID(), sa->getAgentType(),
 		    dynamic_cast<const Spheres&>(sa->getGeometry()), currTime,
 		    incrTime);
 		--na->geometry->version;
+
+		na->accels = std::move(accels);
+		na->velocities = std::move(velocities);
+		na->weights = std::move(weights);
+
 		return na;
 	}
 

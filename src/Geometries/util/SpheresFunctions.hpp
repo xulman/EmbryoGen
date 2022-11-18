@@ -782,8 +782,7 @@ class SpheresFunctions {
 		boost::container::small_vector<posShakerPtr, 5> positionShakers;
 		boost::container::small_vector<radiusShakerPtr, 5> radiusShakers;
 
-		// ------------------- task implementation: maintain the layout
-		// -------------------
+		// --------- task implementation: maintain the layout --------------
 	  public:
 		/** given the current state in 'geom' and some new state from the
 		   associated reference geom (the one provided at this object's

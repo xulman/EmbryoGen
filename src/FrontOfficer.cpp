@@ -379,12 +379,14 @@ void FrontOfficer::executeExternals() {
 	// react (unwillingly) to the new geometries... (can run in parallel),
 	// the agents' (external at least!) geometries must not change during this
 	// phase
+
 	for (auto& [_, ag] : agents)
 		ag->collectExtForces();
 
 	waitForAllFOs();
 	// propagate current internal geometries to the exported ones... (can run in
 	// parallel)
+
 	for (auto& [_, ag] : agents) {
 		ag->adjustGeometryByExtForces();
 		ag->publishGeometry();

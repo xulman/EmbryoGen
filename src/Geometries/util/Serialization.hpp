@@ -55,9 +55,8 @@ class Serialization {
 	}
 
 	template <typename T>
-	static std::vector<std::byte> toBytes(T value) {
-		auto bytes = std::as_bytes(std::span<T>{&value, 1});
-		return std::vector(bytes.begin(), bytes.end());
+	static std::span<const std::byte> toBytes(const T& value) {
+		return std::as_bytes(std::span<const T>{&value, 1});
 	}
 
 	// -------------- vectors --------------
