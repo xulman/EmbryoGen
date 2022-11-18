@@ -1,5 +1,7 @@
 # Compiled C++ object files #
 *.o
+src/proto/*pb.cc
+src/proto/*pb.h
 
 # files for static compile: sources
 libs/*gz

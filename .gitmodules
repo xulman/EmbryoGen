@@ -7,3 +7,6 @@
 [submodule "extern/timer"]
 	path = extern/timer
 	url = https://github.com/somik861/timer_help.git
+[submodule "extern/graphics-net-transfers"]
+	path = extern/graphics-net-transfers
+	url = git@github.com:xulman/graphics-net-transfers.git

@@ -243,26 +243,27 @@ set(LIBS ${LIBS} Boost::boost)
 # -----------------------------
 
 # ========= GENERATING PROTO CODE =========
-set(proto_name "protocol")
-set(proto_path "${CMAKE_SOURCE_DIR}/src/proto")
-set(proto_file "${proto_path}/${proto_name}.proto")
+set(proto_name "buckets_with_graphics")
+set(proto_src_path "${CMAKE_SOURCE_DIR}/extern/graphics-net-transfers/protocol_specification")
+set(proto_src_file "${proto_src_path}/${proto_name}.proto")
 
 # this is kind of ugly, but i have not found a better way
 set(grpc_cpp_plugin "${gRPC_DIR}/../../tools/grpc/grpc_cpp_plugin")
 
-set(bin_proto_srcs "${proto_path}/${proto_name}.pb.cc")
-set(bin_proto_hdrs "${proto_path}/${proto_name}.pb.h")
-set(bin_grpc_srcs "${proto_path}/${proto_name}.grpc.pb.cc")
-set(bin_grpc_hdrs "${proto_path}/${proto_name}.grpc.pb.h")
+set(proto_bin_path "${CMAKE_SOURCE_DIR}/src/proto")
+set(bin_proto_srcs "${proto_bin_path}/${proto_name}.pb.cc")
+set(bin_proto_hdrs "${proto_bin_path}/${proto_name}.pb.h")
+set(bin_grpc_srcs "${proto_bin_path}/${proto_name}.grpc.pb.cc")
+set(bin_grpc_hdrs "${proto_bin_path}/${proto_name}.grpc.pb.h")
 
 # generate to binary dir
 add_custom_command(
   OUTPUT "${bin_proto_srcs}" "${bin_proto_hdrs}" "${bin_grpc_srcs}"
          "${bin_grpc_hdrs}" "${src_proto_hdrs}" "${src_grpc_hdrs}"
   COMMAND
-    ${Protobuf_PROTOC_EXECUTABLE} ARGS --grpc_out "${proto_path}" --cpp_out
-    "${proto_path}" --plugin=protoc-gen-grpc="${grpc_cpp_plugin}" -I
-    "${proto_path}" "${proto_file}")
+    ${Protobuf_PROTOC_EXECUTABLE} ARGS --grpc_out "${proto_bin_path}" --cpp_out
+    "${proto_bin_path}" --plugin=protoc-gen-grpc="${grpc_cpp_plugin}" -I
+    "${proto_src_path}" "${proto_src_file}")
 
 add_library(grpc_proto_lib "${bin_grpc_srcs}" "${bin_grpc_hdrs}"
                            "${bin_proto_srcs}" "${bin_proto_hdrs}")
