@@ -250,29 +250,21 @@ void NucleusAgent::collectExtForces() {
 }
 
 void NucleusAgent::drawMask(DisplayUnit& du) {
-	const int color = 2;
-
-	// if not selected: draw cells with no debug bit
-	// if     selected: draw cells as a global debug object
-	int dID = DisplayUnit::firstIdForAgentObjects(ID);
-	int gdID = DisplayUnit::firstIdForSceneDebugObjects() + ID * 40 + 5000;
-	// NB: 'd'ID = is for 'd'rawing, not for 'd'ebug !
+	const int color = 0x0000FF88;
 
 	// draw spheres
 	for (std::size_t i = 0; i < futureGeometry.getNoOfSpheres(); ++i) {
-		du.DrawPoint(detailedDrawingMode ? gdID : dID,
-		             futureGeometry.centres[i], float(futureGeometry.radii[i]),
+		du.DrawPoint(ID, futureGeometry.centres[i],
+		             float(futureGeometry.radii[i]),
 		             color);
-		++dID;
-		++gdID; // just update both counters
 	}
 
 	// velocities -- global debug
-	// for (int i=0; i < futureGeometry.noOfSpheres; ++i)
+	// for (unsigned int i=0; i < futureGeometry.noOfSpheres; ++i)
 	{
-		int i = 0;
-		du.DrawVector(gdID++, futureGeometry.centres[i], velocities[i],
-		              0); // white color
+		unsigned int i = 0;
+		du.DrawVector(ID, futureGeometry.centres[i], velocities[i],
+		              0x00FFFFFF); // white color
 	}
 
 	// red lines with overlapping proximity pairs to nuclei
@@ -281,20 +273,20 @@ void NucleusAgent::drawMask(DisplayUnit& du) {
 	if (!detailedDrawingMode) {
 		for (const auto& p : proximityPairs_toNuclei)
 			if (p.distance < 0)
-				du.DrawLine(gdID++, p.localPos, p.otherPos, 1);
+				du.DrawLine(ID | DisplayUnit::DEBUG_BIT,
+						p.localPos, p.otherPos, 0x000000FF);
 	}
 }
 
 void NucleusAgent::drawForDebug(DisplayUnit& du) {
 	// render only if under inspection
 	if (detailedDrawingMode) {
-		const int color = 2;
-		int dID = DisplayUnit::firstIdForAgentDebugObjects(ID);
+		int dID = this->ID | DisplayUnit::DEBUG_BIT;
 
 		// cell centres connection "line" (green):
 		for (std::size_t i = 1; i < futureGeometry.getNoOfSpheres(); ++i)
-			du.DrawLine(dID++, futureGeometry.centres[i - 1],
-			            futureGeometry.centres[i], color);
+			du.DrawLine(dID, futureGeometry.centres[i - 1],
+			            futureGeometry.centres[i], 0x0000FF00);
 
 		// draw agent's periphery (as blue spheres)
 		// NB: showing the cell outline, that is now updated from the
@@ -312,7 +304,7 @@ void NucleusAgent::drawForDebug(DisplayUnit& du) {
 				// this) sphere
 				if (geometryAlias().collideWithPoint(periPoint, int(S)) == -1) {
 					++periPointCnt;
-					du.DrawPoint(dID++, periPoint, 0.3f, 3);
+					du.DrawPoint(dID, periPoint, 0.3f, 0x000000FF);
 				}
 			}
 		}
@@ -322,40 +314,38 @@ void NucleusAgent::drawForDebug(DisplayUnit& du) {
 		// red lines with overlapping proximity pairs to nuclei
 		for (const auto& p : proximityPairs_toNuclei)
 			if (p.distance < 0)
-				du.DrawLine(dID++, p.localPos, p.otherPos, 1);
+				du.DrawLine(dID, p.localPos, p.otherPos, 0x00FF0000);
 
 		// neighbors:
 		// white line for the most inner spheres, yellow for second most inner
 		// both showing proximity pairs to yolk (shape hinter)
 		for (const auto& p : proximityPairs_toYolk)
 			if (p.localHint < 2)
-				du.DrawLine(dID++, p.localPos, p.otherPos,
-				            (int)(p.localHint * 6));
+				du.DrawLine(dID, p.localPos, p.otherPos, 0);
 
 		// magenta lines with trajectory guiding vectors
 		for (const auto& p : proximityPairs_tracks)
 			if (p.distance > 0)
-				du.DrawVector(dID++, p.localPos, p.otherPos - p.localPos, 5);
+				du.DrawVector(dID, p.localPos, p.otherPos - p.localPos, 0xFF00FF);
 
 #ifndef NDEBUG
 		// forces:
 		for (const auto& f : forcesForDisplay) {
-			int color = 2; // default color: green (for shape hinter)
+			int color = 0x00FF00; // default color: green (for shape hinter)
 			// if      (f.type == ftype_s2s)      color = 4; //cyan
 			// else if (f.type == ftype_drive)    color = 5; //magenta
 			// else if (f.type == ftype_friction) color = 6; //yellow
 			if (f.type == ftype_body)
-				color = 4; // cyan
+				color = 0x00FFFF; // cyan
 			else if (f.type == ftype_repulsive || f.type == ftype_drive)
-				color = 5; // magenta
+				color = 0xFF00FF; // magenta
 			else if (f.type == ftype_slide)
-				color = 6; // yellow
+				color = 0xFFFF00; // yellow
 			else if (f.type == ftype_friction)
-				color = 3; // blue
+				color = 0x0000FF; // blue
 			else if (f.type != ftype_hinter)
-				color = -1; // don't draw
-			if (color > 0)
-				du.DrawVector(dID++, f.base, f, color);
+				color = 0x000000; // black
+			du.DrawVector(dID, f.base, f, color);
 		}
 #endif
 		// velocities:
