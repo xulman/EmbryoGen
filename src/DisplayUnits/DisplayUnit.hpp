@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../util/Vector3d.hpp"
+#include <limits>
 
 /**
  * This class is essentially only a collection of (empty) functions
@@ -63,6 +64,16 @@ class DisplayUnit {
 	   simulation round is over. One can use it to communicate some additional
 	   informative/status message... */
 	virtual void Tick(const std::string&){};
+
+	static constexpr int DEBUG_BIT { std::numeric_limits<const int>::max()
+	                           - (std::numeric_limits<const int>::max() >> 1) };
+	static inline bool shouldShowAsDebug(const int ID) {
+		return ID & DEBUG_BIT;
+	}
+	static inline bool shouldShowAsDebug(const int ID,int* strippedID) {
+		if (strippedID != nullptr) *strippedID = ID & (~DEBUG_BIT);
+		return ID & DEBUG_BIT;
+	}
 
 	/** See docs of AbstractAgent::drawMask() */
 	static inline int firstIdForAgentObjects(const int agentID) {
