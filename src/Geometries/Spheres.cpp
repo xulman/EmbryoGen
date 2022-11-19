@@ -69,7 +69,7 @@ void Spheres::getDistanceToSpheres(
 			//'radius' longer, and offsets the 'centre' point)
 			Vector3d<precision_t> dp = centresO[bestIo] - centres[im];
 			dp.changeToUnitOrZero();
-
+			
 			l.emplace_back(centres[im] + (radii[im] * dp),
 			               centresO[bestIo] - (radiiO[bestIo] * dp), bestDist,
 			               im, bestIo);

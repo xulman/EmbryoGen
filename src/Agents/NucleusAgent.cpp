@@ -97,6 +97,7 @@ void NucleusAgent::collectExtForces() {
 	for (const auto naabb : nearbyAgentBoxes) {
 		const std::string& agentType =
 		    Officer->translateNameIdToAgentName(naabb->nameID);
+
 		// fetch the relevant ShadowAgent only now -- when we really know
 		// that we want this one
 		const ShadowAgent* sa = Officer->getNearbyAgent(naabb->ID);
@@ -124,7 +125,6 @@ void NucleusAgent::collectExtForces() {
 		    proximityPairs_tracks.size()));
 	}
 
-	// ======== CLEAN ABOVE
 	// now, postprocess the proximityPairs, that is, to
 	// convert proximityPairs_toNuclei to forces according to TRAgen rules
 	Vector3d<float> f, g; // tmp vectors
@@ -193,11 +193,6 @@ void NucleusAgent::collectExtForces() {
 			g = static_cast<const NucleusAgent*>(pp.callerHint)
 			        ->getVelocityOfSphere(pp.otherHint);
 
-			report::debugError(fmt::format(
-			    "ID: {}, toID: {}, G: {}, {}, {}", getID(),
-			    static_cast<const NucleusAgent*>(pp.callerHint)->getID(), g.x,
-			    g.y, g.z));
-			// g = 1; // <- FIX :D TODO HONZA ... continue here
 			g -= velocities[pp.localHint];
 
 			if (detailedReportingMode)

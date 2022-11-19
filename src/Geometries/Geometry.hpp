@@ -233,9 +233,9 @@ class Geometry {
 	    between myself and some other agent. A (scaled) ForceVector<precision_t>
 	    can be easily constructed from the points of the ProximityPair.
 	    The discovered ProximityPairs are added to the current vector l. */
-	virtual void
-	getDistance(const Geometry& otherGeometry,
-	            boost::container::small_vector_base<ProximityPair>& l) const = 0;
+	virtual void getDistance(
+	    const Geometry& otherGeometry,
+	    boost::container::small_vector_base<ProximityPair>& l) const = 0;
 
 	/** Calculate and determine proximity and collision pairs, if any,
 	    between myself and some other agent. To facilitate construction
@@ -246,12 +246,15 @@ class Geometry {
 	void getDistance(const Geometry& otherGeometry,
 	                 boost::container::small_vector_base<ProximityPair>& l,
 	                 void* const callerHint) const {
+		boost::container::small_vector<ProximityPair, 20> new_pp;
 		// call the original implementation (that is without callerHint)
-		getDistance(otherGeometry, l);
+		getDistance(otherGeometry, new_pp);
 
 		// scan the newly added items and supply them with the callerHint
-		for (auto& item : l)
+		for (auto& item : new_pp)
 			item.callerHint = callerHint;
+
+		l.insert(l.end(), new_pp.begin(), new_pp.end());
 	}
 
   protected:

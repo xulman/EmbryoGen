@@ -90,8 +90,7 @@ void Scenario_mpiDrosophilaRandom::initializeAgents(FrontOfficer* fo,
                                                     int allParts) {
 
 	auto is_mine = [p, allParts, count = 0]() mutable -> bool {
-		return (count++ % allParts) + 1 == p; // && count % 7 != 3 && count > 300 &&
-		      //  count < 500;
+		return (count++ % allParts) + 1 == p;
 	};
 
 	// stepping in all directions -> influences the final number of nuclei
