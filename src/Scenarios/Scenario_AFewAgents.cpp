@@ -1,11 +1,10 @@
 #include "../Agents/Nucleus4SAgent.hpp"
 #include "../Agents/ShapeHinter.hpp"
-#include "../DisplayUnits/SceneryBufferedDisplayUnit.hpp"
+#include "../DisplayUnits/GrpcDisplayUnit.hpp"
 #include "../Geometries/ScalarImg.hpp"
 #include "../Geometries/Spheres.hpp"
 #include "../util/Vector3d.hpp"
 #include "common/Scenarios.hpp"
-#include <memory>
 
 // no specific Nucleus (or other "prefilled" agent)
 
@@ -18,7 +17,8 @@ void Scenario_AFewAgents::initializeAgents(FrontOfficer* fo, int p, int) {
 	}
 
 	const float radius = 0.4f * params->constants.sceneSize.y;
-	const int howManyToPlace = 6;
+	const int howManyToPlace = this->argc > 2 ? atoi(argv[2]) : 200;
+	//NB: embryogen-theBinary aFewAgents-theScenarionName 50-theFirstParamIsAt_argv[2]
 
 	Vector3d<float> sceneCentre(params->constants.sceneSize);
 	sceneCentre /= 2.0f;
@@ -44,9 +44,10 @@ void Scenario_AFewAgents::initializeAgents(FrontOfficer* fo, int p, int) {
 		s.updateCentre(3, pos + Vector3d<float>(0, 0, +9));
 		s.updateRadius(3, 3.0f);
 
-		fo->startNewAgent(std::make_unique<Nucleus4SAgent>(
-		    fo->getNextAvailAgentID(), "nucleus", s, params->constants.initTime,
-		    params->constants.incrTime));
+		fo->startNewAgent( std::make_unique<Nucleus4SAgent>(
+		    fo->getNextAvailAgentID(), "nucleus", s,
+		    params->constants.initTime,
+		    params->constants.incrTime) );
 	}
 
 	// shadow hinter geometry (micron size and resolution)
@@ -94,12 +95,11 @@ void Scenario_AFewAgents::initializeAgents(FrontOfficer* fo, int p, int) {
 }
 
 void Scenario_AFewAgents::initializeScene() {
-	displays.registerDisplayUnit([]() {
-		return std::make_unique<SceneryBufferedDisplayUnit>("localhost:8765");
-	});
+	displays.registerDisplayUnit(
+	    []() { return std::make_unique<GrpcDisplayUnit>("agents in a ring scenario"); });
+	//displays.registerDisplayUnit( []() { return std::make_unique<ConsoleDisplayUnit>(); });
 }
 
-std::unique_ptr<SceneControls>
-Scenario_AFewAgents::provideSceneControls() const {
+std::unique_ptr<SceneControls> Scenario_AFewAgents::provideSceneControls() const {
 	return std::make_unique<SceneControls>(DefaultSceneControls);
 }
