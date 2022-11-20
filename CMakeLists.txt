@@ -2,9 +2,10 @@
 #
 # Cross platform CMake configure script for 'EmbryoGen' simulator
 #
-# authors: Vladimir Ulman, Pavel Moravec Max Planck Institute of Cell Biology
-# and Genetics (c) 2018 IT4Innovations National Supercomputing Center, VSB-TUO
-# (c) 2020
+# authors: Vladimir Ulman, Jan Juracka, Pavel Moravec
+#          Max Planck Institute of Cell Biology and Genetics (c) 2018
+#          IT4Innovations National Supercomputing Center, VSB-TUO (c) 2020
+#          Centre for Biomedical Image Analysis, FI MUNI (c) 2022
 #
 # ------------------------------------------------------------------------
 # OPTION FOR STATIC BUILD MUST BE SET BEFORE SPECIFYING PROJECT(...)
@@ -20,6 +21,14 @@ endif(BUILD_STATIC)
 
 cmake_minimum_required(VERSION 3.1)
 project(EmbryoGen)
+
+############################################################################
+# Don't forget to integrate with vcpkg (and do remind of using latest compiler because of the std20)
+IF(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+	MESSAGE (WARNING "-------------------------------------\nI'm sure you want to call CMake with -DCMAKE_TOOLCHAIN_FILE=/path/to/vcpkg/scripts/buildsystems/vcpkg.cmake ...and with a _clean_ rebuild\n-------------------------------------")
+	MESSAGE (WARNING "-------------------------------------\nMaybe, you also want to be using some latest C++ compiler, e.g., by setting -DCMAKE_C_COMPILER=/usr/bin/gcc-11 -DCMAKE_CXX_COMPILER=/usr/bin/g++-11\n-------------------------------------")
+ENDIF(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+############################################################################
 
 include(GNUInstallDirs)
 set(CMAKE_VERBOSE_MAKEFILE
