@@ -1,6 +1,6 @@
 #include "../Agents/NucleusNSAgent.hpp"
 #include "../Agents/util/Texture.hpp"
-#include "../DisplayUnits/SceneryBufferedDisplayUnit.hpp"
+#include "../DisplayUnits/GrpcDisplayUnit.hpp"
 #include "../Geometries/Spheres.hpp"
 #include "../Geometries/util/SpheresFunctions.hpp"
 #include "../util/texture/texture.hpp"
@@ -39,22 +39,19 @@ class TetrisNucleus : public NucleusNSAgent, TextureUpdaterNS {
 	*/
 
 	void drawMask(DisplayUnit& du) override {
-		int dID = DisplayUnit::firstIdForAgentObjects(ID);
-		int ldID = DisplayUnit::firstIdForAgentDebugObjects(ID);
-
 		// spheres all green, except: 0th is white, "active" is red
-		du.DrawPoint(dID++, futureGeometry.getCentres()[0],
-		             float(futureGeometry.getRadii()[0]), 0);
+		du.DrawPoint(ID, futureGeometry.getCentres()[0],
+		             float(futureGeometry.getRadii()[0]), 0xFFFFFF);
 		for (std::size_t i = 1; i < futureGeometry.getNoOfSpheres(); ++i)
-			du.DrawPoint(dID++, futureGeometry.getCentres()[i],
+			du.DrawPoint(ID, futureGeometry.getCentres()[i],
 			             float(futureGeometry.getRadii()[i]),
-			             int(i) == activeSphereIdx ? 1 : 2);
+			             int(i) == activeSphereIdx ? 0xFF0000 : 0x00FF00);
 
 		// sphere orientations as local debug, white vectors
 		Vector3d<float> orientVec;
 		for (std::size_t i = 0; i < futureGeometry.getNoOfSpheres(); ++i) {
 			getLocalOrientation(futureGeometry, int(i), orientVec);
-			du.DrawVector(ldID++, futureGeometry.getCentres()[i], orientVec, 0);
+			du.DrawVector(ID|DisplayUnit::DEBUG_BIT, futureGeometry.getCentres()[i], orientVec, 0xFFFFFF);
 		}
 		/*
 		NucleusNSAgent::drawMask(du);
@@ -184,10 +181,10 @@ void Scenario_Tetris::initializeAgents(FrontOfficer* fo, int p, int) {
 				spheres.updateRadius(int(i),
 				                     sRadius + GetRandomUniform(-0.8f, +0.8f));
 
-			fo->startNewAgent(std::make_unique<TetrisNucleus>(
+			fo->startNewAgent( std::make_unique<TetrisNucleus>(
 			    fo->getNextAvailAgentID(), agentName, spheres,
 			    y < 2 ? y + 1 : int(spheres.getNoOfSpheres()) + y - 4,
-			    params->constants.initTime, params->constants.incrTime));
+			    params->constants.initTime, params->constants.incrTime) );
 		}
 
 	// right-most column with 2S
@@ -256,9 +253,9 @@ void Scenario_Tetris::initializeAgents(FrontOfficer* fo, int p, int) {
 		        params.constants.initTime,params.constants.incrTime
 		    ));
 		*/
-		fo->startNewAgent(std::make_unique<TetrisNucleus>(
+		fo->startNewAgent( std::make_unique<TetrisNucleus>(
 		    fo->getNextAvailAgentID(), agentName, manyS, 0,
-		    params->constants.initTime, params->constants.incrTime));
+		    params->constants.initTime, params->constants.incrTime) );
 
 		for (auto v : lineUps)
 			delete v;
@@ -266,9 +263,8 @@ void Scenario_Tetris::initializeAgents(FrontOfficer* fo, int p, int) {
 }
 
 void Scenario_Tetris::initializeScene() {
-	displays.registerDisplayUnit([]() {
-		return std::make_unique<SceneryBufferedDisplayUnit>("localhost:8765");
-	});
+	displays.registerDisplayUnit(
+	    []() { return std::make_unique<GrpcDisplayUnit>("tetris"); });
 	// displays.registerDisplayUnit( [](){ return new
 	// FlightRecorderDisplayUnit("/temp/FR_tetris.txt"); } );
 
