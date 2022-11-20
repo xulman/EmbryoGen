@@ -527,15 +527,12 @@ class Scenario {
 		    Scenario::initializeScene() is called both from Direktor and from
 		    FrontOfficer(s) but the object should not be registered and created!
 		    for the Direktor... */
-		DisplayUnit* registerDisplayUnit(
+		void registerDisplayUnit(
 		    std::function<std::shared_ptr<DisplayUnit>(void)> unitFactory) {
 			if (ctx.amIinFOContext()) {
 				std::shared_ptr<DisplayUnit> ds = unitFactory();
-				auto ptr = ds.get();
 				params.displayUnit.RegisterUnit(std::move(ds));
-				return ptr;
-			} else
-				return nullptr;
+			}
 		}
 
 		/** registers an already existing DisplayUnit */
@@ -543,7 +540,7 @@ class Scenario {
 			if (ctx.amIinFOContext())
 				params.displayUnit.RegisterUnit(ds);
 		}
-		void unregisterDisplayUnit(DisplayUnit* ds) {
+		void unregisterDisplayUnit(std::shared_ptr<DisplayUnit>& ds) {
 			if (ctx.amIinFOContext())
 				params.displayUnit.UnregisterUnit(ds);
 		}

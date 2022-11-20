@@ -56,18 +56,25 @@ class BroadcasterDisplayUnit : public DisplayUnit {
 			du->Tick(msg);
 	}
 
-	/// variants with pointer params
+	/** notes:
+	 * 1) extends ownership of the provided DisplayUnit also into this unit;
+	 * 2) owing to the (intentional) copy-construction of the parameter 'ds',
+	 *    repetitive insertions of otherwise the same unit will be stored
+	 *    multiple times;
+	 * 3) as a consequence, it permits to insert the same unit multiple times */
 	void RegisterUnit(std::shared_ptr<DisplayUnit> ds) {
 		displayUnits.push_back(std::move(ds));
+		//NB: std::move() is not necessary here, albeit functional:
+		//a new instance of shared_ptr is created inside the vector, this instance
+		//is filled with 'ds' content (increasing ownership number), currently
+		//std::move() will clear the 'ds' but the scope would "kill" 'ds' anyway
+		//soon -- both decreases the ownership number, so the effect is the same
 	}
 
-	void UnregisterUnit(std::shared_ptr<DisplayUnit> ds) {
-		UnregisterUnit(ds.get());
-	}
-
-	void UnregisterUnit(DisplayUnit* ds) {
+	/** note: removes "only" the first occurrence of the provided DisplayUnit */
+	void UnregisterUnit(std::shared_ptr<DisplayUnit>& ds) {
 		for (std::size_t i = 0; i < displayUnits.size(); ++i) {
-			if (displayUnits[i].get() == ds) {
+			if (displayUnits[i].get() == ds.get()) {
 				displayUnits.erase(displayUnits.begin() + i);
 				return;
 			}
