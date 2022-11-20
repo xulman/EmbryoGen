@@ -77,11 +77,10 @@ class GrowableNucleusRand : public NucleusNSAgent {
 
 	void drawMask(DisplayUnit& du) override {
 		NucleusAgent::drawMask(du);
-		int dID = DisplayUnit::firstIdForAgentObjects(ID);
 		for (std::size_t i = futureGeometry.getNoOfSpheres();
 		     i < presentationGeom.getNoOfSpheres(); ++i)
-			du.DrawPoint(dID + int(i) + 5, presentationGeom.getCentres()[i],
-			             float(presentationGeom.getRadii()[i]), 3);
+			du.DrawPoint(ID, presentationGeom.getCentres()[i],
+			             float(presentationGeom.getRadii()[i]), 0x0000FF);
 	}
 };
 
@@ -169,17 +168,26 @@ void Scenario_DrosophilaRandom::initializeAgents(FrontOfficer* fo, int p, int) {
 
 void Scenario_DrosophilaRandom::initializeScene() {
 
+	/*
 	displays.registerDisplayUnit([]() {
 		auto unit =
 		    std::make_unique<SceneryBufferedDisplayUnit>("localhost:8765");
 		unit->InitBuffers();
 		return unit;
 	});
+	*/
 
 	displays.registerDisplayUnit([]() {
 		return std::make_unique<FlightRecorderDisplayUnit>(
 		    "/temp/FR_randomDro.txt");
 	});
+
+	displays.registerDisplayUnit([]() {
+		auto du = std::make_unique<GrpcDisplayUnit>("EG: random drosophila");
+		//du->startShowingOnlyCurrentGraphics();
+		return du;
+	});
+	// disks.enableImgMaskTIFFs();
 }
 
 class mySceneControls : public SceneControls {
