@@ -244,8 +244,8 @@ void NucleusAgent::collectExtForces() {
 #ifndef NDEBUG
 	// append forces to forcesForDisplay, make a copy (push_back, not
 	// emplace_back)!
-	for (const auto& f : forces)
-		forcesForDisplay.push_back(f);
+	for (const auto& force : forces)
+		forcesForDisplay.push_back(force);
 #endif
 }
 

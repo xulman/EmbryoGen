@@ -70,8 +70,7 @@ class SceneControls {
 		                     {false});
 	}
 
-	/** a subset of truly (that is, syntactically enforced) constant scene
-	 * parameters */
+	/** a subset of truly (that is, syntactically enforced) constant scene parameters */
 	const config::scenario::ControlConstants constants;
 
 	/** output image into which the simulation will be iteratively
@@ -195,12 +194,11 @@ class SceneControls {
 	};
 
   protected:
-	/** internal (private) memory of the input of setOutputImgSpecs() for the
-	 * enableProducingOutput() */
+	/** internal (private) memory of the input of setOutputImgSpecs()
+	    for the enableProducingOutput() */
 	Vector3d<size_t> lastUsedImgSize;
 
-	std::map<std::string, /*DAIS::ImagesAsEventsSender**/ int*>
-	    transferChannels;
+	std::map<std::string, /*DAIS::ImagesAsEventsSender**/ int*> transferChannels;
 	std::set<std::string> imgMaskBroadcast;
 	std::set<std::string> imgPhantomBroadcast;
 	std::set<std::string> imgOpticsBroadcast;
@@ -235,7 +233,7 @@ class SceneControls {
 
   public:
 	/** util method to setup all output images at once, disables all of them for
-	   the output, and hence does not allocate memory for the images */
+	    the output, and hence does not allocate memory for the images */
 	void setOutputImgSpecs(const Vector3d<float>& imgOffsetInMicrons,
 	                       const Vector3d<float>& imgSizeInMicrons) {
 		setOutputImgSpecs(imgOffsetInMicrons, imgSizeInMicrons,
@@ -243,17 +241,16 @@ class SceneControls {
 	}
 
 	/** util method to setup all output images at once, disables all of them for
-	   the output, and hence does not allocate memory for the images */
+	    the output, and hence does not allocate memory for the images */
 	void
 	setOutputImgSpecs(const Vector3d<float>& imgOffsetInMicrons,
 	                  const Vector3d<float>& imgSizeInMicrons,
 	                  const Vector3d<float>& imgResolutionInPixelsPerMicron) {
 		// sanity checks:
-		if (!imgSizeInMicrons.elemIsGreaterThan(Vector3d<float>(0)))
+		if (!imgSizeInMicrons.elemIsGreaterThan( Vector3d<float>(0) ))
 			throw report::rtError("image dimensions (size) cannot be zero or "
 			                      "negative along any axis");
-		if (!imgResolutionInPixelsPerMicron.elemIsGreaterThan(
-		        Vector3d<float>(0)))
+		if (!imgResolutionInPixelsPerMicron.elemIsGreaterThan( Vector3d<float>(0) ))
 			throw report::rtError(
 			    "image resolution cannot be zero or negative along any axis");
 
@@ -342,8 +339,8 @@ class SceneControls {
 /** an alias to a convenience shared instance with default SceneControls,
     which serves multiple purposes: easier code in scenarios that don't need
     special SceneControls, and access to individual attributes holding the
-   default values (useful when cherry-pick changing only some of the const'ed
-   attributes by using the SceneControls(...) c'tor */
+    default values (useful when cherry-pick changing only some of the const'ed
+    attributes by using the SceneControls(...) c'tor */
 static SceneControls DefaultSceneControls;
 
 /**
@@ -403,11 +400,9 @@ class Scenario {
 	    regularly called in this->updateScene() */
 	std::unique_ptr<SceneControls> params;
 
-	/** CLI params that might be considered by some of the initialize...()
-	 * methods */
+	/** CLI params that might be considered by some of the initialize...() methods */
 	int argc = 0;
-	/** CLI params that might be considered by some of the initialize...()
-	 * methods */
+	/** CLI params that might be considered by some of the initialize...() methods */
 	const char** argv;
 
   public:
@@ -424,14 +419,14 @@ class Scenario {
 	const SceneControls& seeCurrentControls() const { return *params; }
 
 	/** A callback to ask this scenario to set up itself, except for
-	   instantiating its agents (that shall happen inside initializeAgents()).
-	   This method is called from the Direktor and all FOs. */
+	    instantiating its agents (that shall happen inside initializeAgents()).
+	    This method is called from the Direktor and all FOs. */
 	virtual void initializeScene() = 0;
 
 	/** Creates and initializes the relevant portion of the agents.
 	    Method may consider the command-line parameters via this->argc and
-	   this->argv. The scenario will be divided into 'noOfAllFractions' and this
-	   call is responsible only for the portion given by this 'fractionNumber'.
+	    this->argv. The scenario will be divided into 'noOfAllFractions' and this
+	    call is responsible only for the portion given by this 'fractionNumber'.
 	    This method is called only from all FOs, not from the Direktor.
 	    Note that the fractionNumber goes from 1 till noOfAllFractions. */
 	virtual void initializeAgents(FrontOfficer* fo,
@@ -456,43 +451,46 @@ class Scenario {
 	    not from any FO. */
 	virtual void initializePhaseIIandIII();
 
-	/** A callback to ask this scenario to realize the digital phantom to final
-	    image conversion, acting on the images from this->params according to
-	    their "enabled" states (see SceneControls::isProducingOutput()).
+	/**
+	 * A callback to ask this scenario to realize the digital phantom to final
+	 * image conversion, acting on the images from this->params according to
+	 * their "enabled" states (see SceneControls::isProducingOutput()).
 
-	    The idea was:
-	    Initializes (allocates, sets resolution, etc.) and populates (fills
-	   content) the params.imgFinal, which will be saved as the final testing
-	   image, based on the current content of the phantom and/or optics and/or
-	   mask image.
+	 * The idea was:
+	 * Initializes (allocates, sets resolution, etc.) and populates (fills
+	 * content) the params.imgFinal, which will be saved as the final testing
+	 * image, based on the current content of the phantom and/or optics and/or
+	 * mask image.
 
-	    Depending on the scenario used, some of these (phantom, optics, mask)
-	   images might be empty (voxels are zero), or their image size may be
-	   actually be zero. This really depends on what agents are used and how
-	   they are designed. Which is why this method has became "virtual" and
-	   over-ridable in every scenario to suit its needs.
+	 * Depending on the scenario used, some of these (phantom, optics, mask)
+	 * images might be empty (voxels are zero), or their image size may be
+	 * actually be zero. This really depends on what agents are used and how
+	 * they are designed. Which is why this method has became "virtual" and
+	 * over-ridable in every scenario to suit its needs.
 
-	    The content of the Simulation::imgPhantom and/or imgOptics images can be
-	    altered in this method because the said variables shall not be used
-	   anymore in the (just finishing) simulation round. Don't change
-	   Simulation::imgMask because this one is used for computation of the SNR.
+	 * The content of the Simulation::imgPhantom and/or imgOptics images can be
+	 * altered in this method because the said variables shall not be used
+	 * anymore in the (just finishing) simulation round. Don't change
+	 * Simulation::imgMask because this one is used for computation of the SNR.
 	 */
 	virtual void doPhaseIIandIII();
 
   private:
-	/** Context in which this particular scenario object is executed. It is
-	   actually merely a symbolic value that shall be positive whenever this
-	   object is living inside some FrontOfficer, and that shall be -1 whenever
-	   this object is living inside the Direktor.
+	/**
+	 * Context in which this particular scenario object is executed. It is
+	 * actually merely a symbolic value that shall be positive whenever this
+	 * object is living inside some FrontOfficer, and that shall be -1 whenever
+	 * this object is living inside the Direktor.
 
-	    Scenarios shall, nevertheless, make no difference in their "behaviour"
-	   (how they are defined, e.g. values of constants, or how they are changing
-	    themselves via this->updateScene()). The notion of the context is
-	   defined here only for cases where it really makes sense to behave
-	   differently, such as, creating an image transfer object on Direktor only
-	   (when no images shall be transferred on FrontOfficer), or connecting to
-	   SimViewer only from one particular process (be it Direktor, or one
-	   particular FrontOfficer). */
+	 * Scenarios shall, nevertheless, make no difference in their "behaviour"
+	 * (how they are defined, e.g. values of constants, or how they are changing
+	 * themselves via this->updateScene()). The notion of the context is
+	 * defined here only for cases where it really makes sense to behave
+	 * differently, such as, creating an image transfer object on Direktor only
+	 * (when no images shall be transferred on FrontOfficer), or connecting to
+	 * SimViewer only from one particular process (be it Direktor, or one
+	 * particular FrontOfficer).
+	 */
 	int contextID = -1;
 
 	/** Internal method to be executed only during a FrontOfficer construction
@@ -507,9 +505,9 @@ class Scenario {
 	void declareDirektorContext() { contextID = -1; }
 
   protected:
-	bool amIinDirektorContext() { return contextID == -1; }
-	bool amIinFOContext() { return contextID != -1; }
-	int getFOContextID() { return contextID; }
+	bool amIinDirektorContext() const { return contextID == -1; }
+	bool amIinFOContext() const { return contextID != -1; }
+	int getFOContextID() const { return contextID; }
 
   public:
 	struct Displays {
@@ -520,15 +518,15 @@ class Scenario {
 
 		//----- display units -----
 		/** registers DisplayUnit that gets created on-demand and returns the
-		   created DisplayUnit or NULL (if there was no demand to create one);
+		    created DisplayUnit or NULL (if there was no demand to create one);
 		    use this from Scenario::initializeScene()
 
 		    if initializeScene() would host a code 'registerDisplayUnit( new
-		   someDisplayUnit() )' then this unit is created always prior every
-		   call but is registered only sometimes, note that
-		   Scenario::initializeScene() is called both from Direktor and from
-		   FrontOfficer(s) but the object should not be registered and created!
-		   for the Direktor... */
+		    someDisplayUnit() )' then this unit is created always prior every
+		    call but is registered only sometimes, note that
+		    Scenario::initializeScene() is called both from Direktor and from
+		    FrontOfficer(s) but the object should not be registered and created!
+		    for the Direktor... */
 		DisplayUnit* registerDisplayUnit(
 		    std::function<std::shared_ptr<DisplayUnit>(void)> unitFactory) {
 			if (ctx.amIinFOContext()) {
@@ -540,9 +538,8 @@ class Scenario {
 				return nullptr;
 		}
 
-		/** registers already existing DisplayUnit;
-		    don't use from Scenario::initializeScene() */
-		void registerDisplayUnit(std::shared_ptr<DisplayUnit> ds) {
+		/** registers an already existing DisplayUnit */
+		void registerDisplayUnit(std::shared_ptr<DisplayUnit>& ds) {
 			if (ctx.amIinFOContext())
 				params.displayUnit.RegisterUnit(ds);
 		}
