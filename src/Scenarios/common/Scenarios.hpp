@@ -87,9 +87,8 @@ class Scenarios {
 	/** list of system-recognized scenarios, actually simulations */
 	std::set<std::string> availableScenarios;
 
-	/** the scenario/simulation that is going to be used */
+	/** the scenario/simulation name (with its CLI params) that is going to be used */
 	std::string scenario_name;
-
 	int scenario_argc;
 	const char** scenario_argv;
 
@@ -122,15 +121,15 @@ class Scenarios {
 
 	void printAvailableScenarios() const {
 		report::message("Currently known scenarios are: ", {false});
-		for (const std::string& scenario_name : availableScenarios)
-			report::message(scenario_name, {false});
+		for (const std::string& scenarioName : availableScenarios)
+			report::message(scenarioName, {false});
 		report::debugMessage("", {false});
 	}
 
   public:
 	/** find the right scenario to initialize the simulation with */
 	Scenarios(int argc, const char** argv) {
-		/** load available scenarios **/
+		// only enlists all available scenarios (notice it cannot match any)
 		getNewScenario(std::string());
 
 		if (argc == 1) {
@@ -142,7 +141,7 @@ class Scenarios {
 			throw report::rtError("Scenario not selected");
 		} else {
 			scenario_name = argv[1];
-			if (!getNewScenario(scenario_name)) {
+			if( !availableScenarios.contains(scenario_name) ) {
 				report::message(
 				    fmt::format("Couldn't match command-line scenario '{}' to "
 				                "any known scenario.",
@@ -151,11 +150,10 @@ class Scenarios {
 				throw report::rtError("Unmatched scenario.");
 			}
 		}
-		// pass the CLI params inside, to be
-		// possibly considered by Scenario::initialize...() methods
+		// remember the CLI params to pass them later inside created scenario(s)
+		// ('cause these are possibly considered by Scenario::initialize...() methods)
 		scenario_argc = argc;
 		scenario_argv = argv;
-		// ->setArgs(argc, argv);
 	}
 
 	ScenarioUPTR getScenario() {
